@@ -496,6 +496,16 @@
         .replace(/[^a-z0-9\s]/g," ")
         .split(/\s+/)
         .filter(w=>w.length>=4);
+
+      const result = await fetch(
+    'https://api.vercel.com/v6/deployments',
+    {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${process.env.curl"https://api.vercel.com/v6/deployments" -H "Authorization: Bearer TOKEN"}`,
+        }
+    }
+);
     }
 
     function topKeywords(text, limit=8){
