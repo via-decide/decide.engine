@@ -417,6 +417,69 @@
     .subpage-card-icon { font-size: 1.1rem; }
     .subpage-card-title { font-family: var(--font-display); font-size: .78rem; font-weight: 800; color: var(--text-main); }
     .subpage-card-desc { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); letter-spacing: .5px; }
+
+  /* ============================
+   MOBILE UI FIX PATCH
+   ============================ */
+
+/* Use modern viewport units to avoid mobile address-bar clipping */
+html, body {
+  height: 100%;
+}
+body{
+  min-height: 100dvh; /* dynamic viewport height */
+}
+
+/* Make wrap height reliable */
+:root{
+  --topbarH: 60px;
+}
+.topbar{ min-height: var(--topbarH); }
+
+/* ✅ Mobile overrides */
+@media (max-width: 900px){
+  /* Allow page to scroll on mobile; fixed+hidden breaks layout */
+  body{
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sticky works better than fixed on mobile browsers */
+  .topbar{
+    position: sticky;
+    top: 0;
+  }
+
+  /* Don't lock the main layout to a fixed inset box */
+  .wrap{
+    position: relative;
+    inset: auto;
+    padding-top: 12px;
+    padding-bottom: 18px;
+    height: auto;
+    min-height: calc(100dvh - var(--topbarH));
+  }
+
+  /* Make game area and canvas more phone-friendly */
+  .game{
+    min-height: 360px;
+  }
+  canvas{
+    width: 100%;
+    height: auto;          /* let it scale naturally */
+    max-height: none;      /* avoid clipping */
+    aspect-ratio: 980 / 680; /* preserve look */
+  }
+
+  /* Overlay should still fill visible area */
+  .overlay{
+    position: absolute;
+  }
+}
+
+/* Optional: prevent accidental horizontal scroll */
+body{ overflow-x: hidden; }
+  
   </style>
 </head>
 <body>
