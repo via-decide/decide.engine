@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>ViaTV Game — Universal Remote</title>
+  <meta name="theme-color" content="#04080f" />
+  <style>
+    :root{
+      --bg:#04080f;
+      --card:#0d1825;
+      --card2:#08111f;
+      --text:#e8edf5;
+      --dim:#8fa3bb;
+      --saffron:#ff9933;
+      --go:#00d68f;
+      --danger:#ff4d4d;
+      --border: rgba(255,255,255,0.10);
+      --shadow: 0 14px 40px rgba(0,0,0,.5);
+      --r: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    body{
+      overflow:hidden;
+      /* TV-safe spacing */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .topbar{
+      position:fixed; left:0; right:0; top:0;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(6,12,22,.98), rgba(6,12,22,.74));
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      z-index:20;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:2px; min-width: 0;
+    }
+    .brand .t{
+      font-weight:900; letter-spacing:-.02em;
+      font-size: 14px; text-transform: uppercase;
+      color: var(--saffron);
+      white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .brand .s{
+      font-size:12px; color: var(--dim);
+      white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .stats{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip{
+      background: rgba(13,24,37,.9);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--dim);
+      display:flex; gap:8px; align-items:center;
+      box-shadow: 0 10px 26px rgba(0,0,0,.35);
+    }
+    .chip b{color: var(--text); font-weight:800}
+    .chip .ok{color: var(--go)}
+    .chip .bad{color: var(--danger)}
+    .wrap{
+      position:fixed; inset:60px 0 0 0;
+      display:grid;
+      grid-template-columns: minmax(280px, 420px) 1fr;
+      gap: 14px;
+      padding: 14px;
+      align-items: stretch;
+    }
+    @media (max-width: 900px){
+      .wrap{grid-template-columns: 1fr; inset:60px 0 0 0;}
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(13,24,37,.92), rgba(8,17,31,.92));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex; flex-direction:column;
+      min-height: 260px;
+    }
+    .panel .ph{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+    }
+    .panel .ph .h{
+      font-weight:900;
+      letter-spacing:.06em;
+      font-size: 12px;
+      text-transform:uppercase;
+      color: rgba(255,255,255,.85);
+    }
+    .panel .ph .hint{
+      font-size:12px; color: var(--dim);
+      white-space: nowrap;
+    }
+    .panel .pb{padding: 12px 14px 14px; flex:1; overflow:auto;}
+    .help{
+      font-size: 14px; line-height: 1.55;
+      color: var(--dim);
+    }
+    .help strong{color: var(--text)}
+    .controls{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 12px 12px;
+      border-radius: 14px;
+      font-weight: 900;
+      letter-spacing:.02em;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+      text-align:center;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn.primary{
+      background: rgba(255,153,51,.14);
+      border-color: rgba(255,153,51,.45);
+      color: var(--saffron);
+    }
+    .btn.good{
+      background: rgba(0,214,143,.12);
+      border-color: rgba(0,214,143,.40);
+      color: var(--go);
+    }
+    .btn.danger{
+      background: rgba(255,77,77,.12);
+      border-color: rgba(255,77,77,.35);
+      color: #ffb3b3;
+    }
+    .btn:focus-visible{
+      outline: 3px solid rgba(255,153,51,.35);
+      outline-offset: 2px;
+    }
+
+    .game{
+      position:relative;
+      background:
+        radial-gradient(900px 600px at 70% 20%, rgba(255,153,51,.10), transparent 60%),
+        radial-gradient(800px 500px at 20% 80%, rgba(0,214,143,.08), transparent 60%),
+        linear-gradient(180deg, rgba(13,24,37,.88), rgba(8,17,31,.90));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height: 360px;
+    }
+    canvas{
+      width: min(980px, 92vw);
+      height: min(680px, 56vh);
+      max-height: 70vh;
+      display:block;
+    }
+    .overlay{
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(4,8,15,.72);
+      backdrop-filter: blur(8px);
+      opacity:0; pointer-events:none;
+      transition: opacity .18s ease;
+      padding: 18px;
+      text-align:center;
+    }
+    .overlay.show{opacity:1; pointer-events:auto;}
+    .modal{
+      max-width: 620px;
+      width: 100%;
+      background: rgba(13,24,37,.95);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 20px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+    }
+    .modal h2{
+      margin:0 0 8px;
+      font-size: 20px;
+      letter-spacing: -.02em;
+      color: var(--saffron);
+    }
+    .modal p{margin:0 0 12px; color: var(--dim); line-height:1.6}
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+      margin-top: 10px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom: 14px;
+      background: rgba(13,24,37,.95);
+      border: 1px solid rgba(0,214,143,.35);
+      color: var(--go);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity:0;
+      transition: opacity .22s ease;
+      z-index:30;
+      box-shadow: 0 10px 26px rgba(0,0,0,.45);
+      pointer-events:none;
+    }
+    .toast.show{opacity:1}
+
+    /* Make focus/selection visible on TV */
+    .focus-ring{
+      position:absolute;
+      pointer-events:none;
+      border: 3px solid rgba(255,153,51,.55);
+      border-radius: 14px;
+      box-shadow: 0 0 0 4px rgba(255,153,51,.15);
+      opacity:0;
+      transition: opacity .10s ease;
+    }
+    .focus-ring.show{opacity:1}
+  </style>
+</head>
+
+<body tabindex="0" id="page">
+  <div class="topbar">
+    <div class="brand">
+      <div class="t">ViaTV — Remote Game</div>
+      <div class="s">Works with Fire TV, Android TV, Samsung (Tizen), LG (webOS), browser + keyboard</div>
+    </div>
+    <div class="stats">
+      <div class="chip">Score: <b id="score">0</b></div>
+      <div class="chip">Tokens: <b id="tokens">0</b></div>
+      <div class="chip">Level: <b id="level">1</b></div>
+      <div class="chip">Lives: <b id="lives">3</b></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="panel" aria-label="Game panel">
+      <div class="ph">
+        <div class="h">How to play</div>
+        <div class="hint">⬆⬇⬅➡ + OK / Enter</div>
+      </div>
+      <div class="pb">
+        <div class="help">
+          Help your niece win! Move the <strong>Explorer</strong> (🟦) and collect all <strong>Gems</strong> (💎).
+          Avoid <strong>Traps</strong> (🟥). Clear a level to unlock the next battlefield.
+          <br><br>
+          <strong>Remote controls</strong> (universal):
+          <ul>
+            <li><strong>Arrows / D-Pad</strong>: Move</li>
+            <li><strong>OK / Enter / Select</strong>: “Dash” (quick move) or confirm menus</li>
+            <li><strong>Back / Escape / Return</strong>: Pause / close menu</li>
+          </ul>
+        </div>
+
+        <div class="controls">
+          <button class="btn primary" id="btnStart">START / RESUME</button>
+          <button class="btn" id="btnPause">PAUSE</button>
+          <button class="btn good" id="btnNew">NEW GAME</button>
+          <button class="btn danger" id="btnReset">RESET STATS</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="game" aria-label="Game field">
+      <canvas id="c" width="980" height="680"></canvas>
+
+      <div class="overlay show" id="overlay">
+        <div class="modal" role="dialog" aria-modal="true">
+          <h2 id="ovTitle">Ready?</h2>
+          <p id="ovBody">Use the remote arrows to move. Press OK/Enter to dash. Collect gems to win each level.</p>
+          <div class="row">
+            <button class="btn primary" id="ovPlay">▶ Play</button>
+            <button class="btn" id="ovHow">Controls</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="focus-ring" id="focusRing"></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">OK</div>
+
+<script>
+/* =========================================================
+   UNIVERSAL REMOTE KEY HANDLING (Fire/Android/Samsung/LG)
+   - Handles e.key, e.code, and many legacy keyCodes.
+   - Keeps focus so TV browser doesn’t “lose” key events.
+========================================================= */
+
+const KEYMAP = {
+  UP:    new Set(["ArrowUp","Up","KeyW","w","W"]),
+  DOWN:  new Set(["ArrowDown","Down","KeyS","s","S"]),
+  LEFT:  new Set(["ArrowLeft","Left","KeyA","a","A"]),
+  RIGHT: new Set(["ArrowRight","Right","KeyD","d","D"]),
+
+  // OK / Select / Enter (varies by platform)
+  OK:    new Set(["Enter","Select","OK","NumpadEnter"," "]),
+
+  // Back / Return / Exit (varies by TV)
+  BACK:  new Set(["Escape","Esc","Backspace","GoBack","BrowserBack","XF86Back"]),
+};
+
+// Legacy TV keyCodes (common)
+const LEGACY = {
+  // arrows
+  37:"LEFT", 38:"UP", 39:"RIGHT", 40:"DOWN",
+  // enter / ok
+  13:"OK", 32:"OK",
+  // back
+  8:"BACK", 27:"BACK",
+
+  // Samsung Tizen often uses 10009 for BACK
+  10009:"BACK",
+
+  // LG webOS often uses 461 for BACK
+  461:"BACK",
+
+  // Some remotes use 65385 / 65383 (older browsers)
+  65362:"UP", 65364:"DOWN", 65361:"LEFT", 65363:"RIGHT",
+};
+
+// Normalize one key event into an action: UP/DOWN/LEFT/RIGHT/OK/BACK or null
+function normalizeKey(e){
+  const k = e.key || "";
+  const code = e.code || "";
+  const kc = (typeof e.keyCode === "number") ? e.keyCode : null;
+
+  // 1) legacy keyCode
+  if (kc !== null && LEGACY[kc]) return LEGACY[kc];
+
+  // 2) modern key
+  for (const [action,set] of Object.entries(KEYMAP)){
+    if (set.has(k) || set.has(code)) return action;
+  }
+
+  // 3) some TV browsers put "Unidentified" but have code
+  if (k === "Unidentified" && (code.includes("Arrow"))) {
+    if (code === "ArrowUp") return "UP";
+    if (code === "ArrowDown") return "DOWN";
+    if (code === "ArrowLeft") return "LEFT";
+    if (code === "ArrowRight") return "RIGHT";
+  }
+  return null;
+}
+
+// Focus keep-alive: many TV browsers require a focused element
+const page = document.getElementById("page");
+function keepFocus(){
+  try{ page.focus({preventScroll:true}); }catch(_){}
+}
+setInterval(keepFocus, 900);
+window.addEventListener("load", keepFocus);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) keepFocus(); });
+
+// =========================================================
+// GAME: “Gem Run” (kid-friendly, remote-first)
+// =========================================================
+
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+const ui = {
+  score: document.getElementById("score"),
+  tokens: document.getElementById("tokens"),
+  level: document.getElementById("level"),
+  lives: document.getElementById("lives"),
+  overlay: document.getElementById("overlay"),
+  ovTitle: document.getElementById("ovTitle"),
+  ovBody: document.getElementById("ovBody"),
+  ovPlay: document.getElementById("ovPlay"),
+  ovHow: document.getElementById("ovHow"),
+  toast: document.getElementById("toast"),
+};
+
+const btnStart = document.getElementById("btnStart");
+const btnPause = document.getElementById("btnPause");
+const btnNew = document.getElementById("btnNew");
+const btnReset = document.getElementById("btnReset");
+
+function toast(msg, good=true){
+  ui.toast.textContent = msg;
+  ui.toast.style.borderColor = good ? "rgba(0,214,143,.35)" : "rgba(255,77,77,.35)";
+  ui.toast.style.color = good ? "var(--go)" : "#ffb3b3";
+  ui.toast.classList.add("show");
+  setTimeout(()=>ui.toast.classList.remove("show"), 1300);
+}
+
+const LS_KEY = "viatv_gemrun_v1";
+const state = {
+  running: false,
+  paused: true,
+  level: 1,
+  score: 0,
+  tokens: 0,
+  lives: 3,
+  streak: 0,
+};
+
+function save(){
+  localStorage.setItem(LS_KEY, JSON.stringify({
+    level: state.level,
+    score: state.score,
+    tokens: state.tokens,
+    lives: state.lives
+  }));
+}
+function load(){
+  try{
+    const x = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (!x) return;
+    state.level = clampInt(x.level, 1, 99);
+    state.score = clampInt(x.score, 0, 9999999);
+    state.tokens = clampInt(x.tokens, 0, 9999999);
+    state.lives = clampInt(x.lives, 0, 9);
+  }catch(_){}
+}
+function resetStats(){
+  localStorage.removeItem(LS_KEY);
+  state.level=1; state.score=0; state.tokens=0; state.lives=3;
+  toast("RESET DONE");
+  syncUI();
+  newLevel(true);
+}
+function syncUI(){
+  ui.score.textContent = state.score;
+  ui.tokens.textContent = state.tokens;
+  ui.level.textContent = state.level;
+  ui.lives.textContent = state.lives;
+}
+
+function clampInt(n, a, b){
+  n = Number(n);
+  if (!Number.isFinite(n)) return a;
+  return Math.max(a, Math.min(b, Math.floor(n)));
+}
+
+// Board
+const GRID_W = 13;
+const GRID_H = 9;
+const CELL = 64;        // drawn size
+const PAD = 34;         // margin around board
+
+// Entities
+const player = { x: 1, y: 1, dash: 0, inv: 0 };
+let gems = [];
+let traps = [];
+let walls = [];
+
+function rng(seed){
+  // tiny seeded RNG so level is stable-ish
+  let t = seed >>> 0;
+  return function(){
+    t += 0x6D2B79F5;
+    let x = t;
+    x = Math.imul(x ^ (x >>> 15), x | 1);
+    x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function isBlocked(x,y){
+  if (x<0||y<0||x>=GRID_W||y>=GRID_H) return true;
+  for (const w of walls) if (w.x===x && w.y===y) return true;
+  return false;
+}
+
+function spawnLevel(n){
+  const r = rng(1000 + n*777);
+  // reset
+  gems = [];
+  traps = [];
+  walls = [];
+
+  // borders as implicit by isBlocked check (not needed)
+  // random walls
+  const wallCount = Math.min(22, 8 + n*2);
+  for(let i=0;i<wallCount;i++){
+    const x = clampInt(r()*GRID_W, 0, GRID_W-1);
+    const y = clampInt(r()*GRID_H, 0, GRID_H-1);
+    // keep start area open
+    if ((x<=2 && y<=2) || (x>=GRID_W-3 && y>=GRID_H-3)) continue;
+    if (!walls.some(w=>w.x===x && w.y===y)) walls.push({x,y});
+  }
+
+  // player start
+  player.x=1; player.y=1; player.dash=0; player.inv=0;
+
+  // gems
+  const gemCount = Math.min(10, 4 + Math.floor(n/2));
+  let tries = 0;
+  while(gems.length<gemCount && tries++<400){
+    const x = clampInt(r()*GRID_W, 0, GRID_W-1);
+    const y = clampInt(r()*GRID_H, 0, GRID_H-1);
+    if (isBlocked(x,y)) continue;
+    if ((x===player.x && y===player.y)) continue;
+    if (!gems.some(g=>g.x===x && g.y===y)) gems.push({x,y, t: r()*1000});
+  }
+
+  // traps
+  const trapCount = Math.min(9, 2 + Math.floor(n/2));
+  tries = 0;
+  while(traps.length<trapCount && tries++<400){
+    const x = clampInt(r()*GRID_W, 0, GRID_W-1);
+    const y = clampInt(r()*GRID_H, 0, GRID_H-1);
+    if (isBlocked(x,y)) continue;
+    if ((x===player.x && y===player.y)) continue;
+    if (gems.some(g=>g.x===x && g.y===y)) continue;
+    if (!traps.some(t=>t.x===x && t.y===y)) traps.push({x,y, pulse: r()*10});
+  }
+}
+
+function newLevel(hardReset=false){
+  if (hardReset){
+    state.level = 1;
+    state.lives = 3;
+    state.score = 0;
+    state.tokens = 0;
+  }
+  spawnLevel(state.level);
+  syncUI();
+  save();
+}
+
+function winLevel(){
+  // reward model (simple token economy):
+  // base tokens + bonus by lives + small score
+  const reward = 10 + Math.min(10, state.level) + (state.lives*2);
+  state.tokens += reward;
+  state.score += 100 + (state.level*15);
+  state.level += 1;
+
+  toast(`LEVEL CLEARED! +${reward} tokens`, true);
+  syncUI(); save();
+  spawnLevel(state.level);
+}
+
+function loseLife(){
+  if (player.inv>0) return;
+  state.lives -= 1;
+  state.score = Math.max(0, state.score - 35);
+  player.inv = 60; // ~1s invulnerability
+  toast("TRAP! -1 life", false);
+  if (state.lives <= 0){
+    state.lives = 0;
+    state.running = false;
+    state.paused = true;
+    showOverlay("Game Over", "Press Play / OK to start again. You can also press NEW GAME.");
+  }
+  syncUI(); save();
+}
+
+function showOverlay(title, body){
+  ui.ovTitle.textContent = title;
+  ui.ovBody.textContent = body;
+  ui.overlay.classList.add("show");
+  // focus the Play button so OK/Enter works
+  setTimeout(()=>ui.ovPlay.focus?.(), 50);
+}
+function hideOverlay(){
+  ui.overlay.classList.remove("show");
+  keepFocus();
+}
+
+// =========================================================
+// INPUT (Remote + click/touch)
+// =========================================================
+
+let lastMoveAt = 0;
+
+function tryMove(dx,dy, isDash=false){
+  if (!state.running || state.paused) return;
+
+  const now = performance.now();
+  const cooldown = isDash ? 90 : 120; // remote repeat protection
+  if (now - lastMoveAt < cooldown) return;
+  lastMoveAt = now;
+
+  const steps = isDash ? 2 : 1;
+  for (let s=0;s<steps;s++){
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    if (isBlocked(nx,ny)) break;
+    player.x = nx; player.y = ny;
+    handleCell();
+  }
+}
+
+function dash(){
+  if (!state.running || state.paused) return;
+  // dash in last direction if available; if not, do nothing
+  if (lastDir.dx===0 && lastDir.dy===0) return;
+  tryMove(lastDir.dx, lastDir.dy, true);
+}
+
+function togglePause(){
+  if (!state.running){
+    startGame();
+    return;
+  }
+  state.paused = !state.paused;
+  if (state.paused){
+    showOverlay("Paused", "Press Play / OK to resume. Back/Escape also toggles pause.");
+  } else {
+    hideOverlay();
+    toast("RESUMED");
+  }
+}
+
+function startGame(){
+  if (state.lives <= 0){
+    state.level = 1; state.lives = 3; state.score = 0; // restart fresh on game over
+  }
+  state.running = true;
+  state.paused = false;
+  hideOverlay();
+  toast("GO!");
+}
+
+const lastDir = {dx:0,dy:0};
+
+document.addEventListener("keydown", (e) => {
+  const action = normalizeKey(e);
+
+  // Stop TV/browser from scrolling / triggering UI
+  if (action) e.preventDefault();
+
+  // Overlay shortcuts
+  if (ui.overlay.classList.contains("show")){
+    if (action === "OK"){
+      startGame();
+      return;
+    }
+    if (action === "BACK"){
+      // close overlay = resume if running
+      if (state.running && state.paused) {
+        state.paused = false;
+        hideOverlay();
+      }
+      return;
+    }
+  }
+
+  switch(action){
+    case "UP":   lastDir.dx=0; lastDir.dy=-1; tryMove(0,-1,false); break;
+    case "DOWN": lastDir.dx=0; lastDir.dy= 1; tryMove(0, 1,false); break;
+    case "LEFT": lastDir.dx=-1;lastDir.dy= 0; tryMove(-1,0,false); break;
+    case "RIGHT":lastDir.dx= 1;lastDir.dy= 0; tryMove( 1,0,false); break;
+    case "OK":
+      // OK does dash in-game; also starts/resumes if paused
+      if (!state.running || state.paused) startGame();
+      else dash();
+      break;
+    case "BACK":
+      togglePause();
+      break;
+    default:
+      // no-op
+  }
+}, { passive:false });
+
+// Mouse/touch support (optional)
+canvas.addEventListener("pointerdown", (e) => {
+  // tap/click near player to dash toward that direction
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  const {bx,by} = boardOrigin();
+  const px = bx + player.x*CELL + CELL/2;
+  const py = by + player.y*CELL + CELL/2;
+  const dx = mx - px;
+  const dy = my - py;
+  if (Math.abs(dx) > Math.abs(dy)){
+    lastDir.dx = dx>0 ? 1 : -1; lastDir.dy = 0;
+  } else {
+    lastDir.dy = dy>0 ? 1 : -1; lastDir.dx = 0;
+  }
+  if (!state.running || state.paused) startGame(); else dash();
+});
+
+// Buttons
+btnStart.onclick = () => startGame();
+btnPause.onclick = () => togglePause();
+btnNew.onclick = () => { state.level=1; state.lives=3; state.score=0; state.tokens=0; state.running=true; state.paused=false; newLevel(); hideOverlay(); toast("NEW GAME"); };
+btnReset.onclick = () => resetStats();
+
+ui.ovPlay.onclick = () => startGame();
+ui.ovHow.onclick = () => toast("Arrows move • OK dashes • Back pauses", true);
+
+// =========================================================
+// RENDER
+// =========================================================
+
+function boardOrigin(){
+  const bw = GRID_W * CELL;
+  const bh = GRID_H * CELL;
+  const bx = Math.floor((canvas.width  - bw) / 2);
+  const by = Math.floor((canvas.height - bh) / 2);
+  return {bx,by,bw,bh};
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // background grid glow
+  const grd = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+  grd.addColorStop(0,"rgba(255,153,51,.06)");
+  grd.addColorStop(0.5,"rgba(0,214,143,.05)");
+  grd.addColorStop(1,"rgba(59,130,246,.05)");
+  ctx.fillStyle = grd;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  const {bx,by,bw,bh} = boardOrigin();
+
+  // board
+  roundRect(bx-14, by-14, bw+28, bh+28, 22, "rgba(13,24,37,.75)", "rgba(255,255,255,.10)");
+  // subtle inner
+  roundRect(bx-8, by-8, bw+16, bh+16, 18, "rgba(8,17,31,.55)", "rgba(255,255,255,.06)");
+
+  // cells
+  for(let y=0;y<GRID_H;y++){
+    for(let x=0;x<GRID_W;x++){
+      const px = bx + x*CELL;
+      const py = by + y*CELL;
+      const isWall = walls.some(w=>w.x===x && w.y===y);
+      const fill = isWall ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.10)";
+      const stroke = isWall ? "rgba(255,153,51,.20)" : "rgba(255,255,255,.08)";
+      hexCell(px, py, CELL, fill, stroke);
+    }
+  }
+
+  // gems
+  for (const g of gems){
+    const px = bx + g.x*CELL + CELL/2;
+    const py = by + g.y*CELL + CELL/2;
+    const bob = Math.sin((performance.now()/220) + g.t) * 4;
+    drawGem(px, py + bob);
+  }
+
+  // traps
+  for (const t of traps){
+    const px = bx + t.x*CELL + CELL/2;
+    const py = by + t.y*CELL + CELL/2;
+    const pulse = 0.35 + (Math.sin(performance.now()/180 + t.pulse)*0.15);
+    drawTrap(px, py, pulse);
+  }
+
+  // player
+  drawPlayer(bx + player.x*CELL + CELL/2, by + player.y*CELL + CELL/2);
+
+  // UI hint (small)
+  ctx.fillStyle = "rgba(255,255,255,.60)";
+  ctx.font = "14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Arrows: move  •  OK/Enter: dash  •  Back: pause", 22, canvas.height - 24);
+
+  // invulnerability flicker
+  if (player.inv>0) player.inv--;
+  requestAnimationFrame(draw);
+}
+
+function roundRect(x,y,w,h,r, fill, stroke){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function hexCell(x,y,size, fill, stroke){
+  // draw a hex outline inside the cell, for a “battlefield” look
+  const cx = x + size/2;
+  const cy = y + size/2;
+  const r = size * 0.42;
+  ctx.beginPath();
+  for(let i=0;i<6;i++){
+    const a = (Math.PI/3)*i - Math.PI/6;
+    const px = cx + r*Math.cos(a);
+    const py = cy + r*Math.sin(a);
+    if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawGem(x,y){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(Math.sin(performance.now()/600)*0.12);
+
+  ctx.beginPath();
+  ctx.moveTo(0,-18);
+  ctx.lineTo(14,-6);
+  ctx.lineTo(10,16);
+  ctx.lineTo(-10,16);
+  ctx.lineTo(-14,-6);
+  ctx.closePath();
+
+  const g = ctx.createLinearGradient(-12,-12,12,12);
+  g.addColorStop(0,"rgba(255,153,51,.95)");
+  g.addColorStop(0.55,"rgba(0,214,143,.95)");
+  g.addColorStop(1,"rgba(59,130,246,.95)");
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,.35)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawTrap(x,y,p){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.beginPath();
+  ctx.arc(0,0,18,0,Math.PI*2);
+  ctx.fillStyle = `rgba(255,77,77,${p})`;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,77,77,.65)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // spikes
+  ctx.strokeStyle = "rgba(255,77,77,.9)";
+  ctx.lineWidth = 2;
+  for(let i=0;i<8;i++){
+    const a = (Math.PI*2/8)*i;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*8, Math.sin(a)*8);
+    ctx.lineTo(Math.cos(a)*26, Math.sin(a)*26);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPlayer(x,y){
+  const flicker = (player.inv>0 && Math.floor(performance.now()/90)%2===0);
+  if (flicker) return;
+
+  ctx.save();
+  ctx.translate(x,y);
+
+  // body
+  ctx.beginPath();
+  ctx.roundRect(-18,-18,36,36,10);
+  ctx.fillStyle = "rgba(59,130,246,.88)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,.35)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // eyes
+  ctx.fillStyle = "rgba(0,0,0,.45)";
+  ctx.beginPath(); ctx.arc(-6,-4,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 6,-4,3,0,Math.PI*2); ctx.fill();
+
+  // smile
+  ctx.strokeStyle = "rgba(0,0,0,.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0,4,8,0,Math.PI,false);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// handle interactions on current cell
+function handleCell(){
+  // gem pickup
+  const gi = gems.findIndex(g=>g.x===player.x && g.y===player.y);
+  if (gi >= 0){
+    gems.splice(gi,1);
+    state.score += 25;
+    state.tokens += 2;
+    toast("+GEM +2 tokens");
+    syncUI(); save();
+    if (gems.length === 0) winLevel();
+  }
+  // trap hit
+  if (traps.some(t=>t.x===player.x && t.y===player.y)){
+    loseLife();
+  }
+}
+
+// polyfill for roundRect on older browsers
+if (!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    r = Math.min(r, w/2, h/2);
+    this.beginPath();
+    this.moveTo(x+r,y);
+    this.arcTo(x+w,y,x+w,y+h,r);
+    this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);
+    this.arcTo(x,y,x+w,y,r);
+    this.closePath();
+    return this;
+  }
+}
+
+// =========================================================
+// INIT
+// =========================================================
+function boot(){
+  load();
+  syncUI();
+  newLevel(false);
+  state.running = false;
+  state.paused = true;
+  showOverlay("Ready?", "Use remote arrows to move. Press OK/Enter to dash. Back/Escape pauses.");
+  draw();
+}
+boot();
+</script>
+</body>
+</html>
