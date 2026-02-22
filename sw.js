@@ -17,7 +17,7 @@ const URLS_TO_CACHE = [
   './ONDC-demo.html',
   './PromptAlchemy.html',
   './StudentResearch.html',
-  './SwipeOS?.html'
+  './SwipeOS%3F.html'
 ];
 
 // 1. Install Event: Pre-caches the core files
