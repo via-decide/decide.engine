@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>decide.service | Repair Decision → WhatsApp Routing</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --saffron:#FF9933;
+      --green:#138808;
+      --blue:#000080;
+      --bg:#04080f;
+      --bg2:#060c16;
+      --card:#0d1825;
+      --muted:#8fa3bb;
+      --text:#e8edf5;
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 10px 28px rgba(0,0,0,0.45);
+      --mono:'Space Mono', monospace;
+      --disp:'Syne', sans-serif;
+      --body:'Noto Sans', sans-serif;
+      --ok:#00d68f;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --wa:#25D366;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:var(--body);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(255,153,51,0.14), transparent 55%),
+                  radial-gradient(900px 500px at 90% 0%, rgba(0,214,143,0.10), transparent 60%),
+                  linear-gradient(180deg, var(--bg), #02040a);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+    .tricolor{
+      height:4px;
+      background: linear-gradient(90deg, var(--saffron) 33.33%, #fff 33.33%, #fff 66.66%, var(--green) 66.66%);
+      position:sticky; top:0; z-index:20;
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 14px 90px;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding: 14px 12px;
+      position:sticky; top:4px; z-index:10;
+      background: rgba(6,12,22,0.82);
+      border:1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      margin: 14px 0 14px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:3px;
+      min-width:0;
+    }
+    .brand .logo{
+      font-family:var(--disp);
+      font-weight:900;
+      letter-spacing:-.04em;
+      font-size: 1.15rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .logo .a{color:var(--saffron)}
+    .logo .b{color:#fff}
+    .logo .dot{color:var(--ok)}
+    .brand .sub{
+      font-family:var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.8px;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .badgeRow{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .badge{
+      font-family:var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.4px;
+      text-transform:uppercase;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background: rgba(255,255,255,0.03);
+      white-space:nowrap;
+    }
+    .badge.ind{border-color: rgba(255,153,51,0.4); color: var(--saffron)}
+    .badge.wa{border-color: rgba(37,211,102,0.45); color: #7CFFB1}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border:1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute; left:0; right:0; top:0; height:2px;
+      background: linear-gradient(90deg, rgba(255,153,51,0.9), rgba(255,255,255,0.0), rgba(19,136,8,0.7));
+      opacity:.65;
+    }
+    .kicker{
+      font-family:var(--mono);
+      font-size:.58rem;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color: rgba(255,153,51,0.95);
+      margin-bottom: 10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .pulse{
+      width:7px;height:7px;border-radius:50%;
+      background: var(--ok);
+      box-shadow: 0 0 0 rgba(0,214,143,0.5);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{transform:scale(1); box-shadow:0 0 0 0 rgba(0,214,143,0.35)}
+      50%{transform:scale(1.45); box-shadow:0 0 0 10px rgba(0,214,143,0)}
+    }
+    h1{
+      font-family:var(--disp);
+      font-weight:900;
+      letter-spacing:-.03em;
+      font-size: clamp(1.35rem, 3.4vw, 2.2rem);
+      line-height:1.05;
+      margin-bottom:10px;
+      color: var(--saffron);
+    }
+    p.desc{
+      color: var(--muted);
+      line-height:1.7;
+      font-size:.92rem;
+      margin-bottom: 14px;
+    }
+    .stepper{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin: 6px 0 10px;
+    }
+    .stepDot{
+      width:28px;height:28px;border-radius: 12px;
+      border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--mono);
+      font-size:.7rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+    .stepDot.active{
+      border-color: rgba(255,153,51,0.55);
+      color: var(--saffron);
+      background: rgba(255,153,51,0.10);
+    }
+    .stepDot.done{
+      border-color: rgba(0,214,143,0.45);
+      color: var(--ok);
+      background: rgba(0,214,143,0.08);
+    }
+    .stepLabel{
+      font-family:var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.4px;
+      text-transform:uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-left:6px;
+    }
+    .formRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 520px){
+      .formRow{grid-template-columns:1fr}
+    }
+    label{
+      display:block;
+      font-family:var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      color: rgba(255,255,255,0.5);
+      margin: 0 0 6px;
+    }
+    input, select, textarea{
+      width:100%;
+      background: rgba(4,8,15,0.9);
+      border:1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 12px;
+      outline:none;
+      font-size: .95rem;
+      font-family: var(--body);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(255,153,51,0.5);
+      box-shadow: 0 0 0 3px rgba(255,153,51,0.10);
+    }
+    textarea{min-height: 110px; resize: vertical; line-height:1.6}
+    .chips{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top: 10px;
+    }
+    .chip{
+      font-family:var(--mono);
+      font-size:.58rem;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      padding: 6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .chip.on{
+      border-color: rgba(0,214,143,0.45);
+      color: var(--ok);
+      background: rgba(0,214,143,0.08);
+    }
+    .btnRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 520px){ .btnRow{grid-template-columns:1fr} }
+    button{
+      width:100%;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: var(--disp);
+      letter-spacing:.6px;
+      font-weight: 800;
+      cursor:pointer;
+      transition: transform .08s ease, opacity .15s ease, box-shadow .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{transform:scale(.98); opacity:.92}
+    button.primary{
+      background: rgba(255,153,51,0.12);
+      border-color: rgba(255,153,51,0.5);
+      color: var(--saffron);
+    }
+    button.primary:hover{box-shadow: 0 0 18px rgba(255,153,51,0.14)}
+    button.good{
+      background: rgba(0,214,143,0.10);
+      border-color: rgba(0,214,143,0.45);
+      color: var(--ok);
+    }
+    button.good:hover{box-shadow: 0 0 18px rgba(0,214,143,0.12)}
+    button.wa{
+      background: rgba(37,211,102,0.12);
+      border-color: rgba(37,211,102,0.55);
+      color: #7CFFB1;
+    }
+    button.wa:hover{box-shadow: 0 0 18px rgba(37,211,102,0.14)}
+    button.muted{color: var(--muted)}
+    button.danger{
+      background: rgba(248,113,113,0.10);
+      border-color: rgba(248,113,113,0.4);
+      color: #fca5a5;
+    }
+
+    .sideCardTitle{
+      font-family: var(--mono);
+      font-size:.62rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom:10px;
+    }
+    .mini{
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .kv{
+      background: rgba(4,8,15,0.75);
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .kv .k{
+      font-family: var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.6px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 6px;
+    }
+    .kv .v{
+      font-size:.92rem;
+      color: rgba(255,255,255,0.85);
+      line-height:1.55;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .riskRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .pill{
+      font-family: var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.3px;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+    .pill.ok{border-color: rgba(0,214,143,0.45); color: var(--ok); background: rgba(0,214,143,0.08)}
+    .pill.warn{border-color: rgba(251,191,36,0.55); color: var(--warn); background: rgba(251,191,36,0.08)}
+    .pill.bad{border-color: rgba(251,113,133,0.55); color: var(--bad); background: rgba(251,113,133,0.08)}
+    .divider{
+      height:1px;
+      background: rgba(255,255,255,0.06);
+      margin: 12px 0;
+    }
+
+    /* Modal */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.58);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      z-index:50;
+      padding: 14px;
+    }
+    .overlay.open{display:flex}
+    .modal{
+      width:min(860px, 100%);
+      background: rgba(6,12,22,0.98);
+      border:1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.65);
+      overflow:hidden;
+      transform: translateY(12px);
+      animation: up .2s ease forwards;
+    }
+    @keyframes up{to{transform: translateY(0)}}
+    .modalTop{
+      padding: 14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .modalTop .t{
+      font-family: var(--disp);
+      font-weight: 900;
+      letter-spacing:-.02em;
+      color: var(--saffron);
+      font-size: 1.05rem;
+    }
+    .modalBody{
+      padding: 14px 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 860px){
+      .modalBody{grid-template-columns:1fr}
+    }
+    .hint{
+      font-size: .86rem;
+      color: var(--muted);
+      line-height:1.6;
+      margin-top: 8px;
+    }
+    .monoSmall{
+      font-family: var(--mono);
+      font-size:.58rem;
+      letter-spacing:1.6px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-top: 6px;
+    }
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(13,24,37,0.95);
+      border: 1px solid rgba(0,214,143,0.4);
+      color: var(--ok);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: .62rem;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .2s ease;
+      z-index: 60;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+      white-space: nowrap;
+    }
+    .toast.on{opacity:1}
+
+    /* Small footer text */
+    .foot{
+      margin-top: 12px;
+      font-family: var(--mono);
+      font-size: .55rem;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .linklike{
+      color: rgba(255,153,51,0.9);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255,153,51,0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="tricolor"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo"><span class="a">decide</span><span class="b">.service</span><span class="dot">.</span><span class="b">repair</span></div>
+        <div class="sub">Decision → Structured Intent → WhatsApp Execution</div>
+      </div>
+      <div class="badgeRow">
+        <div class="badge ind">🇮🇳 Constraint-first</div>
+        <div class="badge wa">WhatsApp Router</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Main Flow -->
+      <section class="card" id="flowCard">
+        <div class="kicker"><span class="pulse"></span>UX FLOW</div>
+        <h1>Repair Decision → WhatsApp</h1>
+        <p class="desc">
+          Fill the steps. This tool generates a <b>structured message</b> (device, symptoms, likely cause, cost range, urgency, warranty)
+          and redirects to a selected provider via WhatsApp with <b>pre-filled intent</b>.
+        </p>
+
+        <div class="stepper" id="stepper"></div>
+
+        <div id="stepArea"><!-- step content rendered here --></div>
+
+        <div class="foot">
+          <span>Local-only · No server required</span>
+          <span><a class="linklike" href="#" onclick="resetAll();return false;">Reset</a></span>
+        </div>
+      </section>
+
+      <!-- Live Summary / Routing -->
+      <aside class="card" id="summaryCard">
+        <div class="sideCardTitle">Live Decision Summary</div>
+
+        <div class="mini">
+          <div class="kv">
+            <div class="k">Decision Snapshot</div>
+            <div class="v" id="snapText">Complete Step 1 to start.</div>
+            <div class="riskRow" id="riskRow"></div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Generated WhatsApp Message</div>
+            <div class="v" id="waPreview">—</div>
+            <div class="divider"></div>
+            <button class="wa" id="btnReview" onclick="openReviewModal()" disabled>Review & Send on WhatsApp</button>
+            <div class="hint">A confirmation step appears before redirecting. You can edit the message.</div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Providers (Menu Logic)</div>
+            <div class="v" id="providerList">Pick category in Step 4.</div>
+            <div class="divider"></div>
+            <button class="muted" onclick="openProviderEditor()">Edit Provider Numbers</button>
+            <div class="monoSmall">You can map 4 options → 4 WhatsApp numbers.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="overlay" id="overlay" onclick="closeModalIfBackdrop(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Review WhatsApp message">
+      <div class="modalTop">
+        <div class="t">Confirm summary to share</div>
+        <button class="danger" style="width:auto;padding:10px 12px" onclick="closeModal()">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="kv">
+          <div class="k">Selected Provider</div>
+          <div class="v" id="modalProvider">—</div>
+          <div class="divider"></div>
+          <div class="k">WhatsApp Number</div>
+          <div class="v" id="modalNumber">—</div>
+          <div class="divider"></div>
+          <div class="k">Notes</div>
+          <div class="v" id="modalNotes" style="color:rgba(255,255,255,0.75)">Your structured intent improves quote accuracy and reduces fraud.</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Editable Message (will be prefilled in WhatsApp)</div>
+          <textarea id="modalMessage" spellcheck="false"></textarea>
+          <div class="btnRow">
+            <button class="good" onclick="copyMessage()">Copy</button>
+            <button class="wa" onclick="sendWhatsApp()">Open WhatsApp</button>
+          </div>
+          <div class="hint">
+            Tip: If WhatsApp blocks very long messages, shorten “Summary” lines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Provider Editor Modal (reuses overlay) -->
+  <div class="overlay" id="provOverlay" onclick="closeProvIfBackdrop(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Edit providers">
+      <div class="modalTop">
+        <div class="t">Provider Routing Settings</div>
+        <button class="danger" style="width:auto;padding:10px 12px" onclick="closeProviderEditor()">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="kv">
+          <div class="k">How it works</div>
+          <div class="v" style="color:rgba(255,255,255,0.8)">
+            You can route to different repair partners via WhatsApp:
+            <br><br>
+            1) Doorstep Repair<br>
+            2) Service Center<br>
+            3) Data-Sensitive Repair<br>
+            4) Budget Local Option
+            <br><br>
+            Each option has a WhatsApp number. These are stored in your browser (localStorage).
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Edit WhatsApp Numbers</div>
+          <div class="formRow" style="margin-top:0">
+            <div>
+              <label>Doorstep Repair</label>
+              <input id="p_doorstep" placeholder="e.g. 916351537770" />
+            </div>
+            <div>
+              <label>Service Center</label>
+              <input id="p_service" placeholder="e.g. 91XXXXXXXXXX" />
+            </div>
+            <div>
+              <label>Data-Sensitive Repair</label>
+              <input id="p_data" placeholder="e.g. 91XXXXXXXXXX" />
+            </div>
+            <div>
+              <label>Budget Local Option</label>
+              <input id="p_budget" placeholder="e.g. 91XXXXXXXXXX" />
+            </div>
+          </div>
+          <div class="btnRow">
+            <button class="primary" onclick="saveProviders()">Save</button>
+            <button class="muted" onclick="resetProviders()">Reset Defaults</button>
+          </div>
+          <div class="monoSmall">Numbers should be digits only. Include country code (91...).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────
+    // State
+    // ─────────────────────────────────────────────────────────
+    const STORAGE_KEY = "decide_service_repair_v1";
+    const PROVIDER_KEY = "decide_service_repair_providers_v1";
+
+    const DEFAULT_PROVIDERS = {
+      doorstep: { label: "Doorstep Repair", number: "916351537770", risk: "Medium", repeatRiskPct: 18 },
+      service:  { label: "Service Center", number: "", risk: "Low", repeatRiskPct: 10 },
+      data:     { label: "Data-Sensitive Repair", number: "", risk: "Low", repeatRiskPct: 8 },
+      budget:   { label: "Budget Local Option", number: "", risk: "High", repeatRiskPct: 26 }
+    };
+
+    const STEPS = [
+      { id: 1, name: "Device",        label: "Device details" },
+      { id: 2, name: "Symptoms",      label: "Symptoms & condition" },
+      { id: 3, name: "Constraints",   label: "Constraints" },
+      { id: 4, name: "Routing",       label: "Choose provider path" },
+      { id: 5, name: "Review",        label: "Review & send" }
+    ];
+
+    let state = {
+      step: 1,
+      deviceBrand: "",
+      deviceModel: "",
+      storage: "",
+      purchaseYear: "",
+      condition: "Good",
+      symptoms: [],
+      customSymptoms: "",
+      urgency: "Within 3 days",
+      warrantyRequired: "Yes",
+      budget: "₹1000–₹3000",
+      dataSensitive: "No",
+      location: "",
+      preferredMode: "Doorstep Repair",
+      extraNotes: "",
+      diagnosis: { cause: "", probability: 0, costMin: 0, costMax: 0, risk: "Medium" }
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────
+    const $ = (id) => document.getElementById(id);
+
+    let toastTimer = null;
+    function toast(msg){
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>t.classList.remove("on"), 2200);
+    }
+
+    function safeText(x){ return (x ?? "").toString().trim(); }
+
+    function encodeWA(text){
+      return encodeURIComponent(text);
+    }
+
+    function onlyDigits(x){
+      return safeText(x).replace(/[^\d]/g,"");
+    }
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(raw){
+          const parsed = JSON.parse(raw);
+          state = { ...state, ...parsed };
+        }
+      }catch(e){}
+    }
+
+    function saveState(){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }catch(e){}
+    }
+
+    function loadProviders(){
+      try{
+        const raw = localStorage.getItem(PROVIDER_KEY);
+        if(raw){
+          const p = JSON.parse(raw);
+          return { ...DEFAULT_PROVIDERS, ...p };
+        }
+      }catch(e){}
+      return { ...DEFAULT_PROVIDERS };
+    }
+
+    function saveProvidersToStorage(p){
+      try{
+        localStorage.setItem(PROVIDER_KEY, JSON.stringify(p));
+      }catch(e){}
+    }
+
+    // Simple diagnosis engine (rule-of-thumb) — replace later with your own scoring model
+    function computeDiagnosis(){
+      const sy = state.symptoms.slice();
+      const custom = safeText(state.customSymptoms);
+      const all = (sy.join(" ") + " " + custom).toLowerCase();
+
+      let cause = "General inspection required";
+      let prob = 52;
+      let costMin = 800;
+      let costMax = 2500;
+
+      if(all.includes("battery") || all.includes("drain") || all.includes("overheat")){
+        cause = "Battery degradation / power IC check";
+        prob = 68;
+        costMin = 1800;
+        costMax = 4500;
+      }
+      if(all.includes("screen") || all.includes("display") || all.includes("touch")){
+        cause = "Display / touch panel issue";
+        prob = 72;
+        costMin = 1800;
+        costMax = 9000;
+      }
+      if(all.includes("speaker") || all.includes("mic") || all.includes("audio")){
+        cause = "Audio component / flex / board inspection";
+        prob = 63;
+        costMin = 1200;
+        costMax = 4000;
+      }
+      if(all.includes("water") || all.includes("liquid")){
+        cause = "Liquid damage (risk: corrosion)";
+        prob = 78;
+        costMin = 2000;
+        costMax = 12000;
+      }
+
+      // Adjust by constraints
+      if(state.dataSensitive === "Yes"){
+        prob = clamp(prob + 5, 45, 90);
+      }
+      if(state.condition === "Poor"){
+        costMax = Math.round(costMax * 1.25);
+      }
+      if(state.condition === "Excellent"){
+        costMax = Math.round(costMax * 0.95);
+      }
+
+      // Risk pill tied to routing + data
+      let risk = "Medium";
+      if(state.preferredMode === "Budget Local Option") risk = "High";
+      if(state.preferredMode === "Data-Sensitive Repair") risk = "Low";
+      if(state.preferredMode === "Service Center") risk = "Low";
+
+      state.diagnosis = { cause, probability: prob, costMin, costMax, risk };
+      saveState();
+    }
+
+    function currencyINR(n){
+      try{
+        return "₹" + Number(n).toLocaleString("en-IN");
+      }catch(e){
+        return "₹" + n;
+      }
+    }
+
+    function buildSnapshot(){
+      const brand = safeText(state.deviceBrand);
+      const model = safeText(state.deviceModel);
+      const storage = safeText(state.storage);
+      const yr = safeText(state.purchaseYear);
+      const cond = safeText(state.condition);
+
+      const sym = state.symptoms.length ? state.symptoms.join(", ") : "—";
+      const extra = safeText(state.customSymptoms);
+
+      const d = state.diagnosis;
+
+      return [
+        `Device: ${[brand, model, storage].filter(Boolean).join(" ").trim() || "—"}`,
+        `Purchase Year: ${yr || "—"}  |  Condition: ${cond || "—"}`,
+        `Symptoms: ${sym}${extra ? " + " + extra : ""}`,
+        `Likely Cause: ${d.cause} (${d.probability}% confidence)`,
+        `Expected Cost Range: ${currencyINR(d.costMin)} – ${currencyINR(d.costMax)}`,
+        `Urgency: ${state.urgency}  |  Warranty: ${state.warrantyRequired}`,
+        `Mode: ${state.preferredMode}`
+      ].join("\n");
+    }
+
+    function buildWhatsAppMessage(selectedProviderLabel){
+      const brand = safeText(state.deviceBrand);
+      const model = safeText(state.deviceModel);
+      const storage = safeText(state.storage);
+      const yr = safeText(state.purchaseYear);
+      const cond = safeText(state.condition);
+
+      const sym = state.symptoms.length ? state.symptoms.join(", ") : "—";
+      const extra = safeText(state.customSymptoms);
+      const location = safeText(state.location);
+      const notes = safeText(state.extraNotes);
+
+      const d = state.diagnosis;
+
+      const lines = [];
+      lines.push("Hello,");
+      lines.push("");
+      lines.push("I am contacting via Decide.Service (repair routing).");
+      lines.push("");
+      if(selectedProviderLabel) lines.push(`Selected Provider Path: ${selectedProviderLabel}`);
+      lines.push("");
+      lines.push(`Device: ${[brand, model].filter(Boolean).join(" ").trim() || "—"}${storage ? " (" + storage + ")" : ""}`);
+      lines.push(`Purchase Year: ${yr || "—"}`);
+      lines.push(`Condition: ${cond || "—"}`);
+      if(location) lines.push(`Location: ${location}`);
+      lines.push("");
+      lines.push("Symptoms:");
+      lines.push(`- ${sym}${extra ? " + " + extra : ""}`);
+      lines.push("");
+      lines.push("Likely Cause:");
+      lines.push(`- ${d.cause} (${d.probability}% probability)`);
+      lines.push("");
+      lines.push("Expected Repair Cost Range:");
+      lines.push(`- ${currencyINR(d.costMin)} – ${currencyINR(d.costMax)}`);
+      lines.push("");
+      lines.push(`Urgency: ${state.urgency}`);
+      lines.push(`Warranty Required: ${state.warrantyRequired}`);
+      lines.push(`Data Sensitive: ${state.dataSensitive}`);
+      lines.push("");
+      lines.push("Please confirm:");
+      lines.push("1) Exact quote");
+      lines.push("2) Turnaround time");
+      lines.push("3) Warranty duration");
+      lines.push("4) Parts authenticity (original/OEM/aftermarket)");
+      if(notes){
+        lines.push("");
+        lines.push("Extra Notes:");
+        lines.push(`- ${notes}`);
+      }
+      lines.push("");
+      lines.push("Thank you.");
+
+      return lines.join("\n");
+    }
+
+    function riskPill(risk){
+      const r = (risk||"Medium").toLowerCase();
+      if(r.includes("low")) return `<span class="pill ok">Risk: Low</span>`;
+      if(r.includes("high")) return `<span class="pill bad">Risk: High</span>`;
+      return `<span class="pill warn">Risk: Medium</span>`;
+    }
+
+    function setStep(n){
+      state.step = clamp(n, 1, STEPS.length);
+      saveState();
+      render();
+    }
+
+    function nextStep(){ setStep(state.step + 1); }
+    function prevStep(){ setStep(state.step - 1); }
+
+    function resetAll(){
+      localStorage.removeItem(STORAGE_KEY);
+      state = {
+        step: 1,
+        deviceBrand: "",
+        deviceModel: "",
+        storage: "",
+        purchaseYear: "",
+        condition: "Good",
+        symptoms: [],
+        customSymptoms: "",
+        urgency: "Within 3 days",
+        warrantyRequired: "Yes",
+        budget: "₹1000–₹3000",
+        dataSensitive: "No",
+        location: "",
+        preferredMode: "Doorstep Repair",
+        extraNotes: "",
+        diagnosis: { cause: "", probability: 0, costMin: 0, costMax: 0, risk: "Medium" }
+      };
+      computeDiagnosis();
+      toast("RESET");
+      render();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Render Stepper + Steps
+    // ─────────────────────────────────────────────────────────
+    function renderStepper(){
+      const html = STEPS.map(s=>{
+        const cls = s.id < state.step ? "done" : (s.id === state.step ? "active" : "");
+        return `
+          <div class="stepDot ${cls}" onclick="setStep(${s.id})" title="${s.label}">
+            ${s.id}
+          </div>
+        `;
+      }).join("") + `<div class="stepLabel">${STEPS[state.step-1].label}</div>`;
+      $("stepper").innerHTML = html;
+    }
+
+    function renderStep(){
+      const s = state.step;
+      if(s === 1) return renderStep1();
+      if(s === 2) return renderStep2();
+      if(s === 3) return renderStep3();
+      if(s === 4) return renderStep4();
+      return renderStep5();
+    }
+
+    function renderStep1(){
+      return `
+        <div class="card" style="margin-top:10px">
+          <div class="sideCardTitle">Step 1 — Device</div>
+
+          <div class="formRow">
+            <div>
+              <label>Brand</label>
+              <input id="deviceBrand" placeholder="e.g. Apple, Samsung, Xiaomi" value="${escapeHTML(state.deviceBrand)}"/>
+            </div>
+            <div>
+              <label>Model</label>
+              <input id="deviceModel" placeholder="e.g. iPhone 13, Galaxy S21" value="${escapeHTML(state.deviceModel)}"/>
+            </div>
+            <div>
+              <label>Storage (optional)</label>
+              <input id="storage" placeholder="e.g. 128GB" value="${escapeHTML(state.storage)}"/>
+            </div>
+            <div>
+              <label>Purchase Year</label>
+              <input id="purchaseYear" inputmode="numeric" placeholder="e.g. 2021" value="${escapeHTML(state.purchaseYear)}"/>
+            </div>
+          </div>
+
+          <div style="margin-top:10px">
+            <label>Condition</label>
+            <select id="condition">
+              ${["Excellent","Good","Fair","Poor"].map(x=>`<option ${state.condition===x?"selected":""}>${x}</option>`).join("")}
+            </select>
+          </div>
+
+          <div class="btnRow">
+            <button class="primary" onclick="saveStep1()">Continue →</button>
+            <button class="muted" onclick="resetAll()">Reset</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStep2(){
+      const preset = [
+        "Battery drain", "Overheating", "Screen crack", "Touch not working",
+        "Charging issue", "Speaker issue", "Mic issue", "Camera issue",
+        "Network issue", "Water damage", "Phone not turning on"
+      ];
+      const chips = preset.map(x=>{
+        const on = state.symptoms.includes(x) ? "on" : "";
+        return `<div class="chip ${on}" onclick="toggleSymptom('${escapeJS(x)}')">${escapeHTML(x)}</div>`;
+      }).join("");
+
+      return `
+        <div class="card" style="margin-top:10px">
+          <div class="sideCardTitle">Step 2 — Symptoms</div>
+
+          <label>Select symptoms</label>
+          <div class="chips">${chips}</div>
+
+          <div style="margin-top:10px">
+            <label>Extra symptoms (optional)</label>
+            <textarea id="customSymptoms" placeholder="e.g. heats near camera, random restart...">${escapeHTML(state.customSymptoms)}</textarea>
+          </div>
+
+          <div class="btnRow">
+            <button class="muted" onclick="prevStep()">← Back</button>
+            <button class="primary" onclick="saveStep2()">Continue →</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStep3(){
+      return `
+        <div class="card" style="margin-top:10px">
+          <div class="sideCardTitle">Step 3 — Constraints</div>
+
+          <div class="formRow">
+            <div>
+              <label>Urgency</label>
+              <select id="urgency">
+                ${["Today","Within 3 days","Within 7 days","Not urgent"].map(x=>`<option ${state.urgency===x?"selected":""}>${x}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Warranty Required</label>
+              <select id="warrantyRequired">
+                ${["Yes","No","Preferable"].map(x=>`<option ${state.warrantyRequired===x?"selected":""}>${x}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Budget</label>
+              <select id="budget">
+                ${["₹500–₹1500","₹1000–₹3000","₹3000–₹7000","₹7000+"] .map(x=>`<option ${state.budget===x?"selected":""}>${x}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Data Sensitive</label>
+              <select id="dataSensitive">
+                ${["No","Yes"].map(x=>`<option ${state.dataSensitive===x?"selected":""}>${x}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Location (optional)</label>
+              <input id="location" placeholder="e.g. Ahmedabad, Delhi" value="${escapeHTML(state.location)}"/>
+            </div>
+            <div>
+              <label>Extra Notes (optional)</label>
+              <input id="extraNotes" placeholder="e.g. need doorstep pickup, original parts only" value="${escapeHTML(state.extraNotes)}"/>
+            </div>
+          </div>
+
+          <div class="btnRow">
+            <button class="muted" onclick="prevStep()">← Back</button>
+            <button class="primary" onclick="saveStep3()">Continue →</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStep4(){
+      const providers = loadProviders();
+      const options = [
+        { key:"doorstep", label: providers.doorstep.label },
+        { key:"service",  label: providers.service.label },
+        { key:"data",     label: providers.data.label },
+        { key:"budget",   label: providers.budget.label }
+      ];
+
+      const buttons = options.map(o=>{
+        const selected = state.preferredMode === o.label;
+        const hasNum = !!onlyDigits(providers[o.key].number);
+        return `
+          <button class="${selected ? "good" : "muted"}" onclick="selectProvider('${escapeJS(o.label)}')">
+            ${escapeHTML(o.label)} ${hasNum ? "" : " (no number set)"}
+          </button>
+        `;
+      }).join("");
+
+      return `
+        <div class="card" style="margin-top:10px">
+          <div class="sideCardTitle">Step 4 — Routing (Menu Logic)</div>
+          <p class="desc" style="margin-bottom:10px">
+            Choose an execution path. Each option can map to a different WhatsApp number.
+          </p>
+
+          <div class="btnRow" style="grid-template-columns:1fr">
+            ${buttons}
+          </div>
+
+          <div class="divider"></div>
+          <button class="muted" onclick="openProviderEditor()">Edit Provider Numbers</button>
+
+          <div class="btnRow">
+            <button class="muted" onclick="prevStep()">← Back</button>
+            <button class="primary" onclick="saveStep4()">Continue →</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStep5(){
+      return `
+        <div class="card" style="margin-top:10px">
+          <div class="sideCardTitle">Step 5 — Review</div>
+          <p class="desc">
+            You’re ready. Review the WhatsApp message and confirm before sending.
+          </p>
+
+          <div class="btnRow">
+            <button class="muted" onclick="prevStep()">← Back</button>
+            <button class="wa" onclick="openReviewModal()">Review & Send on WhatsApp</button>
+          </div>
+
+          <div class="divider"></div>
+          <button class="primary" onclick="copyAll()">Copy Full Summary</button>
+          <div class="hint">Use this to paste into any chat or service ticket system.</div>
+        </div>
+      `;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Actions per step
+    // ─────────────────────────────────────────────────────────
+    function saveStep1(){
+      state.deviceBrand = safeText($("deviceBrand").value);
+      state.deviceModel = safeText($("deviceModel").value);
+      state.storage = safeText($("storage").value);
+      state.purchaseYear = safeText($("purchaseYear").value);
+      state.condition = $("condition").value;
+
+      if(!state.deviceBrand || !state.deviceModel){
+        toast("ADD BRAND + MODEL");
+        return;
+      }
+      computeDiagnosis();
+      toast("DEVICE SAVED");
+      nextStep();
+    }
+
+    function toggleSymptom(x){
+      const idx = state.symptoms.indexOf(x);
+      if(idx >= 0) state.symptoms.splice(idx,1);
+      else state.symptoms.push(x);
+      saveState();
+      computeDiagnosis();
+      render(); // refresh chips + preview
+    }
+
+    function saveStep2(){
+      state.customSymptoms = safeText($("customSymptoms").value);
+      if(!state.symptoms.length && !state.customSymptoms){
+        toast("SELECT A SYMPTOM");
+        return;
+      }
+      computeDiagnosis();
+      toast("SYMPTOMS SAVED");
+      nextStep();
+    }
+
+    function saveStep3(){
+      state.urgency = $("urgency").value;
+      state.warrantyRequired = $("warrantyRequired").value;
+      state.budget = $("budget").value;
+      state.dataSensitive = $("dataSensitive").value;
+      state.location = safeText($("location").value);
+      state.extraNotes = safeText($("extraNotes").value);
+
+      computeDiagnosis();
+      toast("CONSTRAINTS SAVED");
+      nextStep();
+    }
+
+    function selectProvider(label){
+      state.preferredMode = label;
+      computeDiagnosis();
+      toast("ROUTE SELECTED");
+      render();
+    }
+
+    function saveStep4(){
+      computeDiagnosis();
+      toast("ROUTING SAVED");
+      nextStep();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Provider editor
+    // ─────────────────────────────────────────────────────────
+    function openProviderEditor(){
+      const p = loadProviders();
+      $("p_doorstep").value = p.doorstep.number || "";
+      $("p_service").value  = p.service.number || "";
+      $("p_data").value     = p.data.number || "";
+      $("p_budget").value   = p.budget.number || "";
+      $("provOverlay").classList.add("open");
+    }
+
+    function closeProviderEditor(){
+      $("provOverlay").classList.remove("open");
+    }
+
+    function closeProvIfBackdrop(e){
+      if(e.target && e.target.id === "provOverlay") closeProviderEditor();
+    }
+
+    function saveProviders(){
+      const p = loadProviders();
+      p.doorstep.number = onlyDigits($("p_doorstep").value);
+      p.service.number  = onlyDigits($("p_service").value);
+      p.data.number     = onlyDigits($("p_data").value);
+      p.budget.number   = onlyDigits($("p_budget").value);
+      saveProvidersToStorage(p);
+      toast("PROVIDERS SAVED");
+      closeProviderEditor();
+      renderProviders();
+      render(); // update routing list, review readiness
+    }
+
+    function resetProviders(){
+      saveProvidersToStorage(DEFAULT_PROVIDERS);
+      toast("DEFAULTS RESTORED");
+      openProviderEditor();
+      renderProviders();
+      render();
+    }
+
+    function getSelectedProvider(){
+      const p = loadProviders();
+      const label = state.preferredMode;
+
+      const map = {
+        [p.doorstep.label]: p.doorstep,
+        [p.service.label]:  p.service,
+        [p.data.label]:     p.data,
+        [p.budget.label]:   p.budget
+      };
+      const found = map[label] || p.doorstep;
+      return found;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Review Modal + WhatsApp redirect
+    // ─────────────────────────────────────────────────────────
+    function openReviewModal(){
+      computeDiagnosis();
+      const provider = getSelectedProvider();
+      const number = onlyDigits(provider.number);
+
+      if(!number){
+        toast("SET PROVIDER NUMBER");
+        openProviderEditor();
+        return;
+      }
+
+      const msg = buildWhatsAppMessage(provider.label);
+
+      $("modalProvider").textContent = provider.label;
+      $("modalNumber").textContent = "+" + number;
+      $("modalMessage").value = msg;
+
+      $("overlay").classList.add("open");
+    }
+
+    function closeModal(){ $("overlay").classList.remove("open"); }
+
+    function closeModalIfBackdrop(e){
+      if(e.target && e.target.id === "overlay") closeModal();
+    }
+
+    async function copyMessage(){
+      const txt = $("modalMessage").value;
+      try{
+        await navigator.clipboard.writeText(txt);
+        toast("COPIED");
+      }catch(e){
+        // fallback
+        const ta = $("modalMessage");
+        ta.select(); document.execCommand("copy");
+        toast("COPIED");
+      }
+    }
+
+    async function copyAll(){
+      const provider = getSelectedProvider();
+      const msg = buildWhatsAppMessage(provider.label);
+      const snap = buildSnapshot();
+      const full = snap + "\n\n---\n\n" + msg;
+      try{
+        await navigator.clipboard.writeText(full);
+        toast("FULL SUMMARY COPIED");
+      }catch(e){
+        toast("COPY FAILED");
+      }
+    }
+
+    function sendWhatsApp(){
+      const provider = getSelectedProvider();
+      const number = onlyDigits(provider.number);
+      if(!number){ toast("SET PROVIDER NUMBER"); return; }
+
+      const txt = $("modalMessage").value;
+      const url = `https://wa.me/${number}?text=${encodeWA(txt)}`;
+      toast("OPENING WHATSAPP…");
+      window.open(url, "_blank");
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Render side panel (live summary)
+    // ─────────────────────────────────────────────────────────
+    function renderProviders(){
+      const p = loadProviders();
+      const rows = [
+        p.doorstep, p.service, p.data, p.budget
+      ].map(x=>{
+        const n = onlyDigits(x.number);
+        return `• ${escapeHTML(x.label)} — ${n ? "+" + n : "(not set)"}`;
+      }).join("\n");
+      $("providerList").textContent = rows;
+    }
+
+    function renderSummary(){
+      computeDiagnosis();
+      $("snapText").textContent = buildSnapshot();
+
+      const provider = getSelectedProvider();
+      const p = loadProviders();
+      const number = onlyDigits(provider.number);
+
+      // risk pill + repeat risk
+      const info = Object.values(p).find(v => v.label === provider.label) || provider;
+      const rr = typeof info.repeatRiskPct === "number" ? info.repeatRiskPct : 18;
+
+      $("riskRow").innerHTML = `
+        ${riskPill(state.diagnosis.risk)}
+        <span class="pill">Repeat Risk: ${rr}%</span>
+        <span class="pill">Budget: ${escapeHTML(state.budget)}</span>
+      `;
+
+      const preview = buildWhatsAppMessage(provider.label);
+      $("waPreview").textContent = preview;
+
+      const btn = $("btnReview");
+      btn.disabled = !(state.step >= 4 && number);
+    }
+
+    function render(){
+      renderStepper();
+      $("stepArea").innerHTML = renderStep();
+      renderProviders();
+      renderSummary();
+      saveState();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Escaping for injected HTML
+    // ─────────────────────────────────────────────────────────
+    function escapeHTML(str){
+      return (str ?? "")
+        .toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
+    }
+    function escapeJS(str){
+      return (str ?? "").toString().replaceAll("\\","\\\\").replaceAll("'","\\'");
+    }
+
+    // Expose functions for inline handlers
+    window.setStep = setStep;
+    window.prevStep = prevStep;
+    window.nextStep = nextStep;
+    window.resetAll = resetAll;
+
+    window.saveStep1 = saveStep1;
+    window.saveStep2 = saveStep2;
+    window.saveStep3 = saveStep3;
+    window.saveStep4 = saveStep4;
+
+    window.toggleSymptom = toggleSymptom;
+    window.selectProvider = selectProvider;
+
+    window.openReviewModal = openReviewModal;
+    window.closeModal = closeModal;
+    window.closeModalIfBackdrop = closeModalIfBackdrop;
+    window.copyMessage = copyMessage;
+    window.copyAll = copyAll;
+    window.sendWhatsApp = sendWhatsApp;
+
+    window.openProviderEditor = openProviderEditor;
+    window.closeProviderEditor = closeProviderEditor;
+    window.closeProvIfBackdrop = closeProvIfBackdrop;
+    window.saveProviders = saveProviders;
+    window.resetProviders = resetProviders;
+
+    // Boot
+    (function boot(){
+      loadState();
+      computeDiagnosis();
+      render();
+    })();
+  </script>
+</body>
+</html>

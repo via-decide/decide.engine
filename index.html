@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>viadecide.com | India's Decision Engine</title>
+<link rel="manifest" href="./manifest.json">
+<script>
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+</script>
+  <meta name="theme-color" content="#04080f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="decide.engine" />
+  <meta name="description" content="India's decision research engine — built for the IndiaAI mission. Policy-grade intelligence for every citizen." />
+  <!-- PDF libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════
+       SHARED VARIABLES
+    ═══════════════════════════════════════ */
+    :root {
+      --saffron: #FF9933;
+      --india-green: #138808;
+      --chakra-blue: #000080;
+      --white: #FFFFFF;
+      --brand-bg: #060c16;
+      --bg-card: #0d1825;
+      --bg-deep: #04080f;
+      --text-main: #e8edf5;
+      --text-dim: #8fa3bb;
+      --accent-go: #00d68f;
+      --accent-pulse: #ff9933;
+      --accent-blue: #3b82f6;
+      --border: rgba(255,255,255,0.08);
+      --border-glow: rgba(255,153,51,0.25);
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+      --font-body: 'Noto Sans', sans-serif;
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.45);
+      --green: #138808;
+      --bg: #04080f;
+      --card: #0d1825;
+      --text: #e8edf5;
+      --dim: #7a90a8;
+      --go: #00d68f;
+      --blue: #3b82f6;
+      --fn: 'Syne',sans-serif;
+      --fm: 'Space Mono',monospace;
+      --fb: 'Noto Sans',sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      margin: 0; padding: 0; height: 100%; width: 100%;
+      background: var(--bg-deep);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #intro-wrapper {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--bg-deep);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    #intro-wrapper.exiting { opacity: 0; transform: scale(1.04); pointer-events: none; }
+    #intro-wrapper.hidden { display: none; }
+
+    #app-wrapper {
+      position: fixed; inset: 0; z-index: 500;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.8s ease 0.3s;
+    }
+    #app-wrapper.visible { opacity: 1; pointer-events: auto; }
+
+    /* INTRO STYLES */
+    #bg-canvas { position: fixed; inset: 0; z-index: 0; opacity: .55; }
+    .tribar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,#FF9933 33.33%,#fff 33.33%,#fff 66.66%,#138808 66.66%); z-index: 1200; }
+
+    #stage { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; }
+    .scene { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 16px 160px; opacity: 0; pointer-events: none; transition: opacity .05s ease; overflow: hidden; }
+    .scene.enter { opacity: 1; pointer-events: auto; }
+
+    #prog-wrap { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 1300; display: flex; gap: 8px; align-items: center; }
+    .prog-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.18); transition: all .35s ease; cursor: pointer; }
+    .prog-dot.active { background: var(--saffron); width: 24px; border-radius: 3px; }
+    .prog-dot.done { background: var(--go); }
+
+    #controls { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 1300; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: min(360px, 92vw); }
+    .ctrl-btn { background: rgba(13,24,37,.8); border: 1px solid rgba(255,255,255,.12); color: var(--text); padding: 9px 12px; border-radius: 999px; font-family: var(--fm); font-size: .58rem; letter-spacing: 1px; cursor: pointer; transition: all .18s; -webkit-tap-highlight-color: transparent; backdrop-filter: blur(8px); text-align: center; white-space: nowrap; }
+    .ctrl-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+    .ctrl-btn.primary { background: rgba(255,153,51,.15); border-color: rgba(255,153,51,.5); color: var(--saffron); }
+    .ctrl-btn.skip-to-app { background: rgba(0,214,143,.15); border-color: rgba(0,214,143,.5); color: var(--go); }
+
+    #timer-ring { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1300; }
+    #timer-ring svg { width: 38px; height: 38px; }
+    .ring-bg { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 3; }
+    .ring-fill { fill: none; stroke: var(--saffron); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 113; stroke-dashoffset: 113; transition: stroke-dashoffset .1s linear; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    #slide-num { position: fixed; top: 12px; right: 16px; font-family: var(--fm); font-size: .55rem; color: var(--dim); z-index: 1300; letter-spacing: 1px; }
+
+    @media (max-width: 480px) {
+      .hl-xl { font-size: clamp(1.8rem,6vw,3rem); }
+      .hl-lg { font-size: clamp(1.4rem,4.5vw,2.5rem); }
+      .hl-md { font-size: clamp(1.1rem,3.5vw,2rem); }
+      .stat-num { font-size: clamp(1.3rem,5vw,2.5rem); }
+      .stat-lbl { font-size: .55rem; }
+      .pill { font-size: .55rem; padding: 5px 10px; }
+      .ctrl-btn { font-size: .52rem; padding: 8px 8px; }
+      .cta-url { font-size: clamp(1.4rem,5vw,3rem); }
+      .eye-brow { font-size: .55rem; letter-spacing: 1.5px; }
+    }
+    @media (max-width: 380px) {
+      .stat-num { font-size: 1.2rem; }
+      .hl-xl { font-size: 1.6rem; }
+      .hl-lg { font-size: 1.3rem; }
+    }
+
+    .hl { font-family: var(--fn); font-weight: 900; letter-spacing: -.04em; line-height: 1.0; text-align: center; opacity: 0; transform: translateY(32px); transition: opacity .7s ease, transform .7s ease; }
+    .hl.show { opacity: 1; transform: translateY(0); }
+    .hl-xl { font-size: clamp(2rem,7vw,7rem); }
+    .hl-lg { font-size: clamp(1.5rem,5vw,4.5rem); }
+    .hl-md { font-size: clamp(1.2rem,3.5vw,2.8rem); }
+    .hl-sm { font-size: clamp(1rem,2.5vw,1.8rem); }
+    .hl-saffron { color: var(--saffron); }
+    .hl-green { color: var(--go); }
+    .hl-white { color: #fff; }
+    .hl-dim { color: var(--dim); }
+
+    .body-text { font-size: clamp(.85rem,2.5vw,1.15rem); color: var(--dim); line-height: 1.75; text-align: center; max-width: 600px; opacity: 0; transform: translateY(20px); transition: opacity .6s ease .3s, transform .6s ease .3s; }
+    .body-text.show { opacity: 1; transform: translateY(0); }
+    .body-text strong { color: var(--text); font-weight: 700; }
+
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; justify-items: center; margin: 16px 0; width: 100%; max-width: 600px; }
+    .stat-box { text-align: center; opacity: 0; transform: translateY(28px) scale(.9); transition: all .55s ease; width: 100%; }
+    .stat-box.show { opacity: 1; transform: translateY(0) scale(1); }
+    .stat-num { font-family: var(--fn); font-weight: 900; font-size: clamp(1.6rem,6vw,4rem); line-height: 1; color: var(--saffron); word-break: break-all; }
+    .stat-lbl { font-family: var(--fm); font-size: .6rem; color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 14px 0; }
+    .pill { font-family: var(--fm); font-size: .6rem; letter-spacing: 1px; padding: 7px 14px; border-radius: 999px; text-transform: uppercase; opacity: 0; transform: scale(.85); transition: all .4s ease; }
+    .pill.show { opacity: 1; transform: scale(1); }
+    .pill-s { background: rgba(255,153,51,.1); border: 1px solid rgba(255,153,51,.35); color: var(--saffron); }
+    .pill-g { background: rgba(0,214,143,.1); border: 1px solid rgba(0,214,143,.3); color: var(--go); }
+    .pill-b { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: #93c5fd; }
+    .pill-w { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.8); }
+
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; max-width: 800px; margin: 12px 0; }
+    .c-card { background: rgba(13,24,37,.85); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 12px 10px; opacity: 0; transform: translateY(24px); transition: all .5s ease; backdrop-filter: blur(8px); }
+    .c-card.show { opacity: 1; transform: translateY(0); }
+    .c-icon { font-size: 1.3rem; margin-bottom: 6px; }
+    .c-title { font-family: var(--fn); font-size: .85rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .c-desc { font-size: .72rem; color: var(--dim); line-height: 1.5; }
+    .c-tag { font-family: var(--fm); font-size: .55rem; color: var(--go); margin-top: 6px; text-transform: uppercase; letter-spacing: .8px; }
+
+    .divider { width: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--saffron),var(--go),transparent); margin: 16px auto; border-radius: 2px; transition: width 1s ease .2s; }
+    .divider.show { width: min(400px,80vw); }
+
+    .quote-block { max-width: 680px; text-align: center; padding: 0; position: relative; }
+    .quote-mark { font-family: var(--fn); font-size: 8rem; line-height: .5; color: rgba(255,153,51,.12); position: absolute; top: 0; left: 50%; transform: translateX(-50%); pointer-events: none; user-select: none; }
+    .quote-text { font-family: var(--fn); font-weight: 700; font-size: clamp(1rem,3vw,2.2rem); line-height: 1.4; color: var(--text); opacity: 0; transform: translateY(20px); transition: all .7s ease; position: relative; z-index: 1; }
+    .quote-text.show { opacity: 1; transform: translateY(0); }
+    .quote-attr { font-family: var(--fm); font-size: .65rem; color: var(--dim); margin-top: 14px; letter-spacing: 1px; opacity: 0; transition: opacity .5s ease .5s; }
+    .quote-attr.show { opacity: 1; }
+
+    .split-row { display: flex; gap: 12px; width: 100%; max-width: 820px; flex-wrap: wrap; justify-content: center; }
+    .split-col { flex: 1; min-width: min(260px, 100%); background: rgba(13,24,37,.8); border: 1px solid rgba(255,255,255,.07); border-radius: 16px; padding: 18px 16px; opacity: 0; transition: all .6s ease; backdrop-filter: blur(10px); }
+    .split-col.show { opacity: 1; }
+    .split-col.left { transform: translateX(-30px); }
+    .split-col.right { transform: translateX(30px); }
+    .split-col.show.left, .split-col.show.right { transform: translateX(0); }
+    .split-eyebrow { font-family: var(--fm); font-size: .58rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; color: var(--saffron); }
+    .split-hl { font-family: var(--fn); font-size: clamp(1rem,2.5vw,1.8rem); font-weight: 900; color: #fff; margin-bottom: 8px; line-height: 1.15; }
+    .split-body { font-size: .82rem; color: var(--dim); line-height: 1.65; }
+    .split-body strong { color: var(--text); }
+
+    .flag-bar { display: flex; width: 100%; max-width: 500px; height: 5px; border-radius: 3px; overflow: hidden; opacity: 0; transition: opacity .5s ease .2s; margin: 10px auto; }
+    .flag-bar.show { opacity: 1; }
+    .fb-s { flex: 1; background: #FF9933; }
+    .fb-w { flex: 1; background: #fff; }
+    .fb-g { flex: 1; background: #138808; }
+
+    .cta-box { text-align: center; background: linear-gradient(135deg,rgba(255,153,51,.1),rgba(19,136,8,.06)); border: 1px solid rgba(255,153,51,.25); border-radius: 24px; padding: clamp(24px,5vw,48px) clamp(20px,5vw,56px); max-width: 640px; width: 100%; opacity: 0; transform: scale(.95); transition: all .6s ease; }
+    .cta-box.show { opacity: 1; transform: scale(1); }
+    .cta-url { font-family: var(--fn); font-weight: 900; font-size: clamp(1.6rem,6vw,4.5rem); color: var(--saffron); letter-spacing: -.03em; line-height: 1; margin: 12px 0; }
+    .cta-sub { font-size: .9rem; color: var(--dim); margin-top: 12px; line-height: 1.6; }
+    .cta-sub strong { color: var(--text); }
+
+    .burst-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+    .logo-via { color: var(--saffron); }
+    .logo-decide { color: #fff; }
+    .logo-dot { color: var(--go); }
+
+    .eye-brow { font-family: var(--fm); font-size: .62rem; color: var(--saffron); letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; justify-content: center; opacity: 0; transition: opacity .5s ease; }
+    .eye-brow.show { opacity: 1; }
+    .eb-line { width: 32px; height: 1px; background: rgba(255,153,51,.4); }
+
+    .grid-bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,153,51,.025) 1px,transparent 1px), linear-gradient(90deg,rgba(255,153,51,.025) 1px,transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 1; }
+    .glow-orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 1; animation: orbFloat 8s ease-in-out infinite; }
+    @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.05)} }
+
+    /* ═══════════════════════════════════════
+       APP STYLES
+    ═══════════════════════════════════════ */
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+    .tricolor-bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%); z-index: 9998; }
+    #master-container { height: 100vh; width: 100vw; position: relative; overflow: hidden; }
+
+    .main-slide { height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; display: flex; flex-direction: column; background: var(--brand-bg); transition: transform .5s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+    .main-slide.prev { transform: translateY(-100%); }
+    .main-slide.active { transform: translateY(0); z-index: 10; }
+    .main-slide.next { transform: translateY(100%); z-index: 20; }
+
+    .slide-header { padding: 22px 20px 16px; border-left: 3px solid var(--saffron); height: 70px; flex-shrink: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(180deg, rgba(6,12,22,.98), rgba(6,12,22,.80)); backdrop-filter: blur(10px); margin-top: 3px; }
+    .header-title { font-family: var(--font-display); font-size: .78rem; color: var(--saffron); letter-spacing: 2px; font-weight: 700; text-transform: uppercase; }
+    .header-badge { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); background: var(--bg-card); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); letter-spacing: 1px; }
+    .header-badge.india { border-color: rgba(19,136,8,0.4); color: #4ade80; }
+    .header-badge.policy { border-color: rgba(59,130,246,0.4); color: #93c5fd; }
+
+    .sub-slide { position: absolute; inset: 0; padding: 20px; display: flex; flex-direction: column; justify-content: center; opacity: 0; pointer-events: none; transform: translateX(20px); transition: transform .3s ease, opacity .3s ease; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
+    .sub-slide.static { z-index: 30; opacity: 1; pointer-events: auto; transform: none; }
+    .sub-slide.article-view { justify-content: flex-start; padding-top: 16px; padding-bottom: 180px; }
+
+    h1 { font-family: var(--font-display); font-size: 2rem; margin: 0 0 12px 0; line-height: 1.05; letter-spacing: -.03em; color: var(--saffron); }
+    .primary-question { font-size: 1rem; color: var(--text-main); margin-bottom: 18px; line-height: 1.55; font-weight: 400; font-family: var(--font-body); }
+
+    .context-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow-card); }
+    .context-panel.glow { border-color: var(--border-glow); box-shadow: 0 0 0 1px rgba(255,153,51,.1), var(--shadow-card); }
+    .context-panel.green-glow { border-color: rgba(19,136,8,0.35); box-shadow: 0 0 0 1px rgba(0,214,143,.08), var(--shadow-card); }
+    .context-panel.blue-glow { border-color: rgba(59,130,246,0.35); box-shadow: 0 0 0 1px rgba(59,130,246,.08), var(--shadow-card); }
+
+    .context-top { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
+    .thumb { width: 64px; height: 64px; border-radius: 14px; background: #0b1526; border: 1px solid var(--border); flex: 0 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #445; font-family: var(--font-mono); font-size: .65rem; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .context-title-wrap { flex: 1; min-width: 0; }
+    .context-kicker { font-family: var(--font-mono); font-size: .6rem; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+    .context-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .stat-chip { font-family: var(--font-mono); font-size: .6rem; background: var(--bg-deep); color: var(--text-dim); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--border); }
+    .stat-chip.green { border-color: rgba(0,214,143,.3); color: var(--accent-go); }
+    .stat-chip.orange { border-color: rgba(255,153,51,.3); color: var(--saffron); }
+    .stat-chip.blue { border-color: rgba(59,130,246,.3); color: var(--accent-blue); }
+
+    .wiki-meta { display: flex; gap: 6px; margin: 8px 0 6px; flex-wrap: wrap; }
+    .meta-chip { font-family: var(--font-mono); font-size: .6rem; background: var(--bg-deep); color: var(--text-dim); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--border); }
+    .section-title { font-family: var(--font-mono); font-size: .65rem; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; margin: 10px 0 8px; }
+
+    .takeaways { background: var(--bg-deep); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; max-height: 22vh; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; user-select: text; -webkit-user-select: text; }
+    .takeaways ul { margin: 6px 0 0 16px; padding: 0; }
+    .takeaways li { color: var(--text-main); line-height: 1.6; margin: 6px 0; font-size: .93rem; }
+
+    .wiki-summary { font-size: .95rem; color: var(--text-main); line-height: 1.8; max-height: 32vh; overflow-y: auto; padding: 14px; background: var(--bg-deep); border-radius: 12px; border: 1px solid var(--border); touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; user-select: text; -webkit-user-select: text; }
+    .wiki-summary p { margin: 0 0 12px 0; }
+    .wiki-summary p:last-child { margin-bottom: 0; }
+    .wiki-summary .lead { color: #fff; font-weight: 700; }
+    .wiki-summary .muted { color: var(--text-dim); }
+
+    .nav-hint { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.05); font-family: var(--font-mono); font-size: .62rem; color: #3a4a5c; display: flex; justify-content: space-between; }
+
+    .input-group { border: 1px solid var(--border); background: var(--bg-card); padding: 18px; border-radius: 12px; margin-bottom: 18px; }
+    .input-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,.06); padding: 10px 0; font-family: var(--font-mono); font-size: .78rem; }
+    .input-key { color: var(--text-dim); text-transform: uppercase; }
+    .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
+
+    .final-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 14px 14px; border-radius: 12px; font-weight: 700; text-align: center; font-size: .8rem; cursor: pointer; display: block; width: 100%; box-sizing: border-box; transition: transform .1s ease, opacity .18s ease, box-shadow .18s ease; font-family: var(--font-display); letter-spacing: .5px; }
+    .btn:active { transform: scale(.98); opacity: .9; }
+    .btn-full { grid-column: span 2; }
+    .btn-wa { background: #25D366; color: #000; border-color: #25D366; }
+    .btn-pdf { background: #b91c1c; color: #fff; border-color: #b91c1c; }
+    .btn-yt { background: #cc0000; color: #fff; border-color: #cc0000; }
+    .btn-pro { background: linear-gradient(135deg, rgba(0,214,143,.12), rgba(0,214,143,.06)); border: 1px solid rgba(0,214,143,.4); color: var(--accent-go); }
+    .btn-pro:hover { box-shadow: 0 0 16px rgba(0,214,143,.15); }
+    .btn-muted { background: var(--bg-deep); border-color: var(--border); color: var(--text-dim); }
+    .btn-india { background: linear-gradient(135deg, rgba(255,153,51,.15), rgba(19,136,8,.1)); border: 1px solid rgba(255,153,51,.45); color: var(--saffron); font-family: var(--font-display); letter-spacing: 1px; }
+    .btn-india:hover { box-shadow: 0 0 20px rgba(255,153,51,.15); }
+    .btn-policy { background: linear-gradient(135deg, rgba(59,130,246,.15), rgba(59,130,246,.06)); border: 1px solid rgba(59,130,246,.4); color: #93c5fd; }
+    /* ── NEW: install button style ── */
+    .btn-install { background: linear-gradient(135deg, rgba(255,153,51,.2), rgba(0,214,143,.1)); border: 1px solid rgba(255,153,51,.55); color: var(--saffron); font-family: var(--font-display); letter-spacing: 1px; position: relative; overflow: hidden; }
+    .btn-install::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); transform: translateX(-100%); transition: transform .5s ease; }
+    .btn-install:hover::before { transform: translateX(100%); }
+    .btn-install:hover { box-shadow: 0 0 24px rgba(255,153,51,.2); }
+
+    .lobby-container { display: flex; flex-direction: column; gap: 14px; padding: 30px; height: 100%; justify-content: center; }
+    .cuisine-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); padding: 18px 20px; font-size: .95rem; font-weight: 700; text-transform: uppercase; border-radius: 14px; transition: all .2s; font-family: var(--font-display); letter-spacing: .5px; text-align: left; }
+    .cuisine-btn.selected { background: rgba(255,153,51,.12); border-color: var(--saffron); color: var(--saffron); box-shadow: 0 0 20px rgba(255,153,51,.12); }
+
+    #search-input { width: 100%; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 14px 16px; font-size: 1rem; border-radius: 12px; margin-bottom: 14px; outline: none; text-align: left; font-family: var(--font-body); transition: border-color .2s; }
+    #search-input:focus { border-color: rgba(255,153,51,.5); }
+
+    .source-toggle { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .source-chip { padding: 7px 13px; border: 1px solid var(--border); border-radius: 999px; font-size: .65rem; color: var(--text-dim); font-family: var(--font-mono); cursor: pointer; transition: all .2s; background: var(--bg-deep); }
+    .source-chip.active { background: rgba(0,214,143,.08); color: var(--accent-go); border-color: rgba(0,214,143,.4); }
+
+    #depth-fill { position: fixed; right: 0; top: 3px; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--saffron), var(--accent-go)); z-index: 900; height: 0%; transition: height .05s linear; border-radius: 2px; }
+
+    .toast-msg { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); background: var(--bg-card); color: var(--accent-go); padding: 10px 20px; border: 1px solid rgba(0,214,143,.4); border-radius: 999px; font-size: .75rem; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 3000; font-family: var(--font-mono); letter-spacing: .8px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+    .toast-msg.visible { opacity: 1; }
+
+    #mic-toggle { position: fixed; bottom: 22px; left: 22px; width: 50px; height: 50px; background: var(--bg-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); z-index: 2000; cursor: pointer; box-shadow: var(--shadow-card); }
+    #mic-toggle.listening { border-color: var(--accent-go); box-shadow: 0 0 20px rgba(0,214,143,.2); }
+    #mic-toggle svg { fill: var(--text-dim); width: 22px; }
+
+    /* ── Install FAB ── */
+    #install-fab { position: fixed; bottom: 22px; right: 74px; z-index: 2000; display: none; }
+    #install-fab button { background: linear-gradient(135deg,rgba(255,153,51,.25),rgba(0,214,143,.15)); border: 1px solid rgba(255,153,51,.55); color: var(--saffron); font-family: var(--font-mono); font-size: .58rem; letter-spacing: 1.2px; padding: 10px 16px; border-radius: 999px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,.4); white-space: nowrap; transition: all .2s; }
+    #install-fab button:hover { box-shadow: 0 0 20px rgba(255,153,51,.2); }
+    #install-fab.visible { display: block; }
+
+    #pro-ui-root { position: fixed; left: -99999px; top: 0; width: 794px; background: #060c16; color: #fff; font-family: 'Syne', -apple-system, sans-serif; z-index: -1; }
+    .proui-doc { width: 794px; background: #060c16; }
+    .proui-page { padding: 38px 42px; min-height: 1123px; border-top: 1px solid rgba(255,255,255,.08); position: relative; }
+    .proui-page:first-child { border-top: none; }
+    .proui-wm { position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.25); }
+    .proui-title { font-size: 32px; font-weight: 900; letter-spacing: -.03em; margin: 0; color: #FF9933; }
+    .proui-subtitle { margin: 10px 0 0; color: rgba(255,255,255,.70); line-height: 1.5; font-size: 14px; }
+    .proui-pillrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .proui-pill { border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); padding: 6px 12px; border-radius: 999px; font-size: 11px; color: rgba(255,255,255,.75); }
+    .proui-pill.saffron { border-color: rgba(255,153,51,.4); color: #FF9933; }
+    .proui-pill.green { border-color: rgba(19,136,8,.4); color: #4ade80; }
+    .proui-card { background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 16px; }
+    .proui-h { margin: 0 0 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.65); }
+    .proui-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .proui-kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; font-size: 12px; }
+    .proui-k { color: rgba(255,255,255,.60); }
+    .proui-v { font-weight: 800; color: rgba(255,255,255,.92); text-align: right; }
+    .proui-list { margin: 0; padding-left: 18px; color: rgba(255,255,255,.85); line-height: 1.6; font-size: 12px; }
+    .proui-list li { margin: 5px 0; }
+    .proui-nodeTitle { font-size: 20px; font-weight: 900; margin: 0; color: #FF9933; }
+    .proui-small { font-size: 12px; color: rgba(255,255,255,.72); line-height: 1.6; }
+    .proui-tricolor { height: 4px; border-radius: 2px; margin-bottom: 20px; background: linear-gradient(90deg, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%); }
+
+    #panel-toggle { position: fixed; top: 20px; right: 16px; width: 44px; height: 44px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); z-index: 2500; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-card); transition: transform .1s ease, opacity .18s ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    #panel-toggle:active { transform: scale(.97); opacity: .9; }
+    #panel-toggle svg { width: 20px; height: 20px; fill: var(--text-dim); }
+
+    #ui-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2490; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    #ui-panel { position: fixed; top: 0; right: 0; height: 100vh; width: min(420px, 92vw); background: linear-gradient(180deg, rgba(6,12,22,.99), rgba(6,12,22,.95)); border-left: 1px solid var(--border); z-index: 2600; transform: translateX(102%); transition: transform .22s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: -20px 0 48px rgba(0,0,0,.6); touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    #ui-panel.open { transform: translateX(0); }
+    #ui-panel-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .panel-header { padding: 18px 16px 14px; border-bottom: 1px solid rgba(255,255,255,.06); display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(6,12,22,.98); backdrop-filter: blur(8px); }
+    .panel-title { font-family: var(--font-display); font-size: .72rem; color: var(--saffron); letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .panel-body { padding: 14px 16px 18px; overflow-y: auto; flex: 1; user-select: text; -webkit-user-select: text; }
+    .panel-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .panel-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,.05); font-family: var(--font-mono); font-size: .7rem; }
+    .panel-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .panel-k { color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; }
+    .panel-v { color: var(--text-main); font-weight: 700; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .panel-actions .btn { margin: 0; }
+    .btn-mini { padding: 11px 12px; border-radius: 10px; font-size: .74rem; }
+    .panel-footer { padding: 12px 16px 16px; border-top: 1px solid rgba(255,255,255,.05); background: rgba(6,12,22,.85); backdrop-filter: blur(8px); }
+    .panel-note { font-family: var(--font-mono); font-size: .64rem; color: #3a4a5c; letter-spacing: .5px; text-transform: uppercase; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+
+    #notes-toggle { position: fixed; top: 72px; right: 16px; width: 44px; height: 44px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); z-index: 2500; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-card); transition: transform .1s ease, opacity .18s ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    #notes-toggle:active { transform: scale(.97); opacity: .9; }
+    #notes-toggle svg { width: 20px; height: 20px; fill: var(--text-dim); }
+
+    #notes-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2685; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+    #notes-panel-overlay.open { opacity: 1; pointer-events: auto; }
+    #notes-panel { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 102%); width: min(720px, 96vw); height: min(60vh, 520px); background: linear-gradient(180deg, rgba(6,12,22,.99), rgba(6,12,22,.95)); border: 1px solid var(--border); border-bottom: none; border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 2690; transition: transform .22s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: 0 -20px 48px rgba(0,0,0,.6); }
+    #notes-panel.open { transform: translate(-50%, 0); }
+    .notes-body { padding: 14px 16px 18px; overflow: auto; flex: 1; user-select: text; -webkit-user-select: text; }
+    #notes-text { width: 100%; min-height: 200px; resize: none; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-deep); color: var(--text-main); font-size: .9rem; line-height: 1.6; box-sizing: border-box; outline: none; font-family: var(--font-body); touch-action: pan-y; }
+    #notes-text:focus { border-color: rgba(255,153,51,.35); }
+    .notes-meta { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; font-family: var(--font-mono); font-size: .64rem; color: #3a4a5c; text-transform: uppercase; }
+
+    .founder-letter { background: linear-gradient(135deg, rgba(255,153,51,.08), rgba(6,12,22,0), rgba(19,136,8,.06)); border: 1px solid rgba(255,153,51,.2); border-radius: 18px; padding: 22px 20px; margin-bottom: 14px; position: relative; overflow: hidden; }
+    .founder-letter::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #FF9933, transparent, #138808); }
+    .founder-letter-eyebrow { font-family: var(--font-mono); font-size: .62rem; letter-spacing: 2px; color: var(--saffron); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .founder-letter-eyebrow::after { content: ''; flex: 1; height: 1px; background: rgba(255,153,51,.2); }
+    .founder-letter h2 { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0 0 10px; letter-spacing: -.02em; line-height: 1.2; }
+    .founder-letter p { font-size: .92rem; color: var(--text-dim); line-height: 1.7; margin: 0 0 10px; }
+    .founder-letter p:last-child { margin-bottom: 0; }
+    .founder-letter strong { color: var(--text-main); font-weight: 600; }
+    .letter-sig { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.06); font-family: var(--font-display); font-size: .82rem; color: var(--text-dim); }
+    .letter-sig strong { color: var(--saffron); }
+
+    .mission-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .mission-pill { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .8px; padding: 6px 12px; border-radius: 999px; text-transform: uppercase; }
+    .mp-saffron { background: rgba(255,153,51,.1); border: 1px solid rgba(255,153,51,.3); color: var(--saffron); }
+    .mp-green { background: rgba(19,136,8,.1); border: 1px solid rgba(19,136,8,.3); color: #4ade80; }
+    .mp-blue { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: #93c5fd; }
+    .mp-white { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.8); }
+
+    .policy-banner { background: linear-gradient(135deg, rgba(0,0,128,.15), rgba(59,130,246,.06)); border: 1px solid rgba(59,130,246,.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; }
+    .policy-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; }
+    .policy-text { flex: 1; font-size: .82rem; color: var(--text-dim); line-height: 1.6; }
+    .policy-text strong { color: #93c5fd; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+    .stat-card { background: var(--bg-deep); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+    .stat-card .number { font-family: var(--font-display); font-size: 1.6rem; font-weight: 900; color: var(--saffron); line-height: 1; }
+    .stat-card .label { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    .pulse-dot { display: inline-block; width: 8px; height: 8px; background: var(--accent-go); border-radius: 50%; animation: pulseAnim 2s ease-in-out infinite; }
+    @keyframes pulseAnim { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: .6; } }
+    @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: slideInUp .4s ease both; }
+
+    /* ── Sub-page nav cards ── */
+    .subpage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .subpage-card { background: var(--bg-deep); border: 1px solid var(--border); border-radius: 14px; padding: 14px 12px; cursor: pointer; transition: all .2s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; -webkit-tap-highlight-color: transparent; }
+    .subpage-card:hover, .subpage-card:active { border-color: rgba(255,153,51,.4); background: rgba(255,153,51,.06); transform: translateY(-1px); }
+    .subpage-card-icon { font-size: 1.1rem; }
+    .subpage-card-title { font-family: var(--font-display); font-size: .78rem; font-weight: 800; color: var(--text-main); }
+    .subpage-card-desc { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     INTRO SLIDESHOW
+═══════════════════════════════════════ -->
+<div id="intro-wrapper">
+  <canvas id="bg-canvas"></canvas>
+  <div class="tribar"></div>
+
+  <div id="stage">
+    <!-- SCENE 0 -->
+    <div class="scene" id="s0">
+      <div class="grid-bg"></div>
+      <div class="glow-orb" style="width:400px;height:400px;background:rgba(255,153,51,.08);top:30%;left:40%"></div>
+      <div style="text-align:center;z-index:2">
+        <div class="eye-brow" id="s0-ey"><span class="eb-line"></span>INDIA'S DECISION ENGINE<span class="eb-line"></span></div>
+        <div style="font-size:clamp(2.2rem,8vw,9rem);font-family:'Syne',sans-serif;font-weight:900;letter-spacing:-.05em;line-height:1;opacity:0;transition:all .8s ease" id="s0-logo">
+          <span class="logo-via">via</span><span class="logo-decide">decide</span><span class="logo-dot">.</span><span style="color:rgba(255,255,255,.9)">com</span>
+        </div>
+        <div class="divider" id="s0-div"></div>
+        <div class="body-text" id="s0-sub" style="margin-top:10px">Policy-grade decision intelligence for <strong>1.4 billion Indians</strong></div>
+      </div>
+    </div>
+
+    <!-- SCENE 1 -->
+    <div class="scene" id="s1">
+      <div class="grid-bg"></div>
+      <div class="glow-orb" style="width:500px;height:500px;background:rgba(255,50,50,.06);top:20%;right:10%"></div>
+      <div style="z-index:2;text-align:center;max-width:860px">
+        <div class="eye-brow" id="s1-ey"><span class="eb-line"></span>THE PROBLEM<span class="eb-line"></span></div>
+        <div class="hl hl-lg" id="s1-h1">Every day,</div>
+        <div class="hl hl-xl hl-saffron" id="s1-h2" style="transition-delay:.2s">1.4 Billion</div>
+        <div class="hl hl-lg" id="s1-h3" style="transition-delay:.4s">Indians <em style="font-style:normal;color:var(--go)">decide.</em></div>
+        <div class="divider" id="s1-div" style="margin-top:18px"></div>
+        <div class="body-text" id="s1-body" style="transition-delay:.6s;margin-top:14px">School. Hospital. Crop. Business. Policy. <strong>Most without structured information. Most without a decision framework. Most alone.</strong></div>
+      </div>
+    </div>
+
+    <!-- SCENE 2 -->
+    <div class="scene" id="s2">
+      <div class="glow-orb" style="width:600px;height:400px;background:rgba(0,214,143,.05);top:50%;left:30%;transform:translate(-30%,-50%)"></div>
+      <div style="z-index:2;text-align:center;width:100%;max-width:900px">
+        <div class="eye-brow" id="s2-ey"><span class="eb-line"></span>THE SCALE<span class="eb-line"></span></div>
+        <div class="stat-row" id="s2-stats">
+          <div class="stat-box" style="transition-delay:.0s"><div class="stat-num" id="cnt-1b">0</div><div class="stat-lbl">Decisions/Day</div></div>
+          <div class="stat-box" style="transition-delay:.2s"><div class="stat-num" id="cnt-22">0</div><div class="stat-lbl">Indian Languages</div></div>
+          <div class="stat-box" style="transition-delay:.4s"><div class="stat-num" id="cnt-600">0</div><div class="stat-lbl">Districts</div></div>
+          <div class="stat-box" style="transition-delay:.6s"><div class="stat-num" id="cnt-0">0</div><div class="stat-lbl">AI Decision Tools<br>built for Bharat</div></div>
+        </div>
+        <div class="body-text" id="s2-body" style="margin-top:8px;transition-delay:.8s">That last number is the gap <strong>viadecide.com</strong> is here to close.</div>
+      </div>
+    </div>
+
+    <!-- SCENE 3 -->
+    <div class="scene" id="s3">
+      <div class="grid-bg" style="opacity:.5"></div>
+      <div class="glow-orb" style="width:350px;height:350px;background:rgba(255,153,51,.07);top:60%;right:15%"></div>
+      <div style="z-index:2;text-align:center;max-width:840px;width:100%">
+        <div class="eye-brow" id="s3-ey"><span class="eb-line"></span>THE ENGINE<span class="eb-line"></span></div>
+        <div class="hl hl-md" id="s3-h1"><span class="hl-saffron">decide.engine</span> is a</div>
+        <div class="hl hl-lg hl-white" id="s3-h2" style="transition-delay:.15s">Decision Research Layer</div>
+        <div class="hl hl-sm hl-dim" id="s3-h3" style="transition-delay:.3s">for every Indian — student, farmer, official, founder.</div>
+        <div class="divider" id="s3-div" style="margin-top:16px"></div>
+        <div class="card-grid" id="s3-cards" style="margin-top:20px">
+          <div class="c-card" style="transition-delay:.2s"><div class="c-icon">🔍</div><div class="c-title">Research</div><div class="c-desc">Multi-source intelligence from Wikipedia, Wikivoyage, Wikibooks, Wikinews.</div><div class="c-tag">↗ Search any topic</div></div>
+          <div class="c-card" style="transition-delay:.35s"><div class="c-icon">🧠</div><div class="c-title">Synthesize</div><div class="c-desc">Capture thesis, takeaways, contradictions, and decision implications.</div><div class="c-tag">↗ Build your brief</div></div>
+          <div class="c-card" style="transition-delay:.5s"><div class="c-icon">📋</div><div class="c-title">Export</div><div class="c-desc">Policy-grade PDF briefs. Share links. Decision context embedded.</div><div class="c-tag">↗ PDF & share</div></div>
+          <div class="c-card" style="transition-delay:.65s"><div class="c-icon">🧩</div><div class="c-title">Quiz</div><div class="c-desc">Alchemist engine auto-generates skill assessments from research nodes.</div><div class="c-tag">↗ Learn & retain</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 4 -->
+    <div class="scene" id="s4">
+      <div class="glow-orb" style="width:500px;height:500px;background:rgba(255,153,51,.06);top:40%;left:50%;transform:translate(-50%,-50%)"></div>
+      <div style="z-index:2;text-align:center;max-width:780px">
+        <div class="eye-brow" id="s4-ey"><span class="eb-line"></span>OUR MISSION<span class="eb-line"></span></div>
+        <div class="quote-block" id="s4-q">
+          <div class="quote-mark">"</div>
+          <div class="quote-text" id="s4-qt">To give every Indian the same structured decision intelligence that a policy advisor in South Block uses — in any language, on any device, for any decision.</div>
+          <div class="quote-attr" id="s4-qa">viadecide.com — Mission Statement</div>
+        </div>
+        <div class="flag-bar" id="s4-flag"><div class="fb-s"></div><div class="fb-w"></div><div class="fb-g"></div></div>
+        <div class="pill-row" id="s4-pills" style="margin-top:12px">
+          <div class="pill pill-s" style="transition-delay:.1s">🇮🇳 Sovereign</div>
+          <div class="pill pill-g" style="transition-delay:.2s">♿ Inclusive</div>
+          <div class="pill pill-b" style="transition-delay:.3s">🔒 Responsible</div>
+          <div class="pill pill-w" style="transition-delay:.4s">🌐 Multilingual</div>
+          <div class="pill pill-s" style="transition-delay:.5s">🌾 Bharat-first</div>
+          <div class="pill pill-g" style="transition-delay:.6s">📊 Policy-grade</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 5 -->
+    <div class="scene" id="s5">
+      <div class="grid-bg"></div>
+      <div class="glow-orb" style="width:600px;height:300px;background:rgba(0,214,143,.05);bottom:10%;left:20%"></div>
+      <div style="z-index:2;width:100%;max-width:840px">
+        <div class="eye-brow" id="s5-ey" style="justify-content:center"><span class="eb-line"></span>OUR VISION<span class="eb-line"></span></div>
+        <div class="split-row" id="s5-split">
+          <div class="split-col left" id="s5-l">
+            <div class="split-eyebrow">🎯 Vision 2030</div>
+            <div class="split-hl">India that decides with AI, not for AI.</div>
+            <div class="split-body">A future where every Indian — farmer, student, entrepreneur, policymaker — has access to <strong>structured, explainable, multilingual decision intelligence</strong>. Not a black box. A decision partner.</div>
+          </div>
+          <div class="split-col right" id="s5-r">
+            <div class="split-eyebrow">🏛️ IndiaAI Aligned</div>
+            <div class="split-hl">7 pillars. 1 purpose.</div>
+            <div class="split-body">Aligned with <strong>IndiaAI Mission</strong>: sovereign compute, open datasets, responsible AI, skilling at scale, sector adoption, startup financing — and ethical governance as the foundation of all decisions.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 6 -->
+    <div class="scene" id="s6">
+      <div class="glow-orb" style="width:400px;height:400px;background:rgba(59,130,246,.05);top:30%;right:10%"></div>
+      <div style="z-index:2;text-align:center;max-width:860px;width:100%">
+        <div class="eye-brow" id="s6-ey"><span class="eb-line"></span>THE JOURNEY<span class="eb-line"></span></div>
+        <div class="hl hl-md" id="s6-h1">From question to decision</div>
+        <div class="divider" id="s6-div"></div>
+        <div id="s6-flow" style="width:100%;display:flex;justify-content:center;"></div>
+      </div>
+    </div>
+
+    <!-- SCENE 7 -->
+    <div class="scene" id="s7">
+      <div class="glow-orb" style="width:700px;height:500px;background:rgba(255,153,51,.05);top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+      <canvas class="burst-canvas" id="burst-canvas"></canvas>
+      <div style="z-index:10;text-align:center;max-width:760px">
+        <div class="eye-brow" id="s7-ey"><span class="eb-line"></span>BUILT FOR BHARAT<span class="eb-line"></span></div>
+        <div class="hl hl-lg" id="s7-h1">Not AI <em style="font-style:normal;color:#f87171">for</em> India.</div>
+        <div class="hl hl-xl hl-saffron" id="s7-h2" style="transition-delay:.2s">AI <em style="font-style:normal;color:var(--go)">with</em> India.</div>
+        <div class="divider" id="s7-div" style="margin-top:16px"></div>
+        <div class="body-text" id="s7-body" style="margin-top:14px;transition-delay:.5s">decide.engine is <strong>open, attributed, multilingual</strong>, and designed to scale from a village in Vidarbha to the corridors of Raisina Hill. The infrastructure of intelligent choices — for every Indian.</div>
+        <div class="flag-bar" id="s7-flag" style="max-width:300px;height:4px;margin:20px auto 0"></div>
+      </div>
+    </div>
+
+    <!-- SCENE 8 -->
+    <div class="scene" id="s8">
+      <canvas class="burst-canvas" id="burst-canvas-2"></canvas>
+      <div class="glow-orb" style="width:800px;height:400px;background:rgba(255,153,51,.06);top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:6s"></div>
+      <div style="z-index:10;width:100%;max-width:680px;padding:0 16px">
+        <div class="cta-box" id="s8-cta">
+          <div class="eye-brow" style="opacity:1;justify-content:center;margin-bottom:8px"><span class="eb-line"></span>START YOUR JOURNEY<span class="eb-line"></span></div>
+          <div class="cta-url">viadecide.com</div>
+          <div class="flag-bar" style="opacity:1;max-width:200px;height:3px;margin:12px auto"></div>
+          <div class="cta-sub"><strong>India's decision research engine.</strong><br>Policy-grade intelligence. Open source. Bharat-first.<br>Aligned with the IndiaAI Mission.</div>
+          <div class="pill-row" style="margin-top:16px">
+            <div class="pill pill-s" style="opacity:1;transform:scale(1)">Search</div>
+            <div class="pill pill-g" style="opacity:1;transform:scale(1)">Synthesize</div>
+            <div class="pill pill-b" style="opacity:1;transform:scale(1)">Decide</div>
+            <div class="pill pill-w" style="opacity:1;transform:scale(1)">Share</div>
+          </div>
+          <div style="margin-top:20px">
+            <button class="ctrl-btn skip-to-app" onclick="enterApp()" style="font-size:.75rem;padding:12px 28px;border-radius:14px;width:100%;cursor:pointer">▶ ENTER decide.engine →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="prog-wrap"></div>
+  <div id="timer-ring"><svg viewBox="0 0 40 40"><circle class="ring-bg" cx="20" cy="20" r="18"/><circle class="ring-fill" id="ring-fill" cx="20" cy="20" r="18"/></svg></div>
+  <div id="slide-num"></div>
+  <div id="controls">
+    <button class="ctrl-btn" onclick="introPrev()">← PREV</button>
+    <button class="ctrl-btn primary" id="play-btn" onclick="introTogglePlay()">⏸ PAUSE</button>
+    <button class="ctrl-btn" onclick="introNext()">NEXT →</button>
+    <button class="ctrl-btn skip-to-app" onclick="enterApp()">ENTER APP →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     APP
+═══════════════════════════════════════ -->
+<div id="app-wrapper">
+  <div class="tricolor-bar"></div>
+  <div id="master-container"></div>
+  <div id="depth-fill"></div>
+  <div id="toast" class="toast-msg"></div>
+
+  <!-- Install FAB (shown when PWA installable) -->
+  <div id="install-fab">
+    <button onclick="triggerInstall()">⬇ INSTALL APP</button>
+  </div>
+
+  <div id="mic-toggle" onclick="toggleListenMode()">
+    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66-1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+  </div>
+
+  <div id="panel-toggle" role="button" aria-label="Open quick panel" onclick="toggleUIPanel()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+  </div>
+
+  <div id="notes-toggle" role="button" aria-label="Open notes" onclick="toggleNotesPanel()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l8.06-8.06.92.92L5.92 19.58zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+  </div>
+
+  <div id="notes-panel-overlay" onclick="closeNotesPanel()" aria-hidden="true"></div>
+  <aside id="notes-panel" aria-label="Notes panel" aria-hidden="true">
+    <div class="panel-header">
+      <div class="panel-title"><span>NOTES</span><span class="header-badge" id="notes-badge">LOCAL</span></div>
+      <button class="btn btn-mini" style="width:auto;padding:10px 14px" onclick="closeNotesPanel()">CLOSE</button>
+    </div>
+    <div class="notes-body">
+      <div class="panel-section" style="margin-bottom:12px;">
+        <div class="section-title" style="margin-top:0">Policy Scratchpad</div>
+        <textarea id="notes-text" placeholder="Capture policy insights, decision options, stakeholder notes..."></textarea>
+        <div class="notes-meta"><span id="notes-count">0 chars</span><span id="notes-saved">Not saved</span></div>
+      </div>
+      <div class="panel-actions">
+        <button class="btn btn-mini btn-pro" onclick="saveNotes()">SAVE</button>
+        <button class="btn btn-mini" onclick="clearNotes()">CLEAR</button>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="panel-note"><span>Stored on this device</span><span id="notes-time">--:--</span></div>
+    </div>
+  </aside>
+
+  <div id="ui-panel-overlay" onclick="closeUIPanel()" aria-hidden="true"></div>
+  <aside id="ui-panel" aria-label="Quick panel" aria-hidden="true">
+    <div class="panel-header">
+      <div class="panel-title"><span>QUICK PANEL</span><span class="header-badge india" id="panel-badge">INDIAAI</span></div>
+      <button class="btn btn-mini" style="width:auto;padding:10px 14px" onclick="closeUIPanel()">CLOSE</button>
+    </div>
+    <div class="panel-body">
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Session</div>
+        <div class="panel-row"><span class="panel-k">Project</span><span class="panel-v" id="panel-project">-</span></div>
+        <div class="panel-row"><span class="panel-k">Domain</span><span class="panel-v" id="panel-domain">-</span></div>
+        <div class="panel-row"><span class="panel-k">Slide</span><span class="panel-v" id="panel-slide">-</span></div>
+      </div>
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Decision Research</div>
+        <div class="panel-row"><span class="panel-k">Nodes</span><span class="panel-v" id="panel-nodes">0</span></div>
+        <div class="panel-row"><span class="panel-k">Source</span><span class="panel-v" id="panel-source">-</span></div>
+        <div class="panel-row"><span class="panel-k">Last Node</span><span class="panel-v" id="panel-last-node">-</span></div>
+      </div>
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Tools &amp; Pages</div>
+        <div class="subpage-grid" style="margin-bottom:10px;">
+          <a class="subpage-card" href="SwipeOS?.html" target="_blank"><div class="subpage-card-icon">📱</div><div class="subpage-card-title">SwipeOS</div><div class="subpage-card-desc">OS interface</div></a>
+          <a class="subpage-card" href="engine-deals.html" target="_blank"><div class="subpage-card-icon">🤝</div><div class="subpage-card-title">Deals</div><div class="subpage-card-desc">Engine deals</div></a>
+          <a class="subpage-card" href="alchemist.html" target="_blank"><div class="subpage-card-icon">🧪</div><div class="subpage-card-title">Alchemist</div><div class="subpage-card-desc">Quiz engine</div></a>
+          <a class="subpage-card" href="cashback-claim.html" target="_blank"><div class="subpage-card-icon">💰</div><div class="subpage-card-title">Cashback</div><div class="subpage-card-desc">Claim rewards</div></a>
+          <a class="subpage-card" href="cashback-rules.html" target="_blank"><div class="subpage-card-icon">📋</div><div class="subpage-card-title">CB Rules</div><div class="subpage-card-desc">Cashback rules</div></a>
+          <a class="subpage-card" href="engine-license.html" target="_blank"><div class="subpage-card-icon">🔑</div><div class="subpage-card-title">License</div><div class="subpage-card-desc">Engine license</div></a>
+          <a class="subpage-card" href="ONDC-demo.html" target="_blank"><div class="subpage-card-icon">🛒</div><div class="subpage-card-title">ONDC Demo</div><div class="subpage-card-desc">Commerce demo</div></a>
+          <a class="subpage-card" href="PromptAlchemy.html" target="_blank"><div class="subpage-card-icon">✨</div><div class="subpage-card-title">PromptAlchemy</div><div class="subpage-card-desc">Prompt tools</div></a>
+          <a class="subpage-card" href="StudentResearch.html" target="_blank"><div class="subpage-card-icon">🎓</div><div class="subpage-card-title">Student Research</div><div class="subpage-card-desc">Academic tools</div></a>
+          <a class="subpage-card" href="contact.html" target="_blank"><div class="subpage-card-icon">📬</div><div class="subpage-card-title">Contact</div><div class="subpage-card-desc">Get in touch</div></a>
+          <a class="subpage-card" href="brief.html" target="_blank"><div class="subpage-card-icon">📄</div><div class="subpage-card-title">Brief</div><div class="subpage-card-desc">Decision brief</div></a>
+          <a class="subpage-card" href="decision-brief.html" target="_blank"><div class="subpage-card-icon">🗂️</div><div class="subpage-card-title">Dec. Brief</div><div class="subpage-card-desc">Full brief</div></a>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Actions</div>
+        <div class="panel-actions">
+          <button class="btn btn-mini" onclick="goHome()">HOME</button>
+          <button class="btn btn-mini" onclick="tryGoBack()">BACK</button>
+          <button class="btn btn-mini btn-pdf" onclick="safeCall('generateResearchPDF')">PDF</button>
+          <button class="btn btn-mini btn-pro" onclick="safeCall('generateDecisionProUIPDF')">DECISION PDF</button>
+        </div>
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full btn-pro" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full" onclick="safeCall('openSynthesisSlide')">SYNTHESIS</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full" onclick="toggleNotesPanel()">NOTES</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full btn-india" onclick="openFounderLetter()">FOUNDER LETTER</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full btn-policy" onclick="openPolicyBrief()">INDIAAI POLICY BRIEF</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full btn-pro" onclick="saveCurrentProjectPrompt()">SAVE PROJECT</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full" onclick="shareCurrentProject()">SHARE LINK</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-mini btn-full btn-muted" onclick="openProjectPicker()">LOAD PROJECT</button>
+        <div style="height:8px"></div>
+        <!-- Install button in panel -->
+        <button class="btn btn-mini btn-full btn-install" id="panel-install-btn" onclick="triggerInstall()" style="display:none">⬇ INSTALL APP</button>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="panel-note"><span id="panel-toast-hint">Ready</span><span id="panel-time">--:--</span></div>
+    </div>
+  </aside>
+
+  <div id="pro-ui-root" aria-hidden="true"></div>
+</div>
+
+
+<script>
+/* ═══════════════════════════════════════
+   PWA INSTALL LOGIC
+═══════════════════════════════════════ */
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show the FAB and panel button
+  document.getElementById('install-fab').classList.add('visible');
+  const panelBtn = document.getElementById('panel-install-btn');
+  if (panelBtn) panelBtn.style.display = '';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  document.getElementById('install-fab').classList.remove('visible');
+  const panelBtn = document.getElementById('panel-install-btn');
+  if (panelBtn) panelBtn.style.display = 'none';
+  showToast('APP INSTALLED! 🎉');
+});
+
+async function triggerInstall() {
+  if (!deferredInstallPrompt) {
+    // iOS or already installed — guide the user
+    showToast('IOS: USE SHARE → ADD TO HOME SCREEN');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    showToast('INSTALLING…');
+  } else {
+    showToast('INSTALL DISMISSED');
+  }
+  deferredInstallPrompt = null;
+  document.getElementById('install-fab').classList.remove('visible');
+  const panelBtn = document.getElementById('panel-install-btn');
+  if (panelBtn) panelBtn.style.display = 'none';
+}
+
+/* ═══════════════════════════════════════
+   INTRO SYSTEM
+═══════════════════════════════════════ */
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+
+function resizeBg(){ bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+resizeBg(); window.addEventListener('resize', resizeBg);
+
+const introParticles = [];
+for(let i=0;i<120;i++){
+  introParticles.push({
+    x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight,
+    vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+    r:Math.random()*1.8+.3, a:Math.random(),
+    hue: Math.random()>.7 ? 30 : (Math.random()>.5 ? 145 : 220),
+  });
+}
+
+function drawBg(){
+  bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+  bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+  for(let i=0;i<introParticles.length;i++){
+    for(let j=i+1;j<introParticles.length;j++){
+      const dx=introParticles[i].x-introParticles[j].x, dy=introParticles[i].y-introParticles[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<130){
+        bgCtx.strokeStyle=`hsla(${introParticles[i].hue},70%,55%,${(.13*(1-d/130))})`;
+        bgCtx.lineWidth=.5; bgCtx.beginPath();
+        bgCtx.moveTo(introParticles[i].x,introParticles[i].y);
+        bgCtx.lineTo(introParticles[j].x,introParticles[j].y); bgCtx.stroke();
+      }
+    }
+    const p=introParticles[i];
+    bgCtx.fillStyle=`hsla(${p.hue},80%,60%,${p.a*.7})`;
+    bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2); bgCtx.fill();
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=window.innerWidth; if(p.x>window.innerWidth)p.x=0;
+    if(p.y<0)p.y=window.innerHeight; if(p.y>window.innerHeight)p.y=0;
+  }
+  if(!introGone) requestAnimationFrame(drawBg);
+}
+let introGone = false;
+drawBg();
+
+function createBurst(canvasId){
+  const c=document.getElementById(canvasId); if(!c) return;
+  c.width=window.innerWidth; c.height=window.innerHeight;
+  const ctx=c.getContext('2d'); const confetti=[];
+  const colors=['#FF9933','#138808','#ffffff','#00d68f','#3b82f6','#ffd700'];
+  for(let i=0;i<80;i++){
+    confetti.push({ x:Math.random()*c.width, y:c.height+10, vx:(Math.random()-.5)*4, vy:-(Math.random()*10+6), r:Math.random()*4+2, a:1, color:colors[Math.floor(Math.random()*colors.length)], rot:Math.random()*360, rotv:(Math.random()-.5)*8, g:.18 });
+  }
+  let frame=0;
+  function animate(){
+    ctx.clearRect(0,0,c.width,c.height);
+    confetti.forEach(p=>{
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color; ctx.globalAlpha=p.a;
+      ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.vy+=p.g; p.rot+=p.rotv; p.a-=.008;
+    });
+    frame++; if(frame<160) requestAnimationFrame(animate); else ctx.clearRect(0,0,c.width,c.height);
+  }
+  animate();
+}
+
+function animateCounter(el,target,suffix='',duration=1200){
+  const start=performance.now();
+  function update(now){
+    const t=Math.min(1,(now-start)/duration);
+    const eased=1-Math.pow(1-t,3);
+    const val=Math.round(eased*target);
+    el.textContent=val.toLocaleString('en-IN')+suffix;
+    if(t<1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function buildIntroFlow(){
+  const steps=[
+    {icon:'💭',label:'Question',sub:'What to decide?',col:'var(--saffron)'},
+    {icon:'🔍',label:'Search',sub:'Multi-source',col:'var(--go)'},
+    {icon:'📚',label:'Nodes',sub:'Linked data',col:'#93c5fd'},
+    {icon:'🧠',label:'Synthesize',sub:'Thesis + keys',col:'var(--saffron)'},
+    {icon:'📋',label:'Export',sub:'PDF or link',col:'var(--go)'},
+    {icon:'✅',label:'Decide',sub:'Confident act',col:'#fff'},
+  ];
+  const wrap=document.getElementById('s6-flow'); if(!wrap) return;
+  wrap.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:540px;margin-top:12px;';
+  steps.forEach((s,i)=>{
+    const box=document.createElement('div');
+    box.innerHTML=`<div class="c-card" style="text-align:center;border-color:${s.col}22;transition-delay:${i*.12}s;padding:10px 6px;">
+      <div style="font-size:1.1rem;margin-bottom:4px">${s.icon}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:.72rem;color:${s.col};margin-bottom:2px">${s.label}</div>
+      <div style="font-size:.58rem;color:var(--dim)">${s.sub}</div>
+    </div>`;
+    wrap.appendChild(box);
+  });
+}
+buildIntroFlow();
+
+const INTRO_SCENES=['s0','s1','s2','s3','s4','s5','s6','s7','s8'];
+const INTRO_DURATIONS=[5000,6000,6000,7000,7000,7000,7000,6000,9000];
+let introCurrentScene=0, introPlaying=true, introTimer=null, introTimerStart=null, introElapsed=0;
+
+function introShow(el){ if(el) el.classList.add('show'); }
+
+const introSceneInits={
+  s0:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s0-ey'))},200);
+    setTimeout(()=>{const l=document.getElementById('s0-logo');if(l){l.style.opacity='1';l.style.transform='scale(1)'}},500);
+    setTimeout(()=>{introShow(document.getElementById('s0-div'))},900);
+    setTimeout(()=>{introShow(document.getElementById('s0-sub'))},1100);
+  },
+  s1:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s1-ey'))},100);
+    setTimeout(()=>{introShow(document.getElementById('s1-h1'))},300);
+    setTimeout(()=>{introShow(document.getElementById('s1-h2'))},600);
+    setTimeout(()=>{introShow(document.getElementById('s1-h3'))},900);
+    setTimeout(()=>{introShow(document.getElementById('s1-div'))},1100);
+    setTimeout(()=>{introShow(document.getElementById('s1-body'))},1400);
+  },
+  s2:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s2-ey'))},100);
+    const boxes=document.querySelectorAll('#s2-stats .stat-box');
+    boxes.forEach((b,i)=>setTimeout(()=>introShow(b),300+i*250));
+    setTimeout(()=>{animateCounter(document.getElementById('cnt-1b'),1400000000,'',1800)},400);
+    setTimeout(()=>{animateCounter(document.getElementById('cnt-22'),22,'',900)},650);
+    setTimeout(()=>{animateCounter(document.getElementById('cnt-600'),770,'',1200)},900);
+    setTimeout(()=>{const el=document.getElementById('cnt-0');el.style.color='#f87171';el.textContent='0';},1200);
+    setTimeout(()=>{introShow(document.getElementById('s2-body'))},2000);
+  },
+  s3:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s3-ey'))},100);
+    setTimeout(()=>{introShow(document.getElementById('s3-h1'))},300);
+    setTimeout(()=>{introShow(document.getElementById('s3-h2'))},500);
+    setTimeout(()=>{introShow(document.getElementById('s3-h3'))},700);
+    setTimeout(()=>{introShow(document.getElementById('s3-div'))},850);
+    document.querySelectorAll('#s3-cards .c-card').forEach((c,i)=>setTimeout(()=>introShow(c),1000+i*200));
+  },
+  s4:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s4-ey'))},100);
+    setTimeout(()=>{introShow(document.getElementById('s4-qt'))},400);
+    setTimeout(()=>{introShow(document.getElementById('s4-qa'))},1200);
+    setTimeout(()=>{introShow(document.getElementById('s4-flag'))},1600);
+    document.querySelectorAll('#s4-pills .pill').forEach((p,i)=>setTimeout(()=>introShow(p),1800+i*120));
+  },
+  s5:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s5-ey'))},100);
+    setTimeout(()=>{introShow(document.getElementById('s5-l'))},400);
+    setTimeout(()=>{introShow(document.getElementById('s5-r'))},700);
+  },
+  s6:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s6-ey'))},100);
+    setTimeout(()=>{introShow(document.getElementById('s6-h1'))},300);
+    setTimeout(()=>{introShow(document.getElementById('s6-div'))},500);
+    document.querySelectorAll('#s6-flow .c-card').forEach((c,i)=>setTimeout(()=>introShow(c),700+i*180));
+  },
+  s7:()=>{
+    setTimeout(()=>{introShow(document.getElementById('s7-ey'))},100);
+    setTimeout(()=>{introShow(document.getElementById('s7-h1'))},300);
+    setTimeout(()=>{introShow(document.getElementById('s7-h2'))},600);
+    setTimeout(()=>{introShow(document.getElementById('s7-div'))},900);
+    setTimeout(()=>{introShow(document.getElementById('s7-body'))},1100);
+    setTimeout(()=>{introShow(document.getElementById('s7-flag'))},1400);
+  },
+  s8:()=>{
+    setTimeout(()=>{
+      introShow(document.getElementById('s8-cta'));
+      createBurst('burst-canvas-2');
+    },300);
+  }
+};
+
+function introActivateScene(idx){
+  INTRO_SCENES.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle('enter',i===idx);
+  });
+  if(introSceneInits[INTRO_SCENES[idx]]) introSceneInits[INTRO_SCENES[idx]]();
+  introBuildProgress();
+  document.getElementById('slide-num').textContent=`${idx+1} / ${INTRO_SCENES.length}`;
+  introStartTimer(idx);
+}
+
+function introNext(){
+  if(introCurrentScene<INTRO_SCENES.length-1){ introCurrentScene++; introActivateScene(introCurrentScene); introElapsed=0; }
+  else { enterApp(); }
+}
+function introPrev(){
+  if(introCurrentScene>0){ introCurrentScene--; introActivateScene(introCurrentScene); introElapsed=0; }
+}
+function introTogglePlay(){
+  introPlaying=!introPlaying; introUpdatePlayBtn();
+  if(introPlaying) introStartTimer(introCurrentScene);
+  else clearInterval(introTimer);
+}
+function introUpdatePlayBtn(){ document.getElementById('play-btn').textContent=introPlaying?'⏸ PAUSE':'▶ PLAY'; }
+
+function introStartTimer(idx){
+  clearInterval(introTimer);
+  const dur=INTRO_DURATIONS[idx];
+  introTimerStart=performance.now()-introElapsed;
+  const ring=document.getElementById('ring-fill'); const circ=113;
+  introTimer=setInterval(()=>{
+    if(!introPlaying)return;
+    introElapsed=performance.now()-introTimerStart;
+    const pct=Math.min(1,introElapsed/dur);
+    if(ring) ring.style.strokeDashoffset=(circ*(1-pct));
+    if(introElapsed>=dur){ clearInterval(introTimer); introElapsed=0; introNext(); }
+  },50);
+}
+
+function introBuildProgress(){
+  const wrap=document.getElementById('prog-wrap'); if(!wrap) return;
+  wrap.innerHTML='';
+  INTRO_SCENES.forEach((_,i)=>{
+    const d=document.createElement('div'); d.className='prog-dot';
+    if(i===introCurrentScene) d.classList.add('active');
+    else if(i<introCurrentScene) d.classList.add('done');
+    d.onclick=()=>{ introCurrentScene=i; introElapsed=0; introActivateScene(i); };
+    wrap.appendChild(d);
+  });
+}
+
+const s0logo=document.getElementById('s0-logo');
+if(s0logo){s0logo.style.opacity='0';s0logo.style.transform='scale(.95)';s0logo.style.transition='opacity .8s ease,transform .8s ease';}
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('intro-wrapper').classList.contains('hidden')) return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();introNext();}
+  if(e.key==='ArrowLeft'){e.preventDefault();introPrev();}
+  if(e.key==='p'||e.key==='P'){introTogglePlay();}
+  if(e.key==='Enter'){enterApp();}
+});
+
+let introSx=null;
+document.addEventListener('touchstart',e=>{
+  if(document.getElementById('intro-wrapper').classList.contains('hidden')) return;
+  introSx=e.touches[0].clientX;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(introSx===null) return;
+  if(document.getElementById('intro-wrapper').classList.contains('hidden')) return;
+  const dx=e.changedTouches[0].clientX-introSx;
+  if(Math.abs(dx)>60){dx<0?introNext():introPrev();}
+  introSx=null;
+});
+
+function enterApp(){
+  introGone = true;
+  clearInterval(introTimer);
+  const iw = document.getElementById('intro-wrapper');
+  const aw = document.getElementById('app-wrapper');
+  iw.classList.add('exiting');
+  aw.classList.add('visible');
+  document.body.style.overflowY = 'hidden';
+  setTimeout(()=>{ iw.classList.add('hidden'); }, 900);
+  if(!appBooted) { appBooted=true; appBoot(); }
+}
+
+introActivateScene(0);
+
+
+/* ═══════════════════════════════════════
+   APP SYSTEM
+═══════════════════════════════════════ */
+let appBooted = false;
+
+const ALCHEMIST_LS_KEY = "ALCHEMIST_INJECTED_DATA";
+
+async function fetchJSON(url, { timeoutMs = 9000 } = {}) {
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try { const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" }); if (!res.ok) throw new Error("HTTP " + res.status); return await res.json(); }
+  finally { clearTimeout(t); }
+}
+
+function escapeHTML(str) { return (str ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
+function normalizeText(text) { return (text || "").replace(/\s+/g, " ").replace(/\u00AD/g, "").trim(); }
+function splitIntoSentences(text) { const t = normalizeText(text); if (!t) return []; return t.split(/(?<=[.!?])\s+(?=[A-Z0-9""\u201C(])/g).map(s => s.trim()).filter(Boolean); }
+function extractTakeaways(summary, max = 4) { return splitIntoSentences(summary).slice(0, max).map(x => x.replace(/\s+/g, " ").trim()); }
+function formatSummaryHTML(summary) {
+  const sents = splitIntoSentences(summary);
+  if (!sents.length) return '<p class="muted">No summary available.</p>';
+  const lead = sents[0]; const rest = sents.slice(1); const paras = [];
+  for (let i = 0; i < rest.length; i += 3) paras.push(rest.slice(i, i+3).join(" "));
+  return `<p class="lead">${escapeHTML(lead)}</p>` + paras.map(p => `<p>${escapeHTML(p)}</p>`).join("");
+}
+function wordCount(text) { const t = normalizeText(text); if (!t) return 0; return t.split(/\s+/).length; }
+function readingTimeMins(words) { return Math.max(1, Math.round(words / 180)); }
+function nowIST() { return new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Kolkata' }); }
+
+function showToast(m) {
+  const t = document.getElementById('toast'); if (!t) return;
+  t.innerText = m; t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 1900);
+  if (typeof updateUIPanel === 'function') updateUIPanel();
+}
+
+function toggleListenMode() { showToast("VOICE: COMING SOON"); }
+function initVoice() {}
+
+function isUIPanelOpen() { const p=document.getElementById('ui-panel'); return !!(p&&p.classList.contains('open')); }
+function openUIPanel() { const p=document.getElementById('ui-panel'), o=document.getElementById('ui-panel-overlay'); if(!p||!o)return; p.classList.add('open'); o.classList.add('open'); p.setAttribute('aria-hidden','false'); o.setAttribute('aria-hidden','false'); updateUIPanel(); }
+function closeUIPanel() { const p=document.getElementById('ui-panel'), o=document.getElementById('ui-panel-overlay'); if(!p||!o)return; p.classList.remove('open'); o.classList.remove('open'); p.setAttribute('aria-hidden','true'); o.setAttribute('aria-hidden','true'); }
+function toggleUIPanel() { if (isUIPanelOpen()) closeUIPanel(); else openUIPanel(); }
+function tryGoBack() { if (typeof goToSlide === 'function' && typeof currentIdx === 'number' && currentIdx > 0) { goToSlide(currentIdx-1); return; } showToast("NO BACK"); }
+function safeCall(fnName) { try { const fn=window[fnName]; if (typeof fn==='function') return fn(); showToast("UNAVAILABLE"); } catch(e) { console.error(e); showToast("FAILED"); } }
+function updateUIPanel() {
+  const set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=String(txt); };
+  const domain = ENGINE_STATE?.cuisines_detected?.[0] || "home";
+  const nodes = Array.isArray(ENGINE_STATE?.research_nodes) ? ENGINE_STATE.research_nodes.length : 0;
+  const activeSrc = WIKI_ENGINE?.sources?.[WIKI_ENGINE?.activeSource]?.name || "-";
+  const lastNode = nodes > 0 ? (ENGINE_STATE.research_nodes[nodes-1]?.title || "-") : "-";
+  set('panel-domain', String(domain).toUpperCase());
+  set('panel-slide', typeof currentIdx==='number' ? `${currentIdx+1}/${slideElements?.length||1}` : "-");
+  set('panel-nodes', String(nodes));
+  set('panel-source', activeSrc.toUpperCase());
+  set('panel-last-node', lastNode);
+  set('panel-badge', domain==='research' ? `NODES: ${nodes}` : "INDIAAI");
+  set('panel-time', nowIST());
+  set('panel-toast-hint', isUIPanelOpen() ? "Tap outside to close" : "Ready");
+  set('panel-project', CURRENT_PROJECT?.name ? CURRENT_PROJECT.name.toUpperCase() : "-");
+  // Show install button if prompt is available
+  const panelBtn = document.getElementById('panel-install-btn');
+  if (panelBtn) panelBtn.style.display = deferredInstallPrompt ? '' : 'none';
+}
+
+const NOTES_KEY = "decide_engine_notes_v1";
+function isNotesPanelOpen() { const p=document.getElementById('notes-panel'); return !!(p&&p.classList.contains('open')); }
+function openNotesPanel() { const p=document.getElementById('notes-panel'), o=document.getElementById('notes-panel-overlay'); if(!p||!o)return; p.classList.add('open'); o.classList.add('open'); p.setAttribute('aria-hidden','false'); loadNotes(); updateNotesMeta(); }
+function closeNotesPanel() { const p=document.getElementById('notes-panel'), o=document.getElementById('notes-panel-overlay'); if(!p||!o)return; p.classList.remove('open'); o.classList.remove('open'); p.setAttribute('aria-hidden','true'); }
+function toggleNotesPanel() { if (isNotesPanelOpen()) closeNotesPanel(); else openNotesPanel(); }
+function updateNotesMeta() { const ta=document.getElementById('notes-text'), countEl=document.getElementById('notes-count'), timeEl=document.getElementById('notes-time'); if (ta&&countEl) countEl.textContent=`${ta.value.length} chars`; if (timeEl) timeEl.textContent=nowIST(); }
+function loadNotes() { try { const ta=document.getElementById('notes-text'); if (!ta) return; const saved=localStorage.getItem(NOTES_KEY); if (saved!==null) ta.value=saved; const badge=document.getElementById('notes-badge'); if (badge) badge.textContent=saved&&saved.trim() ? "RESTORED" : "LOCAL"; const savedEl=document.getElementById('notes-saved'); if (savedEl) savedEl.textContent=saved&&saved.trim() ? "Restored" : "Not saved"; } catch(e) { console.error(e); } }
+function saveNotes() { try { const ta=document.getElementById('notes-text'); if (!ta) return; localStorage.setItem(NOTES_KEY, ta.value); const savedEl=document.getElementById('notes-saved'); if (savedEl) savedEl.textContent="Saved"; showToast("NOTES SAVED"); updateNotesMeta(); autosaveProjectIfPossible(); } catch(e) { showToast("SAVE FAILED"); } }
+function clearNotes() { try { const ta=document.getElementById('notes-text'); if (ta) ta.value=""; localStorage.removeItem(NOTES_KEY); const savedEl=document.getElementById('notes-saved'); if (savedEl) savedEl.textContent="Cleared"; showToast("NOTES CLEARED"); updateNotesMeta(); autosaveProjectIfPossible(); } catch(e) {} }
+document.addEventListener('input', (e) => { if (e?.target?.id==='notes-text') updateNotesMeta(); });
+document.addEventListener('keydown', (e) => { if (e.key==='Escape') { if (isNotesPanelOpen()) closeNotesPanel(); if (isUIPanelOpen()) closeUIPanel(); } });
+setInterval(() => { if(appBooted){ updateUIPanel(); updateNotesMeta(); } }, 1200);
+
+function confidenceFor(source) { if (source==='wiki'||source==='travel') return 'High'; if (source==='wikibooks') return 'Medium'; return 'Low'; }
+function openYouTubeSearch(topic) { window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent((topic||"")+" explained")}`, '_blank'); }
+function openWikipedia(title) { window.open(`https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(title||"")}`, "_blank"); }
+
+/* Alchemist Quiz */
+function buildAlchemistPayloadFromResearch(nodes, { maxQ=12 }={}) {
+  const list=Array.isArray(nodes) ? nodes.slice(0,maxQ) : []; const out=[]; const now=Date.now();
+  function pick2Distractors(allTitles, correctTitle) { const pool=allTitles.filter(t=>t&&t!==correctTitle); for (let i=pool.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; } return [pool[0]||"—", pool[1]||"—"]; }
+  function dirByIndex(i) { return ["UP","RIGHT","LEFT","DOWN"][i%4]; }
+  const titles=list.map(n=>normalizeText(n?.title||"")).filter(Boolean);
+  list.forEach((n,i) => {
+    const title=normalizeText(n?.title||`Node ${i+1}`);
+    const sents=splitIntoSentences(n?.summary||"");
+    const qText=sents[0]||(n?.summary?normalizeText(n.summary).slice(0,140):"");
+    const prompt=qText ? `Which node matches: "${qText}"` : "Which node is this?";
+    const [d1,d2]=pick2Distractors(titles,title);
+    out.push({ Question_ID:`R_${now}_${String(i+1).padStart(3,"0")}`, Set_Code:"RESEARCH", Domain:"Decision Research", Subdomain:normalizeText(n?.sourceName||n?.source||"wiki").toUpperCase(), Difficulty:String(Math.min(5,Math.max(1,Math.round((wordCount(n?.summary||"")/120)||2)))), Question_Text:prompt, Correct_Answer:title, Distractor_1:d1, Distractor_2:d2, Correct_Direction:dirByIndex(i), Explanation_Short:"Pick the node title that matches the summary snippet.", Explanation_Long:(n?.url?`Source: ${n.url}`:"Source: (none)") });
+  });
+  return out;
+}
+function launchAlchemistQuiz() {
+  const nodes=ENGINE_STATE?.research_nodes||[];
+  if (!nodes.length) return showToast("NO NODES FOR QUIZ");
+  try { const payload=buildAlchemistPayloadFromResearch(nodes,{maxQ:12}); localStorage.setItem(ALCHEMIST_LS_KEY, JSON.stringify(payload)); showToast("QUIZ READY"); window.open("alchemist.html","_blank"); }
+  catch(e) { console.error(e); showToast("QUIZ FAILED"); }
+}
+
+/* Wiki Engine */
+const WIKI_ENGINE = {
+  activeSource: "wiki",
+  cache: new Map(),
+  sources: {
+    wiki: { name:"WIKIPEDIA", api:"https://en.wikipedia.org/w/api.php", icon:"📚", description:"General knowledge encyclopedia" },
+    travel: { name:"WIKIVOYAGE", api:"https://en.wikivoyage.org/w/api.php", icon:"🗺️", description:"Travel guides and destinations" },
+    wikibooks: { name:"WIKIBOOKS", api:"https://en.wikibooks.org/w/api.php", icon:"📖", description:"Educational textbooks" },
+    wikinews: { name:"WIKINEWS", api:"https://en.wikinews.org/w/api.php", icon:"📰", description:"News articles" }
+  },
+  async search(query, source=this.activeSource) {
+    const q=normalizeText(query); const cacheKey=`search_${source}_${q}`;
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+    try { const api=this.sources[source].api; const url=`${api}?origin=*&action=opensearch&search=${encodeURIComponent(q)}&limit=8&format=json`; const data=await fetchJSON(url); const results=[]; if (data&&data[1]&&data[1].length>0) { for (let i=0;i<data[1].length;i++) { results.push({ title:data[1][i], description:(data[2]&&data[2][i])?data[2][i]:'', url:(data[3]&&data[3][i])?data[3][i]:'' }); } } this.cache.set(cacheKey,results); return results; }
+    catch(e) { console.error("Search error:",e); return []; }
+  },
+  async getContext(title, source=this.activeSource) {
+    const t=normalizeText(title); const cacheKey=`context_${source}_${t}`;
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+    try {
+      const api=this.sources[source].api;
+      const url=`${api}?origin=*&action=query&prop=extracts|info|pageimages|categories&titles=${encodeURIComponent(t)}&exintro=1&explaintext=1&inprop=url&piprop=thumbnail&pithumbsize=300&cllimit=10&format=json`;
+      const data=await fetchJSON(url); const pages=data?.query?.pages||{}; const firstKey=Object.keys(pages)[0];
+      if (!firstKey||firstKey==="-1") throw new Error("Page not found");
+      const page=pages[firstKey];
+      const linksUrl=`${api}?origin=*&action=query&prop=links&titles=${encodeURIComponent(t)}&pllimit=20&plnamespace=0&format=json`;
+      let links=[]; try { const ld=await fetchJSON(linksUrl); const lp=ld?.query?.pages||{}; const lk=Object.keys(lp)[0]; links=(lk&&lp[lk]&&lp[lk].links)?lp[lk].links.map(l=>({name:l.title,ns:l.ns})):[];} catch(e){links=[];}
+      const context={ title:page.title, summary:page.extract||"No summary available.", url:page.fullurl||"", thumbnail:page.thumbnail?page.thumbnail.source:null, categories:page.categories?page.categories.slice(0,5).map(c=>c.title.replace("Category:","")):[], links, source, sourceName:this.sources[source].name, confidence:confidenceFor(source) };
+      this.cache.set(cacheKey,context); return context;
+    } catch(e) { console.error("Context error:",e); return null; }
+  }
+};
+
+/* Project persistence */
+const PROJECTS_INDEX_KEY="decideos_projects_v1";
+const LAST_PROJECT_KEY="decideos_last_project_id_v1";
+const PROJECT_PREFIX="decideos_project_";
+let CURRENT_PROJECT=null;
+function uid() { return "p_"+Math.random().toString(16).slice(2)+""+Date.now().toString(16); }
+function getProjectsIndex() { try{return JSON.parse(localStorage.getItem(PROJECTS_INDEX_KEY)||"{}");}catch(e){return {};} }
+function setProjectsIndex(idx) { localStorage.setItem(PROJECTS_INDEX_KEY,JSON.stringify(idx)); }
+function saveProjectToStorage(project) { const idx=getProjectsIndex(); idx[project.id]={id:project.id,name:project.name,updatedAt:project.updatedAt,createdAt:project.createdAt}; setProjectsIndex(idx); localStorage.setItem(PROJECT_PREFIX+project.id,JSON.stringify(project)); localStorage.setItem(LAST_PROJECT_KEY,project.id); }
+function loadProjectFromStorage(id) { try{const raw=localStorage.getItem(PROJECT_PREFIX+id);if(!raw)return null;return JSON.parse(raw);}catch(e){return null;} }
+function listProjects() { return Object.values(getProjectsIndex()).sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||"")); }
+function serializeProjectForShare(project) { const json=JSON.stringify(project); const b64=btoa(unescape(encodeURIComponent(json))); return b64.replaceAll("+","-").replaceAll("/","_").replaceAll("=",""); }
+function deserializeProjectFromShare(payload) { let b64=payload.replaceAll("-","+").replaceAll("_","/"); while (b64.length%4) b64+="="; return JSON.parse(decodeURIComponent(escape(atob(b64)))); }
+function shareCurrentProject() { const p=buildProjectFromCurrentState(); if (!p) return showToast("NOTHING TO SHARE"); saveProjectToStorage(p); CURRENT_PROJECT=p; const payload=serializeProjectForShare(p); const url=`${location.origin}${location.pathname}#p=${payload}`; if (navigator.clipboard?.writeText) { navigator.clipboard.writeText(url).then(()=>showToast("LINK COPIED")); } else { window.prompt("Copy share link:",url); } }
+function openProjectPicker() { const projects=listProjects(); if (!projects.length) return showToast("NO SAVED PROJECTS"); const menu=projects.map((p,i)=>`${i+1}. ${p.name} (${(p.updatedAt||"").slice(0,19).replace("T"," ")})`).join("\n"); const choice=window.prompt("Load project by number:\n"+menu,"1"); const n=parseInt(choice||"",10); if (!n||n<1||n>projects.length) return; const project=loadProjectFromStorage(projects[n-1].id); if (!project) return showToast("LOAD FAILED"); loadProjectIntoApp(project); showToast("PROJECT LOADED"); }
+function saveCurrentProjectPrompt() { const p=buildProjectFromCurrentState(); if (!p) return showToast("NOTHING TO SAVE"); const name=window.prompt("Project name:",(CURRENT_PROJECT?.name||p.name||"Decision Research")); if (name&&name.trim()) p.name=name.trim(); p.updatedAt=new Date().toISOString(); if (!p.createdAt) p.createdAt=p.updatedAt; saveProjectToStorage(p); CURRENT_PROJECT=p; showToast("PROJECT SAVED"); updateUIPanel(); }
+function autosaveProjectIfPossible() { if (!CURRENT_PROJECT?.id) return; const p=buildProjectFromCurrentState(); if (!p) return; p.id=CURRENT_PROJECT.id; p.name=CURRENT_PROJECT.name||p.name; p.createdAt=CURRENT_PROJECT.createdAt||p.createdAt; p.updatedAt=new Date().toISOString(); saveProjectToStorage(p); CURRENT_PROJECT=p; }
+function buildProjectFromCurrentState() { const nodes=ENGINE_STATE?.research_nodes||[], syn=ENGINE_STATE?.synthesis||null; const notes=(document.getElementById("notes-text")?.value??localStorage.getItem(NOTES_KEY)??""); if (!nodes.length&&!syn&&!notes) return null; return { id:CURRENT_PROJECT?.id||uid(), name:CURRENT_PROJECT?.name||(nodes[0]?.decisionMeta?.decision?`Decision: ${nodes[0].decisionMeta.decision}`:"Decision Research"), createdAt:CURRENT_PROJECT?.createdAt||new Date().toISOString(), updatedAt:new Date().toISOString(), engineState:{research_nodes:nodes,synthesis:syn,notes} }; }
+function loadProjectIntoApp(project) { CURRENT_PROJECT=project; const notes=project?.engineState?.notes??""; localStorage.setItem(NOTES_KEY,notes); const ta=document.getElementById("notes-text"); if (ta) ta.value=notes; ENGINE_STATE.cuisines_detected=["research"]; ENGINE_STATE.research_nodes=Array.isArray(project?.engineState?.research_nodes)?project.engineState.research_nodes:[]; ENGINE_STATE.synthesis=project?.engineState?.synthesis||null; if (ENGINE_STATE.research_nodes.length) openStoredDeck(ENGINE_STATE.research_nodes,ENGINE_STATE.synthesis); else renderSearchSlide(); updateUIPanel(); }
+function importShareLinkPrompt() { const link=window.prompt("Paste share link (or payload after #p=):",""); if (!link) return; let payload=link.trim(); const idx=payload.indexOf("#p="); if (idx>=0) payload=payload.slice(idx+3); if (payload.startsWith("p=")) payload=payload.slice(2); try { const project=deserializeProjectFromShare(payload); if (!project.id) project.id=uid(); if (!project.name) project.name="Imported Project"; project.updatedAt=new Date().toISOString(); if (!project.createdAt) project.createdAt=project.updatedAt; saveProjectToStorage(project); loadProjectIntoApp(project); showToast("IMPORTED"); } catch(e) { console.error(e); showToast("INVALID LINK"); } }
+
+const DEFAULT_EXAMPLES = [
+  { id:"ex_indiaai", name:"IndiaAI: National AI Mission", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
+    engineState:{ notes:"Policy node: map each research node to a policy pillar — compute access, skilling, datasets, sector adoption, ethics.",
+      synthesis:{ thesis:"India's National AI Mission anchors on seven pillars: compute infrastructure, foundation models, datasets, skilling, sector adoption, startups, and responsible AI governance.", topTakeaways:["IndiaAI Mission targets sovereign AI infrastructure through the IndiaAI Compute Platform.","10,000+ GPU compute capacity being built for startups, researchers, and government.","India Datasets Platform aims to make high-quality Indian language data publicly accessible.","Responsible AI governance includes safety, ethics, fairness, and accountability frameworks.","FutureSkills Prime and IITs anchor skilling at scale for India's AI workforce."], contradictions:"Tension between data sovereignty and open innovation; compute centralization vs. democratized access.", implications:"Policymakers must align procurement, skilling, and startup enablement simultaneously.", next:"Research: AI Safety Institute India • IndiaAI Startup Financing • Digital Public Infrastructure", recommendation:"Frame every decision through the lens of: 'Does this scale to Bharat's 1.4 billion?'" },
+      research_nodes:[
+        { title:"Artificial intelligence in India", summary:"India has emerged as a global hub for AI development and deployment, driven by its large talent pool, growing startup ecosystem, and government-led initiatives such as the National AI Strategy. The government's IndiaAI Mission, launched in 2024, focuses on building sovereign AI infrastructure including compute, datasets, and application frameworks. India aims to be a global leader in responsible AI with a particular emphasis on inclusive AI for agriculture, healthcare, education, and governance at scale.", url:"https://en.wikipedia.org/wiki/Artificial_intelligence_in_India", thumbnail:null, categories:["AI","India","Policy","Technology"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"} },
+        { title:"Digital India", summary:"Digital India is a flagship programme of the Government of India that aims to transform India into a digitally empowered society and knowledge economy. It focuses on digital infrastructure as a utility, governance and services on demand, and digital empowerment of citizens. Key pillars include broadband connectivity, mobile connectivity, public internet access, and e-governance. Digital India has enabled the foundation for AI adoption at population scale.", url:"https://en.wikipedia.org/wiki/Digital_India", thumbnail:null, categories:["Digital","India","Government","e-Governance"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"} }
+      ] }
+  },
+  { id:"ex_stoicism", name:"Stoicism → Decision Discipline", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
+    engineState:{ notes:"Use this as a template: connect each node to the same decision context.",
+      synthesis:{ thesis:"Stoicism is a practical operating system for reducing noise, focusing on controllables, and improving decision quality under uncertainty.", topTakeaways:["Separate controllables vs uncontrollables to reduce wasted effort.","Use negative visualization to stress-test downside scenarios.","Virtue framing improves consistency: act by principle, not mood.","Daily review loops create compounding behavioral change.","High signal routines beat motivational spikes."], contradictions:"Risk: can be misused as emotional suppression vs regulation.", implications:"For founders: define controllables, build pre-mortems, make principles explicit, review weekly.", next:"Read: Epictetus Enchiridion • Marcus Aurelius Meditations", recommendation:"If your environment is high-volatility, stoic routines tend to increase consistency." },
+      research_nodes:[
+        { title:"Stoicism", summary:"Stoicism is a school of Hellenistic philosophy that teaches the development of self-control and fortitude as a means to overcome destructive emotions. It emphasizes virtue, reason, and living in accordance with nature. Stoics distinguish between what is within our control and what is not. The practice includes reflection, negative visualization, and focusing on internal character rather than external outcomes.", url:"https://en.wikipedia.org/wiki/Stoicism", thumbnail:null, categories:["Philosophy","Ethics"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Build discipline system for better decisions",time:"90 days",stake:"Execution consistency",success:"Higher follow-through rate",options:"Stoic routines vs ad-hoc motivation"} }
+      ] }
+  }
+];
+
+let ENGINE_STATE = { cuisines_detected:[], items_detected:{}, session_weights:{}, active_filters:[], research_history:[], research_nodes:[], synthesis:null };
+let slideElements = [];
+let currentIdx = 0;
+let currentDecisionContext = null;
+
+/* Founder Letter */
+function openFounderLetter() {
+  closeUIPanel();
+  const container = document.getElementById('master-container');
+  const section = document.createElement('section');
+  section.className = "main-slide next"; section.dataset.mode = "founder-letter";
+  section.innerHTML = `
+    <div class="slide-header"><span class="header-title">FOUNDER LETTER</span><span class="header-badge india">INDIA AI</span></div>
+    <div class="sub-slide static article-view">
+      <div class="founder-letter">
+        <div class="founder-letter-eyebrow"><span class="pulse-dot"></span>To India — From the Builder</div>
+        <h2>We built this for the billion who decide.</h2>
+        <p>Every day, over a billion Indians make decisions that shape their lives — choosing a school, a medication, a business, a policy. Most of them make these decisions <strong>without access to structured information, expert analysis, or decision scaffolding</strong>.</p>
+        <p>That gap is not a data problem. It is an <strong>intelligence infrastructure problem</strong>.</p>
+        <p>decide.engine began as a personal tool. A way to think clearly in a noisy world. To build a decision, research it, synthesize it, and act. But when we looked at what India's AI mission was building toward — compute, datasets, skilling, responsible AI — we saw something bigger.</p>
+        <p>We saw the infrastructure for a new kind of decision-making at scale. <strong>Policy-grade intelligence, accessible to every citizen.</strong></p>
+        <p>This is not about replacing human judgment. It is about amplifying it. About giving a farmer in Vidarbha the same structured research process that a policy advisor in South Block uses. About making AI not a product for the elite — but a <strong>decision partner for every Indian</strong>.</p>
+        <p>IndiaAI's mission is sovereign. Inclusive. Responsible. Ours aligns completely.</p>
+        <p>We are building decide.engine as an open, policy-grade decision research layer — aligned with IndiaAI's seven pillars, designed for India's languages, and committed to <strong>AI that decides with India, not for India</strong>.</p>
+        <p>The decision is yours. The infrastructure is ours to build together.</p>
+        <div class="letter-sig"><strong>— The decide.engine team</strong><br><span style="color:var(--text-dim); font-size:.78rem;">Building for Bharat · Aligned with IndiaAI Mission · 2024</span></div>
+      </div>
+      <div class="mission-pills">
+        <span class="mission-pill mp-saffron">🇮🇳 Sovereign AI</span>
+        <span class="mission-pill mp-green">♿ Inclusive Access</span>
+        <span class="mission-pill mp-blue">🔒 Responsible AI</span>
+        <span class="mission-pill mp-white">🌐 Multilingual</span>
+        <span class="mission-pill mp-saffron">📊 Policy-grade</span>
+        <span class="mission-pill mp-green">🌾 Bharat-first</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="number">1.4B</div><div class="label">Indians Deciding Daily</div></div>
+        <div class="stat-card"><div class="number">7</div><div class="label">IndiaAI Pillars</div></div>
+        <div class="stat-card"><div class="number">10K+</div><div class="label">GPU Target (IndiaAI)</div></div>
+        <div class="stat-card"><div class="number">∞</div><div class="label">Decisions to Support</div></div>
+      </div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-india" onclick="openPolicyBrief()">VIEW INDIAAI POLICY BRIEF →</button>
+        <button class="btn btn-full btn-pro" onclick="openTool()">START RESEARCHING</button>
+        <button class="btn btn-full btn-muted" onclick="goHome()">← BACK</button>
+      </div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div>
+    </div>
+  `;
+  container.appendChild(section); slideElements.push(section); goToSlide(slideElements.length - 1);
+}
+
+/* Policy Brief */
+function openPolicyBrief() {
+  const container = document.getElementById('master-container');
+  const section = document.createElement('section');
+  section.className = "main-slide next"; section.dataset.mode = "policy-brief";
+  section.innerHTML = `
+    <div class="slide-header"><span class="header-title">INDIAAI ALIGNMENT</span><span class="header-badge policy">POLICY</span></div>
+    <div class="sub-slide static article-view">
+      <h1>Policy Alignment</h1>
+      <div class="primary-question">How decide.engine maps to India's National AI Mission pillars.</div>
+      <div class="policy-banner"><div class="policy-icon">🏛️</div><div class="policy-text"><strong>IndiaAI Mission (2024-2030)</strong> — India's national strategy to build sovereign AI infrastructure spanning compute, data, skilling, research, and responsible governance.</div></div>
+      <div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 1 — IndiaAI Compute Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> 10,000+ GPU sovereign compute infrastructure.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Lightweight, browser-native — zero GPU dependency for end users.</div></div>
+      <div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 2 — IndiaAI Datasets Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> High-quality, multilingual Indian language datasets.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Designed for multilingual expansion — Hindi, Tamil, Bengali, Marathi.</div></div>
+      <div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 3 — FutureSkills Prime / AI Skilling</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Train 1 million AI-skilled workers by 2030.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Quiz engine (Alchemist) creates skill-assessment loops from research nodes.</div></div>
+      <div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 4 — Responsible AI</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Safety, ethics, fairness, accountability.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> All research is source-attributed and confidence-rated. No black-box outputs.</div></div>
+      <div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 5 — AI for Sector Adoption</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> AI in agriculture, health, education, governance.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Decision nodes pre-configured for sector-specific decisions.</div></div>
+      <div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 6 — IndiaAI Startup Financing</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> ₹2000 Cr+ fund for deep-tech AI startups.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Open-source core, startup-ready API layer. PDF exports as pitch artifacts.</div></div>
+      <div class="founder-letter" style="margin-top:6px;"><div class="founder-letter-eyebrow"><span class="pulse-dot"></span>Our Commitment</div><p style="margin:0;font-size:.9rem;color:var(--text-dim);line-height:1.7">decide.engine commits to building in the open, aligning with IndiaAI's data and ethics standards, supporting Indian language expansion, and making policy-grade decision intelligence accessible to every Indian.</p></div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-india" onclick="openExample('ex_indiaai')">LOAD INDIAAI EXAMPLE →</button>
+        <button class="btn btn-full btn-pro" onclick="openTool()">START RESEARCH</button>
+        <button class="btn btn-full" onclick="openFounderLetter()">← FOUNDER LETTER</button>
+        <button class="btn btn-full btn-muted" onclick="goHome()">HOME</button>
+      </div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div>
+    </div>
+  `;
+  container.appendChild(section); slideElements.push(section); goToSlide(slideElements.length - 1);
+}
+
+/* Landing */
+function goHome() { closeUIPanel(); closeNotesPanel(); renderLanding(); }
+
+function renderLanding() {
+  const container = document.getElementById('master-container');
+  container.innerHTML = ""; slideElements = []; currentIdx = 0;
+  const lastId = localStorage.getItem(LAST_PROJECT_KEY);
+  const hasLast = !!(lastId && loadProjectFromStorage(lastId));
+  const examplesHtml = DEFAULT_EXAMPLES.map(ex => `<button class="cuisine-btn" onclick="openExample('${escapeHTML(ex.id)}')">${escapeHTML(ex.name)}</button>`).join("");
+  // Install button for landing — only shown if prompt available
+  const installHtml = `<button class="btn btn-full btn-install" id="landing-install-btn" onclick="triggerInstall()" style="${deferredInstallPrompt ? '' : 'display:none'}">⬇ INSTALL APP</button>`;
+  const section = document.createElement('section');
+  section.className = "main-slide active"; section.dataset.mode = "landing";
+  section.innerHTML = `
+    <div class="slide-header"><span class="header-title">decide.engine</span><span class="header-badge india">INDIAAI</span></div>
+    <div class="sub-slide static article-view">
+      <div class="founder-letter" style="margin-bottom:14px;">
+        <div class="founder-letter-eyebrow"><span class="pulse-dot"></span>India's Decision Research Engine</div>
+        <h2 style="font-size:1.6rem;">Built for the billion who decide.</h2>
+        <p style="margin-bottom:6px;">Policy-grade decision intelligence — aligned with the <strong>IndiaAI Mission</strong>. Research any topic, build decision nodes, export briefs, and think clearly at scale.</p>
+      </div>
+      <div class="mission-pills" style="margin-bottom:14px;">
+        <span class="mission-pill mp-saffron">🇮🇳 IndiaAI Aligned</span>
+        <span class="mission-pill mp-green">🌿 Open Research</span>
+        <span class="mission-pill mp-blue">📋 Policy Briefs</span>
+        <span class="mission-pill mp-white">🧠 Decision AI</span>
+      </div>
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">Quick Start</div>
+        <div style="color:var(--text-dim);font-size:.88rem;line-height:1.7;"><strong style="color:var(--text-main)">Search</strong> any topic → select a result → build research nodes.<br><strong style="color:var(--text-main)">Synthesis</strong> → capture thesis, takeaways, and next steps.<br><strong style="color:var(--text-main)">Export</strong> as Research PDF or Decision Brief PDF.<br><strong style="color:var(--text-main)">Share</strong> via link (project embedded in URL).</div>
+      </div>
+      <div class="context-panel"><div class="section-title" style="margin-top:0">Load Example</div><div style="display:grid;gap:10px;">${examplesHtml}</div></div>
+
+      <!-- Sub-page navigation -->
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">All Tools &amp; Pages</div>
+        <div class="subpage-grid">
+          <a class="subpage-card" href="SwipeOS?.html" target="_blank"><div class="subpage-card-icon">📱</div><div class="subpage-card-title">SwipeOS</div><div class="subpage-card-desc">OS Interface</div></a>
+          <a class="subpage-card" href="engine-deals.html" target="_blank"><div class="subpage-card-icon">🤝</div><div class="subpage-card-title">Engine Deals</div><div class="subpage-card-desc">Deal engine</div></a>
+          <a class="subpage-card" href="alchemist.html" target="_blank"><div class="subpage-card-icon">🧪</div><div class="subpage-card-title">Alchemist</div><div class="subpage-card-desc">Quiz engine</div></a>
+          <a class="subpage-card" href="cashback-claim.html" target="_blank"><div class="subpage-card-icon">💰</div><div class="subpage-card-title">Cashback Claim</div><div class="subpage-card-desc">Claim rewards</div></a>
+          <a class="subpage-card" href="cashback-rules.html" target="_blank"><div class="subpage-card-icon">📋</div><div class="subpage-card-title">CB Rules</div><div class="subpage-card-desc">Cashback rules</div></a>
+          <a class="subpage-card" href="engine-license.html" target="_blank"><div class="subpage-card-icon">🔑</div><div class="subpage-card-title">Engine License</div><div class="subpage-card-desc">License info</div></a>
+          <a class="subpage-card" href="ONDC-demo.html" target="_blank"><div class="subpage-card-icon">🛒</div><div class="subpage-card-title">ONDC Demo</div><div class="subpage-card-desc">Commerce demo</div></a>
+          <a class="subpage-card" href="PromptAlchemy.html" target="_blank"><div class="subpage-card-icon">✨</div><div class="subpage-card-title">PromptAlchemy</div><div class="subpage-card-desc">Prompt tools</div></a>
+          <a class="subpage-card" href="StudentResearch.html" target="_blank"><div class="subpage-card-icon">🎓</div><div class="subpage-card-title">Student Research</div><div class="subpage-card-desc">Academic tools</div></a>
+          <a class="subpage-card" href="decision-brief.html" target="_blank"><div class="subpage-card-icon">🗂️</div><div class="subpage-card-title">Decision Brief</div><div class="subpage-card-desc">Full brief</div></a>
+          <a class="subpage-card" href="brief.html" target="_blank"><div class="subpage-card-icon">📄</div><div class="subpage-card-title">Brief</div><div class="subpage-card-desc">Quick brief</div></a>
+          <a class="subpage-card" href="contact.html" target="_blank"><div class="subpage-card-icon">📬</div><div class="subpage-card-title">Contact</div><div class="subpage-card-desc">Get in touch</div></a>
+        </div>
+      </div>
+
+      <div class="final-actions">
+        <button class="btn btn-full btn-india" onclick="openFounderLetter()">FOUNDER LETTER →</button>
+        <button class="btn btn-full btn-policy" onclick="openPolicyBrief()">INDIAAI POLICY BRIEF →</button>
+        <button class="btn btn-full btn-pro" onclick="openTool()">OPEN RESEARCH TOOL</button>
+        ${hasLast ? `<button class="btn btn-full" onclick="continueLastProject()">CONTINUE LAST PROJECT</button>` : `<button class="btn btn-full btn-muted" onclick="showToast('NO LAST PROJECT')">CONTINUE LAST PROJECT</button>`}
+        <button class="btn btn-full" onclick="importShareLinkPrompt()">IMPORT SHARE LINK</button>
+        <button class="btn btn-full btn-muted" onclick="openProjectPicker()">LOAD SAVED PROJECT</button>
+        ${installHtml}
+      </div>
+      <div class="nav-hint"><span>☰ Quick Panel</span><span>✎ Notes</span></div>
+    </div>
+  `;
+  container.appendChild(section); slideElements = [section]; currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["home"]; ENGINE_STATE.research_nodes = []; ENGINE_STATE.synthesis = null;
+  CURRENT_PROJECT = null; updateUIPanel();
+}
+
+function openExample(exampleId) { const ex = DEFAULT_EXAMPLES.find(x => x.id === exampleId); if (!ex) return showToast("EXAMPLE NOT FOUND"); const project = { id:uid(), name:ex.name, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), engineState:ex.engineState }; saveProjectToStorage(project); loadProjectIntoApp(project); showToast("EXAMPLE LOADED"); }
+function continueLastProject() { const id = localStorage.getItem(LAST_PROJECT_KEY); if (!id) return showToast("NO LAST PROJECT"); const project = loadProjectFromStorage(id); if (!project) return showToast("LOAD FAILED"); loadProjectIntoApp(project); showToast("CONTINUED"); }
+function openTool() { CURRENT_PROJECT = null; renderLobby(); updateUIPanel(); }
+
+/* Lobby */
+const FALLBACK_MENU = { "research": { label:"DECISION RESEARCH", categories:[] } };
+let RAW_DATA = FALLBACK_MENU;
+
+function renderLobby() {
+  const container = document.getElementById('master-container'); container.innerHTML = "";
+  const section = document.createElement('section'); section.className = "main-slide active";
+  let html = `<div class="slide-header"><span class="header-title">decide.engine</span><span class="header-badge">DOMAIN SELECT</span></div><div class="lobby-container"><h1 style="text-align:center;font-size:1.6rem">Select Domain</h1><div style="display:grid;gap:12px;">`;
+  for (let key in RAW_DATA) { const isSelected = ENGINE_STATE.cuisines_detected.includes(key) ? "selected" : ""; html += `<button class="cuisine-btn ${isSelected}" onclick="toggleDomain('${escapeHTML(key)}', this)">${escapeHTML(RAW_DATA[key].label)}</button>`; }
+  html += `</div><button class="btn btn-full" style="margin-top:20px" onclick="handleStart()">NEXT →</button><button class="btn btn-full btn-muted" style="margin-top:10px" onclick="goHome()">← WELCOME</button></div>`;
+  section.innerHTML = html; container.appendChild(section); slideElements = [section]; currentIdx = 0; updateUIPanel();
+}
+function toggleDomain(id, btn) { ENGINE_STATE.cuisines_detected = [id]; document.querySelectorAll('.cuisine-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
+function handleStart() { if (!ENGINE_STATE.cuisines_detected.length) return showToast("SELECT DOMAIN"); const domain = ENGINE_STATE.cuisines_detected[0]; if (domain === "research") { ENGINE_STATE.research_nodes=[]; ENGINE_STATE.synthesis=null; CURRENT_PROJECT=null; renderSearchSlide(); } else { showToast("COMING SOON"); } }
+
+/* Research */
+function renderSearchSlide() {
+  const container = document.getElementById('master-container'); container.innerHTML = "";
+  const section = document.createElement('section'); section.className = "main-slide active"; section.dataset.mode = "research-search";
+  section.innerHTML = `
+    <div class="slide-header"><span class="header-title">DECISION RESEARCH</span><span class="header-badge india">SEARCH</span></div>
+    <div class="sub-slide static article-view">
+      <h1>Search a topic</h1>
+      <div class="primary-question">Build a decision-linked research journey. Search any topic to begin.</div>
+      <input id="search-input" placeholder="e.g. IndiaAI, Stoicism, Food Security, Protein..." />
+      <div class="source-toggle" id="source-toggle"></div>
+      <button class="btn btn-full btn-india" onclick="handleSearch()">SEARCH →</button>
+      <div class="final-actions" style="margin-top:10px;"><button class="btn btn-full btn-muted" onclick="goHome()">← WELCOME</button></div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div>
+    </div>
+  `;
+  container.appendChild(section); slideElements = [section]; currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["research"]; renderSourceToggle(); updateUIPanel();
+}
+
+function renderSourceToggle() {
+  const el = document.getElementById("source-toggle"); if (!el) return; el.innerHTML = "";
+  Object.keys(WIKI_ENGINE.sources).forEach(key => {
+    const s = WIKI_ENGINE.sources[key]; const chip = document.createElement("div");
+    chip.className = "source-chip" + (WIKI_ENGINE.activeSource===key ? " active" : "");
+    chip.textContent = `${s.icon} ${s.name}`;
+    chip.onclick = () => { WIKI_ENGINE.activeSource=key; renderSourceToggle(); showToast(`${s.name} SELECTED`); updateUIPanel(); };
+    el.appendChild(chip);
+  });
+}
+
+async function handleSearch() {
+  const input = document.getElementById('search-input'); const q = input?.value?.trim();
+  if (!q) return showToast("TYPE SOMETHING");
+  showToast("SEARCHING...");
+  const results = await WIKI_ENGINE.search(q, WIKI_ENGINE.activeSource);
+  if (!results||!results.length) { showToast("NO RESULTS"); return; }
+  renderResultsSlide(q, results);
+}
+
+function renderResultsSlide(query, results) {
+  const container = document.getElementById('master-container'); const section = document.createElement('section');
+  section.className = "main-slide next"; section.dataset.mode = "research-results";
+  const src = WIKI_ENGINE.sources[WIKI_ENGINE.activeSource];
+  let html = `<div class="slide-header"><span class="header-title">RESULTS</span><span class="header-badge">${escapeHTML(src.name)}</span></div><div class="sub-slide static article-view"><h1>${escapeHTML(query)}</h1><div class="primary-question">Select a node to begin your research journey.</div><div style="display:grid;gap:10px;">`;
+  results.forEach((r,idx) => { html += `<button class="cuisine-btn" onclick="openResult('${escapeHTML(r.title)}')">${idx+1}. ${escapeHTML(r.title)}</button>`; });
+  html += `</div><div style="height:14px"></div><button class="btn btn-full btn-muted" onclick="renderSearchSlide()">← BACK</button><div class="nav-hint"><span>Swipe up/down</span><span>☰ : panel</span></div></div>`;
+  section.innerHTML = html; container.appendChild(section); slideElements.push(section); goToSlide(slideElements.length - 1);
+}
+
+async function openResult(title) {
+  showToast("LOADING...");
+  const ctx = await WIKI_ENGINE.getContext(title, WIKI_ENGINE.activeSource);
+  if (!ctx) return showToast("FAILED");
+  currentDecisionContext = { title:ctx.title, summary:ctx.summary, url:ctx.url, thumbnail:ctx.thumbnail, categories:ctx.categories||[], links:ctx.links||[], source:ctx.source, sourceName:ctx.sourceName, confidence:ctx.confidence, decisionMeta:{} };
+  renderDecisionMetaSlide(currentDecisionContext);
+}
+
+function renderDecisionMetaSlide(ctx) {
+  const container = document.getElementById('master-container'); const metaSlide = document.createElement('section');
+  metaSlide.className = "main-slide next"; metaSlide.dataset.mode = "decision-meta";
+  const inputStyle = `style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-main);font-size:.88rem;font-family:var(--font-body);outline:none;transition:border-color .2s"`;
+  metaSlide.innerHTML = `
+    <div class="slide-header"><span class="header-title">DECISION META</span><span class="header-badge">LINK</span></div>
+    <div class="sub-slide static article-view">
+      <h1>Link this node</h1>
+      <div class="primary-question">Capture the decision context this research supports.</div>
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">Decision context</div>
+        <div style="display:grid;gap:10px;">
+          <input id="meta-decision" type="text" placeholder="Decision (e.g. cut sugar, choose phone, AI policy)" ${inputStyle}>
+          <input id="meta-time" type="text" placeholder="Time horizon (e.g. 90 days, 5 years)" ${inputStyle}>
+          <input id="meta-stake" type="text" placeholder="Stake (e.g. health, budget, national policy)" ${inputStyle}>
+          <input id="meta-success" type="text" placeholder="Success metric" ${inputStyle}>
+          <input id="meta-options" type="text" placeholder="Options (e.g. A vs B vs C)" ${inputStyle}>
+        </div>
+      </div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="saveDecisionMeta()">SAVE META & RESEARCH</button>
+        <button class="btn btn-full btn-muted" onclick="skipDecisionMeta()">SKIP META</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(metaSlide); slideElements.push(metaSlide); goToSlide(slideElements.length - 1);
+}
+
+function saveDecisionMeta() {
+  if (!currentDecisionContext) return;
+  currentDecisionContext.decisionMeta = { decision:document.getElementById('meta-decision')?.value?.trim()||"", time:document.getElementById('meta-time')?.value?.trim()||"", stake:document.getElementById('meta-stake')?.value?.trim()||"", success:document.getElementById('meta-success')?.value?.trim()||"", options:document.getElementById('meta-options')?.value?.trim()||"" };
+  ENGINE_STATE.research_nodes=[currentDecisionContext]; ENGINE_STATE.synthesis=null; currentDecisionContext=null; buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]); autosaveProjectIfPossible();
+}
+function skipDecisionMeta() {
+  if (!currentDecisionContext) return;
+  currentDecisionContext.decisionMeta={decision:'',time:'',stake:'',success:'',options:''}; ENGINE_STATE.research_nodes=[currentDecisionContext]; ENGINE_STATE.synthesis=null; currentDecisionContext=null; buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]); autosaveProjectIfPossible();
+}
+
+async function buildResearchDeckFromNetwork(seedNode) {
+  const container = document.getElementById('master-container'); container.innerHTML = ""; slideElements = []; currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["research"]; renderNodeSlide(seedNode, true);
+  if (seedNode.links && seedNode.links.length) { const linkNames = seedNode.links.slice(0,6).map(l=>l.name).filter(Boolean); for (const name of linkNames) await renderLinkSlide(name); }
+  renderEndSlide(); goToSlide(0); updateUIPanel();
+}
+
+function openStoredDeck(nodes, synthesis) {
+  const container = document.getElementById('master-container'); container.innerHTML = ""; slideElements = []; currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["research"]; ENGINE_STATE.research_nodes = nodes||[]; ENGINE_STATE.synthesis = synthesis||null;
+  ENGINE_STATE.research_nodes.forEach((n,idx) => renderNodeSlide(n, idx===0)); renderEndSlide(); goToSlide(0); updateUIPanel();
+}
+
+function renderNodeSlide(node, isFirst) {
+  const container = document.getElementById('master-container'); const section = document.createElement('section');
+  section.className = isFirst ? "main-slide active" : "main-slide next"; section.dataset.mode = "node";
+  const words = wordCount(node.summary||""); const rt = readingTimeMins(words);
+  const takeaways = extractTakeaways(node.summary||"", 4); const cats = (node.categories||[]).slice(0,5);
+  section.innerHTML = `
+    <div class="slide-header"><span class="header-title">NODE</span><span class="header-badge">${escapeHTML((node.sourceName||'LOCAL').toUpperCase())}</span></div>
+    <div class="sub-slide static article-view">
+      <div class="context-panel">
+        <div class="context-top">
+          <div class="thumb">${node.thumbnail?`<img src="${escapeHTML(node.thumbnail)}" alt="">`:'🔍'}</div>
+          <div class="context-title-wrap">
+            <div class="context-kicker">Research node · <span style="color:var(--accent-go)">${escapeHTML(node.confidence||'High')}</span> confidence</div>
+            <h1 style="font-size:1.45rem;margin-bottom:6px;">${escapeHTML(node.title||'Untitled')}</h1>
+            <div class="context-stats">
+              <span class="stat-chip">${words} words</span>
+              <span class="stat-chip green">${rt} min read</span>
+              <span class="stat-chip orange">${escapeHTML(node.sourceName||'LOCAL')}</span>
+            </div>
+          </div>
+        </div>
+        <div class="wiki-meta">${cats.map(c=>`<span class="meta-chip">${escapeHTML(c)}</span>`).join("")}</div>
+      </div>
+      ${node.decisionMeta?.decision ? `<div class="policy-banner"><div class="policy-icon">🎯</div><div class="policy-text"><strong>Decision:</strong> ${escapeHTML(node.decisionMeta.decision)} · <strong>Stake:</strong> ${escapeHTML(node.decisionMeta.stake||"-")} · <strong>Time:</strong> ${escapeHTML(node.decisionMeta.time||"-")}</div></div>` : ""}
+      <div class="section-title">Key takeaways</div>
+      <div class="takeaways"><ul>${takeaways.map(t=>`<li>${escapeHTML(t)}</li>`).join("")}</ul></div>
+      <div class="section-title">Summary</div>
+      <div class="wiki-summary">${formatSummaryHTML(node.summary||"")}</div>
+      <div class="final-actions" style="margin-top:12px;">
+        <button class="btn btn-full btn-yt" onclick="openYouTubeSearch('${escapeHTML(node.title||"")}')">▶ YOUTUBE</button>
+        <button class="btn btn-full btn-policy" onclick="openWikipedia('${escapeHTML(node.title||"")}')">OPEN WIKI</button>
+        <button class="btn btn-full btn-pdf" onclick="generateResearchPDF()">RESEARCH PDF</button>
+        <button class="btn btn-full btn-pro" onclick="generateDecisionProUIPDF()">DECISION PDF</button>
+      </div>
+      <div class="final-actions" style="margin-top:8px;">
+        <button class="btn btn-full btn-india" onclick="openFounderLetter()">FOUNDER LETTER</button>
+        <button class="btn btn-full btn-pro" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
+        <button class="btn btn-full btn-pro" onclick="saveCurrentProjectPrompt()">SAVE PROJECT</button>
+        <button class="btn btn-full" onclick="shareCurrentProject()">SHARE LINK</button>
+      </div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div>
+    </div>
+  `;
+  container.appendChild(section); slideElements.push(section);
+}
+
+async function renderLinkSlide(linkTitle) {
+  const ctx = await WIKI_ENGINE.getContext(linkTitle, WIKI_ENGINE.activeSource); if (!ctx) return;
+  const node = { title:ctx.title, summary:ctx.summary, url:ctx.url, thumbnail:ctx.thumbnail, categories:ctx.categories||[], links:ctx.links||[], source:ctx.source, sourceName:ctx.sourceName, confidence:ctx.confidence, decisionMeta:ENGINE_STATE.research_nodes?.[0]?.decisionMeta||{} };
+  ENGINE_STATE.research_nodes.push(node); renderNodeSlide(node, false); autosaveProjectIfPossible();
+}
+
+/* Synthesis */
+function openSynthesisSlide() {
+  if (!ENGINE_STATE.research_nodes||!ENGINE_STATE.research_nodes.length) return showToast("NO NODES YET");
+  const allTakeaways = []; ENGINE_STATE.research_nodes.forEach(n => allTakeaways.push(...extractTakeaways(n.summary||"",4))); const top = allTakeaways.slice(0,5);
+  const container = document.getElementById('master-container'); const synSlide = document.createElement('section');
+  synSlide.className = "main-slide next"; synSlide.dataset.mode = "synthesis";
+  const syn = ENGINE_STATE.synthesis||{};
+  const taStyle = `style="width:100%;resize:none;padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-main);font-size:.88rem;line-height:1.6;font-family:var(--font-body);outline:none;"`;
+  synSlide.innerHTML = `
+    <div class="slide-header"><span class="header-title">SYNTHESIS</span><span class="header-badge">EDIT</span></div>
+    <div class="sub-slide static article-view">
+      <div class="context-panel"><div class="section-title">Working thesis</div><textarea id="syn-thesis" rows="4" ${taStyle}>${escapeHTML(syn.thesis||'')}</textarea></div>
+      <div class="context-panel"><div class="section-title">Top takeaways (one per line)</div><textarea id="syn-top" rows="6" ${taStyle}>${escapeHTML((syn.topTakeaways||top).join('\n'))}</textarea></div>
+      <div class="context-panel"><div class="section-title">Contradictions / open questions</div><textarea id="syn-contradictions" rows="3" ${taStyle}>${escapeHTML(syn.contradictions||'')}</textarea></div>
+      <div class="context-panel"><div class="section-title">Decision implications</div><textarea id="syn-implications" rows="3" ${taStyle}>${escapeHTML(syn.implications||'')}</textarea></div>
+      <div class="context-panel"><div class="section-title">Next research nodes</div><textarea id="syn-next" rows="3" ${taStyle}>${escapeHTML(syn.next||'')}</textarea></div>
+      <div class="context-panel"><div class="section-title">Recommendation signals</div><textarea id="syn-rec" rows="3" ${taStyle}>${escapeHTML(syn.recommendation||'')}</textarea></div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="saveSynthesis()">SAVE SYNTHESIS</button>
+        <button class="btn btn-full btn-muted" onclick="closeSynthesisSlide()">CLOSE</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(synSlide); slideElements.push(synSlide); goToSlide(slideElements.length - 1);
+}
+function saveSynthesis() {
+  ENGINE_STATE.synthesis = { thesis:document.getElementById('syn-thesis')?.value?.trim()||'', topTakeaways:(document.getElementById('syn-top')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean), contradictions:document.getElementById('syn-contradictions')?.value?.trim()||'', implications:document.getElementById('syn-implications')?.value?.trim()||'', next:document.getElementById('syn-next')?.value?.trim()||'', recommendation:document.getElementById('syn-rec')?.value?.trim()||'' };
+  showToast("SYNTHESIS SAVED"); autosaveProjectIfPossible();
+}
+function closeSynthesisSlide() {
+  const container = document.getElementById('master-container');
+  if (container?.lastChild?.dataset?.mode==="synthesis") { container.removeChild(container.lastChild); slideElements.pop(); goToSlide(Math.max(0,slideElements.length-1)); }
+}
+
+/* End slide */
+function renderEndSlide() {
+  const container = document.getElementById('master-container'); const section = document.createElement('section');
+  section.className = "main-slide next"; section.dataset.mode = "end";
+  section.innerHTML = `
+    <div class="slide-header"><span class="header-title">EXPORT</span><span class="header-badge">FINAL</span></div>
+    <div class="sub-slide static article-view">
+      <h1>Export</h1>
+      <div class="primary-question">Synthesize your research, then export as PDF or share as a link.</div>
+      <div class="context-panel"><div class="section-title" style="margin-top:0">Next steps</div><div style="color:var(--text-dim);line-height:1.7;font-size:.9rem;">Use <strong style="color:var(--text-main)">SYNTHESIS</strong> to capture your thesis before exporting.<br><strong style="color:var(--text-main)">DECISION PDF</strong> generates a policy-grade decision brief.<br><strong style="color:var(--text-main)">SHARE LINK</strong> embeds the full project in a URL.</div></div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="openSynthesisSlide()">SYNTHESIS</button>
+        <button class="btn btn-full btn-pdf" onclick="generateResearchPDF()">RESEARCH PDF</button>
+        <button class="btn btn-full btn-pro" onclick="generateDecisionProUIPDF()">DECISION PDF</button>
+        <button class="btn btn-full btn-india" onclick="openFounderLetter()">FOUNDER LETTER</button>
+        <button class="btn btn-full" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
+        <button class="btn btn-full" onclick="renderSearchSlide()">NEW SEARCH</button>
+        <button class="btn btn-full btn-muted" onclick="goHome()">← HOME</button>
+      </div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div>
+    </div>
+  `;
+  container.appendChild(section); slideElements.push(section);
+}
+
+/* PDF */
+function sanitizeForPDF(text) { return normalizeText(text).replace(/[^\x00-\xFF]/g,""); }
+
+async function generateResearchPDF() {
+  if (!ENGINE_STATE.research_nodes||!ENGINE_STATE.research_nodes.length) return showToast("NO RESEARCH TO EXPORT");
+  showToast("GENERATING PDF...");
+  try {
+    const { jsPDF } = window.jspdf; const doc = new jsPDF();
+    const pw=doc.internal.pageSize.getWidth(), ph=doc.internal.pageSize.getHeight(), mg=18, cw=pw-(2*mg);
+    const addFooter=(pageNum,totalPages)=>{ doc.setFontSize(7); doc.setTextColor(120,120,120); doc.text(`decide.engine | India AI | Page ${pageNum} of ${totalPages}`, pw/2, ph-8, {align:'center'}); doc.setFontSize(6); doc.text(new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}), mg, ph-8); };
+    let pageNum=1; const totalPages=ENGINE_STATE.research_nodes.length+1;
+    doc.setFillColor(255,153,51); doc.rect(0,0,pw/3,5,'F'); doc.setFillColor(255,255,255); doc.rect(pw/3,0,pw/3,5,'F'); doc.setFillColor(19,136,8); doc.rect((pw/3)*2,0,pw/3,5,'F');
+    doc.setFontSize(28); doc.setTextColor(255,153,51); doc.setFont(undefined,'bold'); doc.text("RESEARCH JOURNEY", pw/2, 55, {align:'center'});
+    doc.setFontSize(11); doc.setTextColor(0,180,120); doc.text("decide.engine | India AI Decision Research", pw/2, 67, {align:'center'});
+    doc.setDrawColor(40,60,90); doc.setLineWidth(0.5); doc.rect(mg,82,cw,36);
+    doc.setFontSize(9.5); doc.setTextColor(60,60,60); doc.setFont(undefined,'normal');
+    doc.text(`Nodes: ${ENGINE_STATE.research_nodes.length}`, pw/2, 94, {align:'center'}); doc.text(`Primary Source: ${ENGINE_STATE.research_nodes[0]?.sourceName||'Local'}`, pw/2, 102, {align:'center'}); doc.text(`Export Date: ${new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})}`, pw/2, 110, {align:'center'}); addFooter(pageNum,totalPages);
+    ENGINE_STATE.research_nodes.forEach((node,index)=>{
+      doc.addPage(); pageNum++; const title=sanitizeForPDF(node.title||""); const summaryRaw=sanitizeForPDF(node.summary||""); const takeaways=extractTakeaways(summaryRaw,4).map(sanitizeForPDF);
+      doc.setFillColor(255,153,51); doc.rect(0,0,pw/3,4,'F'); doc.setFillColor(255,255,255); doc.rect(pw/3,0,pw/3,4,'F'); doc.setFillColor(19,136,8); doc.rect((pw/3)*2,0,pw/3,4,'F');
+      let y=22; doc.setFillColor(0,180,120); doc.circle(mg+7,y+3,7,'F'); doc.setFontSize(10); doc.setTextColor(255,255,255); doc.setFont(undefined,'bold'); doc.text(String(index+1), mg+7, y+5, {align:'center'}); doc.setFont(undefined,'normal');
+      doc.setFontSize(16); doc.setTextColor(255,153,51); doc.setFont(undefined,'bold'); const titleLines=doc.splitTextToSize(title,cw-18); doc.text(titleLines,mg+18,y); y+=titleLines.length*7+6; doc.setFont(undefined,'normal');
+      doc.setFontSize(8); doc.setTextColor(120,120,120); doc.text(`Source: ${node.sourceName||"Local"}`, mg, y); y+=5;
+      if (node.categories&&node.categories.length) { const catLines=doc.splitTextToSize(sanitizeForPDF(node.categories.slice(0,4).join(' • ')),cw); doc.text(catLines,mg,y); y+=catLines.length*4.5+4; }
+      doc.setDrawColor(220,220,220); doc.setLineWidth(0.4); doc.line(mg,y,pw-mg,y); y+=8;
+      doc.setFontSize(10); doc.setTextColor(40,40,40); doc.setFont(undefined,'bold'); doc.text("Key takeaways", mg, y); y+=6; doc.setFont(undefined,'normal'); doc.setFontSize(9.5);
+      takeaways.forEach(t=>{ const lines=doc.splitTextToSize(`• ${t}`,cw); lines.forEach(line=>{ if(y<ph-34){doc.text(line,mg,y);y+=5.6;} }); y+=1.5; });
+      y+=3; doc.setDrawColor(235,235,235); doc.setLineWidth(0.3); doc.line(mg,y,pw-mg,y); y+=8;
+      doc.setFontSize(10); doc.setTextColor(40,40,40); doc.setFont(undefined,'bold'); doc.text("Summary", mg, y); y+=6; doc.setFont(undefined,'normal');
+      let summaryText=summaryRaw; if(summaryText.length>2400){summaryText=summaryText.slice(0,2400);const lp=summaryText.lastIndexOf('.');if(lp>2150)summaryText=summaryText.slice(0,lp+1);}
+      const sents=splitIntoSentences(summaryText); const paras=[]; if(sents.length){paras.push(sents.slice(0,1).join(" "));for(let i=1;i<sents.length;i+=3)paras.push(sents.slice(i,i+3).join(" "));}else paras.push(summaryText);
+      paras.forEach(p=>{const lines=doc.splitTextToSize(p,cw);lines.forEach(line=>{if(y<ph-34){doc.text(line,mg,y);y+=5.6;}});y+=3;}); addFooter(pageNum,totalPages);
+    });
+    doc.save(`research-journey-india-${new Date().toISOString().slice(0,10)}.pdf`); showToast("PDF DOWNLOADED!");
+  } catch(e) { console.error('PDF error:',e); showToast("PDF FAILED"); }
+}
+
+function buildDecisionProModel() {
+  const nodes=ENGINE_STATE.research_nodes||[], first=nodes[0], synthesis=ENGINE_STATE.synthesis||{};
+  const aggregated=[]; nodes.forEach(n=>aggregated.push(...extractTakeaways(n.summary||"",4)));
+  const syn={...synthesis}; const context={decision:first?.decisionMeta?.decision||"",time:first?.decisionMeta?.time||"",stake:first?.decisionMeta?.stake||"",success:first?.decisionMeta?.success||"",options:first?.decisionMeta?.options||""};
+  if (!syn.topTakeaways||!syn.topTakeaways.length) syn.topTakeaways=aggregated.slice(0,5);
+  if (!syn.thesis||!syn.thesis.trim()) syn.thesis=`Decision: ${context.decision||'N/A'} | Time: ${context.time||'N/A'} | Stake: ${context.stake||'N/A'}`;
+  if (!syn.implications||!syn.implications.trim()) syn.implications=`Decision: ${context.decision||'N/A'} | Time: ${context.time||'N/A'} | Metric: ${context.success||'N/A'}`;
+  if (!syn.contradictions||!syn.contradictions.trim()) syn.contradictions='None specified';
+  if (!syn.next||!syn.next.trim()) syn.next='N/A';
+  if (!syn.recommendation||!syn.recommendation.trim()) syn.recommendation='No recommendations provided';
+  return { meta:{title:(first?.title?first.title.toUpperCase():"DECISION BRIEF"),subtitle:syn.thesis||"Decision research synthesis",preparedFor:"decide.engine | India AI Decision Research",date:new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'}),watermark:"decide.engine × IndiaAI Mission • Confidential"}, context, nodes:nodes.map((n,idx)=>({idx:idx+1,title:n.title||"",sourceName:n.sourceName||"LOCAL",confidence:n.confidence||"High",url:n.url||"",categories:(n.categories||[]).slice(0,6),takeaways:extractTakeaways(n.summary||"",4),summary:n.summary||"",decisionMeta:n.decisionMeta||{}})), synthesis:syn };
+}
+
+function renderDecisionProDocHTML(model) {
+  const esc=escapeHTML, wm=esc(model.meta?.watermark||""), ctx=model.context||{};
+  const cover=`<div class="proui-page"><div class="proui-tricolor"></div><div class="proui-pillrow"><div class="proui-pill saffron">🇮🇳 IndiaAI Aligned</div><div class="proui-pill">${esc(model.meta.preparedFor||"")}</div><div class="proui-pill">${esc(model.meta.date||"")}</div></div><h1 class="proui-title">${esc(model.meta.title||"")}</h1><p class="proui-subtitle">${esc(model.meta.subtitle||"")}</p><div class="proui-grid2" style="margin-top:16px;"><div class="proui-card"><div class="proui-h">Decision Context</div><div class="proui-kv"><div class="proui-k">Decision</div><div class="proui-v">${esc(ctx.decision||"N/A")}</div><div class="proui-k">Time horizon</div><div class="proui-v">${esc(ctx.time||"N/A")}</div><div class="proui-k">Stake</div><div class="proui-v">${esc(ctx.stake||"N/A")}</div><div class="proui-k">Success metric</div><div class="proui-v">${esc(ctx.success||"N/A")}</div><div class="proui-k">Options</div><div class="proui-v">${esc(ctx.options||"N/A")}</div></div></div><div class="proui-card"><div class="proui-h">Snapshot</div><div class="proui-kv"><div class="proui-k">Nodes</div><div class="proui-v">${model.nodes.length}</div><div class="proui-k">Primary source</div><div class="proui-v">${esc(model.nodes[0]?.sourceName||"")}</div><div class="proui-k">Confidence</div><div class="proui-v">${esc(model.nodes[0]?.confidence||"")}</div></div></div></div><div style="height:14px"></div><div class="proui-card"><div class="proui-h">Index</div><ul class="proui-list">${model.nodes.map(n=>`<li>#${n.idx} — ${esc(n.title)}</li>`).join("")}</ul></div><div class="proui-wm">${wm}</div></div>`;
+  const nodePages=model.nodes.map(n=>{
+    const takeaways=(n.takeaways||[]).length?(n.takeaways||[]).map(t=>`<li>${esc(t)}</li>`).join(""):`<li>No takeaways available</li>`;
+    const cats=(n.categories||[]).length?`<div style="margin-top:10px" class="proui-small"><strong>Categories:</strong> ${esc(n.categories.join(" • "))}</div>`:"";
+    let summary=sanitizeForPDF(n.summary||""); if(summary.length>2400)summary=summary.slice(0,2400);
+    const sents=splitIntoSentences(summary); const lead=sents[0]||summary; const rest=sents.slice(1); const restParas=[]; for(let i=0;i<rest.length;i+=3)restParas.push(rest.slice(i,i+3).join(" "));
+    return `<div class="proui-page"><div class="proui-tricolor"></div><div class="proui-card" style="margin-bottom:14px;"><div class="proui-h">Node ${n.idx}</div><div class="proui-nodeTitle">${esc(n.title)}</div><div class="proui-small" style="margin-top:6px;"><strong>Source:</strong> ${esc(n.sourceName)} (${esc(n.confidence)})</div>${cats}</div><div class="proui-grid2"><div class="proui-card"><div class="proui-h">Key takeaways</div><ul class="proui-list">${takeaways}</ul></div><div class="proui-card"><div class="proui-h">Decision Context</div><div class="proui-small"><p style="margin:0 0 8px;font-weight:700;color:#e2e8f0;">${esc(n.decisionMeta?.decision||"No decision context")}</p><p style="margin:0 0 6px;">Stake: ${esc(n.decisionMeta?.stake||"-")} | Time: ${esc(n.decisionMeta?.time||"-")}</p><p style="margin:0;">Metric: ${esc(n.decisionMeta?.success||"-")} | Options: ${esc(n.decisionMeta?.options||"-")}</p></div></div></div><div style="height:14px"></div><div class="proui-card"><div class="proui-h">Summary</div><div class="proui-small"><p style="margin:0 0 8px;font-weight:700;color:#e2e8f0;">${esc(lead)}</p>${restParas.map(p=>`<p style="margin:0 0 8px;">${esc(p)}</p>`).join("")}</div></div><div style="height:12px"></div><div class="proui-card"><div class="proui-h">Source URL</div><div class="proui-small">${n.url?esc(n.url):"No URL available"}</div></div><div class="proui-wm">${wm}</div></div>`;
+  }).join("");
+  const syn=model.synthesis||{};
+  const finalPage=`<div class="proui-page"><div class="proui-tricolor"></div><h2 class="proui-title" style="margin-bottom:12px;">Synthesis & Next Steps</h2><div class="proui-card" style="margin-bottom:12px;"><div class="proui-h">Working thesis</div><div class="proui-small">${esc(syn.thesis||"No thesis provided")}</div></div><div class="proui-grid2"><div class="proui-card"><div class="proui-h">Top takeaways</div><ul class="proui-list">${(syn.topTakeaways||[]).map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div><div class="proui-card"><div class="proui-h">Contradictions</div><div class="proui-small">${esc(syn.contradictions||"None specified")}</div></div></div><div style="height:12px"></div><div class="proui-grid2"><div class="proui-card"><div class="proui-h">Decision implications</div><div class="proui-small">${esc(syn.implications||"None provided")}</div></div><div class="proui-card"><div class="proui-h">Next research nodes</div><div class="proui-small">${esc(syn.next||"N/A")}</div></div></div><div style="height:12px"></div><div class="proui-card"><div class="proui-h">Recommendation signals</div><div class="proui-small">${esc(syn.recommendation||"")}</div></div><div class="proui-wm">${wm}</div></div>`;
+  return `<div class="proui-doc">${cover}${nodePages}${finalPage}</div>`;
+}
+
+async function generateDecisionProUIPDF() {
+  if (!ENGINE_STATE.research_nodes||!ENGINE_STATE.research_nodes.length) return showToast("NO NODES");
+  if (!ENGINE_STATE.synthesis) { const agg=[]; ENGINE_STATE.research_nodes.forEach(n=>agg.push(...extractTakeaways(n.summary||"",4))); ENGINE_STATE.synthesis={thesis:'',topTakeaways:agg.slice(0,5),contradictions:'',implications:'',next:'',recommendation:''}; }
+  showToast("EXPORTING DECISION PDF...");
+  try {
+    const model=buildDecisionProModel(); const root=document.getElementById("pro-ui-root"); root.innerHTML=renderDecisionProDocHTML(model);
+    const filename=`decision-brief-india-${new Date().toISOString().slice(0,10)}.pdf`;
+    const opt={margin:0,filename,image:{type:"jpeg",quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#060c16"},jsPDF:{unit:"pt",format:"a4",orientation:"portrait"}};
+    await html2pdf().set(opt).from(root.firstElementChild).save(); showToast("DECISION PDF DOWNLOADED!");
+  } catch(e) { console.error("Decision PDF error:",e); showToast("DECISION PDF FAILED"); }
+}
+
+/* App swipe navigation */
+let startY=null, startX=null, isSwiping=false;
+function onTouchStart(e) {
+  if (!e.touches||e.touches.length!==1) return;
+  if (!document.getElementById('app-wrapper').classList.contains('visible')) return;
+  const target=e.target;
+  if (target&&(target.closest('#ui-panel')||target.closest('#notes-panel')||target.tagName==='TEXTAREA'||target.tagName==='INPUT')) return;
+  startY=e.touches[0].clientY; startX=e.touches[0].clientX; isSwiping=true;
+}
+function onTouchMove(e) { if (!isSwiping||startY==null) return; const dy=e.touches[0].clientY-startY, dx=e.touches[0].clientX-startX; if (Math.abs(dy)>20&&Math.abs(dy)>Math.abs(dx)) e.preventDefault(); }
+function onTouchEnd(e) { if (!isSwiping||startY==null) return; const endY=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientY:startY; const dy=endY-startY; if (Math.abs(dy)>55) { if(dy<0)goToSlide(currentIdx+1);else goToSlide(currentIdx-1); } startY=null; startX=null; isSwiping=false; }
+document.addEventListener('touchstart',onTouchStart,{passive:false});
+document.addEventListener('touchmove',onTouchMove,{passive:false});
+document.addEventListener('touchend',onTouchEnd,{passive:true});
+
+function updateDepthFill() { const el=document.getElementById('depth-fill'); if(!el) return; const total=Math.max(1,slideElements.length-1); el.style.height=Math.min(100,Math.max(0,(currentIdx/total)*100))+"%"; }
+setInterval(updateDepthFill,120);
+
+function goToSlide(idx) {
+  if (idx<0||idx>=slideElements.length) return;
+  const prev=slideElements[currentIdx];
+  if (prev) prev.classList.replace('active', idx>currentIdx?'prev':'next');
+  currentIdx=idx; const curr=slideElements[currentIdx];
+  if (curr) curr.className="main-slide active"; updateUIPanel();
+}
+
+/* App boot */
+function appBoot() {
+  try {
+    const hash=(location.hash||"").trim();
+    if (hash.startsWith("#p=")) {
+      const payload=hash.slice(3); const project=deserializeProjectFromShare(payload);
+      if (!project.id) project.id=uid(); if (!project.name) project.name="Shared Project";
+      project.updatedAt=new Date().toISOString(); if (!project.createdAt) project.createdAt=project.updatedAt;
+      saveProjectToStorage(project); loadProjectIntoApp(project); showToast("SHARED PROJECT LOADED"); initVoice(); return;
+    }
+    renderLanding(); initVoice();
+  } catch(e) { console.error(e); renderLanding(); showToast("BOOT RECOVERED"); }
+}
+</script>
+</body>
+</html>

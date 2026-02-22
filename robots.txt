@@ -1,0 +1,29 @@
+# Decide - India's Smart Marketplace
+# Blocking bad bots to reduce Cloudflare 4xx errors
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
+
+# Block known bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# Crawl-delay for others
+Crawl-delay: 10
+
+Sitemap: https://decide.example.com/sitemap.xml

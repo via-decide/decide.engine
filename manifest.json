@@ -1,0 +1,24 @@
+{
+  "name": "viadecide.com - Decision Engine",
+  "short_name": "decide.engine",
+  "description": "India's decision research engine — built for the IndiaAI mission. Policy-grade intelligence for every citizen.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#04080f",
+  "theme_color": "#04080f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

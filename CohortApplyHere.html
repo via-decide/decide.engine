@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>| cohort.decide · application |</title>
+
+<style>
+:root{
+  --bg:#0a0a0a;
+  --text:#f0f0f0;
+  --accent:#ff671f;
+  --go:#00e676;
+  --mono:'Courier New',monospace;
+}
+
+html,body{
+  margin:0;
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
+  overflow:hidden;
+  touch-action:none;
+}
+
+#app{
+  position:relative;
+  width:100vw;
+  height:100vh;
+}
+
+.slide{
+  position:absolute;
+  inset:0;
+  transform:translateY(100%);
+  transition:.45s cubic-bezier(.2,.8,.2,1);
+  display:flex;
+  flex-direction:column;
+}
+
+.slide.active{transform:translateY(0);z-index:10}
+.slide.prev{transform:translateY(-100%)}
+
+.header{
+  padding:20px;
+  border-left:3px solid var(--accent);
+}
+.header span{
+  font-family:var(--mono);
+  font-size:.7rem;
+  color:var(--accent);
+}
+
+.center{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:30px;
+}
+
+h1{
+  margin:0 0 20px 0;
+  color:var(--accent);
+}
+
+.option{
+  font-size:1.4rem;
+  font-weight:700;
+  transition:transform .25s ease,opacity .25s ease;
+  will-change:transform,opacity;
+}
+
+.option.enter-right{
+  transform:translateX(30px);
+  opacity:0;
+}
+.option.enter-left{
+  transform:translateX(-30px);
+  opacity:0;
+}
+.option.show{
+  transform:translateX(0);
+  opacity:1;
+}
+
+.hint{
+  margin-top:40px;
+  font-family:var(--mono);
+  font-size:.7rem;
+  color:#666;
+  display:flex;
+  justify-content:space-between;
+}
+
+#depth{
+  position:fixed;
+  right:0;
+  top:0;
+  width:4px;
+  height:0;
+  background:#333;
+}
+
+#toast{
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#222;
+  color:var(--go);
+  padding:8px 16px;
+  border-radius:20px;
+  font-family:var(--mono);
+  opacity:0;
+  transition:.25s;
+}
+
+#toast.show{opacity:1}
+
+.btn{
+  background:#25D366;
+  color:#000;
+  padding:18px;
+  border-radius:10px;
+  font-weight:900;
+  text-align:center;
+  user-select:none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app"></div>
+<div id="depth"></div>
+<div id="toast"></div>
+
+<!-- PURE JSON FLOW -->
+<script type="application/json" id="FLOW_JSON">
+{
+  "steps":[
+    {
+      "key":"role",
+      "title":"Your Role",
+      "options":[
+        "Founder / Operator",
+        "Product / Engineering Lead",
+        "PM / Program Manager",
+        "Consultant / Freelancer",
+        "Student / Researcher",
+        "Other"
+      ]
+    },
+    {
+      "key":"current_bottleneck",
+      "title":"Current Bottleneck",
+      "options":[
+        "Prioritization / too many tasks",
+        "Decision speed / stuck approvals",
+        "Execution handoffs / team friction",
+        "Metrics / KPI confusion",
+        "Strategy clarity / what to do next",
+        "Research overload / conflicting info"
+      ]
+    },
+    {
+      "key":"revenue_or_scope",
+      "title":"Revenue or Scope",
+      "options":[
+        "Pre-revenue / idea stage",
+        "0–$5k/mo",
+        "$5k–$25k/mo",
+        "$25k–$100k/mo",
+        "$100k+/mo",
+        "Non-revenue (team / org scope)"
+      ]
+    },
+    {
+      "key":"decision_struggle",
+      "title":"One Decision You’re Stuck On",
+      "options":[
+        "What to build next",
+        "What to stop doing",
+        "Hiring / team structure",
+        "Pricing / packaging",
+        "Distribution / growth channel",
+        "Tooling / process / AI usage",
+        "Other"
+      ]
+    },
+    {
+      "key":"commitment",
+      "title":"Commitment Confirmation",
+      "options":[
+        "Yes — I will attend live sessions",
+        "Yes — I will submit weekly artifacts",
+        "Maybe — depends on schedule",
+        "No — just exploring"
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+/* ===============================
+   CONFIG
+================================ */
+const WHATSAPP_NUMBER = "916351537770";
+const FLOW = JSON.parse(
+  document.getElementById("FLOW_JSON").textContent
+).steps;
+
+/* ===============================
+   STATE
+================================ */
+const app = document.getElementById("app");
+const slides = [];
+const STATE = {};
+let idx = 0;
+
+/* ===============================
+   HELPERS
+================================ */
+function toast(t){
+  const el=document.getElementById("toast");
+  el.textContent=t;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1200);
+}
+
+function next(){
+  if(idx>=slides.length-1) return;
+  slides[idx].classList.remove("active");
+  slides[idx].classList.add("prev");
+  idx++;
+  slides[idx].classList.add("active");
+}
+
+function swapOption(el,text,dir){
+  el.className = `option enter-${dir}`;
+  requestAnimationFrame(()=>{
+    el.textContent = text;
+    el.className = "option show";
+  });
+}
+
+/* ===============================
+   BUILD UI
+================================ */
+FLOW.forEach((step,i)=>{
+  const s=document.createElement("section");
+  s.className="slide"+(i===0?" active":"");
+  s.dataset.key=step.key;
+  s.dataset.opt=0;
+
+  s.innerHTML=`
+    <div class="header"><span>SWIPE · COHORT APPLICATION</span></div>
+    <div class="center">
+      <h1>${step.title}</h1>
+      <div class="option show">${step.options[0]}</div>
+      <div class="hint">
+        <span>↑ SKIP</span>
+        <span>↓ SELECT</span>
+        <span>← → BROWSE</span>
+      </div>
+    </div>`;
+  app.appendChild(s);
+  slides.push(s);
+});
+
+const final=document.createElement("section");
+final.className="slide";
+final.innerHTML=`
+  <div class="header"><span>FINAL</span></div>
+  <div class="center">
+    <h1>Send Application</h1>
+    <div class="btn" onclick="sendWA()">SEND ON WHATSAPP</div>
+    <div class="hint" style="margin-top:18px;">
+      <span>Tip:</span>
+      <span>Review selections before sending</span>
+      <span></span>
+    </div>
+  </div>`;
+app.appendChild(final);
+slides.push(final);
+
+/* ===============================
+   TOUCH HANDLING
+================================ */
+let sx=0,sy=0;
+app.addEventListener("touchstart",e=>{
+  sx=e.touches[0].clientX;
+  sy=e.touches[0].clientY;
+},{passive:true});
+
+app.addEventListener("touchmove",e=>{
+  const dy=e.touches[0].clientY-sy;
+  if(dy>0){
+    e.preventDefault();
+    document.getElementById("depth").style.height=Math.min(dy/2,100)+"%";
+  }
+},{passive:false});
+
+app.addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-sx;
+  const dy=e.changedTouches[0].clientY-sy;
+  document.getElementById("depth").style.height="0%";
+
+  const slide=slides[idx];
+  if(!slide.dataset.key){
+    if(dy>60) next();
+    return;
+  }
+
+  const optEl = slide.querySelector(".option");
+  let opt = +slide.dataset.opt;
+  const opts = FLOW[idx].options;
+
+  // SWIPE UP = SKIP
+  if(dy < -60 && Math.abs(dy) > Math.abs(dx)){
+    toast("Skipped");
+    next();
+    return;
+  }
+
+  // SWIPE DOWN = SELECT
+  if(dy > 60 && Math.abs(dy) > Math.abs(dx)){
+    STATE[slide.dataset.key] = opts[opt];
+    toast("Selected");
+    next();
+    return;
+  }
+
+  // RIGHT
+  if(dx > 60){
+    opt = (opt + 1) % opts.length;
+    slide.dataset.opt = opt;
+    swapOption(optEl, opts[opt], "right");
+  }
+
+  // LEFT
+  if(dx < -60){
+    opt = (opt - 1 + opts.length) % opts.length;
+    slide.dataset.opt = opt;
+    swapOption(optEl, opts[opt], "left");
+  }
+});
+
+/* ===============================
+   WHATSAPP
+================================ */
+function sendWA(){
+  let txt="📋 *COHORT APPLICATION*\n----------------\n";
+
+  const labels = {
+    role: "Role",
+    current_bottleneck: "Current bottleneck",
+    revenue_or_scope: "Revenue / scope",
+    decision_struggle: "Decision stuck on",
+    commitment: "Commitment"
+  };
+
+  FLOW.forEach(step=>{
+    const k = step.key;
+    const label = labels[k] || k.replace(/_/g," ");
+    const v = STATE[k] || "Not selected";
+    txt += `*${label}:* ${v}\n`;
+  });
+
+  txt += "----------------\n";
+  txt += "Preferred time window (IST)?:";
+
+  window.open(
+    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(txt)}`,
+    "_blank"
+  );
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redirecting...</title>
+  <script>
+    // Redirect any unknown path to index.html while keeping the hash route
+    (function(){
+      var path = location.pathname;
+      // if repo pages, keep path after repo name as route
+      // simplest: send everything to /#/ (home)
+      location.replace(location.origin + location.pathname.replace(/\/404\.html$/, "/") + "#/");
+    })();
+  </script>
+</head>
+<body></body>
+</html>

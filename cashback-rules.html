@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Cashback Rules | decide.engine</title>
+  <style>
+    body{margin:0;background:#0a0a0a;color:#f0f0f0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.55}
+    .wrap{max-width:860px;margin:0 auto;padding:28px}
+    h1{color:#ff671f;margin:0 0 12px}
+    h2{margin:28px 0 10px;color:#ff671f;font-size:1.1rem}
+    .card{border:1px solid #222;border-radius:12px;padding:16px;background:#0f0f0f;margin:14px 0}
+    .pill{display:inline-block;padding:4px 10px;border:1px solid #333;border-radius:999px;font-size:.8rem;color:#aaa;margin-right:8px}
+    .warn{border-color:#ff4444}
+    .ok{border-color:#00e676}
+    a{color:#00e676;text-decoration:none}
+    ul{margin:10px 0 0 18px}
+    .small{color:#aaa;font-size:.92rem}
+    code{background:#111;padding:2px 6px;border-radius:6px}
+    .table{width:100%;border-collapse:collapse;margin-top:8px}
+    .table th,.table td{border:1px solid #222;padding:10px;text-align:left;font-size:.95rem}
+    .table th{color:#aaa;font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cashback Rules</h1>
+    <div class="small">Last updated: <b>Feb 2026</b> • Cashback is funded only from eligible affiliate/bounty earnings.</div>
+
+    <div class="card warn">
+      <span class="pill warn">STRICT</span>
+      <b>No proof = no payout.</b>
+      <div class="small">Cashback is paid only after you submit valid purchase proof and we approve your claim.</div>
+    </div>
+
+    <h2>1) Who can claim cashback?</h2>
+    <div class="card">
+      <ul>
+        <li>You must be a registered member (₹1/month).</li>
+        <li>You must have used our deal link (affiliate tag on the clickout).</li>
+        <li>You must submit purchase proof within <b>7 days</b> of delivery.</li>
+      </ul>
+    </div>
+
+    <h2>2) What proof is required?</h2>
+    <div class="card">
+      <ul>
+        <li><b>Order proof</b>: screenshot of Amazon “Order Details” page OR invoice screenshot.</li>
+        <li><b>Product proof</b>: product name visible (or item page inside order).</li>
+        <li><b>Amount proof</b>: total paid amount visible.</li>
+        <li><b>Payout proof</b>: your UPI ID for payout.</li>
+      </ul>
+      <div class="small">If any of the above is missing/blurred, the claim can be rejected.</div>
+    </div>
+
+    <h2>3) Exclusions (zero cashback)</h2>
+    <div class="card">
+      <ul>
+        <li><b>Excluded products</b>: Flight bookings, Gift Cards, Video gaming consoles & hardware, Prime membership, Kindle eBooks, Gold & Silver coins.</li>
+        <li><b>0% advertising fee products</b> (example): many iPhone models and listed phone/device SKUs → cashback may be <b>₹0</b>.</li>
+      </ul>
+      <div class="small">If Amazon pays us 0%, we cannot pay cashback. We will show this clearly on approval.</div>
+    </div>
+
+    <h2>4) Cashback calculation (max but safe)</h2>
+    <div class="card">
+      <p>Cashback is based on the category advertising fee rate. We pay an aggressive share but keep a holdback for reversals and fraud.</p>
+      <ul>
+        <li><b>Cashback rate = 70% of the category fee rate</b> (unless capped).</li>
+        <li><b>Per-order cap</b>: we may cap cashback for very high-value items.</li>
+        <li><b>Holdback</b>: 30% retained to protect against affiliate reversals.</li>
+      </ul>
+
+      <table class="table">
+        <thead><tr><th>Category fee rate (AF%)</th><th>User cashback (typical)</th></tr></thead>
+        <tbody>
+          <tr><td>0%</td><td>₹0</td></tr>
+          <tr><td>0.5%</td><td>0.35% of cart value</td></tr>
+          <tr><td>1%</td><td>0.70% of cart value</td></tr>
+          <tr><td>2%</td><td>1.40% of cart value</td></tr>
+          <tr><td>2.5%</td><td>1.75% of cart value</td></tr>
+          <tr><td>3.5%</td><td>2.45% of cart value</td></tr>
+          <tr><td>4%</td><td>2.80% of cart value</td></tr>
+          <tr><td>5%</td><td>3.50% of cart value</td></tr>
+        </tbody>
+      </table>
+
+      <div class="small">Note: category rates can change. If Amazon changes rates, cashback updates accordingly.</div>
+    </div>
+
+    <h2>5) Bounty cashback (Prime / Audible / Amazon Business)</h2>
+    <div class="card">
+      <p>If you complete an eligible bounty event, cashback is a fixed amount:</p>
+      <ul>
+        <li>₹100 bounty → <b>₹60</b> cashback</li>
+        <li>₹150 bounty → <b>₹90</b> cashback</li>
+        <li>₹200 bounty → <b>₹120</b> cashback</li>
+        <li>₹400 bounty → <b>₹240</b> cashback</li>
+      </ul>
+      <div class="small">Bounty eligibility depends on Amazon’s rules and can be reversed.</div>
+    </div>
+
+    <h2>6) Approval, payout timeline & refunds</h2>
+    <div class="card">
+      <ul>
+        <li><b>Review SLA</b>: 24–72 hours after you submit a valid claim.</li>
+        <li><b>Payout cadence</b>: weekly batch payouts.</li>
+        <li><b>Refunds/returns</b>: if you return/cancel, cashback becomes invalid and may be reversed.</li>
+      </ul>
+    </div>
+
+    <h2>7) Fraud policy</h2>
+    <div class="card warn">
+      <ul>
+        <li>Fake/edited screenshots → permanent ban.</li>
+        <li>Repeated invalid claims → account blocked.</li>
+      </ul>
+      <div class="small">We keep logs to protect the program for genuine users.</div>
+    </div>
+
+    <h2>8) Claim cashback</h2>
+    <div class="card ok">
+      <span class="pill ok">NEXT</span>
+      Submit your proof here: <a href="/cashback-claim">Cashback Claim Form</a>
+      <div class="small">If the link is locked, log in / register first.</div>
+    </div>
+
+    <div class="small">Questions: reply to your membership email or contact support from your dashboard.</div>
+  </div>
+</body>
+</html>

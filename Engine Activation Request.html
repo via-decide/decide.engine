@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Engine License — Entry Gate | ViaDecide</title>
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <style>
+    :root{
+      --bg:#0a0a0a;
+      --card:#111;
+      --accent:#ff671f;
+      --accent2:#ff8a3d;
+      --text:#f2f2f2;
+      --muted:#8a8a8a;
+      --line:rgba(255,255,255,.08);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --ring: 0 0 0 3px rgba(255,103,31,.18);
+      --ok:#00e676;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(900px 600px at 20% 0%, rgba(255,103,31,.10), transparent 55%),
+        radial-gradient(800px 600px at 80% 10%, rgba(255,138,61,.08), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      max-width: 760px;
+      margin: 64px auto;
+      padding: 22px 18px;
+    }
+
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom: 18px;
+      padding: 0 4px;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .kicker{
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color: rgba(255,255,255,.55);
+    }
+
+    h1{
+      margin:0;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+
+    .sub{
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+      max-width: 56ch;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.03);
+      color: rgba(255,255,255,.85);
+      font-weight: 800;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .dot{ width:8px;height:8px;border-radius:999px;background:var(--ok); box-shadow:0 0 10px rgba(0,230,118,.35); }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      backdrop-filter: blur(8px);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .card:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(900px 240px at 18% 0%, rgba(255,103,31,.18), transparent 60%);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    form{ position:relative; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .grid > .full{ grid-column: 1 / -1; }
+
+    label{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      font-size:12px;
+      color: rgba(255,255,255,.70);
+      font-weight: 800;
+      letter-spacing:.02em;
+      user-select:none;
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding: 14px 14px;
+      margin:0;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.32);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .05s ease;
+    }
+
+    input::placeholder, textarea::placeholder{
+      color: rgba(242,242,242,.40);
+    }
+
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(255,103,31,.55);
+      box-shadow: var(--ring);
+    }
+
+    select{
+      appearance:none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.55) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.55) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 12px) 50%;
+      background-size:6px 6px, 6px 6px;
+      background-repeat:no-repeat;
+      padding-right:40px;
+    }
+
+    textarea{
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    .agree{
+      display:flex;
+      flex-direction:row;
+      gap:10px;
+      align-items:flex-start;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.70);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .agree input{
+      width:18px;
+      height:18px;
+      padding:0;
+      margin:2px 0 0;
+      accent-color: var(--accent);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    button{
+      width:100%;
+      padding: 16px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      font-weight: 900;
+      letter-spacing: .2px;
+      cursor:pointer;
+      transition: transform .10s ease, filter .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+
+    .primary{
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color:#0a0a0a;
+      box-shadow: 0 14px 34px rgba(255,103,31,.22);
+    }
+    .primary:hover{ transform: translateY(-1px); filter:saturate(1.04); }
+    .primary:active{ transform: translateY(0); opacity:.96; }
+
+    .ghost{
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .ghost:hover{ background: rgba(255,255,255,.06); transform: translateY(-1px); }
+    .ghost:active{ transform: translateY(0); opacity:.96; }
+
+    .note{
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      color: rgba(242,242,242,.55);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align:center;
+      position:relative;
+    }
+
+    a{ color: rgba(255,255,255,.85); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+
+    @media (max-width: 640px){
+      .wrap{ margin: 44px auto; }
+      .grid{ grid-template-columns: 1fr; }
+      .actions{ grid-template-columns: 1fr; }
+      h1{ font-size: 26px; }
+      .pill{ display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="kicker">ViaDecide • Engine License</div>
+        <h1>Entry Gate Form</h1>
+        <p class="sub">Submit your details. You’ll receive next steps on email.</p>
+      </div>
+      <div class="pill"><span class="dot"></span>Single Plan</div>
+    </div>
+
+    <div class="card">
+      <form action="https://formsubmit.co/dharam@viadecide.com" method="POST">
+        <!-- formsubmit settings -->
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_subject" value="Engine License — New Entry Gate Request">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="https://viadecide.com/engine-license#/thanks">
+
+        <div class="grid">
+          <label class="full">
+            Full Name
+            <input type="text" name="Full Name" placeholder="Your name" required />
+          </label>
+
+          <label>
+            Email
+            <input type="email" name="Email" placeholder="you@domain.com" required />
+          </label>
+
+          <label>
+            Project / Domain
+            <input type="text" name="Domain" placeholder="example.com (optional)" />
+          </label>
+
+          <label>
+            Plan
+            <select name="Plan" required>
+              <option value="Engine License - Single Plan" selected>Engine License - Single Plan</option>
+              <option value="Subscription - Monthly">Subscription - Monthly</option>
+            </select>
+          </label>
+
+          <label>
+            Affiliate Tag
+            <input type="text" name="Affiliate Tag" placeholder="decideengine-21 (optional)" />
+          </label>
+
+          <label class="full">
+            Notes
+            <textarea name="Notes" placeholder="What are you building? Which modules do you want?"></textarea>
+          </label>
+
+          <label class="agree full">
+            <input type="checkbox" required />
+            <span>I confirm the details are accurate and I agree to the license terms.</span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Request License</button>
+          <button class="ghost" type="button" onclick="location.href='https://viadecide.com/'">Back to ViaDecide</button>
+        </div>
+
+        <div class="note">
+          If you don’t see a reply, check spam/promotions.
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

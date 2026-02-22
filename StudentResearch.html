@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>| decide.engine | Decision Research</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="background-color" content="#0a0a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="decide.engine" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="decide.engine" />
+  <meta name="description" content="Voice-first decision engine with decision-linked research" />
+
+  <!-- PDF libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <!-- Optional font for Pro PDF -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --brand-orange:#ff671f;
+      --brand-bg:#0a0a0a;
+      --text-main:#f0f0f0;
+      --accent-go:#00e676;
+      --accent-skip:#ff3333;
+      --accent-zomato:#cb202d;
+      --accent-blinkit:#f8cb46;
+      --font-tech:'Courier New', monospace;
+      --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    }
+    html,body{
+      margin:0;padding:0;height:100%;width:100%;
+      background-color:var(--brand-bg);
+      color:var(--text-main);
+      font-family:var(--font-ui);
+      overflow-y:auto;
+      overscroll-behavior:contain;
+      touch-action:none;
+      -webkit-user-select:none;
+      user-select:none;
+    }
+    #master-container{height:100vh;width:100vw;position:relative;overflow:hidden;}
+    .main-slide{
+      height:100vh;width:100vw;position:absolute;top:0;left:0;
+      display:flex;flex-direction:column;background:var(--brand-bg);
+      transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform;
+    }
+    .main-slide.prev{transform:translateY(-100%);}
+    .main-slide.active{transform:translateY(0);z-index:10;}
+    .main-slide.next{transform:translateY(100%);z-index:20;}
+    .slide-header{
+      padding:18px 20px;border-left:3px solid var(--brand-orange);
+      height:66px;flex-shrink:0;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;
+      background:linear-gradient(180deg,rgba(10,10,10,.96),rgba(10,10,10,.75));
+      backdrop-filter:blur(6px);
+    }
+    .header-title{
+      font-family:var(--font-tech);font-size:.75rem;color:var(--brand-orange);
+      letter-spacing:1px;font-weight:700;text-transform:uppercase;
+    }
+    .header-badge{
+      font-family:var(--font-tech);font-size:.6rem;color:#777;background:#111;
+      padding:4px 10px;border-radius:12px;border:1px solid #2a3342;
+    }
+    .sub-slide{
+      position:absolute;inset:0;padding:22px;
+      display:flex;flex-direction:column;justify-content:center;
+      opacity:0;pointer-events:none;transform:translateX(20px);
+      transition:transform .3s ease,opacity .3s ease;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;
+    }
+    .sub-slide.opt-active{z-index:30;opacity:1;pointer-events:auto;transform:translateX(0);}
+    .sub-slide.static{z-index:30;opacity:1;pointer-events:auto;transform:none;}
+    .sub-slide.article-view{justify-content:flex-start;padding-top:16px;padding-bottom:170px;}
+    h1{
+      font-size:1.9rem;margin:0 0 12px 0;line-height:1.1;letter-spacing:-1px;
+      color:var(--brand-orange);
+    }
+    .primary-question{
+      font-size:1.05rem;color:#fff;margin-bottom:16px;line-height:1.45;font-weight:600;
+    }
+    .context-panel{
+      background:#0f1318;border:1px solid #2a3342;border-radius:14px;
+      padding:14px;margin-bottom:12px;box-shadow:0 10px 25px rgba(0,0,0,.25);
+    }
+    .context-top{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+    .thumb{
+      width:64px;height:64px;border-radius:14px;background:#111;border:1px solid #2a3342;
+      flex:0 0 auto;overflow:hidden;display:flex;align-items:center;justify-content:center;
+      color:#666;font-family:var(--font-tech);font-size:.7rem;
+    }
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+    .context-title-wrap{flex:1;min-width:0;}
+    .context-kicker{
+      font-family:var(--font-tech);font-size:.65rem;letter-spacing:1px;
+      color:#9aa3b2;text-transform:uppercase;margin-bottom:6px;
+    }
+    .context-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+    .stat-chip{
+      font-family:var(--font-tech);font-size:.65rem;background:#0b0f14;color:#c0c7d6;
+      padding:6px 10px;border-radius:999px;border:1px solid #2a3342;
+    }
+    .wiki-meta{display:flex;gap:8px;margin:10px 0 6px;flex-wrap:wrap;}
+    .meta-chip{
+      font-family:var(--font-tech);font-size:.65rem;background:#0b0f14;color:#c0c7d6;
+      padding:6px 10px;border-radius:999px;border:1px solid #2a3342;
+    }
+    .section-title{
+      font-family:var(--font-tech);font-size:.7rem;color:#9aa3b2;letter-spacing:1px;
+      text-transform:uppercase;margin:10px 0 8px;
+    }
+    .takeaways{
+      background:#0b0f14;border:1px solid #2a3342;border-radius:12px;
+      padding:10px 12px;margin-bottom:12px;max-height:24vh;overflow-y:auto;
+      touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+      user-select:text;-webkit-user-select:text;
+    }
+    .takeaways ul{margin:8px 0 0 18px;padding:0;}
+    .takeaways li{color:#d6dde8;line-height:1.55;margin:6px 0;font-size:.95rem;}
+    .wiki-summary{
+      font-size:.98rem;color:#d6dde8;line-height:1.75;max-height:36vh;overflow-y:auto;
+      padding:14px;background:#0b0f14;border-radius:12px;border:1px solid #2a3342;
+      touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+      user-select:text;-webkit-user-select:text;
+    }
+    .wiki-summary p{margin:0 0 12px 0;}
+    .wiki-summary p:last-child{margin-bottom:0;}
+    .wiki-summary .lead{color:#fff;font-weight:800;margin-bottom:12px;}
+    .wiki-summary .muted{color:#a8b3c2;}
+    .nav-hint{
+      margin-top:14px;padding-top:12px;border-top:1px solid #222a36;
+      font-family:var(--font-tech);font-size:.7rem;color:#666;
+      display:flex;justify-content:space-between;
+    }
+    .input-group{
+      border:1px solid #333;background:#111;padding:20px;border-radius:8px;
+      margin-bottom:20px;min-height:100px;max-height:40vh;overflow-y:auto;
+    }
+    .input-row{
+      display:flex;justify-content:space-between;border-bottom:1px dashed #333;padding:10px 0;
+      font-family:var(--font-tech);font-size:.8rem;
+    }
+    .input-key{color:#888;text-transform:uppercase;}
+    .input-val{color:var(--accent-go);font-weight:bold;text-align:right;}
+    .final-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;}
+    .btn{
+      background:#1c1c1c;color:#fff;border:1px solid #2a3342;
+      padding:14px 14px;border-radius:12px;font-weight:700;text-align:center;
+      font-size:.82rem;cursor:pointer;display:block;width:100%;box-sizing:border-box;
+      transition:transform .12s ease,opacity .2s ease;
+    }
+    .btn:active{transform:scale(.99);opacity:.95;}
+    .btn-full{grid-column:span 2;}
+    .btn-wa{background:#25D366;color:#000;border:none;}
+    .btn-pdf{background:#d32f2f;border:none;color:#fff;}
+    .btn-yt{background:#ff0000;border:none;}
+    .btn-pro{background:#121a24;border:1px solid rgba(0,230,118,.65);color:#00e676;}
+    .btn-muted{background:#0b0f14;border:1px solid #2a3342;color:#9aa3b2;}
+    .lobby-container{display:flex;flex-direction:column;gap:15px;padding:30px;height:100%;justify-content:center;}
+    .cuisine-btn{
+      background:#161616;border:1px solid #2a3342;color:#c0c7d6;
+      padding:18px;font-size:1.05rem;font-weight:800;text-transform:uppercase;border-radius:14px;
+      transition:all .2s;
+    }
+    .cuisine-btn.selected{background:var(--brand-orange);color:#000;border-color:var(--brand-orange);}
+    #search-input{
+      width:100%;background:#0b0f14;border:1px solid #2a3342;color:#fff;
+      padding:14px;font-size:1.05rem;border-radius:12px;margin-bottom:14px;outline:none;text-align:center;
+    }
+    .source-toggle{display:flex;gap:10px;margin-bottom:18px;justify-content:center;flex-wrap:wrap;}
+    .source-chip{
+      padding:8px 14px;border:1px solid #2a3342;border-radius:999px;font-size:.7rem;color:#9aa3b2;
+      font-family:var(--font-tech);cursor:pointer;transition:all .2s;background:#0b0f14;
+    }
+    .source-chip.active{background:#121a24;color:var(--accent-go);border-color:var(--accent-go);}
+    #depth-fill{position:fixed;right:0;top:0;bottom:0;width:4px;background:#333;z-index:900;height:0%;transition:height .05s linear;}
+    .toast-msg{
+      position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+      background:#0b0f14;color:#00e676;padding:10px 18px;border:1px solid #00e676;border-radius:999px;
+      font-size:.8rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:3000;font-family:var(--font-tech);
+    }
+    .toast-msg.visible{opacity:1;}
+    #mic-toggle{
+      position:fixed;bottom:20px;left:20px;width:52px;height:52px;background:#0b0f14;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;border:1px solid #2a3342;z-index:2000;cursor:pointer;
+      box-shadow:0 12px 24px rgba(0,0,0,.35);
+    }
+    #mic-toggle.listening{border-color:var(--accent-go);box-shadow:0 0 18px rgba(0,230,118,.25);}
+    #mic-toggle svg{fill:#9aa3b2;width:24px;}
+
+    /* ===== PRO UI PDF (hidden renderer) ===== */
+    #pro-ui-root{
+      position:fixed;left:-99999px;top:0;width:794px;background:#0b1220;color:#fff;
+      font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;z-index:-1;
+    }
+    .proui-doc{width:794px;background:#0b1220;}
+    .proui-page{
+      padding:36px 40px;min-height:1123px;border-top:1px solid rgba(255,255,255,.10);position:relative;
+    }
+    .proui-page:first-child{border-top:none;}
+    .proui-wm{
+      position:absolute;left:0;right:0;bottom:18px;text-align:center;font-size:11px;letter-spacing:.18em;
+      text-transform:uppercase;color:rgba(255,255,255,.35);
+    }
+    .proui-title{font-size:34px;font-weight:900;letter-spacing:-.03em;margin:0;color:#6ee7ff;}
+    .proui-subtitle{margin:10px 0 0;color:rgba(255,255,255,.70);line-height:1.5;}
+    .proui-pillrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+    .proui-pill{
+      border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);padding:7px 10px;border-radius:999px;
+      font-size:12px;color:rgba(255,255,255,.78);
+    }
+    .proui-card{
+      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:16px;
+    }
+    .proui-h{margin:0 0 8px 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.72);}
+    .proui-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .proui-kv{display:grid;grid-template-columns:1fr auto;gap:8px 10px;font-size:13px;}
+    .proui-k{color:rgba(255,255,255,.65);}
+    .proui-v{font-weight:800;color:rgba(255,255,255,.90);text-align:right;}
+    .proui-list{margin:0;padding-left:18px;color:rgba(255,255,255,.86);line-height:1.55;font-size:13px;}
+    .proui-list li{margin:6px 0;}
+    .proui-nodeTitle{font-size:18px;font-weight:900;margin:0;color:#a78bfa;}
+    .proui-small{font-size:12px;color:rgba(255,255,255,.70);line-height:1.5;}
+
+    /* ===== Quick Panel ===== */
+    #panel-toggle{
+      position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:14px;background:#0b0f14;
+      border:1px solid #2a3342;color:#9aa3b2;z-index:2500;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.35);transition:transform .12s ease,opacity .2s ease;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    }
+    #panel-toggle:active{transform:scale(.98);opacity:.95;}
+    #panel-toggle svg{width:22px;height:22px;fill:#9aa3b2;}
+    #ui-panel-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:2490;opacity:0;pointer-events:none;transition:opacity .2s ease;
+    }
+    #ui-panel{
+      position:fixed;top:0;right:0;height:100vh;width:min(420px,92vw);
+      background:linear-gradient(180deg,rgba(10,10,10,.98),rgba(10,10,10,.92));
+      border-left:1px solid #2a3342;z-index:2600;transform:translateX(102%);
+      transition:transform .22s cubic-bezier(.2,.8,.2,1);
+      display:flex;flex-direction:column;box-shadow:-18px 0 40px rgba(0,0,0,.55);
+      touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    }
+    #ui-panel.open{transform:translateX(0);}
+    #ui-panel-overlay.open{opacity:1;pointer-events:auto;}
+    .panel-header{
+      padding:16px 16px 12px;border-bottom:1px solid #222a36;display:flex;align-items:center;justify-content:space-between;gap:10px;
+      background:linear-gradient(180deg,rgba(10,10,10,.98),rgba(10,10,10,.75));backdrop-filter:blur(6px);
+    }
+    .panel-title{
+      font-family:var(--font-tech);font-size:.75rem;color:var(--brand-orange);letter-spacing:1px;font-weight:800;text-transform:uppercase;
+      display:flex;align-items:center;gap:8px;min-width:0;
+    }
+    .panel-body{padding:14px 16px 18px;overflow-y:auto;flex:1;user-select:text;-webkit-user-select:text;}
+    .panel-section{
+      background:#0f1318;border:1px solid #2a3342;border-radius:14px;padding:14px;margin-bottom:12px;
+      box-shadow:0 10px 25px rgba(0,0,0,.22);
+    }
+    .panel-row{
+      display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed #222a36;
+      font-family:var(--font-tech);font-size:.74rem;
+    }
+    .panel-row:last-child{border-bottom:none;padding-bottom:0;}
+    .panel-k{color:#9aa3b2;text-transform:uppercase;letter-spacing:.6px;}
+    .panel-v{color:#d6dde8;font-weight:800;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+    .panel-actions .btn{margin:0;}
+    .btn-mini{padding:12px 12px;border-radius:12px;font-size:.78rem;}
+    .panel-footer{
+      padding:12px 16px 16px;border-top:1px solid #222a36;
+      background:linear-gradient(180deg,rgba(10,10,10,.65),rgba(10,10,10,.98));backdrop-filter:blur(6px);
+    }
+    .panel-note{
+      font-family:var(--font-tech);font-size:.68rem;color:#666;letter-spacing:.6px;text-transform:uppercase;
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+    }
+
+    /* ===== Notes Panel ===== */
+    #notes-toggle{
+      position:fixed;top:68px;right:16px;width:44px;height:44px;border-radius:14px;background:#0b0f14;border:1px solid #2a3342;
+      color:#9aa3b2;z-index:2500;display:flex;align-items:center;justify-content:center;cursor:pointer;
+      box-shadow:0 12px 24px rgba(0,0,0,.35);transition:transform .12s ease,opacity .2s ease;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    }
+    #notes-toggle:active{transform:scale(.98);opacity:.95;}
+    #notes-toggle svg{width:22px;height:22px;fill:#9aa3b2;}
+    #notes-panel-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:2685;opacity:0;pointer-events:none;transition:opacity .2s ease;
+    }
+    #notes-panel-overlay.open{opacity:1;pointer-events:auto;}
+    #notes-panel{
+      position:fixed;left:50%;bottom:0;transform:translate(-50%,102%);
+      width:min(720px,96vw);height:min(62vh,520px);
+      background:linear-gradient(180deg,rgba(10,10,10,.98),rgba(10,10,10,.92));
+      border:1px solid #2a3342;border-bottom:none;border-top-left-radius:18px;border-top-right-radius:18px;
+      z-index:2690;transition:transform .22s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;
+      box-shadow:0 -18px 40px rgba(0,0,0,.55);
+      touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    }
+    #notes-panel.open{transform:translate(-50%,0);}
+    .notes-body{padding:14px 16px 18px;overflow:auto;flex:1;user-select:text;-webkit-user-select:text;}
+    #notes-text{
+      width:100%;min-height:240px;resize:none;padding:12px;border-radius:12px;border:1px solid #2a3342;
+      background:#0b0f14;color:#fff;font-size:.92rem;line-height:1.55;box-sizing:border-box;outline:none;
+      touch-action:pan-y;-webkit-overflow-scrolling:touch;
+    }
+    .notes-meta{
+      display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-family:var(--font-tech);
+      font-size:.68rem;color:#666;text-transform:uppercase;letter-spacing:.6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="master-container"></div>
+  <div id="depth-fill"></div>
+  <div id="toast" class="toast-msg"></div>
+
+  <div id="mic-toggle" onclick="toggleListenMode()">
+    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66-1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+  </div>
+
+  <!-- Quick Panel Toggle -->
+  <div id="panel-toggle" role="button" aria-label="Open quick panel" title="Quick panel" onclick="toggleUIPanel()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+  </div>
+
+  <!-- Notes Toggle -->
+  <div id="notes-toggle" role="button" aria-label="Open notes" title="Notes" onclick="toggleNotesPanel()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l8.06-8.06.92.92L5.92 19.58zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+  </div>
+
+  <div id="notes-panel-overlay" onclick="closeNotesPanel()" aria-hidden="true"></div>
+  <aside id="notes-panel" aria-label="Notes panel" aria-hidden="true">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>NOTES</span>
+        <span class="header-badge" id="notes-badge">LOCAL</span>
+      </div>
+      <button class="btn btn-mini" style="width:auto;padding:10px 12px" onclick="closeNotesPanel()">CLOSE</button>
+    </div>
+    <div class="notes-body">
+      <div class="panel-section" style="margin-bottom:12px;">
+        <div class="section-title" style="margin-top:0">Scratchpad</div>
+        <textarea id="notes-text" placeholder="Capture quick thoughts, options, pros/cons..."></textarea>
+        <div class="notes-meta">
+          <span id="notes-count">0 chars</span>
+          <span id="notes-saved">Not saved</span>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button class="btn btn-mini btn-pro" onclick="saveNotes()">SAVE</button>
+        <button class="btn btn-mini" onclick="clearNotes()">CLEAR</button>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="panel-note">
+        <span>Stored on this device</span>
+        <span id="notes-time">--:--</span>
+      </div>
+    </div>
+  </aside>
+
+  <div id="ui-panel-overlay" onclick="closeUIPanel()" aria-hidden="true"></div>
+  <aside id="ui-panel" aria-label="Quick panel" aria-hidden="true">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>QUICK PANEL</span>
+        <span class="header-badge" id="panel-badge">STATUS</span>
+      </div>
+      <button class="btn btn-mini" style="width:auto;padding:10px 12px" onclick="closeUIPanel()">CLOSE</button>
+    </div>
+
+    <div class="panel-body">
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Session</div>
+        <div class="panel-row"><span class="panel-k">Project</span><span class="panel-v" id="panel-project">-</span></div>
+        <div class="panel-row"><span class="panel-k">Domain</span><span class="panel-v" id="panel-domain">-</span></div>
+        <div class="panel-row"><span class="panel-k">Slide</span><span class="panel-v" id="panel-slide">-</span></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Decision Research</div>
+        <div class="panel-row"><span class="panel-k">Nodes</span><span class="panel-v" id="panel-nodes">0</span></div>
+        <div class="panel-row"><span class="panel-k">Source</span><span class="panel-v" id="panel-source">-</span></div>
+        <div class="panel-row"><span class="panel-k">Last Node</span><span class="panel-v" id="panel-last-node">-</span></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title" style="margin-top:0">Actions</div>
+        <div class="panel-actions">
+          <button class="btn btn-mini" onclick="goHome()">HOME</button>
+          <button class="btn btn-mini" onclick="tryGoBack()">BACK</button>
+          <button class="btn btn-mini btn-pdf" onclick="safeCall('generateResearchPDF')">PDF</button>
+          <button class="btn btn-mini btn-pro" onclick="safeCall('generateDecisionProUIPDF')">DECISION PDF</button>
+        </div>
+
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full btn-pro" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
+
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full" onclick="safeCall('openSynthesisSlide')">SYNTHESIS</button>
+
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full" onclick="toggleNotesPanel()">NOTES</button>
+
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full btn-pro" onclick="saveCurrentProjectPrompt()">SAVE PROJECT</button>
+
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full" onclick="shareCurrentProject()">SHARE LINK</button>
+
+        <div style="height:10px"></div>
+        <button class="btn btn-mini btn-full btn-muted" onclick="openProjectPicker()">LOAD PROJECT</button>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <div class="panel-note">
+        <span id="panel-toast-hint">Ready</span>
+        <span id="panel-time">--:--</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Hidden Pro UI render root -->
+  <div id="pro-ui-root" aria-hidden="true"></div>
+
+  <script>
+/* =========================================
+   DECISION RESEARCH ENGINE + UPGRADES v1.1
+   + ALCHEMIST QUIZ INTEGRATION v1.0
+   - Creates Alchemist JSON on click
+   - Opens alchemist.html (same folder)
+========================================= */
+
+/* ====== ALCHEMIST INJECTION KEY ====== */
+const ALCHEMIST_LS_KEY = "ALCHEMIST_INJECTED_DATA";
+
+/* ---------- robust fetch helpers ---------- */
+async function fetchJSON(url, { timeoutMs = 9000 } = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/* ---------- helpers ---------- */
+function escapeHTML(str){
+  return (str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function normalizeText(text){
+  return (text || "").replace(/\s+/g, " ").replace(/\u00AD/g, "").trim();
+}
+function splitIntoSentences(text){
+  const t = normalizeText(text);
+  if(!t) return [];
+  return t.split(/(?<=[.!?])\s+(?=[A-Z0-9"“(])/g).map(s => s.trim()).filter(Boolean);
+}
+function extractTakeaways(summary, max = 4){
+  const s = splitIntoSentences(summary);
+  return s.slice(0, max).map(x => x.replace(/\s+/g, " ").trim());
+}
+function formatSummaryHTML(summary){
+  const sents = splitIntoSentences(summary);
+  if(sents.length === 0) return '<p class="muted">No summary available.</p>';
+  const lead = sents[0];
+  const rest = sents.slice(1);
+  const paras = [];
+  for(let i=0;i<rest.length;i+=3) paras.push(rest.slice(i, i+3).join(" "));
+  return `<p class="lead">${escapeHTML(lead)}</p>` + paras.map(p => `<p>${escapeHTML(p)}</p>`).join("");
+}
+function wordCount(text){
+  const t = normalizeText(text);
+  if(!t) return 0;
+  return t.split(/\s+/).length;
+}
+function readingTimeMins(words){
+  return Math.max(1, Math.round(words / 180));
+}
+function nowIST(){
+  return new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Kolkata' });
+}
+
+/* ---------- toast ---------- */
+function showToast(m) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.innerText = m;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 1800);
+  if (typeof updateUIPanel === 'function') updateUIPanel();
+}
+
+/* ---------- Voice stubs ---------- */
+function toggleListenMode(){ showToast("VOICE: NOT IMPLEMENTED"); }
+function initVoice(){}
+
+/* ---------- Quick Panel ---------- */
+function isUIPanelOpen(){
+  const p = document.getElementById('ui-panel');
+  return !!(p && p.classList.contains('open'));
+}
+function openUIPanel(){
+  const p = document.getElementById('ui-panel');
+  const o = document.getElementById('ui-panel-overlay');
+  if (!p || !o) return;
+  p.classList.add('open');
+  o.classList.add('open');
+  p.setAttribute('aria-hidden','false');
+  o.setAttribute('aria-hidden','false');
+  updateUIPanel();
+}
+function closeUIPanel(){
+  const p = document.getElementById('ui-panel');
+  const o = document.getElementById('ui-panel-overlay');
+  if (!p || !o) return;
+  p.classList.remove('open');
+  o.classList.remove('open');
+  p.setAttribute('aria-hidden','true');
+  o.setAttribute('aria-hidden','true');
+}
+function toggleUIPanel(){
+  if (isUIPanelOpen()) closeUIPanel(); else openUIPanel();
+}
+function tryGoBack(){
+  if (typeof goToSlide === 'function' && typeof currentIdx === 'number' && currentIdx > 0) {
+    goToSlide(currentIdx - 1);
+    return;
+  }
+  showToast("NO BACK");
+}
+function safeCall(fnName){
+  try{
+    const fn = window[fnName];
+    if (typeof fn === 'function') return fn();
+    showToast("UNAVAILABLE");
+  }catch(e){
+    console.error(e);
+    showToast("FAILED");
+  }
+}
+function updateUIPanel(){
+  const domainEl = document.getElementById('panel-domain');
+  const slideEl = document.getElementById('panel-slide');
+  const nodesEl = document.getElementById('panel-nodes');
+  const srcEl = document.getElementById('panel-source');
+  const lastEl = document.getElementById('panel-last-node');
+  const badgeEl = document.getElementById('panel-badge');
+  const timeEl = document.getElementById('panel-time');
+  const hintEl = document.getElementById('panel-toast-hint');
+  const projEl = document.getElementById('panel-project');
+
+  const domain = (ENGINE_STATE?.cuisines_detected?.[0]) ? ENGINE_STATE.cuisines_detected[0] : "home";
+  const nodes = Array.isArray(ENGINE_STATE?.research_nodes) ? ENGINE_STATE.research_nodes.length : 0;
+  const activeSrc = (WIKI_ENGINE?.sources && WIKI_ENGINE?.activeSource) ? (WIKI_ENGINE.sources[WIKI_ENGINE.activeSource]?.name || "-") : "-";
+  const lastNode = (nodes > 0) ? (ENGINE_STATE.research_nodes[nodes - 1]?.title || "-") : "-";
+
+  if (domainEl) domainEl.textContent = String(domain).toUpperCase();
+  if (slideEl) slideEl.textContent = (typeof currentIdx === 'number' ? `${currentIdx + 1}/${(slideElements?.length || 1)}` : "-");
+  if (nodesEl) nodesEl.textContent = String(nodes);
+  if (srcEl) srcEl.textContent = activeSrc ? String(activeSrc).toUpperCase() : "-";
+  if (lastEl) lastEl.textContent = String(lastNode);
+  if (badgeEl) badgeEl.textContent = domain === 'research' ? `NODES: ${nodes}` : String(domain).toUpperCase();
+  if (timeEl) timeEl.textContent = nowIST();
+  if (hintEl) hintEl.textContent = isUIPanelOpen() ? "Tap outside to close" : "Ready";
+  if (projEl) projEl.textContent = CURRENT_PROJECT?.name ? CURRENT_PROJECT.name.toUpperCase() : "-";
+}
+
+/* ---------- Notes Panel ---------- */
+const NOTES_KEY = "decide_engine_notes_v1";
+function isNotesPanelOpen(){
+  const p = document.getElementById('notes-panel');
+  return !!(p && p.classList.contains('open'));
+}
+function openNotesPanel(){
+  const p = document.getElementById('notes-panel');
+  const o = document.getElementById('notes-panel-overlay');
+  if (!p || !o) return;
+  p.classList.add('open');
+  o.classList.add('open');
+  p.setAttribute('aria-hidden','false');
+  o.setAttribute('aria-hidden','false');
+  loadNotes();
+  updateNotesMeta();
+}
+function closeNotesPanel(){
+  const p = document.getElementById('notes-panel');
+  const o = document.getElementById('notes-panel-overlay');
+  if (!p || !o) return;
+  p.classList.remove('open');
+  o.classList.remove('open');
+  p.setAttribute('aria-hidden','true');
+  o.setAttribute('aria-hidden','true');
+}
+function toggleNotesPanel(){
+  if (isNotesPanelOpen()) closeNotesPanel(); else openNotesPanel();
+}
+function updateNotesMeta(){
+  const ta = document.getElementById('notes-text');
+  const countEl = document.getElementById('notes-count');
+  const timeEl = document.getElementById('notes-time');
+  if (ta && countEl) countEl.textContent = `${ta.value.length} chars`;
+  if (timeEl) timeEl.textContent = nowIST();
+}
+function loadNotes(){
+  try{
+    const ta = document.getElementById('notes-text');
+    if (!ta) return;
+    const saved = localStorage.getItem(NOTES_KEY);
+    if (saved !== null) ta.value = saved;
+    const badge = document.getElementById('notes-badge');
+    if (badge) badge.textContent = saved && saved.trim() ? "RESTORED" : "LOCAL";
+    const savedEl = document.getElementById('notes-saved');
+    if (savedEl) savedEl.textContent = saved && saved.trim() ? "Restored" : "Not saved";
+  }catch(e){ console.error(e); }
+}
+function saveNotes(){
+  try{
+    const ta = document.getElementById('notes-text');
+    if (!ta) return;
+    localStorage.setItem(NOTES_KEY, ta.value);
+    const savedEl = document.getElementById('notes-saved');
+    if (savedEl) savedEl.textContent = "Saved";
+    showToast("NOTES SAVED");
+    updateNotesMeta();
+    autosaveProjectIfPossible();
+  }catch(e){
+    console.error(e);
+    showToast("SAVE FAILED");
+  }
+}
+function clearNotes(){
+  try{
+    const ta = document.getElementById('notes-text');
+    if (ta) ta.value = "";
+    localStorage.removeItem(NOTES_KEY);
+    const savedEl = document.getElementById('notes-saved');
+    if (savedEl) savedEl.textContent = "Cleared";
+    showToast("NOTES CLEARED");
+    updateNotesMeta();
+    autosaveProjectIfPossible();
+  }catch(e){ console.error(e); }
+}
+document.addEventListener('input', (e) => {
+  if (e?.target?.id === 'notes-text') updateNotesMeta();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (isNotesPanelOpen()) closeNotesPanel();
+    if (isUIPanelOpen()) closeUIPanel();
+  }
+});
+setInterval(() => {
+  updateUIPanel();
+  updateNotesMeta();
+}, 1200);
+
+/* ---------- Confidence helper ---------- */
+function confidenceFor(source) {
+  if (source === 'wiki' || source === 'travel') return 'High';
+  if (source === 'wikibooks') return 'Medium';
+  return 'Low';
+}
+
+/* ---------- External actions ---------- */
+const AMZN_TAG = "decideos-21";
+function openYouTubeSearch(topic) {
+  const q = encodeURIComponent((topic || "") + " explained");
+  window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
+}
+function openWikipedia(title){
+  const q = encodeURIComponent(title || "");
+  window.open(`https://en.wikipedia.org/wiki/Special:Search?search=${q}`, "_blank");
+}
+
+/* =========================================
+ALCHEMIST QUIZ INTEGRATION
+- builds a quick quiz from research nodes
+- stores to localStorage under ALCHEMIST_LS_KEY
+- opens alchemist.html (same folder)
+========================================= */
+function buildAlchemistPayloadFromResearch(nodes, { maxQ = 12 } = {}) {
+  const list = Array.isArray(nodes) ? nodes.slice(0, maxQ) : [];
+  const out = [];
+  const now = Date.now();
+
+  function pick2Distractors(allTitles, correctTitle){
+    const pool = allTitles.filter(t => t && t !== correctTitle);
+    // shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return [pool[0] || "—", pool[1] || "—"];
+  }
+  function dirByIndex(i){
+    const dirs = ["UP","RIGHT","LEFT","DOWN"];
+    return dirs[i % dirs.length];
+  }
+
+  const titles = list.map(n => normalizeText(n?.title || "")).filter(Boolean);
+
+  list.forEach((n, i) => {
+    const title = normalizeText(n?.title || `Node ${i+1}`);
+    const sents = splitIntoSentences(n?.summary || "");
+    const qText = sents[0] || (n?.summary ? normalizeText(n.summary).slice(0, 140) : "");
+    const prompt = qText
+      ? `Which node best matches this summary snippet?\n\n“${qText}”`
+      : `Which node is this?`;
+
+    const [d1, d2] = pick2Distractors(titles, title);
+    out.push({
+      Question_ID: `R_${now}_${String(i+1).padStart(3,"0")}`,
+      Set_Code: "RESEARCH",
+      Domain: "Decision Research",
+      Subdomain: normalizeText(n?.sourceName || n?.source || "wiki").toUpperCase(),
+      Difficulty: String(Math.min(5, Math.max(1, Math.round((wordCount(n?.summary || "") / 120) || 2)))),
+      Question_Text: prompt,
+      Correct_Answer: title,
+      Distractor_1: d1,
+      Distractor_2: d2,
+      Correct_Direction: dirByIndex(i),
+      Explanation_Short: "Pick the node title that matches the summary snippet.",
+      Explanation_Long: (n?.url ? `Source: ${n.url}` : "Source: (none)")
+    });
+  });
+
+  return out;
+}
+
+function launchAlchemistQuiz(){
+  const nodes = ENGINE_STATE?.research_nodes || [];
+  if (!nodes.length) return showToast("NO NODES FOR QUIZ");
+  try{
+    const payload = buildAlchemistPayloadFromResearch(nodes, { maxQ: 12 });
+    localStorage.setItem(ALCHEMIST_LS_KEY, JSON.stringify(payload));
+    showToast("QUIZ READY");
+    // Open in same folder
+    window.open("alchemist.html", "_blank");
+  }catch(e){
+    console.error(e);
+    showToast("QUIZ FAILED");
+  }
+}
+
+/* =========================================
+MULTI-SOURCE RESEARCH ENGINE
+========================================= */
+const WIKI_ENGINE = {
+  activeSource: "wiki",
+  cache: new Map(),
+  sources: {
+    wiki: { name: "WIKIPEDIA", api: "https://en.wikipedia.org/w/api.php", icon: "📚", description: "General knowledge encyclopedia" },
+    travel: { name: "WIKIVOYAGE", api: "https://en.wikivoyage.org/w/api.php", icon: "🗺️", description: "Travel guides and destinations" },
+    wikibooks: { name: "WIKIBOOKS", api: "https://en.wikibooks.org/w/api.php", icon: "📖", description: "Educational textbooks" },
+    wikinews: { name: "WIKINEWS", api: "https://en.wikinews.org/w/api.php", icon: "📰", description: "News articles" }
+  },
+  async search(query, source = this.activeSource) {
+    const q = normalizeText(query);
+    const cacheKey = `search_${source}_${q}`;
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+    try {
+      const api = this.sources[source].api;
+      const url = `${api}?origin=*&action=opensearch&search=${encodeURIComponent(q)}&limit=8&format=json`;
+      const data = await fetchJSON(url);
+      const results = [];
+      if (data && data[1] && data[1].length > 0) {
+        for (let i = 0; i < data[1].length; i++) {
+          results.push({
+            title: data[1][i],
+            description: (data[2] && data[2][i]) ? data[2][i] : '',
+            url: (data[3] && data[3][i]) ? data[3][i] : ''
+          });
+        }
+      }
+      this.cache.set(cacheKey, results);
+      return results;
+    } catch(e) {
+      console.error("Search error:", e);
+      return [];
+    }
+  },
+  async getContext(title, source = this.activeSource) {
+    const t = normalizeText(title);
+    const cacheKey = `context_${source}_${t}`;
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+    try {
+      const api = this.sources[source].api;
+      const url = `${api}?origin=*&action=query&prop=extracts|info|pageimages|categories&titles=${encodeURIComponent(t)}&exintro=1&explaintext=1&inprop=url&piprop=thumbnail&pithumbsize=300&cllimit=10&format=json`;
+      const data = await fetchJSON(url);
+      const pages = data?.query?.pages || {};
+      const firstKey = Object.keys(pages)[0];
+      if (!firstKey || firstKey === "-1") throw new Error("Page not found");
+      const page = pages[firstKey];
+
+      const linksUrl = `${api}?origin=*&action=query&prop=links&titles=${encodeURIComponent(t)}&pllimit=20&plnamespace=0&format=json`;
+      let links = [];
+      try {
+        const linksData = await fetchJSON(linksUrl);
+        const lp = linksData?.query?.pages || {};
+        const lk = Object.keys(lp)[0];
+        links = (lk && lp[lk] && lp[lk].links) ? lp[lk].links.map(l => ({ name: l.title, ns: l.ns })) : [];
+      } catch(e) { links = []; }
+
+      const context = {
+        title: page.title,
+        summary: page.extract || "No summary available.",
+        url: page.fullurl || "",
+        thumbnail: page.thumbnail ? page.thumbnail.source : null,
+        categories: page.categories ? page.categories.slice(0,5).map(c => c.title.replace("Category:","")) : [],
+        links,
+        source,
+        sourceName: this.sources[source].name,
+        confidence: confidenceFor(source)
+      };
+      this.cache.set(cacheKey, context);
+      return context;
+    } catch(e) {
+      console.error("Context error:", e);
+      return null;
+    }
+  }
+};
+
+/* =========================================
+PROJECT PERSISTENCE + SHARE LINKS
+========================================= */
+const PROJECTS_INDEX_KEY = "decideos_projects_v1";
+const LAST_PROJECT_KEY = "decideos_last_project_id_v1";
+const PROJECT_PREFIX = "decideos_project_";
+
+let CURRENT_PROJECT = null;
+
+function uid(){
+  return "p_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+function getProjectsIndex(){
+  try{
+    return JSON.parse(localStorage.getItem(PROJECTS_INDEX_KEY) || "{}");
+  }catch(e){ return {}; }
+}
+function setProjectsIndex(idx){
+  localStorage.setItem(PROJECTS_INDEX_KEY, JSON.stringify(idx));
+}
+function saveProjectToStorage(project){
+  const idx = getProjectsIndex();
+  idx[project.id] = { id: project.id, name: project.name, updatedAt: project.updatedAt, createdAt: project.createdAt };
+  setProjectsIndex(idx);
+  localStorage.setItem(PROJECT_PREFIX + project.id, JSON.stringify(project));
+  localStorage.setItem(LAST_PROJECT_KEY, project.id);
+}
+function loadProjectFromStorage(id){
+  try{
+    const raw = localStorage.getItem(PROJECT_PREFIX + id);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+function listProjects(){
+  const idx = getProjectsIndex();
+  return Object.values(idx).sort((a,b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+}
+function serializeProjectForShare(project){
+  const json = JSON.stringify(project);
+  const b64 = btoa(unescape(encodeURIComponent(json)));
+  return b64.replaceAll("+","-").replaceAll("/","_").replaceAll("=","");
+}
+function deserializeProjectFromShare(payload){
+  let b64 = payload.replaceAll("-","+").replaceAll("_","/");
+  while (b64.length % 4) b64 += "=";
+  const json = decodeURIComponent(escape(atob(b64)));
+  return JSON.parse(json);
+}
+function shareCurrentProject(){
+  const p = buildProjectFromCurrentState();
+  if (!p) return showToast("NOTHING TO SHARE");
+  saveProjectToStorage(p);
+  CURRENT_PROJECT = p;
+
+  const payload = serializeProjectForShare(p);
+  const url = `${location.origin}${location.pathname}#p=${payload}`;
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url).then(() => showToast("LINK COPIED"));
+  } else {
+    window.prompt("Copy share link:", url);
+  }
+}
+function openProjectPicker(){
+  const projects = listProjects();
+  if (!projects.length) return showToast("NO SAVED PROJECTS");
+  const menu = projects.map((p,i) => `${i+1}. ${p.name} (${(p.updatedAt||"").slice(0,19).replace("T"," ")})`).join("\n");
+  const choice = window.prompt("Load project by number:\n" + menu, "1");
+  const n = parseInt(choice || "", 10);
+  if (!n || n < 1 || n > projects.length) return;
+  const id = projects[n-1].id;
+  const project = loadProjectFromStorage(id);
+  if (!project) return showToast("LOAD FAILED");
+  loadProjectIntoApp(project);
+  showToast("PROJECT LOADED");
+}
+function saveCurrentProjectPrompt(){
+  const p = buildProjectFromCurrentState();
+  if (!p) return showToast("NOTHING TO SAVE");
+  const name = window.prompt("Project name:", (CURRENT_PROJECT?.name || p.name || "Decision Research"));
+  if (name && name.trim()) p.name = name.trim();
+  p.updatedAt = new Date().toISOString();
+  if (!p.createdAt) p.createdAt = p.updatedAt;
+  saveProjectToStorage(p);
+  CURRENT_PROJECT = p;
+  showToast("PROJECT SAVED");
+  updateUIPanel();
+}
+function autosaveProjectIfPossible(){
+  if (!CURRENT_PROJECT?.id) return;
+  const p = buildProjectFromCurrentState();
+  if (!p) return;
+  p.id = CURRENT_PROJECT.id;
+  p.name = CURRENT_PROJECT.name || p.name;
+  p.createdAt = CURRENT_PROJECT.createdAt || p.createdAt;
+  p.updatedAt = new Date().toISOString();
+  saveProjectToStorage(p);
+  CURRENT_PROJECT = p;
+}
+function buildProjectFromCurrentState(){
+  const nodes = ENGINE_STATE?.research_nodes || [];
+  const syn = ENGINE_STATE?.synthesis || null;
+  const notes = (document.getElementById("notes-text")?.value ?? localStorage.getItem(NOTES_KEY) ?? "");
+  if (!nodes.length && !syn && !notes) return null;
+
+  const project = {
+    id: CURRENT_PROJECT?.id || uid(),
+    name: CURRENT_PROJECT?.name || (nodes[0]?.decisionMeta?.decision ? `Decision: ${nodes[0].decisionMeta.decision}` : "Decision Research"),
+    createdAt: CURRENT_PROJECT?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    engineState: {
+      research_nodes: nodes,
+      synthesis: syn,
+      notes: notes
+    }
+  };
+  return project;
+}
+function loadProjectIntoApp(project){
+  CURRENT_PROJECT = project;
+  const notes = project?.engineState?.notes ?? "";
+  localStorage.setItem(NOTES_KEY, notes);
+  const ta = document.getElementById("notes-text");
+  if (ta) ta.value = notes;
+
+  ENGINE_STATE.cuisines_detected = ["research"];
+  ENGINE_STATE.research_nodes = Array.isArray(project?.engineState?.research_nodes) ? project.engineState.research_nodes : [];
+  ENGINE_STATE.synthesis = project?.engineState?.synthesis || null;
+
+  if (ENGINE_STATE.research_nodes.length) {
+    openStoredDeck(ENGINE_STATE.research_nodes, ENGINE_STATE.synthesis);
+  } else {
+    renderSearchSlide();
+  }
+  updateUIPanel();
+}
+function importShareLinkPrompt(){
+  const link = window.prompt("Paste share link (or payload after #p=):", "");
+  if (!link) return;
+  let payload = link.trim();
+  const idx = payload.indexOf("#p=");
+  if (idx >= 0) payload = payload.slice(idx + 3);
+  if (payload.startsWith("p=")) payload = payload.slice(2);
+  try{
+    const project = deserializeProjectFromShare(payload);
+    if (!project.id) project.id = uid();
+    if (!project.name) project.name = "Imported Project";
+    project.updatedAt = new Date().toISOString();
+    if (!project.createdAt) project.createdAt = project.updatedAt;
+    saveProjectToStorage(project);
+    loadProjectIntoApp(project);
+    showToast("IMPORTED");
+  }catch(e){
+    console.error(e);
+    showToast("INVALID LINK");
+  }
+}
+
+/* =========================================
+DEFAULT RESEARCH EXAMPLES
+========================================= */
+const DEFAULT_EXAMPLES = [
+  {
+    id: "ex_stoicism",
+    name: "Example: Stoicism → Decision Discipline",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    engineState: {
+      notes: "Use this as a template: connect each node to the same decision context.",
+      synthesis: {
+        thesis: "Stoicism is a practical operating system for reducing noise, focusing on controllables, and improving decision quality under uncertainty.",
+        topTakeaways: [
+          "Separate controllables vs uncontrollables to reduce wasted effort.",
+          "Use negative visualization to stress-test downside scenarios.",
+          "Virtue framing improves consistency: act by principle, not mood.",
+          "Daily review loops create compounding behavioral change.",
+          "High signal routines beat motivational spikes."
+        ],
+        contradictions: "Risk: can be misused as emotional suppression vs emotional regulation.",
+        implications: "For founders: define controllables, build pre-mortems, make principles explicit, review weekly.",
+        next: "Read: Epictetus Enchiridion • Marcus Aurelius Meditations • Modern CBT parallels",
+        recommendation: "If your environment is high-volatility, stoic routines tend to increase consistency."
+      },
+      research_nodes: [
+        {
+          title: "Stoicism",
+          summary: "Stoicism is a school of Hellenistic philosophy that teaches the development of self-control and fortitude as a means to overcome destructive emotions. It emphasizes virtue, reason, and living in accordance with nature. Stoics distinguish between what is within our control and what is not. The practice includes reflection, negative visualization, and focusing on internal character rather than external outcomes.",
+          url: "https://en.wikipedia.org/wiki/Stoicism",
+          thumbnail: null,
+          categories: ["Philosophy", "Ethics", "Hellenistic philosophy"],
+          links: [],
+          source: "wiki",
+          sourceName: "WIKIPEDIA",
+          confidence: "High",
+          decisionMeta: { decision: "Build a discipline system for better decisions", time: "90 days", stake: "Execution consistency", success: "Higher follow-through rate", options: "Stoic routines vs ad-hoc motivation" }
+        },
+        {
+          title: "Dichotomy of control",
+          summary: "The dichotomy of control is a central Stoic concept that divides things into those within our power and those outside it. This framing reduces anxiety by redirecting attention to choices, judgments, and actions, rather than outcomes. When applied to decisions, it improves clarity by separating inputs you can influence from external noise. It supports better prioritization and more stable emotional responses.",
+          url: "https://en.wikipedia.org/wiki/Enchiridion_of_Epictetus",
+          thumbnail: null,
+          categories: ["Stoicism", "Epictetus"],
+          links: [],
+          source: "wiki",
+          sourceName: "WIKIPEDIA",
+          confidence: "High",
+          decisionMeta: { decision: "Build a discipline system for better decisions", time: "90 days", stake: "Execution consistency", success: "Higher follow-through rate", options: "Stoic routines vs ad-hoc motivation" }
+        },
+        {
+          title: "Cognitive behavioral therapy",
+          summary: "Cognitive behavioral therapy (CBT) is a structured, time-limited psychotherapy that aims to change patterns of thinking or behavior that contribute to people's problems. It uses techniques such as cognitive restructuring and behavioral experiments. CBT overlaps with Stoic practices by emphasizing interpretation, reframing, and intentional action. As a decision aid, it provides tools to challenge distortions and test beliefs with evidence.",
+          url: "https://en.wikipedia.org/wiki/Cognitive_behavioral_therapy",
+          thumbnail: null,
+          categories: ["Psychotherapy", "Cognition", "Behavior"],
+          links: [],
+          source: "wiki",
+          sourceName: "WIKIPEDIA",
+          confidence: "High",
+          decisionMeta: { decision: "Build a discipline system for better decisions", time: "90 days", stake: "Execution consistency", success: "Higher follow-through rate", options: "Stoic routines vs ad-hoc motivation" }
+        }
+      ]
+    }
+  },
+  {
+    id: "ex_goa",
+    name: "Example: Goa → Trip Decision Brief",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    engineState: {
+      notes: "Decision meta should capture constraints: budget, weather window, preferences, group type.",
+      synthesis: {
+        thesis: "Goa is best planned by splitting North vs South goals, locking stay near your primary activities, and using a short list of must-dos to prevent over-travel.",
+        topTakeaways: [
+          "North Goa: nightlife + busy beaches; South Goa: calmer stays.",
+          "Minimize daily travel: pick a hub near your plan.",
+          "Use early mornings for beaches; afternoons for rest/indoor.",
+          "Pre-book in peak season; keep buffer for traffic.",
+          "Decide your constraints first (budget, crowd tolerance)."
+        ],
+        contradictions: "Crowd preference varies; some want ‘busy’ by design.",
+        implications: "Pick hub first → then shortlist experiences → then transport plan.",
+        next: "Add nodes: weather window, festivals, hotel zones, scooter vs taxi costs",
+        recommendation: "If group wants calm + beaches, bias South Goa; if nightlife, bias North Goa."
+      },
+      research_nodes: [
+        {
+          title: "Goa",
+          summary: "Goa is a state on the southwestern coast of India known for its beaches, tourism, and a blend of cultural influences. Visitors often plan by region (North vs South) depending on preferences for nightlife, crowds, or quieter beaches. Practical trip decisions typically include season timing, transport mode, and choosing lodging close to primary activities to reduce travel time.",
+          url: "https://en.wikipedia.org/wiki/Goa",
+          thumbnail: null,
+          categories: ["States of India", "Tourism", "Konkan"],
+          links: [],
+          source: "wiki",
+          sourceName: "WIKIPEDIA",
+          confidence: "High",
+          decisionMeta: { decision: "Choose Goa plan for 4-day trip", time: "Next month", stake: "Trip quality", success: "Low travel fatigue, high enjoyment", options: "North hub vs South hub" }
+        },
+        {
+          title: "Tourism in Goa",
+          summary: "Tourism in Goa is driven by beaches, heritage, food, and nightlife. Demand is seasonal and affected by holidays and festivals. A practical planning approach is to define your primary outcomes (relaxation, parties, culture), then choose a base location accordingly. Over-optimizing itineraries can backfire due to travel time and crowds.",
+          url: "https://en.wikipedia.org/wiki/Tourism_in_Goa",
+          thumbnail: null,
+          categories: ["Tourism", "India travel"],
+          links: [],
+          source: "wiki",
+          sourceName: "WIKIPEDIA",
+          confidence: "High",
+          decisionMeta: { decision: "Choose Goa plan for 4-day trip", time: "Next month", stake: "Trip quality", success: "Low travel fatigue, high enjoyment", options: "North hub vs South hub" }
+        }
+      ]
+    }
+  }
+];
+
+/* =========================================
+STATE
+========================================= */
+let ENGINE_STATE = {
+  cuisines_detected: [],
+  items_detected: {},
+  session_weights: {},
+  active_filters: [],
+  research_history: [],
+  research_nodes: [],
+  synthesis: null
+};
+let slideElements = [];
+let currentIdx = 0;
+let currentDecisionContext = null;
+
+/* =========================================
+Landing / Welcome
+========================================= */
+function goHome(){
+  closeUIPanel();
+  closeNotesPanel();
+  renderLanding();
+}
+function renderLanding(){
+  const container = document.getElementById('master-container');
+  container.innerHTML = "";
+  slideElements = [];
+  currentIdx = 0;
+
+  const lastId = localStorage.getItem(LAST_PROJECT_KEY);
+  const hasLast = !!(lastId && loadProjectFromStorage(lastId));
+  const examplesHtml = DEFAULT_EXAMPLES.map(ex => `
+    <button class="cuisine-btn" onclick="openExample('${escapeHTML(ex.id)}')">
+      ${escapeHTML(ex.name)}
+    </button>
+  `).join("");
+
+  const section = document.createElement('section');
+  section.className = "main-slide active";
+  section.dataset.mode = "landing";
+  section.innerHTML = `
+    <div class="slide-header">
+      <span class="header-title">DECIDE OS</span>
+      <span class="header-badge">WELCOME</span>
+    </div>
+    <div class="sub-slide static article-view">
+      <h1>Decision Research</h1>
+      <div class="primary-question">Start with examples, or open the tool and build your own research nodes.</div>
+
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">How to use</div>
+        <div style="color:#d6dde8; line-height:1.65;">
+          <p style="margin-top:0"><strong>Search:</strong> Open Tool → Research → Search a topic → select a result.</p>
+          <p><strong>Save nodes / projects:</strong> Quick Panel → <strong>SAVE PROJECT</strong> (stores on device).</p>
+          <p><strong>Share / collaborate:</strong> Quick Panel → <strong>SHARE LINK</strong> (sends a URL with project embedded).</p>
+          <p><strong>PDFs:</strong> From any node → Research PDF, or Quick Panel → Decision PDF.</p>
+          <p><strong>Quiz:</strong> Quick Panel → <strong>QUIZ (ALCHEMIST)</strong> (builds quiz from nodes).</p>
+          <p style="margin-bottom:0"><strong>Notes:</strong> Tap the notes icon (✎) → SAVE.</p>
+        </div>
+      </div>
+
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">Try an example</div>
+        <div style="display:grid; gap:12px;">
+          ${examplesHtml}
+        </div>
+      </div>
+
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="openTool()">OPEN TOOL</button>
+        ${hasLast ? `<button class="btn btn-full" onclick="continueLastProject()">CONTINUE LAST PROJECT</button>` : `<button class="btn btn-full btn-muted" onclick="showToast('NO LAST PROJECT')">CONTINUE LAST PROJECT</button>`}
+        <button class="btn btn-full" onclick="importShareLinkPrompt()">IMPORT SHARE LINK</button>
+        <button class="btn btn-full btn-muted" onclick="openProjectPicker()">LOAD SAVED PROJECT</button>
+      </div>
+
+      <div class="nav-hint"><span>GitHub Pages mode</span><span>Tap ☰: panel</span></div>
+    </div>
+  `;
+  container.appendChild(section);
+  slideElements = [section];
+  currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["home"];
+  ENGINE_STATE.research_nodes = [];
+  ENGINE_STATE.synthesis = null;
+  CURRENT_PROJECT = null;
+  updateUIPanel();
+}
+
+function openExample(exampleId){
+  const ex = DEFAULT_EXAMPLES.find(x => x.id === exampleId);
+  if (!ex) return showToast("EXAMPLE NOT FOUND");
+  const project = {
+    id: uid(),
+    name: ex.name,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    engineState: ex.engineState
+  };
+  saveProjectToStorage(project);
+  loadProjectIntoApp(project);
+  showToast("EXAMPLE LOADED");
+}
+function continueLastProject(){
+  const id = localStorage.getItem(LAST_PROJECT_KEY);
+  if (!id) return showToast("NO LAST PROJECT");
+  const project = loadProjectFromStorage(id);
+  if (!project) return showToast("LOAD FAILED");
+  loadProjectIntoApp(project);
+  showToast("CONTINUED");
+}
+function openTool(){
+  CURRENT_PROJECT = null;
+  renderLobby();
+  updateUIPanel();
+}
+
+/* =========================================
+Minimal existing Lobby (kept)
+========================================= */
+const FALLBACK_MENU = {
+  "smartphones": { label: "SMARTPHONES", categories: [{label: "BUDGET <10K", items: [{"name":"Samsung Galaxy F07"},{"name":"Realme Note 60"}]}] },
+  "food": { label: "DINING & ESSENTIALS", categories: [{label:"MEALS (ZOMATO)"},{label:"STUDY FUEL (BLINKIT)"},{label:"MID-WEEK CRISIS"},{label:"NON-FOOD"}] },
+  "research": { label: "DECISION RESEARCH", categories: [] }
+};
+let RAW_DATA = FALLBACK_MENU;
+
+function renderLobby() {
+  const container = document.getElementById('master-container');
+  container.innerHTML = "";
+  const section = document.createElement('section');
+  section.className = "main-slide active";
+  let html = `
+    <div class="slide-header">
+      <span class="header-title">DECIDE OS</span>
+      <span class="header-badge">HOME</span>
+    </div>
+    <div class="lobby-container">
+      <h1 style="text-align:center">SELECT DOMAIN</h1>
+      <div style="display:grid; gap:14px;">
+  `;
+  for (let key in RAW_DATA) {
+    const isSelected = ENGINE_STATE.cuisines_detected.includes(key) ? "selected" : "";
+    html += `<button class="cuisine-btn ${isSelected}" onclick="toggleDomain('${escapeHTML(key)}', this)">${escapeHTML(RAW_DATA[key].label)}</button>`;
+  }
+  html += `
+      </div>
+      <button class="btn btn-full" style="margin-top:18px" onclick="handleStart()">NEXT →</button>
+      <button class="btn btn-full btn-muted" style="margin-top:10px" onclick="goHome()">← WELCOME</button>
+    </div>
+  `;
+  section.innerHTML = html;
+  container.appendChild(section);
+  slideElements = [section];
+  currentIdx = 0;
+  updateUIPanel();
+}
+function toggleDomain(id, btn) {
+  ENGINE_STATE.cuisines_detected = [id];
+  document.querySelectorAll('.cuisine-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function handleStart() {
+  if (ENGINE_STATE.cuisines_detected.length === 0) return showToast("SELECT DOMAIN");
+  const domain = ENGINE_STATE.cuisines_detected[0];
+  if (domain === "research") {
+    ENGINE_STATE.research_nodes = [];
+    ENGINE_STATE.synthesis = null;
+    CURRENT_PROJECT = null;
+    renderSearchSlide();
+  } else {
+    showToast("NON-RESEARCH BRANCH DISABLED IN THIS BUILD");
+  }
+}
+
+/* =========================================
+DECISION RESEARCH BRANCH
+========================================= */
+function renderSearchSlide() {
+  const container = document.getElementById('master-container');
+  container.innerHTML = "";
+  const section = document.createElement('section');
+  section.className = "main-slide active";
+  section.dataset.mode = "research-search";
+  section.innerHTML = `
+    <div class="slide-header">
+      <span class="header-title">DECISION RESEARCH</span>
+      <span class="header-badge">SEARCH</span>
+    </div>
+    <div class="sub-slide static article-view">
+      <h1>Search a topic</h1>
+      <div class="primary-question">Build a decision-linked research journey across sources.</div>
+      <input id="search-input" placeholder="Type a topic (e.g. Stoicism, Protein, Goa)" />
+      <div class="source-toggle" id="source-toggle"></div>
+      <button class="btn btn-full" onclick="handleSearch()">SEARCH →</button>
+      <div class="final-actions" style="margin-top:10px;">
+        <button class="btn btn-full btn-muted" onclick="goHome()">← WELCOME</button>
+      </div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>Tap ☰: panel</span></div>
+    </div>
+  `;
+  container.appendChild(section);
+  slideElements = [section];
+  currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["research"];
+  renderSourceToggle();
+  updateUIPanel();
+}
+function renderSourceToggle(){
+  const el = document.getElementById("source-toggle");
+  if(!el) return;
+  el.innerHTML = "";
+  Object.keys(WIKI_ENGINE.sources).forEach(key => {
+    const s = WIKI_ENGINE.sources[key];
+    const chip = document.createElement("div");
+    chip.className = "source-chip" + (WIKI_ENGINE.activeSource === key ? " active" : "");
+    chip.textContent = `${s.icon} ${s.name}`;
+    chip.onclick = () => {
+      WIKI_ENGINE.activeSource = key;
+      renderSourceToggle();
+      showToast(`${s.name} SELECTED`);
+      updateUIPanel();
+    };
+    el.appendChild(chip);
+  });
+}
+async function handleSearch() {
+  const input = document.getElementById('search-input');
+  const q = input?.value?.trim();
+  if (!q) return showToast("TYPE SOMETHING");
+  showToast("SEARCHING...");
+  const results = await WIKI_ENGINE.search(q, WIKI_ENGINE.activeSource);
+  if (!results || results.length === 0) {
+    showToast("NO RESULTS");
+    return;
+  }
+  renderResultsSlide(q, results);
+}
+function renderResultsSlide(query, results) {
+  const container = document.getElementById('master-container');
+  const section = document.createElement('section');
+  section.className = "main-slide next";
+  section.dataset.mode = "research-results";
+  const src = WIKI_ENGINE.sources[WIKI_ENGINE.activeSource];
+  let html = `
+    <div class="slide-header">
+      <span class="header-title">RESULTS</span>
+      <span class="header-badge">${escapeHTML(src.name)}</span>
+    </div>
+    <div class="sub-slide static article-view">
+      <h1>${escapeHTML(query)}</h1>
+      <div class="primary-question">Select a node to start your research journey.</div>
+      <div style="display:grid; gap:10px;">
+  `;
+  results.forEach((r, idx) => {
+    html += `<button class="cuisine-btn" onclick="openResult('${escapeHTML(r.title)}')">${idx+1}. ${escapeHTML(r.title)}</button>`;
+  });
+  html += `
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn btn-full" onclick="renderSearchSlide()">← BACK</button>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>Tap ☰: panel</span></div>
+    </div>
+  `;
+  section.innerHTML = html;
+  container.appendChild(section);
+  slideElements.push(section);
+  goToSlide(slideElements.length - 1);
+}
+async function openResult(title) {
+  showToast("LOADING...");
+  const ctx = await WIKI_ENGINE.getContext(title, WIKI_ENGINE.activeSource);
+  if (!ctx) return showToast("FAILED");
+  currentDecisionContext = {
+    title: ctx.title,
+    summary: ctx.summary,
+    url: ctx.url,
+    thumbnail: ctx.thumbnail,
+    categories: ctx.categories || [],
+    links: ctx.links || [],
+    source: ctx.source,
+    sourceName: ctx.sourceName,
+    confidence: ctx.confidence,
+    decisionMeta: {}
+  };
+  renderDecisionMetaSlide(currentDecisionContext);
+}
+function renderDecisionMetaSlide(ctx){
+  const container = document.getElementById('master-container');
+  const metaSlide = document.createElement('section');
+  metaSlide.className = "main-slide next";
+  metaSlide.dataset.mode = "decision-meta";
+  metaSlide.innerHTML = `
+    <div class="slide-header">
+      <span class="header-title">DECISION META</span>
+      <span class="header-badge">LINK</span>
+    </div>
+    <div class="sub-slide static article-view">
+      <h1>Link this node</h1>
+      <div class="primary-question">Capture the decision context that this research supports.</div>
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">Decision context</div>
+        <div style="display:grid; gap:10px;">
+          <div><input id="meta-decision" type="text" placeholder="Decision (e.g. cut sugar, choose phone)" style="width:100%; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;"></div>
+          <div><input id="meta-time" type="text" placeholder="Time horizon" style="width:100%; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;"></div>
+          <div><input id="meta-stake" type="text" placeholder="Stake" style="width:100%; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;"></div>
+          <div><input id="meta-success" type="text" placeholder="Success metric" style="width:100%; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;"></div>
+          <div><input id="meta-options" type="text" placeholder="Option set (e.g. A/B/C)" style="width:100%; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;"></div>
+        </div>
+      </div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="saveDecisionMeta()">SAVE META</button>
+        <button class="btn btn-full" onclick="skipDecisionMeta()">SKIP</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(metaSlide);
+  slideElements.push(metaSlide);
+  goToSlide(slideElements.length - 1);
+}
+function saveDecisionMeta() {
+  if (!currentDecisionContext) return;
+  const d = document.getElementById('meta-decision')?.value?.trim() || "";
+  const t = document.getElementById('meta-time')?.value?.trim() || "";
+  const s = document.getElementById('meta-stake')?.value?.trim() || "";
+  const m = document.getElementById('meta-success')?.value?.trim() || "";
+  const o = document.getElementById('meta-options')?.value?.trim() || "";
+  currentDecisionContext.decisionMeta = { decision: d, time: t, stake: s, success: m, options: o };
+  ENGINE_STATE.research_nodes = [currentDecisionContext];
+  ENGINE_STATE.synthesis = null;
+  currentDecisionContext = null;
+  buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]);
+  autosaveProjectIfPossible();
+}
+function skipDecisionMeta() {
+  if (!currentDecisionContext) return;
+  currentDecisionContext.decisionMeta = { decision: '', time: '', stake: '', success: '', options: '' };
+  ENGINE_STATE.research_nodes = [currentDecisionContext];
+  ENGINE_STATE.synthesis = null;
+  currentDecisionContext = null;
+  buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]);
+  autosaveProjectIfPossible();
+}
+
+/* ---------- Build deck from network ---------- */
+async function buildResearchDeckFromNetwork(seedNode){
+  const container = document.getElementById('master-container');
+  container.innerHTML = "";
+  slideElements = [];
+  currentIdx = 0;
+  ENGINE_STATE.cuisines_detected = ["research"];
+
+  renderNodeSlide(seedNode, true);
+
+  if (seedNode.links && seedNode.links.length) {
+    const linkNames = seedNode.links.slice(0, 6).map(l => l.name).filter(Boolean);
+    for (const name of linkNames) {
+      await renderLinkSlide(name);
+    }
+  }
+  renderEndSlide();
+  goToSlide(0);
+  updateUIPanel();
+}
+
+/* ---------- Build deck from stored nodes (NO NETWORK) ---------- */
+function openStoredDeck(nodes, synthesis){
+  const container = document.getElementById('master-container');
+  container.innerHTML = "";
+  slideElements = [];
+  currentIdx = 0;
+
+  ENGINE_STATE.cuisines_detected = ["research"];
+  ENGINE_STATE.research_nodes = nodes || [];
+  ENGINE_STATE.synthesis = synthesis || null;
+
+  ENGINE_STATE.research_nodes.forEach((n, idx) => renderNodeSlide(n, idx === 0));
+  renderEndSlide();
+  goToSlide(0);
+  updateUIPanel();
+}
+
+/* ---------- Node slide renderer ---------- */
+function renderNodeSlide(node, isFirst){
+  const container = document.getElementById('master-container');
+  const section = document.createElement('section');
+  section.className = isFirst ? "main-slide active" : "main-slide next";
+  section.dataset.mode = "node";
+
+  const words = wordCount(node.summary || "");
+  const rt = readingTimeMins(words);
+  const takeaways = extractTakeaways(node.summary || "", 4);
+  const cats = (node.categories || []).slice(0,5);
+
+  section.innerHTML = `
+    <div class="slide-header">
+      <span class="header-title">NODE</span>
+      <span class="header-badge">${escapeHTML((node.sourceName || 'LOCAL').toUpperCase())}</span>
+    </div>
+    <div class="sub-slide static article-view">
+      <div class="context-panel">
+        <div class="context-top">
+          <div class="thumb">${node.thumbnail ? `<img src="${escapeHTML(node.thumbnail)}" alt="">` : 'THUMB'}</div>
+          <div class="context-title-wrap">
+            <div class="context-kicker">Research node • Confidence: ${escapeHTML(node.confidence || 'High')}</div>
+            <h1 style="margin-bottom:6px;">${escapeHTML(node.title || 'Untitled')}</h1>
+            <div class="context-stats">
+              <span class="stat-chip">${words} words</span>
+              <span class="stat-chip">${rt} min read</span>
+              <span class="stat-chip">${escapeHTML(node.sourceName || 'LOCAL')}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wiki-meta">
+          ${cats.map(c => `<span class="meta-chip">${escapeHTML(c)}</span>`).join("")}
+        </div>
+
+        <div class="section-title">Key takeaways</div>
+        <div class="takeaways">
+          <ul>${takeaways.map(t => `<li>${escapeHTML(t)}</li>`).join("")}</ul>
+        </div>
+
+        <div class="section-title">Summary</div>
+        <div class="wiki-summary">${formatSummaryHTML(node.summary || "")}</div>
+
+        <div class="final-actions" style="margin-top:12px;">
+          <button class="btn btn-full btn-yt" onclick="openYouTubeSearch('${escapeHTML(node.title || "")}')">YOUTUBE</button>
+          <button class="btn btn-full btn-pro" onclick="openWikipedia('${escapeHTML(node.title || "")}')">OPEN</button>
+          <button class="btn btn-full btn-pdf" onclick="generateResearchPDF()">RESEARCH PDF</button>
+        </div>
+
+        <div class="final-actions" style="margin-top:10px;">
+          <button class="btn btn-full btn-pro" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
+          <button class="btn btn-full btn-pro" onclick="saveCurrentProjectPrompt()">SAVE PROJECT</button>
+          <button class="btn btn-full" onclick="shareCurrentProject()">SHARE LINK</button>
+        </div>
+      </div>
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>Tap ☰: panel</span></div>
+    </div>
+  `;
+  container.appendChild(section);
+  slideElements.push(section);
+}
+
+/* ---------- Network link slide (adds nodes) ---------- */
+async function renderLinkSlide(linkTitle){
+  const ctx = await WIKI_ENGINE.getContext(linkTitle, WIKI_ENGINE.activeSource);
+  if(!ctx) return;
+  const node = {
+    title: ctx.title,
+    summary: ctx.summary,
+    url: ctx.url,
+    thumbnail: ctx.thumbnail,
+    categories: ctx.categories || [],
+    links: ctx.links || [],
+    source: ctx.source,
+    sourceName: ctx.sourceName,
+    confidence: ctx.confidence,
+    decisionMeta: ENGINE_STATE.research_nodes?.[0]?.decisionMeta || {}
+  };
+  ENGINE_STATE.research_nodes.push(node);
+  renderNodeSlide(node, false);
+  autosaveProjectIfPossible();
+}
+
+/* ---------- Synthesis editor ---------- */
+function openSynthesisSlide() {
+  if (!ENGINE_STATE.research_nodes || ENGINE_STATE.research_nodes.length === 0) return;
+  const allTakeaways = [];
+  ENGINE_STATE.research_nodes.forEach(n => allTakeaways.push(...extractTakeaways(n.summary || "", 4)));
+  const top = allTakeaways.slice(0, 5);
+
+  const container = document.getElementById('master-container');
+  const synSlide = document.createElement('section');
+  synSlide.className = "main-slide next";
+  synSlide.dataset.mode = "synthesis";
+  const syn = ENGINE_STATE.synthesis || {};
+  synSlide.innerHTML = `
+    <div class="slide-header"><span class="header-title">SYNTHESIS</span><span class="header-badge">EDIT</span></div>
+    <div class="sub-slide static article-view">
+      <div class="context-panel">
+        <div class="section-title">Working thesis</div>
+        <textarea id="syn-thesis" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;">${escapeHTML(syn.thesis || '')}</textarea>
+      </div>
+      <div class="context-panel">
+        <div class="section-title">Top takeaways</div>
+        <textarea id="syn-top" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;">${escapeHTML((syn.topTakeaways || top).join('\n'))}</textarea>
+      </div>
+      <div class="context-panel">
+        <div class="section-title">Contradictions / open questions</div>
+        <textarea id="syn-contradictions" style="width:100%; min-height:60px; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;">${escapeHTML(syn.contradictions || '')}</textarea>
+      </div>
+      <div class="context-panel">
+        <div class="section-title">Decision implications</div>
+        <textarea id="syn-implications" style="width:100%; min-height:60px; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;">${escapeHTML(syn.implications || '')}</textarea>
+      </div>
+      <div class="context-panel">
+        <div class="section-title">Next research nodes</div>
+        <textarea id="syn-next" style="width:100%; min-height:60px; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;">${escapeHTML(syn.next || '')}</textarea>
+      </div>
+      <div class="context-panel">
+        <div class="section-title">Recommendation signals</div>
+        <textarea id="syn-rec" style="width:100%; min-height:60px; padding:10px; border-radius:8px; border:1px solid #2a3342; background:#0b0f14; color:#fff; font-size:0.9rem;">${escapeHTML(syn.recommendation || '')}</textarea>
+      </div>
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="saveSynthesis()">SAVE</button>
+        <button class="btn btn-full" onclick="closeSynthesisSlide()">CLOSE</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(synSlide);
+  slideElements.push(synSlide);
+  goToSlide(slideElements.length - 1);
+}
+function saveSynthesis(){
+  ENGINE_STATE.synthesis = {
+    thesis: document.getElementById('syn-thesis')?.value?.trim() || '',
+    topTakeaways: (document.getElementById('syn-top')?.value || '').split('\n').map(s => s.trim()).filter(Boolean),
+    contradictions: document.getElementById('syn-contradictions')?.value?.trim() || '',
+    implications: document.getElementById('syn-implications')?.value?.trim() || '',
+    next: document.getElementById('syn-next')?.value?.trim() || '',
+    recommendation: document.getElementById('syn-rec')?.value?.trim() || ''
+  };
+  showToast("SAVED");
+  autosaveProjectIfPossible();
+}
+function closeSynthesisSlide(){
+  const container = document.getElementById('master-container');
+  if (container && container.lastChild && container.lastChild.dataset?.mode === "synthesis") {
+    container.removeChild(container.lastChild);
+    slideElements.pop();
+    goToSlide(Math.max(0, slideElements.length - 1));
+  }
+}
+
+/* ---------- End slide ---------- */
+function renderEndSlide(){
+  const container = document.getElementById('master-container');
+  const section = document.createElement('section');
+  section.className = "main-slide next";
+  section.dataset.mode = "end";
+  section.innerHTML = `
+    <div class="slide-header">
+      <span class="header-title">EXPORT</span>
+      <span class="header-badge">FINAL</span>
+    </div>
+    <div class="sub-slide static article-view">
+      <h1>Export</h1>
+      <div class="primary-question">Review synthesis, then export your journey.</div>
+
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">What next?</div>
+        <div style="color:#d6dde8; line-height:1.6;">
+          <p style="margin-top:0">Use <strong>SYNTHESIS</strong> to capture your thesis and next steps before exporting.</p>
+          <p style="margin-bottom:0">Then export as either a classic Research PDF or a Decision Brief PDF.</p>
+        </div>
+      </div>
+
+      <div class="final-actions">
+        <button class="btn btn-full btn-pro" onclick="openSynthesisSlide()">SYNTHESIS</button>
+        <button class="btn btn-full btn-pdf" onclick="generateResearchPDF()">RESEARCH PDF</button>
+        <button class="btn btn-full btn-pro" onclick="generateDecisionProUIPDF()">DECISION PDF</button>
+        <button class="btn btn-full btn-pro" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
+        <button class="btn btn-full" onclick="renderSearchSlide()">NEW SEARCH</button>
+        <button class="btn btn-full btn-muted" onclick="goHome()">← WELCOME</button>
+      </div>
+
+      <div class="nav-hint"><span>Swipe up/down: slides</span><span>Tap ☰: panel</span></div>
+    </div>
+  `;
+  container.appendChild(section);
+  slideElements.push(section);
+}
+
+/* =========================================
+PDF: Classic Research PDF
+========================================= */
+function sanitizeForPDF(text){
+  return normalizeText(text).replace(/[^\x00-\xFF]/g, "");
+}
+async function generateResearchPDF() {
+  if (!ENGINE_STATE.research_nodes || ENGINE_STATE.research_nodes.length === 0) return showToast("NO RESEARCH TO EXPORT");
+  showToast("GENERATING PDF...");
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 18;
+    const contentWidth = pageWidth - (2 * margin);
+    const addFooter = (pageNum, totalPages) => {
+      doc.setFontSize(7);
+      doc.setTextColor(150,150,150);
+      doc.text(`viadecide.com | Page ${pageNum} of ${totalPages}`, pageWidth/2, pageHeight - 8, { align: 'center' });
+      const timestamp = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short', timeZone:'Asia/Kolkata' });
+      doc.setFontSize(6);
+      doc.text(`Generated: ${timestamp}`, margin, pageHeight - 8);
+    };
+
+    let pageNum = 1;
+    const totalPages = ENGINE_STATE.research_nodes.length + 1;
+
+    doc.setFontSize(26);
+    doc.setTextColor(255, 103, 31);
+    doc.text("RESEARCH JOURNEY", pageWidth / 2, 52, { align: 'center' });
+    doc.setFontSize(11);
+    doc.setTextColor(0, 200, 100);
+    doc.text("Powered by decide.engine", pageWidth / 2, 64, { align: 'center' });
+
+    doc.setDrawColor(220,220,220);
+    doc.setLineWidth(0.5);
+    doc.rect(margin, 86, contentWidth, 34);
+
+    doc.setFontSize(10);
+    doc.setTextColor(60,60,60);
+    doc.text(`Total Nodes: ${ENGINE_STATE.research_nodes.length}`, pageWidth / 2, 98, { align: 'center' });
+    doc.text(`Primary Source: ${ENGINE_STATE.research_nodes[0]?.sourceName || 'Local'}`, pageWidth / 2, 106, { align: 'center' });
+    doc.text(`Export Date: ${new Date().toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata' })}`, pageWidth / 2, 114, { align: 'center' });
+
+    addFooter(pageNum, totalPages);
+
+    ENGINE_STATE.research_nodes.forEach((node, index) => {
+      doc.addPage();
+      pageNum++;
+      const title = sanitizeForPDF(node.title);
+      const summaryRaw = sanitizeForPDF(node.summary);
+      const takeaways = extractTakeaways(summaryRaw, 4).map(sanitizeForPDF);
+
+      let y = 22;
+
+      doc.setFillColor(0, 200, 100);
+      doc.circle(margin + 7, y + 3, 7, 'F');
+      doc.setFontSize(10);
+      doc.setTextColor(255,255,255);
+      doc.setFont(undefined, 'bold');
+      doc.text(String(index + 1), margin + 7, y + 5, { align: 'center' });
+      doc.setFont(undefined, 'normal');
+
+      doc.setFontSize(16);
+      doc.setTextColor(255, 103, 31);
+      doc.setFont(undefined, 'bold');
+      const titleLines = doc.splitTextToSize(title, contentWidth - 18);
+      doc.text(titleLines, margin + 18, y);
+      y += titleLines.length * 7 + 6;
+
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120,120,120);
+      doc.text(`Source: ${node.sourceName || "Local"}`, margin, y);
+      y += 5;
+
+      if (node.categories && node.categories.length > 0) {
+        const cats = sanitizeForPDF(node.categories.slice(0,4).join(' • '));
+        const catLines = doc.splitTextToSize(cats, contentWidth);
+        doc.text(catLines, margin, y);
+        y += catLines.length * 4.5 + 4;
+      }
+
+      doc.setDrawColor(220,220,220);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setTextColor(40,40,40);
+      doc.setFont(undefined, 'bold');
+      doc.text("Key takeaways", margin, y);
+      y += 6;
+
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9.8);
+      takeaways.forEach(t => {
+        const lines = doc.splitTextToSize(`• ${t}`, contentWidth);
+        lines.forEach(line => {
+          if (y < pageHeight - 34) {
+            doc.text(line, margin, y);
+            y += 5.6;
+          }
+        });
+        y += 1.5;
+      });
+
+      y += 3;
+      doc.setDrawColor(235,235,235);
+      doc.setLineWidth(0.3);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setTextColor(40,40,40);
+      doc.setFont(undefined, 'bold');
+      doc.text("Summary", margin, y);
+      y += 6;
+
+      doc.setFont(undefined, 'normal');
+      let summaryText = summaryRaw;
+      const maxChars = 2400;
+      if (summaryText.length > maxChars) {
+        summaryText = summaryText.slice(0, maxChars);
+        const lastPeriod = summaryText.lastIndexOf('.');
+        if (lastPeriod > maxChars - 250) summaryText = summaryText.slice(0, lastPeriod + 1);
+      }
+
+      const paras = [];
+      const sents = splitIntoSentences(summaryText);
+      if (sents.length) {
+        paras.push(sents.slice(0,1).join(" "));
+        for (let i=1;i<sents.length;i+=3) paras.push(sents.slice(i,i+3).join(" "));
+      } else paras.push(summaryText);
+
+      const lineH = 5.6;
+      paras.forEach(p => {
+        const lines = doc.splitTextToSize(p, contentWidth);
+        lines.forEach(line => {
+          if (y < pageHeight - 34) {
+            doc.text(line, margin, y);
+            y += lineH;
+          }
+        });
+        y += 3;
+      });
+
+      addFooter(pageNum, totalPages);
+    });
+
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    doc.save(`research-journey-${dateStr}.pdf`);
+    showToast("PDF DOWNLOADED!");
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    showToast("PDF GENERATION FAILED");
+  }
+}
+
+/* =========================================
+DECISION PRO UI PDF
+========================================= */
+function buildDecisionProModel() {
+  const nodes = ENGINE_STATE.research_nodes || [];
+  const first = nodes[0];
+  const synthesis = ENGINE_STATE.synthesis || {};
+
+  const aggregated = [];
+  nodes.forEach(n => {
+    const tw = extractTakeaways(n.summary || "", 4);
+    tw.forEach(line => aggregated.push(line));
+  });
+
+  const syn = { ...synthesis };
+  const context = {
+    decision: first?.decisionMeta?.decision || "",
+    time: first?.decisionMeta?.time || "",
+    stake: first?.decisionMeta?.stake || "",
+    success: first?.decisionMeta?.success || "",
+    options: first?.decisionMeta?.options || ""
+  };
+
+  if (!syn.topTakeaways || syn.topTakeaways.length === 0) syn.topTakeaways = aggregated.slice(0, 5);
+  if (!syn.thesis || syn.thesis.trim() === '') {
+    syn.thesis = `Decision: ${context.decision || 'N/A'}, Time horizon: ${context.time || 'N/A'}, Stake: ${context.stake || 'N/A'}, Success metric: ${context.success || 'N/A'}, Options: ${context.options || 'N/A'}`;
+  }
+  if (!syn.implications || syn.implications.trim() === '') {
+    syn.implications = `Decision: ${context.decision || 'N/A'} | Time horizon: ${context.time || 'N/A'} | Stake: ${context.stake || 'N/A'} | Success metric: ${context.success || 'N/A'} | Options: ${context.options || 'N/A'}`;
+  }
+  if (!syn.contradictions || syn.contradictions.trim() === '') syn.contradictions = 'None specified';
+  if (!syn.next || syn.next.trim() === '') syn.next = 'N/A';
+  if (!syn.recommendation || syn.recommendation.trim() === '') syn.recommendation = 'No recommendations provided';
+
+  return {
+    meta: {
+      title: (first?.title ? first.title.toUpperCase() : "DECISION BRIEF"),
+      subtitle: syn.thesis || "Decision research synthesis",
+      preparedFor: "decide.engine | Decision Research",
+      date: new Date().toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata' }),
+      watermark: "Decision Architecture • Confidential"
+    },
+    context,
+    nodes: nodes.map((n, idx) => ({
+      idx: idx + 1,
+      title: n.title || "",
+      sourceName: n.sourceName || "LOCAL",
+      confidence: n.confidence || "High",
+      url: n.url || "",
+      categories: (n.categories || []).slice(0, 6),
+      takeaways: extractTakeaways(n.summary || "", 4),
+      summary: n.summary || "",
+      decisionMeta: n.decisionMeta || {}
+    })),
+    synthesis: syn
+  };
+}
+function renderDecisionProDocHTML(model) {
+  const esc = escapeHTML;
+  const wm = esc(model.meta?.watermark || "");
+  const ctx = model.context || {};
+
+  const cover = `
+    <div class="proui-page">
+      <div class="proui-pillrow">
+        <div class="proui-pill">${esc(model.meta.preparedFor || "")}</div>
+        <div class="proui-pill">${esc(model.meta.date || "")}</div>
+        <div class="proui-pill">Decision Brief</div>
+      </div>
+      <h1 class="proui-title">${esc(model.meta.title || "")}</h1>
+      <p class="proui-subtitle">${esc(model.meta.subtitle || "")}</p>
+
+      <div class="proui-grid2" style="margin-top:14px;">
+        <div class="proui-card">
+          <div class="proui-h">Decision Context</div>
+          <div class="proui-kv">
+            <div class="proui-k">Decision</div><div class="proui-v">${esc(ctx.decision || "N/A")}</div>
+            <div class="proui-k">Time horizon</div><div class="proui-v">${esc(ctx.time || "N/A")}</div>
+            <div class="proui-k">Stake</div><div class="proui-v">${esc(ctx.stake || "N/A")}</div>
+            <div class="proui-k">Success metric</div><div class="proui-v">${esc(ctx.success || "N/A")}</div>
+            <div class="proui-k">Options</div><div class="proui-v">${esc(ctx.options || "N/A")}</div>
+          </div>
+        </div>
+        <div class="proui-card">
+          <div class="proui-h">Snapshot</div>
+          <div class="proui-kv">
+            <div class="proui-k">Nodes</div><div class="proui-v">${model.nodes.length}</div>
+            <div class="proui-k">Primary source</div><div class="proui-v">${esc(model.nodes[0]?.sourceName || "")}</div>
+            <div class="proui-k">Confidence</div><div class="proui-v">${esc(model.nodes[0]?.confidence || "")}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:16px"></div>
+      <div class="proui-card">
+        <div class="proui-h">Index</div>
+        <ul class="proui-list">
+          ${model.nodes.map(n => `<li>#${n.idx} — ${esc(n.title)}</li>`).join("")}
+        </ul>
+      </div>
+      <div class="proui-wm">${wm}</div>
+    </div>
+  `;
+
+  const nodePages = model.nodes.map(n => {
+    const takeaways = (n.takeaways || []).length
+      ? (n.takeaways || []).map(t => `<li>${esc(t)}</li>`).join("")
+      : `<li>No takeaways available</li>`;
+    const cats = (n.categories || []).length
+      ? `<div style="margin-top:10px" class="proui-small"><strong>Categories:</strong> ${esc(n.categories.join(" • "))}</div>`
+      : "";
+
+    let summary = sanitizeForPDF(n.summary || "");
+    if (summary.length > 2400) summary = summary.slice(0, 2400);
+    const sents = splitIntoSentences(summary);
+    const lead = sents[0] || summary;
+    const rest = sents.slice(1);
+    const restParas = [];
+    for (let i = 0; i < rest.length; i += 3) restParas.push(rest.slice(i, i+3).join(" "));
+
+    return `
+      <div class="proui-page">
+        <div class="proui-card" style="margin-bottom:16px;">
+          <div class="proui-h">Node ${n.idx}</div>
+          <div class="proui-nodeTitle">${esc(n.title)}</div>
+          <div class="proui-small" style="margin-top:6px;">
+            <strong>Source:</strong> ${esc(n.sourceName)} (${esc(n.confidence)})
+          </div>
+          ${cats}
+        </div>
+
+        <div class="proui-grid2">
+          <div class="proui-card">
+            <div class="proui-h">Key takeaways</div>
+            <ul class="proui-list">${takeaways}</ul>
+          </div>
+          <div class="proui-card">
+            <div class="proui-h">Decision Implications</div>
+            <div class="proui-small">
+              <p style="margin:0 0 8px 0; font-weight:800; color:#e2e8f0;">${esc(n.decisionMeta?.decision || "No decision context provided")}</p>
+              <p style="margin:0 0 8px 0;">Stake: ${esc(n.decisionMeta?.stake || "-")} | Time: ${esc(n.decisionMeta?.time || "-")} | Metric: ${esc(n.decisionMeta?.success || "-")} | Options: ${esc(n.decisionMeta?.options || "-")}</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:16px"></div>
+        <div class="proui-card">
+          <div class="proui-h">Summary</div>
+          <div class="proui-small">
+            <p style="margin:0 0 8px 0; font-weight:800; color:#e2e8f0;">${esc(lead)}</p>
+            ${restParas.map(p => `<p style="margin:0 0 8px 0;">${esc(p)}</p>`).join("")}
+          </div>
+        </div>
+
+        <div style="height:16px"></div>
+        <div class="proui-card">
+          <div class="proui-h">Full article</div>
+          <div class="proui-small">${n.url ? esc(n.url) : "No URL available"}</div>
+        </div>
+
+        <div class="proui-wm">${wm}</div>
+      </div>
+    `;
+  }).join("");
+
+  const syn = model.synthesis || {};
+  const finalPage = `
+    <div class="proui-page">
+      <h2 class="proui-title" style="margin-bottom:10px;">Synthesis & Next Steps</h2>
+
+      <div class="proui-card" style="margin-bottom:12px;">
+        <div class="proui-h">Working thesis</div>
+        <div class="proui-small">${esc(syn.thesis || "No thesis provided")}</div>
+      </div>
+
+      <div class="proui-grid2">
+        <div class="proui-card">
+          <div class="proui-h">Top takeaways</div>
+          <ul class="proui-list">${(syn.topTakeaways || []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+        </div>
+        <div class="proui-card">
+          <div class="proui-h">Contradictions / Questions</div>
+          <div class="proui-small">${esc(syn.contradictions || "None specified")}</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="proui-grid2">
+        <div class="proui-card">
+          <div class="proui-h">Decision implications</div>
+          <div class="proui-small">${esc(syn.implications || "No implications provided")}</div>
+        </div>
+        <div class="proui-card">
+          <div class="proui-h">Next research nodes</div>
+          <div class="proui-small">${esc(syn.next || "N/A")}</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="proui-card">
+        <div class="proui-h">Recommendation signals</div>
+        <div class="proui-small">${esc(syn.recommendation || "")}</div>
+      </div>
+
+      <div class="proui-wm">${wm}</div>
+    </div>
+  `;
+
+  return `<div class="proui-doc">${cover}${nodePages}${finalPage}</div>`;
+}
+async function generateDecisionProUIPDF() {
+  if (!ENGINE_STATE.research_nodes || ENGINE_STATE.research_nodes.length === 0) return showToast("NO NODES");
+  if (!ENGINE_STATE.synthesis) {
+    const aggregated = [];
+    ENGINE_STATE.research_nodes.forEach(n => aggregated.push(...extractTakeaways(n.summary || "", 4)));
+    ENGINE_STATE.synthesis = {
+      thesis: '',
+      topTakeaways: aggregated.slice(0,5),
+      contradictions: '',
+      implications: '',
+      next: '',
+      recommendation: ''
+    };
+  }
+  showToast("EXPORTING DECISION PDF...");
+  try {
+    const model = buildDecisionProModel();
+    const root = document.getElementById("pro-ui-root");
+    root.innerHTML = renderDecisionProDocHTML(model);
+    const filename = `decision-brief-${new Date().toISOString().slice(0,10)}.pdf`;
+    const opt = {
+      margin: 0,
+      filename,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#0b1220" },
+      jsPDF: { unit: "pt", format: "a4", orientation: "portrait" }
+    };
+    await html2pdf().set(opt).from(root.firstElementChild).save();
+    showToast("DECISION PDF DOWNLOADED!");
+  } catch (e) {
+    console.error("Decision PDF error:", e);
+    showToast("DECISION PDF FAILED");
+  }
+}
+
+/* =========================================
+Swipe navigation
+========================================= */
+let startY = null;
+let startX = null;
+let isSwiping = false;
+
+function onTouchStart(e){
+  if (!e.touches || e.touches.length !== 1) return;
+  const target = e.target;
+  if (target && (target.closest('#ui-panel') || target.closest('#notes-panel') || target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) return;
+  startY = e.touches[0].clientY;
+  startX = e.touches[0].clientX;
+  isSwiping = true;
+}
+function onTouchMove(e){
+  if (!isSwiping || startY == null) return;
+  const dy = e.touches[0].clientY - startY;
+  const dx = e.touches[0].clientX - startX;
+  if (Math.abs(dy) > 20 && Math.abs(dy) > Math.abs(dx)) e.preventDefault();
+}
+function onTouchEnd(e){
+  if (!isSwiping || startY == null) return;
+  const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : startY;
+  const dy = endY - startY;
+  if (Math.abs(dy) > 55) {
+    if (dy < 0) goToSlide(currentIdx + 1);
+    else goToSlide(currentIdx - 1);
+  }
+  startY = null;
+  startX = null;
+  isSwiping = false;
+}
+document.addEventListener('touchstart', onTouchStart, { passive: false });
+document.addEventListener('touchmove', onTouchMove, { passive: false });
+document.addEventListener('touchend', onTouchEnd, { passive: true });
+
+/* ---------- depth indicator ---------- */
+function updateDepthFill(){
+  const el = document.getElementById('depth-fill');
+  if(!el) return;
+  const total = Math.max(1, slideElements.length - 1);
+  const pct = Math.min(100, Math.max(0, (currentIdx / total) * 100));
+  el.style.height = pct + "%";
+}
+setInterval(updateDepthFill, 120);
+
+/* ---------- navigation ---------- */
+function goToSlide(idx) {
+  if(idx < 0 || idx >= slideElements.length) return;
+  const prev = slideElements[currentIdx];
+  if (prev) prev.classList.replace('active', idx>currentIdx ? 'prev' : 'next');
+  currentIdx = idx;
+  const curr = slideElements[currentIdx];
+  if (curr) curr.className = "main-slide active";
+  updateUIPanel();
+}
+
+/* =========================================
+Boot: share-link detection + fallback
+========================================= */
+function boot(){
+  try{
+    const hash = (location.hash || "").trim();
+    if (hash.startsWith("#p=")) {
+      const payload = hash.slice(3);
+      const project = deserializeProjectFromShare(payload);
+      if (!project.id) project.id = uid();
+      if (!project.name) project.name = "Shared Project";
+      project.updatedAt = new Date().toISOString();
+      if (!project.createdAt) project.createdAt = project.updatedAt;
+      saveProjectToStorage(project);
+      loadProjectIntoApp(project);
+      showToast("SHARED PROJECT LOADED");
+      initVoice();
+      return;
+    }
+    renderLanding();
+    initVoice();
+  }catch(e){
+    console.error(e);
+    renderLanding();
+    showToast("BOOT RECOVERED");
+  }
+}
+boot();
+  </script>
+</body>
+  </html>

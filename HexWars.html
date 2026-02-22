@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ViaGuide Arena — Competitive Edition</title>
+
+<style>
+  :root{
+    --bg:#070b14;
+    --panel:#0c1323;
+    --card:#101a2f;
+    --card2:#0f172a;
+    --line:#1f2b45;
+    --text:#e8eefc;
+    --muted:#93a4c7;
+    --accent:#ff7a18;
+    --good:#16a34a;
+    --bad:#ef4444;
+    --shadow: 0 14px 40px rgba(0,0,0,.45);
+    --radius: 16px;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: radial-gradient(1200px 800px at 30% -10%, #15204a22, transparent 60%),
+                radial-gradient(1000px 700px at 90% 10%, #ff7a1814, transparent 55%),
+                var(--bg);
+    color:var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    overflow-x:hidden;
+  }
+
+  /* ===== Top Bar ===== */
+  header{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: linear-gradient(180deg, rgba(9,14,28,.96), rgba(9,14,28,.80));
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding:
+      calc(12px + env(safe-area-inset-top))
+      calc(12px + env(safe-area-inset-right))
+      12px
+      calc(12px + env(safe-area-inset-left));
+  }
+
+  .topbar{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+
+  .brand{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width: 180px;
+  }
+
+  .brand b{
+    font-size: 14px;
+    letter-spacing: .4px;
+  }
+  .brand span{
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .stats{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  .stat{
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.06);
+    padding: 8px 10px;
+    border-radius: 999px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .stat .k{
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* ===== Layout ===== */
+  .wrap{
+    min-height: calc(100dvh - 72px);
+    padding:
+      14px
+      calc(12px + env(safe-area-inset-right))
+      calc(16px + env(safe-area-inset-bottom))
+      calc(12px + env(safe-area-inset-left));
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Desktop split */
+  @media (min-width: 900px){
+    .grid{
+      grid-template-columns: 1fr 1fr;
+      align-items:start;
+    }
+  }
+
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+
+  .panelHead{
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background: rgba(10,16,30,.6);
+  }
+
+  .panelHead .title{
+    font-weight: 900;
+    letter-spacing: .3px;
+    font-size: 13px;
+  }
+  .panelHead .sub{
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .panelBody{
+    padding: 12px;
+  }
+
+  /* ===== Map ===== */
+  .mapWrap{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  canvas{
+    width: 100%;
+    height: auto;
+    max-width: 520px;
+    aspect-ratio: 1 / 1;
+    background: radial-gradient(600px 500px at 30% 20%, rgba(255,122,24,.08), transparent 60%),
+                radial-gradient(500px 400px at 70% 80%, rgba(59,130,246,.08), transparent 60%),
+                #070d1a;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+  }
+
+  /* ===== Quiz ===== */
+  .quiz{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+  }
+
+  .questionBox{
+    background: rgba(10,16,30,.65);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .questionBox h3{
+    margin:0 0 8px 0;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 800;
+    letter-spacing: .3px;
+  }
+  .questionBox p{
+    margin:0 0 10px 0;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 800;
+  }
+
+  .choice{
+    display:block;
+    padding: 10px 12px;
+    border-radius: 12px;
+    margin: 8px 0;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    cursor:pointer;
+    user-select:none;
+    font-weight: 700;
+  }
+  .choice:hover{ border-color: rgba(255,122,24,.35); background: rgba(255,122,24,.08); }
+
+  .correct{ background: rgba(22,163,74,.14)!important; border-color: rgba(22,163,74,.35)!important; }
+  .wrong{ background: rgba(239,68,68,.14)!important; border-color: rgba(239,68,68,.35)!important; }
+
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  input{
+    width:100%;
+    padding: 12px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.22);
+    color: var(--text);
+    outline:none;
+    font-size: 15px;
+  }
+  input:focus{ border-color: rgba(255,122,24,.45); }
+
+  button{
+    padding: 11px 14px;
+    background: linear-gradient(135deg, rgba(255,122,24,.95), rgba(255,122,24,.75));
+    border: 1px solid rgba(255,255,255,.12);
+    color: #0b0f1a;
+    font-weight: 900;
+    cursor:pointer;
+    border-radius: 12px;
+    letter-spacing: .2px;
+  }
+  button:active{ transform: scale(.99); }
+
+  .pill{
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .result{
+    text-align:center;
+    padding: 18px 14px;
+  }
+  .result h2{ margin: 0 0 10px 0; }
+  .result p{ margin: 6px 0; color: var(--muted); font-weight: 700; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <b>ViaGuide Competitive Arena</b>
+      <span>Book-as-battlefield • timed quiz • tokens • ELO</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="k">Score</span> <span id="score">0</span></div>
+      <div class="stat"><span class="k">Tokens</span> <span id="tokens">0</span></div>
+      <div class="stat"><span class="k">ELO</span> <span id="elo">1000</span></div>
+      <div class="stat"><span class="k">Streak</span> <span id="streak">0</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+
+    <!-- MAP PANEL -->
+    <section class="panel">
+      <div class="panelHead">
+        <div>
+          <div class="title">Battlefield Hex Map</div>
+          <div class="sub">Cells highlight as you win answers</div>
+        </div>
+        <span class="pill" id="progressPill">0 / 30</span>
+      </div>
+      <div class="panelBody mapWrap">
+        <canvas id="map"></canvas>
+      </div>
+    </section>
+
+    <!-- QUIZ PANEL -->
+    <section class="panel">
+      <div class="panelHead">
+        <div>
+          <div class="title">Quiz Battle</div>
+          <div class="sub">Speed + difficulty + streak = points</div>
+        </div>
+        <span class="pill" id="timerPill">⏱ 0s</span>
+      </div>
+      <div class="panelBody">
+        <div id="quizArea" class="quiz"></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+/* =========================
+   REAL QUESTION DATASET (30)
+========================= */
+const QUESTIONS = [
+  {q:"What drives lasting habits?", a:"Identity", type:"mcq", choices:["Goals","Identity","Motivation","Luck"], diff:1},
+  {q:"Opposite of 'easy' in habit breaking?", a:"Difficult", type:"short", diff:1},
+  {q:"Environment shapes behavior more than ____.", a:"Willpower", type:"short", diff:2},
+  {q:"First law of behavior change?", a:"Obvious", type:"short", diff:1},
+  {q:"Second law of behavior change?", a:"Attractive", type:"short", diff:1},
+  {q:"Third law of behavior change?", a:"Easy", type:"short", diff:1},
+  {q:"Fourth law of behavior change?", a:"Satisfying", type:"short", diff:1},
+  {q:"Small improvements daily equal ____ over time.", a:"Compounding", type:"short", diff:2},
+  {q:"Which is identity-based habit?", a:"I am a reader", type:"mcq", choices:["Read 10 books","I am a reader","Buy books","Try reading"], diff:2},
+  {q:"Habits are the compound interest of ____.", a:"Self-improvement", type:"short", diff:2},
+  {q:"Make bad habits ____.", a:"Difficult", type:"short", diff:2},
+  {q:"Clear cues make habits ____.", a:"Obvious", type:"short", diff:1},
+  {q:"Habits reduce ____ load.", a:"Cognitive", type:"short", diff:3},
+  {q:"System > ____.", a:"Goals", type:"short", diff:1},
+  {q:"Tiny gains lead to ____ success.", a:"Massive", type:"short", diff:2},
+  {q:"Which builds identity?", a:"Repeated action", type:"mcq", choices:["Motivation","Repeated action","Luck","Talent"], diff:2},
+  {q:"Behavior is a function of person and ____.", a:"Environment", type:"short", diff:2},
+  {q:"Reward reinforces the habit ____.", a:"Loop", type:"short", diff:2},
+  {q:"Tracking habit builds ____.", a:"Consistency", type:"short", diff:2},
+  {q:"Which reduces friction?", a:"Preparation", type:"mcq", choices:["Preparation","Delay","Chaos","Distraction"], diff:2},
+  {q:"Atomic means ____.", a:"Small", type:"short", diff:1},
+  {q:"Habits create ____ identity.", a:"Long-term", type:"short", diff:2},
+  {q:"Focus on becoming not achieving ____.", a:"Outcome", type:"short", diff:2},
+  {q:"Change environment to change ____.", a:"Behavior", type:"short", diff:2},
+  {q:"Which law increases motivation?", a:"Attractive", type:"short", diff:1},
+  {q:"Visible cue improves habit ____.", a:"Trigger", type:"short", diff:2},
+  {q:"Automaticity increases with ____.", a:"Repetition", type:"short", diff:2},
+  {q:"Tiny habits remove ____ barrier.", a:"Psychological", type:"short", diff:3},
+  {q:"Bad habits are cue-craving-____-reward.", a:"Response", type:"short", diff:3},
+  {q:"Consistency beats ____.", a:"Intensity", type:"short", diff:2}
+];
+
+/* =========================
+   STATE
+========================= */
+let score=0, tokens=0, elo=1000, streak=0;
+let currentQ=0;
+let startTime=0;
+let timerTick=null;
+
+/* =========================
+   SCORING
+========================= */
+function calcPoints(diff, timeTaken){
+  const base = 10*diff;                 // difficulty matters
+  const speed = Math.max(0, 20-timeTaken); // faster = more
+  const streakBonus = streak*2;         // streak multiplier
+  return base + speed + streakBonus;
+}
+
+/* =========================
+   UI HELPERS
+========================= */
+function setText(id, v){
+  const el=document.getElementById(id);
+  if(el) el.textContent = String(v);
+}
+function updateStats(){
+  setText("score", score);
+  setText("tokens", tokens);
+  setText("elo", elo);
+  setText("streak", streak);
+  setText("progressPill", `${currentQ} / ${QUESTIONS.length}`);
+}
+
+/* =========================
+   QUIZ ENGINE
+========================= */
+function startTimer(){
+  startTime = Date.now();
+  if(timerTick) clearInterval(timerTick);
+  timerTick = setInterval(()=>{
+    const t = Math.floor((Date.now()-startTime)/1000);
+    const pill = document.getElementById("timerPill");
+    if(pill) pill.textContent = `⏱ ${t}s`;
+  }, 250);
+}
+
+function loadQuestion(){
+  updateStats();
+
+  if(currentQ >= QUESTIONS.length){
+    if(timerTick) clearInterval(timerTick);
+    showResult();
+    return;
+  }
+
+  const q = QUESTIONS[currentQ];
+  const quizArea = document.getElementById("quizArea");
+
+  let html = `
+    <div class="questionBox">
+      <h3>Question ${currentQ+1} / ${QUESTIONS.length} • Difficulty ${q.diff}</h3>
+      <p>${escapeHTML(q.q)}</p>
+  `;
+
+  if(q.type === "mcq"){
+    html += q.choices.map(c =>
+      `<div class="choice" data-choice="${escapeHTML(c)}">${escapeHTML(c)}</div>`
+    ).join("");
+  } else {
+    html += `
+      <input id="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type answer..." />
+      <div class="row" style="margin-top:10px;">
+        <button id="submitBtn">Submit</button>
+        <span class="pill">Tip: answers are case-insensitive</span>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  quizArea.innerHTML = html;
+
+  // attach handlers
+  if(q.type === "mcq"){
+    quizArea.querySelectorAll(".choice").forEach(el=>{
+      el.addEventListener("click", ()=> checkAnswer(el.getAttribute("data-choice"), el));
+    });
+  } else {
+    const btn = document.getElementById("submitBtn");
+    const input = document.getElementById("answer");
+    btn.addEventListener("click", ()=> checkAnswer(input.value, null));
+    input.addEventListener("keydown", (e)=>{
+      if(e.key==="Enter") checkAnswer(input.value, null);
+    });
+    // focus on mobile
+    setTimeout(()=> input.focus(), 50);
+  }
+
+  startTimer();
+}
+
+function normalizeAns(s){
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ");
+}
+
+function markChoice(el, ok){
+  if(!el) return;
+  el.classList.add(ok ? "correct" : "wrong");
+}
+
+function checkAnswer(ans, clickedChoiceEl){
+  const q = QUESTIONS[currentQ];
+  const timeTaken = Math.floor((Date.now()-startTime)/1000);
+  const correct = normalizeAns(q.a) === normalizeAns(ans);
+
+  // disable further clicking quickly
+  if(timerTick) clearInterval(timerTick);
+
+  if(q.type === "mcq"){
+    // mark correct and wrong visually
+    document.querySelectorAll(".choice").forEach(ch=>{
+      const v = ch.getAttribute("data-choice");
+      if(normalizeAns(v) === normalizeAns(q.a)) ch.classList.add("correct");
+      else if(ch === clickedChoiceEl) ch.classList.add("wrong");
+      ch.style.pointerEvents = "none";
+    });
+  } else {
+    // show a small feedback pill
+    const box = document.querySelector(".questionBox");
+    if(box){
+      const fb = document.createElement("div");
+      fb.className = "pill";
+      fb.style.marginTop = "10px";
+      fb.style.display = "inline-block";
+      fb.style.borderColor = correct ? "rgba(22,163,74,.35)" : "rgba(239,68,68,.35)";
+      fb.style.color = correct ? "#b7f7c7" : "#ffb4b4";
+      fb.textContent = correct ? "Correct ✅" : `Wrong ❌  |  Answer: ${q.a}`;
+      box.appendChild(fb);
+    }
+    // disable input
+    const input = document.getElementById("answer");
+    const btn = document.getElementById("submitBtn");
+    if(input) input.disabled = true;
+    if(btn) btn.disabled = true;
+  }
+
+  if(correct){
+    streak++;
+    const pts = calcPoints(q.diff, timeTaken);
+    score += pts;
+    tokens += Math.max(1, Math.floor(pts/6));
+    elo += 5*q.diff;
+    claimHex(); // territory win
+  } else {
+    streak = 0;
+    elo -= 5;
+    loseHex(); // territory loss (optional)
+  }
+
+  updateStats();
+  currentQ++;
+
+  setTimeout(loadQuestion, 650);
+}
+
+/* =========================
+   RESULT
+========================= */
+function showResult(){
+  const quizArea = document.getElementById("quizArea");
+  quizArea.innerHTML = `
+    <div class="questionBox result">
+      <h2>Battle Complete 🏁</h2>
+      <p><b>Final Score:</b> ${score}</p>
+      <p><b>Total Tokens:</b> ${tokens}</p>
+      <p><b>ELO Rating:</b> ${elo}</p>
+      <div style="height:12px"></div>
+      <button id="restartBtn">Play Again</button>
+    </div>
+  `;
+  document.getElementById("restartBtn").addEventListener("click", restart);
+}
+function restart(){
+  score=0; tokens=0; elo=1000; streak=0;
+  currentQ=0;
+  resetHexOwnership();
+  updateStats();
+  loadQuestion();
+}
+
+/* =========================
+   HEX MAP (Responsive + Animation)
+========================= */
+const canvas = document.getElementById("map");
+const ctx = canvas.getContext("2d");
+
+// HiDPI crisp canvas
+function resizeCanvasToCSS(){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const pxW = Math.floor(rect.width * dpr);
+  const pxH = Math.floor(rect.height * dpr);
+  if(canvas.width !== pxW || canvas.height !== pxH){
+    canvas.width = pxW;
+    canvas.height = pxH;
+  }
+  ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+}
+window.addEventListener("resize", ()=>{
+  resizeCanvasToCSS();
+  drawMap();
+});
+
+// map data
+const gridRows = 5;
+const gridCols = 5;
+let owned = []; // 0 neutral, 1 user, -1 enemy
+let claimIdx = 0;
+
+function resetHexOwnership(){
+  owned = Array.from({length:gridRows*gridCols}, ()=>0);
+  claimIdx = 0;
+  drawMap();
+}
+
+function claimHex(){
+  // claim next available neutral hex
+  for(let tries=0; tries<owned.length; tries++){
+    const idx = (claimIdx + tries) % owned.length;
+    if(owned[idx] === 0){ owned[idx] = 1; claimIdx = (idx+1)%owned.length; break; }
+  }
+  drawMap();
+}
+
+function loseHex(){
+  // optional: lose a user hex if wrong
+  for(let i=owned.length-1; i>=0; i--){
+    if(owned[i] === 1){ owned[i] = 0; break; }
+  }
+  drawMap();
+}
+
+function drawHex(x,y,size){
+  ctx.beginPath();
+  for(let i=0;i<6;i++){
+    const angle = Math.PI/3*i + Math.PI/6; // tilt
+    const px = x + size*Math.cos(angle);
+    const py = y + size*Math.sin(angle);
+    if(i===0) ctx.moveTo(px,py);
+    else ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+}
+
+function drawMap(){
+  resizeCanvasToCSS();
+
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+
+  ctx.clearRect(0,0,w,h);
+
+  // subtle grid glow
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+
+  // hex sizing responsive
+  const size = Math.min(w,h) / 9.2; // tune density
+  const xStep = size * 1.75;
+  const yStep = size * 1.52;
+
+  const totalW = (gridCols-1)*xStep + size*2.2;
+  const totalH = (gridRows-1)*yStep + size*2.2;
+
+  const startX = (w - totalW)/2 + size*1.1;
+  const startY = (h - totalH)/2 + size*1.1;
+
+  for(let r=0;r<gridRows;r++){
+    for(let c=0;c<gridCols;c++){
+      const idx = r*gridCols + c;
+      const ox = (r%2 ? xStep/2 : 0);
+      const x = startX + c*xStep + ox;
+      const y = startY + r*yStep;
+
+      // fill based on ownership
+      if(owned[idx] === 1){
+        ctx.fillStyle = "rgba(255,122,24,.18)";
+      }else if(owned[idx] === -1){
+        ctx.fillStyle = "rgba(59,130,246,.16)";
+      }else{
+        ctx.fillStyle = "rgba(255,255,255,.03)";
+      }
+
+      drawHex(x,y,size);
+      ctx.fill();
+
+      // outline
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(160,190,255,.18)";
+      ctx.stroke();
+
+      // inner glow for owned
+      if(owned[idx] === 1){
+        ctx.save();
+        ctx.shadowColor = "rgba(255,122,24,.35)";
+        ctx.shadowBlur = 14;
+        ctx.strokeStyle = "rgba(255,122,24,.35)";
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
+  ctx.restore();
+}
+
+/* =========================
+   UTILS
+========================= */
+function escapeHTML(str){
+  return String(str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+/* =========================
+   BOOT
+========================= */
+resetHexOwnership();
+updateStats();
+loadQuestion();
+</script>
+
+</body>
+</html>

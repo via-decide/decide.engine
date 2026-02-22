@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Decide Food (Rajkot) — Zero Commission, Local Delivery</title>
+  <meta name="description" content="Decide Food in Rajkot. Smart restaurant suggestions based on your area, urgency & taste. Pay after delivery. Join as a seller or delivery partner." />
+  <meta name="theme-color" content="#ff671f" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root{
+      --brand-orange:#ff671f;
+      --brand-orange-light:#ff8547;
+      --bg:#000;
+      --bg2:#0a0a0a;
+      --card:#141414;
+      --card2:#1a1a1a;
+      --border:rgba(255,255,255,.14);
+      --border2:rgba(255,255,255,.22);
+      --text:#fff;
+      --muted:#b3b3b3;
+      --muted2:#888;
+      --success:#00e676;
+      --warn:#ffaa00;
+      --danger:#ff4444;
+      --shadow:0 12px 40px rgba(0,0,0,.55);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+    body{background:linear-gradient(180deg,#000 0%,#0a0a0a 100%)}
+    button,input,textarea,select{font:inherit;border:none;background:none;outline:none}
+    button{cursor:pointer;transition:all .2s ease}
+    a{text-decoration:none;color:inherit}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-track{background:var(--bg2)}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+
+    #app{min-height:100vh;padding:18px;padding-bottom:calc(86px + var(--safe-bottom));}
+    .wrap{max-width:980px;margin:0 auto;width:100%}
+
+    .header{
+      position:sticky;top:0;z-index:50;
+      background:rgba(10,10,10,.92);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+      padding:14px 16px;
+      margin:-18px -18px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;
+      font-weight:900;letter-spacing:1px;
+      color:var(--brand-orange);
+      padding:10px 14px;border-radius:14px;
+      border:2px solid var(--brand-orange);
+      background:rgba(255,103,31,.08);
+      white-space:nowrap;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:var(--success);
+      box-shadow:0 0 12px rgba(0,230,118,.6);
+    }
+    .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .btn{
+      padding:10px 14px;border-radius:999px;
+      border:2px solid rgba(255,255,255,.22);
+      color:#fff;font-weight:800;font-size:.85rem;
+    }
+    .btn:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.34)}
+    .btn.orange{border-color:var(--brand-orange);background:var(--brand-orange);color:#000}
+    .btn.orange:hover{background:var(--brand-orange-light)}
+    .btn.ghost{border-color:transparent;background:rgba(255,255,255,.06)}
+    .btn.ghost:hover{background:rgba(255,255,255,.1)}
+
+    .hero{
+      border:1px solid var(--border);
+      background:linear-gradient(135deg,rgba(255,103,31,.12),transparent);
+      border-radius:32px;
+      padding:26px 18px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .hero h1{
+      font-size:2.2rem;line-height:1.1;letter-spacing:-1px;
+      margin-bottom:10px;font-weight:1000;
+      background:linear-gradient(135deg,#fff,#bdbdbd);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .hero p{color:var(--muted);line-height:1.65;font-size:1.03rem;max-width:820px}
+    .pillrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      border:1px solid var(--border2);
+      background:rgba(255,255,255,.04);
+      color:#ddd;font-weight:800;font-size:.85rem;
+    }
+    .pill strong{color:var(--brand-orange)}
+    .ctaRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px}
+    .ctaCard{
+      border:1px solid var(--border);
+      background:rgba(20,20,20,.72);
+      border-radius:20px;
+      padding:16px;
+      transition:.2s;
+    }
+    .ctaCard:hover{background:rgba(30,30,30,.85);border-color:rgba(255,255,255,.26);transform:translateY(-2px)}
+    .ctaTitle{font-weight:1000;margin-bottom:6px}
+    .ctaDesc{color:var(--muted);font-size:.92rem;line-height:1.6;margin-bottom:12px}
+    .ctaCard .btn{width:100%}
+
+    .note{
+      border:1px solid rgba(255,103,31,.28);
+      background:rgba(255,103,31,.08);
+      color:#ffd2b6;
+      border-radius:18px;
+      padding:12px 14px;
+      line-height:1.65;
+      margin:14px 0 0;
+      font-size:.95rem;
+    }
+
+    .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:16px}
+    .panel{
+      border:1px solid var(--border);
+      background:rgba(20,20,20,.65);
+      border-radius:24px;
+      padding:16px;
+    }
+    .panel h2{font-size:1.1rem;font-weight:1000;margin-bottom:10px}
+    .muted{color:var(--muted);line-height:1.6}
+    .step{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      background:rgba(255,255,255,.03);
+      margin-bottom:10px;
+    }
+    .stepTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+    .stepTitle{font-weight:1000}
+    .badge{
+      font-size:.75rem;font-weight:1000;letter-spacing:1px;
+      padding:5px 10px;border-radius:999px;
+      background:rgba(0,230,118,.12);
+      color:var(--success);
+      border:1px solid rgba(0,230,118,.25);
+      white-space:nowrap;
+    }
+    .badge.soon{
+      background:rgba(255,170,0,.12);
+      color:var(--warn);
+      border-color:rgba(255,170,0,.25);
+    }
+
+    select,input,textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:#fff;
+    }
+    textarea{min-height:110px;resize:vertical}
+    .rowBtns{display:flex;gap:10px;flex-wrap:wrap}
+    .choice{
+      padding:10px 14px;border-radius:999px;
+      border:2px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.03);
+      color:#fff;font-weight:900;font-size:.9rem;
+    }
+    .choice:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.28)}
+    .choice.active{background:var(--brand-orange);border-color:var(--brand-orange);color:#000}
+
+    .rGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:12px}
+    .rCard{
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:24px;
+      overflow:hidden;
+      transition:.2s;
+      cursor:pointer;
+    }
+    .rCard:hover{background:var(--card2);border-color:rgba(255,255,255,.26);transform:translateY(-2px);box-shadow:var(--shadow)}
+    .rImg{
+      height:140px;display:flex;align-items:center;justify-content:center;
+      font-size:3.2rem;
+      background:linear-gradient(135deg,rgba(255,103,31,.24),rgba(255,103,31,.05));
+      position:relative;
+    }
+    .rBody{padding:14px}
+    .rName{font-size:1.06rem;font-weight:1000;margin-bottom:6px}
+    .rMeta{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:.86rem}
+    .rMeta .chip{padding:4px 8px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+    .rFooter{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .price{font-weight:1000;color:var(--brand-orange)}
+    .smallBtn{
+      padding:8px 12px;border-radius:999px;
+      background:var(--brand-orange);
+      color:#000;font-weight:1000;font-size:.86rem;
+    }
+    .smallBtn:hover{background:var(--brand-orange-light);transform:scale(1.03)}
+
+    .menuHeader{
+      border:1px solid var(--border);
+      background:rgba(20,20,20,.65);
+      border-radius:24px;
+      padding:16px;
+      margin-top:12px;
+    }
+    .menuHeader h2{font-size:1.4rem;font-weight:1000;margin-bottom:6px}
+    .mGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+    .mItem{
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:18px;
+      padding:14px;
+      transition:.2s;
+      display:flex;flex-direction:column;
+    }
+    .mItem:hover{background:var(--card2);border-color:rgba(255,255,255,.26);transform:translateY(-2px)}
+    .mTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .mName{font-weight:1000;margin-bottom:4px}
+    .mDesc{color:var(--muted);font-size:.9rem;line-height:1.55;margin-bottom:10px}
+    .mIcon{
+      width:54px;height:54px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,103,31,.12);
+      font-size:2rem;
+      border:1px solid rgba(255,103,31,.18);
+    }
+    .mBottom{
+      margin-top:auto;padding-top:10px;border-top:1px solid var(--border);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+    }
+    .mPrice{font-size:1.2rem;font-weight:1000}
+    .qty{
+      display:flex;align-items:center;gap:8px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      border-radius:999px;
+      padding:6px 10px;
+    }
+    .qtyBtn{
+      width:32px;height:32px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.04);
+      color:#fff;font-weight:1000;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .qtyBtn:hover{background:rgba(255,255,255,.08);transform:scale(1.03)}
+    .qtyVal{min-width:18px;text-align:center;font-weight:1000}
+
+    .floatCart{
+      position:fixed;right:18px;bottom:18px;
+      z-index:80;
+      padding:12px 18px;border-radius:999px;
+      background:var(--brand-orange);
+      color:#000;font-weight:1000;
+      display:none;align-items:center;gap:10px;
+      box-shadow:0 16px 50px rgba(255,103,31,.35);
+    }
+    .count{
+      width:26px;height:26px;border-radius:50%;
+      background:#000;color:var(--brand-orange);
+      display:flex;align-items:center;justify-content:center;
+      font-size:.8rem;font-weight:1000;
+    }
+
+    /* ✅ NEW: sticky selection bar on restaurant menu */
+    .selectBar{
+      position:sticky;
+      bottom:0;
+      z-index:60;
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(10,10,10,.88);
+      backdrop-filter:blur(14px);
+      border-radius:20px;
+      padding:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .selectBarLeft{display:flex;flex-direction:column;gap:4px}
+    .selectBarTitle{font-weight:1000}
+    .selectBarSub{color:var(--muted);font-size:.9rem}
+    .selectBarRight{display:flex;gap:10px;align-items:center}
+    .selectBar .btn{padding:10px 12px}
+    .btn.disabled{opacity:.45;pointer-events:none}
+
+    .cartBox{
+      border:1px solid var(--border);
+      background:rgba(20,20,20,.65);
+      border-radius:24px;
+      padding:16px;
+      margin-top:12px;
+    }
+    .cartItem{
+      display:flex;gap:12px;align-items:center;
+      padding:12px;border-radius:16px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      margin-bottom:10px;
+    }
+    .cartItem:last-child{margin-bottom:0}
+    .cartName{font-weight:1000}
+    .cartSub{color:var(--muted);font-size:.88rem;margin-top:2px}
+    .cartPrice{margin-left:auto;color:var(--brand-orange);font-weight:1000}
+    .rm{
+      padding:7px 10px;border-radius:12px;
+      border:1px solid rgba(255,68,68,.28);
+      background:rgba(255,68,68,.10);
+      color:var(--danger);
+      font-weight:900;font-size:.82rem;
+    }
+    .rm:hover{background:rgba(255,68,68,.16)}
+    .sum{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;display:grid;gap:8px}
+    .sumRow{display:flex;justify-content:space-between;color:#ddd;font-size:.95rem}
+    .sumRow strong{color:var(--brand-orange)}
+    .divider{height:10px}
+    .fullBtn{width:100%}
+
+    .qrWrap{
+      margin-top:12px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      border-radius:24px;
+      padding:16px;
+      text-align:center;
+    }
+    #qrBox{display:inline-block;padding:14px;background:#fff;border-radius:16px}
+    .help{margin-top:10px;color:var(--muted);font-size:.92rem;line-height:1.6}
+    .info{
+      margin-top:12px;
+      border:1px solid rgba(66,165,245,.28);
+      background:rgba(66,165,245,.10);
+      color:#a6d3ff;
+      border-radius:16px;
+      padding:12px 14px;
+      line-height:1.65;
+      text-align:left;
+    }
+
+    .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .formGrid .span2{grid-column:span 2}
+    .label{color:var(--muted2);font-size:.84rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase;margin:10px 0 6px}
+    .hint{color:var(--muted);font-size:.9rem;line-height:1.6}
+
+    .staticPage{max-width:980px;margin:0 auto}
+    .staticHero{
+      border:1px solid var(--border);
+      border-radius:32px;
+      padding:22px 18px;
+      background:linear-gradient(135deg,rgba(255,103,31,.10),transparent);
+      box-shadow:var(--shadow);
+      margin-top:10px;
+    }
+    .staticHero h1{font-size:1.8rem;margin-bottom:8px}
+    .staticCard{
+      border:1px solid var(--border);
+      background:rgba(20,20,20,.65);
+      border-radius:24px;
+      padding:16px;
+      margin-top:12px;
+    }
+    .staticCard h2{font-size:1.1rem;margin-bottom:8px}
+    .staticCard p,.staticCard li{color:var(--muted);line-height:1.75}
+    .staticCard ul{padding-left:18px}
+
+    .footer{
+      margin-top:20px;text-align:center;color:#666;
+      border-top:1px solid var(--border);
+      padding-top:14px;font-size:.88rem;
+    }
+    .footer a{color:#999;margin:0 10px;cursor:pointer}
+    .footer a:hover{color:var(--brand-orange)}
+
+    @media (max-width:900px){
+      .ctaRow{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+      .formGrid{grid-template-columns:1fr}
+      .formGrid .span2{grid-column:span 1}
+      .hero h1{font-size:1.95rem}
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <button id="floatCart" class="floatCart" type="button" data-action="cart">
+    <span class="count" id="cartCount">0</span>
+    <span>Cart</span>
+  </button>
+
+  <div id="toast" style="position:fixed;left:50%;bottom:calc(18px + var(--safe-bottom));transform:translateX(-50%) translateY(120px);opacity:0;transition:.28s;z-index:200;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.22);color:#fff;padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);font-weight:800"></div>
+
+  <script>
+  (function(){
+    "use strict";
+
+    const AREAS = ["Race Course Road","Kalawad Road","University Road","150 Feet Ring Road","Raiya Road","Yagnik Road"];
+
+    const RESTAURANTS = [
+      {
+        id:"r1", name:"Unlimited Gujarati Thali", icon:"🍛",
+        areaBase:"Race Course Road",
+        serves:["Race Course Road","Yagnik Road","University Road"],
+        avgPrep:18, priceForTwo:300, rating:4.8,
+        taste:["mild","light"], spice:"mild",
+        upiId:"6351537770@yapl", upiName:"Dharam Jitendra Daxini",
+        hasOwnDelivery:false,
+        menu:[
+          {id:"m1", name:"Gujarati Thali (Unlimited)", icon:"🍛", price:150, veg:true, cat:"main", taste:["mild","light"], urgencyBoost:["normal","fast"], desc:"4 sabzi, dal, rice, roti, papad, chaas. Unlimited."},
+          {id:"m2", name:"Pav Bhaji", icon:"🥘", price:120, veg:true, cat:"main", taste:["spicy","mild"], urgencyBoost:["fast"], desc:"Mumbai style, butter, lemon."},
+          {id:"m3", name:"Khaman Dhokla", icon:"🟡", price:60, veg:true, cat:"snacks", taste:["light","mild"], urgencyBoost:["fast"], desc:"Soft, fluffy, steamed."},
+          {id:"m4", name:"Masala Chaas", icon:"🥤", price:25, veg:true, cat:"drinks", taste:["light"], urgencyBoost:["fast","normal"], desc:"Fresh buttermilk with spices."},
+          {id:"m5", name:"Fafda Jalebi", icon:"🥨", price:80, veg:true, cat:"snacks", taste:["mild"], urgencyBoost:["normal"], desc:"Crispy + sweet combo."}
+        ]
+      },
+      {
+        id:"r2", name:"Spice Junction (Punjabi)", icon:"🔥",
+        areaBase:"Kalawad Road",
+        serves:["Kalawad Road","150 Feet Ring Road","Raiya Road"],
+        avgPrep:22, priceForTwo:420, rating:4.6,
+        taste:["spicy"], spice:"spicy",
+        upiId:"spicejunction@upi", upiName:"Spice Junction",
+        hasOwnDelivery:true,
+        menu:[
+          {id:"p1", name:"Paneer Tikka", icon:"🧀", price:190, veg:true, cat:"main", taste:["spicy"], urgencyBoost:["normal"], desc:"Smoky, tandoor style."},
+          {id:"p2", name:"Dal Tadka", icon:"🥣", price:120, veg:true, cat:"main", taste:["mild","spicy"], urgencyBoost:["fast","normal"], desc:"Comfort dal with tadka."},
+          {id:"p3", name:"Jeera Rice", icon:"🍚", price:90, veg:true, cat:"main", taste:["light"], urgencyBoost:["fast"], desc:"Simple, fragrant rice."}
+        ]
+      },
+      {
+        id:"r3", name:"Green Bowl (Healthy)", icon:"🥗",
+        areaBase:"University Road",
+        serves:["University Road","Yagnik Road","Race Course Road"],
+        avgPrep:14, priceForTwo:360, rating:4.7,
+        taste:["light","mild"], spice:"light",
+        upiId:"greenbowl@upi", upiName:"Green Bowl",
+        hasOwnDelivery:false,
+        menu:[
+          {id:"g1", name:"Veg Salad Bowl", icon:"🥗", price:160, veg:true, cat:"main", taste:["light"], urgencyBoost:["fast"], desc:"Fresh veggies + dressing."},
+          {id:"g2", name:"Grilled Sandwich", icon:"🥪", price:120, veg:true, cat:"main", taste:["mild"], urgencyBoost:["fast"], desc:"Light & filling."},
+          {id:"g3", name:"Fruit Mix", icon:"🍉", price:90, veg:true, cat:"snacks", taste:["light"], urgencyBoost:["fast"], desc:"Seasonal fruit pack."}
+        ]
+      }
+    ];
+
+    const STATE = {
+      view:"home",
+      discover:{ area:"", urgency:"", taste:"" },
+      activeRestaurantId:null,
+      cart:[],
+      orders:[],
+      lastOrderId:null,
+
+      // ✅ NEW: selection layer (before adding to cart)
+      pendingRestaurantId:null,
+      pending:{}, // itemId -> qty (staged selection)
+    };
+
+    const $ = (id)=>document.getElementById(id);
+    const esc = (s)=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    const money = (n)=>"₹"+Number(n||0).toLocaleString("en-IN");
+
+    function toast(msg){
+      const t = $("toast");
+      if(!t) return;
+      t.textContent = String(msg);
+      t.style.opacity = "1";
+      t.style.transform = "translateX(-50%) translateY(0)";
+      clearTimeout(toast._t);
+      toast._t = setTimeout(()=>{
+        t.style.opacity = "0";
+        t.style.transform = "translateX(-50%) translateY(120px)";
+      }, 2500);
+    }
+
+    function save(){
+      try{
+        localStorage.setItem("decide_food_state_v1", JSON.stringify({ cart:STATE.cart, orders:STATE.orders }));
+      }catch(e){}
+    }
+    function load(){
+      try{
+        const x = JSON.parse(localStorage.getItem("decide_food_state_v1") || "{}");
+        STATE.cart = Array.isArray(x.cart) ? x.cart : [];
+        STATE.orders = Array.isArray(x.orders) ? x.orders : [];
+      }catch(e){ STATE.cart=[]; STATE.orders=[]; }
+    }
+
+    function updateFloatingCart(){
+      const btn = $("floatCart");
+      const count = STATE.cart.reduce((s,i)=>s + Number(i.qty||1), 0);
+      if(count>0){
+        btn.style.display="flex";
+        $("cartCount").textContent=String(count);
+      }else{
+        btn.style.display="none";
+      }
+    }
+
+    function cartSubtotal(){
+      return STATE.cart.reduce((sum,it)=>sum + (Number(it.price||0)*Number(it.qty||1)), 0);
+    }
+    function calcTotals(){
+      const subtotal = cartSubtotal();
+      const gst = Math.round(subtotal * 0.05);
+      const deliveryFee = Number(localStorage.getItem("decide_delivery_fee") || "30");
+      const total = Number((subtotal + gst + deliveryFee).toFixed(2));
+      return { subtotal, gst, deliveryFee, total };
+    }
+
+    function restaurantById(id){ return RESTAURANTS.find(r=>r.id===id) || null; }
+
+    // ✅ NEW: pending helpers
+    function pendingCount(){
+      return Object.values(STATE.pending || {}).reduce((s,q)=>s + Number(q||0), 0);
+    }
+    function pendingTotal(){
+      const r = restaurantById(STATE.pendingRestaurantId);
+      if(!r) return 0;
+      const map = STATE.pending || {};
+      let total = 0;
+      for(const id in map){
+        const q = Number(map[id]||0);
+        if(q<=0) continue;
+        const it = r.menu.find(m=>m.id===id);
+        if(it) total += Number(it.price||0) * q;
+      }
+      return total;
+    }
+    function setPendingQty(itemId, qty){
+      qty = Math.max(0, Number(qty||0));
+      if(!STATE.pending) STATE.pending = {};
+      if(qty === 0) delete STATE.pending[itemId];
+      else STATE.pending[itemId] = qty;
+    }
+    function incPending(itemId){ setPendingQty(itemId, (STATE.pending[itemId]||0) + 1); }
+    function decPending(itemId){ setPendingQty(itemId, (STATE.pending[itemId]||0) - 1); }
+
+    // ✅ NEW: add all pending items into cart
+    function addPendingToCart(){
+      const r = restaurantById(STATE.pendingRestaurantId);
+      if(!r){ toast("Restaurant not found"); return; }
+
+      const count = pendingCount();
+      if(count <= 0){ toast("Select items first"); return; }
+
+      // enforce single-restaurant cart for MVP
+      if(STATE.cart.length && STATE.cart[0].restaurantId !== r.id){
+        if(!confirm("Cart has items from another restaurant. Clear cart and add these?")) return;
+        STATE.cart = [];
+      }
+
+      for(const itemId in STATE.pending){
+        const qty = Number(STATE.pending[itemId]||0);
+        if(qty<=0) continue;
+
+        const item = r.menu.find(m=>m.id===itemId);
+        if(!item) continue;
+
+        const existing = STATE.cart.find(x => x.itemId === itemId);
+        if(existing){
+          existing.qty = Number(existing.qty||1) + qty;
+        }else{
+          STATE.cart.push({
+            restaurantId: r.id,
+            restaurantName: r.name,
+            upiId: r.upiId,
+            upiName: r.upiName,
+            itemId: itemId,
+            name: item.name,
+            icon: item.icon,
+            price: item.price,
+            qty: qty
+          });
+        }
+      }
+
+      // clear pending after adding
+      STATE.pending = {};
+      save();
+      updateFloatingCart();
+      toast("Added selected items to cart");
+      render(); // refresh menu UI & bar
+    }
+
+    function removeFromCart(index){
+      STATE.cart.splice(index,1);
+      save();
+      updateFloatingCart();
+      if(STATE.cart.length===0) navigate("discover");
+      else render();
+    }
+    function incQty(idx){ STATE.cart[idx].qty = Number(STATE.cart[idx].qty||1) + 1; save(); updateFloatingCart(); render(); }
+    function decQty(idx){
+      const q = Number(STATE.cart[idx].qty||1);
+      if(q<=1) return;
+      STATE.cart[idx].qty = q - 1;
+      save(); updateFloatingCart(); render();
+    }
+
+    function navigate(view){
+      STATE.view = view;
+      render();
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+
+    // =========================
+    // DISCOVER ENGINE
+    // =========================
+    function scoreRestaurant(r){
+      const { area, urgency, taste } = STATE.discover;
+      if(area && !(r.serves||[]).includes(area)) return -9999;
+      if(taste){
+        const hasTaste = (r.taste||[]).includes(taste);
+        if(!hasTaste) return -9999;
+      }
+
+      let score = 0;
+      if(area && r.areaBase === area) score += 12;
+      if(urgency === "fast") score += Math.max(0, 30 - Number(r.avgPrep||25));
+      else if(urgency === "normal") score += 10;
+
+      if(taste === "spicy" && r.spice === "spicy") score += 10;
+      if(taste === "mild" && (r.spice === "mild" || r.spice === "light")) score += 8;
+      if(taste === "light" && (r.spice === "light" || (r.taste||[]).includes("light"))) score += 10;
+
+      score += Number(r.rating||0) * 2;
+      if(r.hasOwnDelivery) score += 3;
+      return score;
+    }
+
+    function suggestedMenu(r){
+      const { urgency, taste } = STATE.discover;
+      const items = r.menu.slice();
+      items.forEach(it=>{
+        let s=0;
+        if(taste && (it.taste||[]).includes(taste)) s += 10;
+        if(urgency && (it.urgencyBoost||[]).includes(urgency)) s += 6;
+        if(it.cat==="drinks" && urgency==="fast") s += 2;
+        it._score = s;
+      });
+      items.sort((a,b)=>(b._score-a._score)||(a.price-b.price));
+      return items;
+    }
+
+    // =========================
+    // UPI QR (for optional pay-later by UPI)
+    // =========================
+    function buildUpiLink(upiId, payeeName, amount, note){
+      const am = Number(amount || 0).toFixed(2);
+      const tr = "DEC" + Date.now().toString(36).toUpperCase();
+      const params = new URLSearchParams({
+        pa: upiId, pn: payeeName || "Seller",
+        am: am, cu: "INR",
+        tn: note || ("Decide Food Order " + tr),
+        tr: tr
+      });
+      return "upi://pay?" + params.toString();
+    }
+    function renderQr(upiLink){
+      const box = $("qrBox");
+      if(!box) return;
+      box.innerHTML = "";
+      if(typeof QRCode === "undefined"){
+        box.innerHTML = "<div style='color:#444;font-weight:900'>QR library not loaded</div>";
+        return;
+      }
+      new QRCode(box, { text: upiLink, width: 220, height: 220 });
+    }
+    async function copyText(txt){
+      try{ await navigator.clipboard.writeText(txt); toast("Copied!"); }
+      catch(e){
+        const ta=document.createElement("textarea");
+        ta.value=txt; document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand("copy"); toast("Copied!"); }catch(err){ toast("Copy failed"); }
+        document.body.removeChild(ta);
+      }
+    }
+
+    // =========================
+    // UI PARTS
+    // =========================
+    function header(){
+      return `
+        <div class="header">
+          <div class="brand" data-action="home" role="button" tabindex="0">
+            DECIDE <span class="dot" aria-hidden="true"></span>
+            <span style="opacity:.85;font-weight:1000">FOOD</span>
+          </div>
+          <div class="nav">
+            <button class="btn ghost" type="button" data-action="discover">Order</button>
+            <button class="btn" type="button" data-action="seller">For Sellers</button>
+            <button class="btn" type="button" data-action="partner">Delivery Partners</button>
+            <button class="btn orange" type="button" data-action="waitlist">Join Waitlist</button>
+          </div>
+        </div>
+      `;
+    }
+    function footer(){
+      return `
+        <div class="footer">
+          <a data-action="privacy">Privacy</a>
+          <a data-action="terms">Terms</a>
+          <a data-action="contact">Contact</a>
+          <a data-action="cookies">Cookies</a>
+          <div style="margin-top:10px;color:#666">© ${new Date().getFullYear()} Decide • Rajkot MVP</div>
+        </div>
+      `;
+    }
+
+    // =========================
+    // PAGES
+    // =========================
+    function renderHome(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Rajkot Food — smarter ordering, local delivery</h1>
+            <p>
+              Decide shows restaurants based on <b>your area</b>, <b>urgency</b>, and <b>taste</b>.
+              We run a <b>zero-commission</b> marketplace and can provide delivery if a seller doesn’t have one.
+              <b>Pay after delivery</b> is supported for trust.
+            </p>
+            <div class="pillrow">
+              <span class="pill">✅ Food Live in <strong>Rajkot</strong></span>
+              <span class="pill">🧾 Transparent listing (no paid rank)</span>
+              <span class="pill">💵 Pay after delivery (trust-first)</span>
+              <span class="pill">🚴 White-label delivery option</span>
+            </div>
+
+            <div class="ctaRow">
+              <div class="ctaCard">
+                <div class="ctaTitle">🍽️ Place an order</div>
+                <div class="ctaDesc">Select your area → urgency → taste. We eliminate irrelevant restaurants automatically.</div>
+                <button class="btn orange" type="button" data-action="discover">Start Ordering</button>
+              </div>
+              <div class="ctaCard">
+                <div class="ctaTitle">🏪 Sellers</div>
+                <div class="ctaDesc">
+                  If you already have delivery, we help you get <b>more orders</b>.
+                  If you don’t, we can deliver with our riders.
+                </div>
+                <button class="btn" type="button" data-action="seller">Join as a Seller</button>
+              </div>
+              <div class="ctaCard">
+                <div class="ctaTitle">🚴 Delivery Partners</div>
+                <div class="ctaDesc">Earn with flexible shifts + per-order incentives. Join our Rajkot rider network.</div>
+                <button class="btn" type="button" data-action="partner">Join as Rider</button>
+              </div>
+            </div>
+
+            <div class="note">
+              <b>Trust-first ordering:</b> We call to confirm new orders and coordinate riders. Payment can happen <b>after delivery</b>.
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:14px">
+            <h2>Coming soon</h2>
+            <div class="muted">Electronics, groceries, fashion & more — currently disabled. We’re focused on building the best food + delivery experience first.</div>
+            <div class="pillrow" style="margin-top:12px">
+              <span class="pill">🛍️ <strong>E-commerce</strong> Coming Soon</span>
+              <span class="pill">🛒 <strong>Groceries</strong> Coming Soon</span>
+              <span class="pill">👕 <strong>Fashion</strong> Coming Soon</span>
+              <span class="pill">🧰 <strong>Services</strong> Coming Soon</span>
+            </div>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderDiscover(){
+      const { area, urgency, taste } = STATE.discover;
+
+      const areaOptions = ["", ...AREAS].map(a =>
+        `<option value="${esc(a)}" ${a===area ? "selected":""}>${a ? esc(a) : "Select your area"}</option>`
+      ).join("");
+
+      const scored = RESTAURANTS
+        .map(r => ({ r, s: scoreRestaurant(r) }))
+        .filter(x => x.s > -9999)
+        .sort((a,b)=> b.s - a.s);
+
+      const resultsHtml = scored.length ? `
+        <div class="panel" style="margin-top:14px">
+          <h2>Optimized suggestions</h2>
+          <div class="muted">Based on your selection, we shortlisted <b>${scored.length}</b> restaurant(s).</div>
+          <div class="rGrid">
+            ${scored.map(x=>{
+              const r=x.r;
+              return `
+                <div class="rCard" data-action="openRestaurant" data-rid="${esc(r.id)}" role="button" tabindex="0">
+                  <div class="rImg"><span style="position:relative;z-index:1">${r.icon}</span></div>
+                  <div class="rBody">
+                    <div class="rName">${esc(r.name)}</div>
+                    <div class="rMeta">
+                      <span class="chip">⭐ ${Number(r.rating||0).toFixed(1)}</span>
+                      <span class="chip">⏱️ ~${r.avgPrep} min prep</span>
+                      <span class="chip">📍 ${esc(r.areaBase)}</span>
+                    </div>
+                    <div class="rFooter">
+                      <div>
+                        <div style="color:var(--muted);font-size:.86rem">For two</div>
+                        <div class="price">${money(r.priceForTwo)}</div>
+                      </div>
+                      <button class="smallBtn" type="button">View Menu →</button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      ` : `
+        <div class="panel" style="margin-top:14px">
+          <h2>No matches yet</h2>
+          <div class="muted">Pick an area, urgency and taste to see restaurants.</div>
+        </div>
+      `;
+
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Order Flow</h1>
+            <p>Select your <b>Area</b> → choose <b>Urgency</b> → choose <b>Taste</b>. We automatically eliminate restaurants and show optimized suggestions.</p>
+            <div class="pillrow">
+              <span class="pill">Step 1: <strong>Area</strong></span>
+              <span class="pill">Step 2: <strong>Fast</strong> / <strong>Normal</strong></span>
+              <span class="pill">Step 3: <strong>Spicy</strong> / <strong>Mild</strong> / <strong>Light</strong></span>
+            </div>
+            <div class="note"><b>Pay after delivery</b> is supported. If you prefer UPI, we show the seller UPI (QR) on confirmation.</div>
+          </div>
+
+          <div class="grid2">
+            <div class="panel">
+              <h2>Your preferences</h2>
+
+              <div class="step">
+                <div class="stepTop">
+                  <div>
+                    <div class="stepTitle">1) Select Area</div>
+                    <div class="muted">This removes restaurants outside your delivery zone.</div>
+                  </div>
+                  <span class="badge">LIVE</span>
+                </div>
+                <select id="selArea">${areaOptions}</select>
+              </div>
+
+              <div class="step">
+                <div class="stepTop">
+                  <div>
+                    <div class="stepTitle">2) Choose urgency</div>
+                    <div class="muted">Fast prioritizes low prep time + nearby match.</div>
+                  </div>
+                  <span class="badge">LIVE</span>
+                </div>
+                <div class="rowBtns">
+                  <button class="choice ${urgency==="fast"?"active":""}" type="button" data-action="setUrgency" data-val="fast">🚀 Fast (under 30 mins)</button>
+                  <button class="choice ${urgency==="normal"?"active":""}" type="button" data-action="setUrgency" data-val="normal">🕒 Normal</button>
+                </div>
+              </div>
+
+              <div class="step" style="margin-bottom:0">
+                <div class="stepTop">
+                  <div>
+                    <div class="stepTitle">3) Choose preference</div>
+                    <div class="muted">Taste selection eliminates non-matching restaurants.</div>
+                  </div>
+                  <span class="badge">LIVE</span>
+                </div>
+                <div class="rowBtns">
+                  <button class="choice ${taste==="spicy"?"active":""}" type="button" data-action="setTaste" data-val="spicy">🔥 Spicy</button>
+                  <button class="choice ${taste==="mild"?"active":""}" type="button" data-action="setTaste" data-val="mild">🧈 Mild</button>
+                  <button class="choice ${taste==="light"?"active":""}" type="button" data-action="setTaste" data-val="light">🥗 Light</button>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <button class="btn orange fullBtn" type="button" data-action="refreshDiscover">Show Suggestions</button>
+              <div class="hint" style="margin-top:10px">Tip: Start with <b>Area</b> first → urgency → taste.</div>
+            </div>
+
+            <div class="panel">
+              <h2>How payment works</h2>
+              <div class="muted">
+                <b>Default:</b> Pay after delivery (COD / UPI after delivery).<br/>
+                <b>Trust layer:</b> We call to confirm order + ETA and dispatch a rider (or seller delivers).<br/>
+                <b>Optional:</b> We show seller UPI QR on confirmation for easy UPI payment after delivery.
+              </div>
+              <div class="step" style="margin-top:12px">
+                <div class="stepTop">
+                  <div class="stepTitle">White-label delivery</div>
+                  <div class="muted">We can charge delivery fee and manage riders in zones.</div>
+                </div>
+                <span class="badge soon">MVP</span>
+              </div>
+              <button class="btn" type="button" data-action="seller">Seller onboarding →</button>
+              <div class="divider"></div>
+              <button class="btn" type="button" data-action="partner">Delivery partner onboarding →</button>
+            </div>
+          </div>
+
+          ${resultsHtml}
+          ${footer()}
+        </div>
+      `;
+
+      const sel = $("selArea");
+      if(sel){
+        sel.addEventListener("change", function(){
+          STATE.discover.area = sel.value || "";
+          render();
+        });
+      }
+    }
+
+    function renderRestaurant(){
+      const r = restaurantById(STATE.activeRestaurantId);
+      if(!r){ navigate("discover"); return; }
+
+      // ✅ NEW: init pending selection for this restaurant view
+      if(STATE.pendingRestaurantId !== r.id){
+        STATE.pendingRestaurantId = r.id;
+        STATE.pending = {}; // reset staged selections when opening a restaurant
+      }
+
+      const { area, urgency, taste } = STATE.discover;
+      const sug = suggestedMenu(r);
+
+      const reasoning = `
+        <div class="info">
+          <b>Why this restaurant?</b><br/>
+          ${area ? `• Delivers to <b>${esc(area)}</b><br/>` : ""}
+          ${urgency ? `• Matches urgency: <b>${esc(urgency)}</b> (prep ~${r.avgPrep} mins)<br/>` : ""}
+          ${taste ? `• Matches taste: <b>${esc(taste)}</b><br/>` : ""}
+          • Rating: <b>${Number(r.rating||0).toFixed(1)}</b>
+        </div>
+      `;
+
+      const pCount = pendingCount();
+      const pTotal = pendingTotal();
+      const canAdd = pCount > 0;
+
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="menuHeader">
+            <h2>${esc(r.name)}</h2>
+            <div class="muted">⭐ ${Number(r.rating||0).toFixed(1)} • ⏱️ ~${r.avgPrep} min prep • 📍 ${esc(r.areaBase)} • ${r.hasOwnDelivery ? "🚚 Has own delivery" : "🚴 We can deliver"}</div>
+            ${reasoning}
+            <div class="note" style="margin-top:12px">
+              <b>Pay after delivery</b> is supported. We call to confirm before dispatch.
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h2>Menu (select multiple items first)</h2>
+            <div class="muted">Use + / − to build your selection, then tap “Add selected to cart”.</div>
+
+            <div class="mGrid">
+              ${sug.map(it=>{
+                const q = Number(STATE.pending[it.id] || 0);
+                return `
+                  <div class="mItem">
+                    <div class="mTop">
+                      <div>
+                        <div class="mName">${esc(it.name)}</div>
+                        <div class="mDesc">${esc(it.desc || "")}</div>
+                        <div class="muted" style="font-size:.86rem">${it.veg ? "🟢 Veg" : "🔴 Non-veg"} • ${esc(it.cat || "item")}</div>
+                      </div>
+                      <div class="mIcon">${it.icon || "🍽️"}</div>
+                    </div>
+                    <div class="mBottom">
+                      <div class="mPrice">${money(it.price)}</div>
+                      <div class="qty" aria-label="Quantity selector">
+                        <button class="qtyBtn" type="button" data-action="pendingDec" data-item="${esc(it.id)}">−</button>
+                        <div class="qtyVal">${q}</div>
+                        <button class="qtyBtn" type="button" data-action="pendingInc" data-item="${esc(it.id)}">+</button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+
+            <!-- ✅ NEW: selection bar -->
+            <div class="selectBar" role="region" aria-label="Selection summary">
+              <div class="selectBarLeft">
+                <div class="selectBarTitle">Selected: <span style="color:var(--brand-orange)">${pCount}</span> item(s)</div>
+                <div class="selectBarSub">Selection total: <b>${money(pTotal)}</b> (cart total calculated later)</div>
+              </div>
+              <div class="selectBarRight">
+                <button class="btn ${canAdd ? "orange" : "disabled"}" type="button" data-action="addSelected">
+                  Add selected → Cart
+                </button>
+                <button class="btn" type="button" data-action="cart">View Cart</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <button class="btn" type="button" data-action="discover">← Back to suggestions</button>
+            <button class="btn orange" type="button" data-action="cart">Go to Cart →</button>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderCart(){
+      if(!STATE.cart.length){ navigate("discover"); return; }
+      const totals = calcTotals();
+
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Your Cart</h1>
+            <p>Single-restaurant cart for Rajkot MVP. We confirm via call, then dispatch rider (or seller delivers).</p>
+            <div class="pillrow">
+              <span class="pill">✅ Pay after delivery</span>
+              <span class="pill">📞 Confirmation call</span>
+              <span class="pill">🚴 Zone riders (white-label)</span>
+            </div>
+          </div>
+
+          <div class="cartBox">
+            ${STATE.cart.map((it, idx)=>`
+              <div class="cartItem">
+                <div style="font-size:2rem">${it.icon || "🍽️"}</div>
+                <div>
+                  <div class="cartName">${esc(it.name)}</div>
+                  <div class="cartSub">${esc(it.restaurantName)}</div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                    <button class="btn ghost" style="padding:8px 10px" type="button" data-action="decQty" data-idx="${idx}">−</button>
+                    <div style="font-weight:1000">${Number(it.qty||1)}</div>
+                    <button class="btn ghost" style="padding:8px 10px" type="button" data-action="incQty" data-idx="${idx}">+</button>
+                  </div>
+                </div>
+                <div class="cartPrice">${money(Number(it.price||0)*Number(it.qty||1))}</div>
+                <button class="rm" type="button" data-action="remove" data-idx="${idx}">Remove</button>
+              </div>
+            `).join("")}
+
+            <div class="sum">
+              <div class="sumRow"><span>Subtotal</span><span>${money(totals.subtotal)}</span></div>
+              <div class="sumRow"><span>GST (5%)</span><span>${money(totals.gst)}</span></div>
+              <div class="sumRow"><span>Delivery Fee</span><span>${money(totals.deliveryFee)}</span></div>
+              <div class="sumRow" style="font-size:1.1rem"><span><strong>Total</strong></span><span><strong>${money(totals.total)}</strong></span></div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="btn orange fullBtn" type="button" data-action="checkout">Confirm Order →</button>
+            <button class="btn fullBtn" type="button" data-action="discover" style="margin-top:10px">← Continue shopping</button>
+
+            <div class="note" style="margin-top:12px">
+              <b>Payment:</b> Pay after delivery. You can pay in cash or UPI after receiving the order.
+            </div>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderCheckout(){
+      if(!STATE.cart.length){ navigate("discover"); return; }
+      const totals = calcTotals();
+      const r = restaurantById(STATE.cart[0].restaurantId);
+
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Confirm your order</h1>
+            <p>We will call to confirm your order & ETA, then dispatch rider. Default payment is <b>after delivery</b>.</p>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h2>Delivery details</h2>
+            <div class="formGrid">
+              <div>
+                <div class="label">Full Name</div>
+                <input id="c_name" placeholder="Your name" />
+              </div>
+              <div>
+                <div class="label">Phone (WhatsApp)</div>
+                <input id="c_phone" inputmode="tel" placeholder="9XXXXXXXXX" />
+              </div>
+              <div class="span2">
+                <div class="label">Delivery Address</div>
+                <textarea id="c_addr" placeholder="House / society / landmark / area"></textarea>
+              </div>
+              <div class="span2">
+                <div class="label">Notes (optional)</div>
+                <input id="c_note" placeholder="Less spicy / no onion / call on arrival" />
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="step">
+              <div class="stepTop">
+                <div>
+                  <div class="stepTitle">Payment method (trust-first)</div>
+                  <div class="muted">Default is pay after delivery. Seller UPI QR shown after order is placed (for convenience).</div>
+                </div>
+                <span class="badge">PAY LATER</span>
+              </div>
+              <div class="rowBtns">
+                <button class="choice active" type="button" data-action="noop">💵 Pay After Delivery</button>
+              </div>
+            </div>
+
+            <div class="sum" style="margin-top:12px">
+              <div class="sumRow"><span>Order Total</span><span><strong>${money(totals.total)}</strong></span></div>
+              <div class="sumRow"><span>Restaurant</span><span>${esc(r ? r.name : "")}</span></div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="btn orange fullBtn" type="button" data-action="placeOrder">Place Order (We will call) →</button>
+            <button class="btn fullBtn" type="button" data-action="cart" style="margin-top:10px">← Back to Cart</button>
+
+            <div class="info" style="margin-top:12px">
+              <b>Safety rules:</b><br/>
+              • We confirm every new order by call before dispatch.<br/>
+              • Pay after delivery is allowed. Repeated cancellations may require partial advance in future.
+            </div>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderSuccess(){
+      const orderId = STATE.lastOrderId || "DEC-ORDER";
+      if(!STATE.orders.length){ navigate("home"); return; }
+      const order = STATE.orders.find(o=>o.id===orderId) || STATE.orders[STATE.orders.length-1];
+      const r = restaurantById(order.restaurantId);
+      const totals = order.totals;
+      const upiLink = r ? buildUpiLink(r.upiId, r.upiName || r.name, totals.total, "Decide Food " + orderId) : "";
+
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Order received ✅</h1>
+            <p>
+              Order ID: <b>${esc(orderId)}</b><br/>
+              Next: we will <b>call</b> to confirm items, ETA, and dispatch a rider.
+            </p>
+            <div class="pillrow">
+              <span class="pill">📞 Confirmation call</span>
+              <span class="pill">🚴 Rider dispatch</span>
+              <span class="pill">💵 Pay after delivery</span>
+            </div>
+            <div class="note">
+              You can pay after delivery in <b>cash</b> OR by <b>UPI</b>. Seller UPI is shown below for convenience.
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h2>Order summary</h2>
+            <div class="muted">Restaurant: <b>${esc(r ? r.name : "")}</b></div>
+            <div class="divider"></div>
+            ${order.items.map(it=>`
+              <div class="cartItem">
+                <div style="font-size:2rem">${it.icon || "🍽️"}</div>
+                <div>
+                  <div class="cartName">${esc(it.name)}</div>
+                  <div class="cartSub">Qty: ${Number(it.qty||1)}</div>
+                </div>
+                <div class="cartPrice">${money(Number(it.price||0)*Number(it.qty||1))}</div>
+              </div>
+            `).join("")}
+            <div class="sum">
+              <div class="sumRow"><span>Subtotal</span><span>${money(totals.subtotal)}</span></div>
+              <div class="sumRow"><span>GST</span><span>${money(totals.gst)}</span></div>
+              <div class="sumRow"><span>Delivery Fee</span><span>${money(totals.deliveryFee)}</span></div>
+              <div class="sumRow" style="font-size:1.1rem"><span><strong>Total</strong></span><span><strong>${money(totals.total)}</strong></span></div>
+            </div>
+          </div>
+
+          <div class="qrWrap">
+            <h2 style="font-size:1.1rem;font-weight:1000;margin-bottom:10px">Seller UPI (for pay-after-delivery)</h2>
+            <div class="muted" style="margin-bottom:12px">Pay only after you receive the order if you prefer.</div>
+
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+              <div id="qrBox"></div>
+              <div style="border:1px solid var(--border);background:rgba(0,0,0,.25);border-radius:16px;padding:12px 14px;max-width:540px;width:100%;text-align:left">
+                <div class="label" style="margin:0 0 6px">UPI ID</div>
+                <div style="font-weight:1000;word-break:break-all">${esc(r ? r.upiId : "")}</div>
+                <div class="label" style="margin:12px 0 6px">Account Name</div>
+                <div style="font-weight:900;color:#ddd">${esc(r ? (r.upiName || r.name) : "")}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                  <button class="btn" type="button" data-action="copyUpi" data-upi="${esc(r ? r.upiId : "")}">📋 Copy UPI ID</button>
+                  <button class="btn orange" type="button" data-action="copyUpiLink" data-link="${esc(upiLink)}">🔗 Copy UPI Link</button>
+                </div>
+                <div class="help">Desktop users: scan QR from phone. Mobile users: paste link or use QR scanner.</div>
+              </div>
+            </div>
+
+            <div class="info" style="margin-top:12px">
+              <b>Ops flow:</b> We confirm by call → dispatch rider → deliver → you pay after delivery → we close order.
+            </div>
+
+            <div class="divider"></div>
+            <button class="btn orange fullBtn" type="button" data-action="orders">View my orders →</button>
+            <button class="btn fullBtn" type="button" data-action="discover" style="margin-top:10px">Order again →</button>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+
+      setTimeout(()=>{ if(upiLink) renderQr(upiLink); }, 0);
+    }
+
+    function renderOrders(){
+      if(!STATE.orders.length){ toast("No orders yet"); navigate("discover"); return; }
+      const list = STATE.orders.slice().reverse().map(o=>`
+        <div class="staticCard">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+            <div>
+              <div style="font-weight:1000;font-size:1.05rem">${esc(o.id)}</div>
+              <div class="muted" style="margin-top:6px">${esc(new Date(o.ts).toLocaleString("en-IN"))}</div>
+              <div class="muted" style="margin-top:6px">Restaurant: <b>${esc(o.restaurantName)}</b></div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:1000;color:var(--brand-orange);font-size:1.1rem">${money(o.totals.total)}</div>
+              <div style="margin-top:6px;font-weight:1000;color:var(--success);font-size:.86rem">CONFIRMATION CALL</div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>My Orders</h1>
+            <p>For MVP: order status is managed by confirmation call + rider dispatch.</p>
+          </div>
+          ${list}
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderSeller(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>For Sellers (Restaurants)</h1>
+            <p>Decide is <b>zero-commission</b>. We match demand using area + urgency + taste.</p>
+            <div class="pillrow">
+              <span class="pill">✅ If you have delivery: <strong>we help you get more orders</strong></span>
+              <span class="pill">✅ If you don’t: <strong>we can deliver with our riders</strong></span>
+              <span class="pill">📞 Trust-first: confirmation call</span>
+            </div>
+            <div class="note"><b>CTA:</b> If you have a delivery partner, we assure more orders. If not, you can deliver with us.</div>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h2>Seller interest form</h2>
+            <div class="muted">You’ll be onboarded after a physical visit + menu/data verification.</div>
+
+            <div class="formGrid">
+              <div>
+                <div class="label">Restaurant name</div>
+                <input id="s_name" placeholder="e.g. Thali House" />
+              </div>
+              <div>
+                <div class="label">Owner phone (WhatsApp)</div>
+                <input id="s_phone" inputmode="tel" placeholder="9XXXXXXXXX" />
+              </div>
+              <div>
+                <div class="label">Area</div>
+                <input id="s_area" placeholder="e.g. Kalawad Road" />
+              </div>
+              <div>
+                <div class="label">Do you have delivery?</div>
+                <select id="s_delivery">
+                  <option value="yes">Yes (own delivery)</option>
+                  <option value="no">No (need Decide delivery)</option>
+                  <option value="partial">Partial (limited slots)</option>
+                </select>
+              </div>
+              <div class="span2">
+                <div class="label">Menu highlights (optional)</div>
+                <textarea id="s_menu" placeholder="Top items + price range + veg/non-veg"></textarea>
+              </div>
+              <div class="span2">
+                <div class="label">Notes (optional)</div>
+                <input id="s_note" placeholder="Open hours, peak times, special requests" />
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="btn orange fullBtn" type="button" data-action="submitSeller">Submit Seller Interest</button>
+
+            <div class="info" style="margin-top:12px">
+              <b>Next:</b> We contact you → physical visit → menu/data verification → go live.
+            </div>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderPartner(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Join Decide as a Delivery Partner</h1>
+            <p>Zone-based delivery with incentives. Pay-after-delivery workflow supported.</p>
+            <div class="pillrow">
+              <span class="pill">📍 Zone-based delivery</span>
+              <span class="pill">💰 Incentives per order</span>
+              <span class="pill">⭐ Weekly bonus</span>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h2>Delivery partner application</h2>
+            <div class="formGrid">
+              <div>
+                <div class="label">Full name</div>
+                <input id="p_name" placeholder="Your name" />
+              </div>
+              <div>
+                <div class="label">Phone (WhatsApp)</div>
+                <input id="p_phone" inputmode="tel" placeholder="9XXXXXXXXX" />
+              </div>
+              <div>
+                <div class="label">Preferred zone</div>
+                <select id="p_zone">${AREAS.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}</select>
+              </div>
+              <div>
+                <div class="label">Vehicle</div>
+                <select id="p_vehicle">
+                  <option value="bike">Bike</option>
+                  <option value="scooty">Scooty</option>
+                  <option value="cycle">Cycle</option>
+                </select>
+              </div>
+              <div class="span2">
+                <div class="label">Availability</div>
+                <input id="p_time" placeholder="e.g. 12pm–6pm, 6pm–11pm" />
+              </div>
+              <div class="span2">
+                <div class="label">Notes (optional)</div>
+                <textarea id="p_note" placeholder="Any delivery experience? Any constraints?"></textarea>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="btn orange fullBtn" type="button" data-action="submitPartner">Apply as Delivery Partner</button>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderWaitlist(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="wrap">
+          <div class="hero">
+            <h1>Join Waitlist</h1>
+            <p>Get early access updates. Sellers & delivery partners are welcome too.</p>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h2>Waitlist form</h2>
+            <div class="formGrid">
+              <div>
+                <div class="label">Email</div>
+                <input id="w_email" type="email" placeholder="you@gmail.com" />
+              </div>
+              <div>
+                <div class="label">Phone (optional)</div>
+                <input id="w_phone" inputmode="tel" placeholder="9XXXXXXXXX" />
+              </div>
+              <div>
+                <div class="label">City</div>
+                <input id="w_city" placeholder="Rajkot" />
+              </div>
+              <div>
+                <div class="label">I am</div>
+                <select id="w_type">
+                  <option value="buyer">Buyer</option>
+                  <option value="seller">Seller</option>
+                  <option value="delivery">Delivery Partner</option>
+                </select>
+              </div>
+              <div class="span2">
+                <div class="label">Anything you want us to build?</div>
+                <textarea id="w_note" placeholder="Your feedback helps us build better."></textarea>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="btn orange fullBtn" type="button" data-action="submitWaitlist">Join Waitlist</button>
+            <div class="hint" style="margin-top:10px">We store minimal info. You can request removal anytime.</div>
+          </div>
+
+          ${footer()}
+        </div>
+      `;
+    }
+
+    function renderPrivacy(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="staticPage">
+          <div class="staticHero">
+            <h1>Privacy Policy</h1>
+            <div class="muted">Last updated: <code>February 2026</code></div>
+            <div class="note" style="margin-top:12px">We store only minimal info needed to contact and fulfill orders.</div>
+          </div>
+          <div class="staticCard">
+            <h2>1) What we collect</h2>
+            <ul>
+              <li>Contact details (name, phone, email if provided)</li>
+              <li>Delivery details (address, instructions)</li>
+              <li>Order metadata (items, totals, timestamps)</li>
+              <li>Seller / delivery partner onboarding info</li>
+            </ul>
+          </div>
+          <div class="staticCard"><h2>2) Sharing</h2><p>We may share limited order details with the restaurant and delivery partner to fulfill your order. We do not sell your data.</p></div>
+          <div class="staticCard"><h2>3) Contact</h2><p>Email: <code>privacy@decide.app</code></p></div>
+          ${footer()}
+        </div>
+      `;
+    }
+    function renderTerms(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="staticPage">
+          <div class="staticHero">
+            <h1>Terms of Service</h1>
+            <div class="muted">Last updated: <code>February 2026</code></div>
+          </div>
+          <div class="staticCard"><h2>1) Platform role</h2><p>Decide connects buyers, restaurants, and delivery partners. Restaurants are responsible for food preparation and quality.</p></div>
+          <div class="staticCard"><h2>2) Pay after delivery</h2><p>For MVP, payment is collected after delivery (cash or UPI). Repeated cancellations may result in restrictions.</p></div>
+          <div class="staticCard"><h2>3) Contact</h2><p>Email: <code>legal@decide.app</code></p></div>
+          ${footer()}
+        </div>
+      `;
+    }
+    function renderContact(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="staticPage">
+          <div class="staticHero">
+            <h1>Contact</h1>
+            <div class="muted">Support, seller onboarding, delivery partners, and policy requests.</div>
+          </div>
+          <div class="staticCard">
+            <h2>Reach us</h2>
+            <ul>
+              <li>Support: <code>support@decide.app</code></li>
+              <li>Sellers: <code>sellers@decide.app</code></li>
+              <li>Delivery partners: <code>riders@decide.app</code></li>
+              <li>Privacy: <code>privacy@decide.app</code></li>
+            </ul>
+          </div>
+          ${footer()}
+        </div>
+      `;
+    }
+    function renderCookies(){
+      $("app").innerHTML = `
+        ${header()}
+        <div class="staticPage">
+          <div class="staticHero">
+            <h1>Cookie Policy</h1>
+            <div class="muted">Last updated: <code>February 2026</code></div>
+          </div>
+          <div class="staticCard"><h2>1) What we store</h2><ul><li>Cart and order history</li><li>Basic preferences (area, urgency, taste)</li></ul></div>
+          <div class="staticCard"><h2>2) Control</h2><p>You can clear site storage from browser settings to remove saved data.</p></div>
+          ${footer()}
+        </div>
+      `;
+    }
+
+    // =========================
+    // SUBMISSIONS (local demo)
+    // =========================
+    function submitSeller(){
+      const name=($("s_name")?.value||"").trim();
+      const phone=($("s_phone")?.value||"").trim();
+      const area=($("s_area")?.value||"").trim();
+      const has=($("s_delivery")?.value||"yes");
+      const menu=($("s_menu")?.value||"").trim();
+      const note=($("s_note")?.value||"").trim();
+      if(name.length<2){ toast("Enter restaurant name"); return; }
+      if(phone.length<8){ toast("Enter valid phone"); return; }
+      if(area.length<2){ toast("Enter area"); return; }
+      const lead={id:"S-"+Date.now(),name,phone,area,hasDelivery:has,menu,note,ts:new Date().toISOString()};
+      try{
+        const arr=JSON.parse(localStorage.getItem("decide_seller_leads_v1")||"[]");
+        arr.push(lead);
+        localStorage.setItem("decide_seller_leads_v1",JSON.stringify(arr));
+      }catch(e){}
+      toast("Submitted! We will contact you.");
+      navigate("home");
+    }
+    function submitPartner(){
+      const name=($("p_name")?.value||"").trim();
+      const phone=($("p_phone")?.value||"").trim();
+      const zone=($("p_zone")?.value||"").trim();
+      const vehicle=($("p_vehicle")?.value||"").trim();
+      const time=($("p_time")?.value||"").trim();
+      const note=($("p_note")?.value||"").trim();
+      if(name.length<2){ toast("Enter your name"); return; }
+      if(phone.length<8){ toast("Enter valid phone"); return; }
+      if(!zone){ toast("Select a zone"); return; }
+      const lead={id:"P-"+Date.now(),name,phone,zone,vehicle,time,note,ts:new Date().toISOString()};
+      try{
+        const arr=JSON.parse(localStorage.getItem("decide_partner_leads_v1")||"[]");
+        arr.push(lead);
+        localStorage.setItem("decide_partner_leads_v1",JSON.stringify(arr));
+      }catch(e){}
+      toast("Applied! We will contact you.");
+      navigate("home");
+    }
+    function submitWaitlist(){
+      const email=($("w_email")?.value||"").trim();
+      const phone=($("w_phone")?.value||"").trim();
+      const city=($("w_city")?.value||"").trim();
+      const type=($("w_type")?.value||"buyer");
+      const note=($("w_note")?.value||"").trim();
+      if(!email || email.indexOf("@")<1){ toast("Enter valid email"); return; }
+      const lead={id:"W-"+Date.now(),email,phone,city,type,note,ts:new Date().toISOString()};
+      try{
+        const arr=JSON.parse(localStorage.getItem("decide_waitlist_v1")||"[]");
+        arr.push(lead);
+        localStorage.setItem("decide_waitlist_v1",JSON.stringify(arr));
+      }catch(e){}
+      toast("Added to waitlist!");
+      navigate("home");
+    }
+
+    function placeOrder(){
+      const name=($("c_name")?.value||"").trim();
+      const phone=($("c_phone")?.value||"").trim();
+      const addr=($("c_addr")?.value||"").trim();
+      const note=($("c_note")?.value||"").trim();
+      if(name.length<2){ toast("Enter your name"); return; }
+      if(phone.length<8){ toast("Enter valid phone"); return; }
+      if(addr.length<8){ toast("Enter full address"); return; }
+
+      const totals=calcTotals();
+      const r=restaurantById(STATE.cart[0].restaurantId);
+      const orderId="DEC"+Date.now().toString(36).toUpperCase();
+
+      const order={
+        id:orderId,
+        ts:new Date().toISOString(),
+        restaurantId:r ? r.id : "",
+        restaurantName:r ? r.name : "",
+        items:STATE.cart.map(x=>({...x})),
+        totals,
+        customer:{name,phone,addr,note},
+        preferences:{...STATE.discover},
+        payment:{mode:"pay_after_delivery"}
+      };
+
+      STATE.orders.push(order);
+      STATE.lastOrderId = orderId;
+
+      STATE.cart = [];
+      save();
+      updateFloatingCart();
+      toast("Order placed! We will call to confirm.");
+      STATE.view = "success";
+      render();
+    }
+
+    // =========================
+    // ACTION HANDLER
+    // =========================
+    function handleAction(el){
+      const action = el.getAttribute("data-action");
+      if(!action) return;
+
+      if(action==="home"){ STATE.view="home"; render(); return; }
+      if(action==="discover"){ STATE.view="discover"; render(); return; }
+      if(action==="openRestaurant"){
+        STATE.activeRestaurantId = el.getAttribute("data-rid");
+        STATE.view="restaurant";
+        render();
+        return;
+      }
+      if(action==="cart"){ STATE.view="cart"; render(); return; }
+      if(action==="checkout"){ STATE.view="checkout"; render(); return; }
+      if(action==="orders"){ STATE.view="orders"; render(); return; }
+
+      if(action==="seller"){ STATE.view="seller"; render(); return; }
+      if(action==="partner"){ STATE.view="partner"; render(); return; }
+      if(action==="waitlist"){ STATE.view="waitlist"; render(); return; }
+
+      if(action==="privacy"){ STATE.view="privacy"; render(); return; }
+      if(action==="terms"){ STATE.view="terms"; render(); return; }
+      if(action==="contact"){ STATE.view="contact"; render(); return; }
+      if(action==="cookies"){ STATE.view="cookies"; render(); return; }
+
+      if(action==="setUrgency"){ STATE.discover.urgency = el.getAttribute("data-val") || ""; render(); return; }
+      if(action==="setTaste"){ STATE.discover.taste = el.getAttribute("data-val") || ""; render(); return; }
+      if(action==="refreshDiscover"){ toast("Updated suggestions"); render(); return; }
+
+      // ✅ NEW: pending quantity changes
+      if(action==="pendingInc"){
+        const id = el.getAttribute("data-item");
+        if(id){ incPending(id); render(); }
+        return;
+      }
+      if(action==="pendingDec"){
+        const id = el.getAttribute("data-item");
+        if(id){ decPending(id); render(); }
+        return;
+      }
+      if(action==="addSelected"){
+        addPendingToCart();
+        return;
+      }
+
+      if(action==="remove"){ removeFromCart(Number(el.getAttribute("data-idx"))); return; }
+      if(action==="incQty"){ incQty(Number(el.getAttribute("data-idx"))); return; }
+      if(action==="decQty"){ decQty(Number(el.getAttribute("data-idx"))); return; }
+
+      if(action==="placeOrder"){ placeOrder(); return; }
+      if(action==="copyUpi"){ copyText(el.getAttribute("data-upi")||""); return; }
+      if(action==="copyUpiLink"){ copyText(el.getAttribute("data-link")||""); return; }
+
+      if(action==="submitSeller"){ submitSeller(); return; }
+      if(action==="submitPartner"){ submitPartner(); return; }
+      if(action==="submitWaitlist"){ submitWaitlist(); return; }
+
+      if(action==="noop"){ return; }
+    }
+
+    document.addEventListener("click", function(e){
+      const el = e.target.closest("[data-action]");
+      if(el) handleAction(el);
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key!=="Enter" && e.key!==" ") return;
+      const el = e.target.closest("[data-action][role='button']");
+      if(!el) return;
+      e.preventDefault();
+      handleAction(el);
+    });
+
+    // =========================
+    // MAIN RENDER
+    // =========================
+    function render(){
+      switch(STATE.view){
+        case "home": renderHome(); break;
+        case "discover": renderDiscover(); break;
+        case "restaurant": renderRestaurant(); break;
+        case "cart": renderCart(); break;
+        case "checkout": renderCheckout(); break;
+        case "success": renderSuccess(); break;
+        case "orders": renderOrders(); break;
+        case "seller": renderSeller(); break;
+        case "partner": renderPartner(); break;
+        case "waitlist": renderWaitlist(); break;
+        case "privacy": renderPrivacy(); break;
+        case "terms": renderTerms(); break;
+        case "contact": renderContact(); break;
+        case "cookies": renderCookies(); break;
+        default: renderHome();
+      }
+      updateFloatingCart();
+
+      // Bind area dropdown after renderDiscover
+      if(STATE.view === "discover"){
+        const sel = $("selArea");
+        if(sel){
+          sel.addEventListener("change", function(){
+            STATE.discover.area = sel.value || "";
+            render();
+          }, { once:true });
+        }
+      }
+
+      // Render QR after success screen paints
+      if(STATE.view === "success"){
+        const orderId = STATE.lastOrderId;
+        const order = STATE.orders.find(o=>o.id===orderId);
+        const r = order ? restaurantById(order.restaurantId) : null;
+        if(order && r){
+          const upiLink = buildUpiLink(r.upiId, r.upiName || r.name, order.totals.total, "Decide Food " + order.id);
+          setTimeout(()=>renderQr(upiLink), 0);
+        }
+      }
+    }
+
+    function init(){
+      load();
+      updateFloatingCart();
+      const fc = $("floatCart");
+      if(fc) fc.addEventListener("click", ()=>{ STATE.view="cart"; render(); });
+
+      render();
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>
