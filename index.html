@@ -4,27 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>viadecide.com | India's Decision Engine</title>
-<link rel="manifest" href="./manifest.json">
-<script>
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
-</script>
+
+  <!-- ═══ UNIVERSAL ROUTER — MUST BE FIRST ═══ -->
+  <script src="./router.js"></script>
+
+  <link rel="manifest" href="./manifest.json">
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+  </script>
   <meta name="theme-color" content="#04080f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="decide.engine" />
   <meta name="description" content="India's decision research engine — built for the IndiaAI mission. Policy-grade intelligence for every citizen." />
+
   <!-- PDF libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
   <style>
-    /* ═══════════════════════════════════════
-       SHARED VARIABLES
-    ═══════════════════════════════════════ */
     :root {
       --saffron: #FF9933;
       --india-green: #138808;
@@ -68,6 +71,7 @@
       user-select: none;
     }
 
+    /* ── INTRO ── */
     #intro-wrapper {
       position: fixed; inset: 0; z-index: 1000;
       background: var(--bg-deep);
@@ -84,7 +88,6 @@
     }
     #app-wrapper.visible { opacity: 1; pointer-events: auto; }
 
-    /* INTRO STYLES */
     #bg-canvas { position: fixed; inset: 0; z-index: 0; opacity: .55; }
     .tribar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,#FF9933 33.33%,#fff 33.33%,#fff 66.66%,#138808 66.66%); z-index: 1200; }
 
@@ -209,9 +212,7 @@
     .glow-orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 1; animation: orbFloat 8s ease-in-out infinite; }
     @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.05)} }
 
-    /* ═══════════════════════════════════════
-       APP STYLES
-    ═══════════════════════════════════════ */
+    /* ── APP STYLES ── */
     body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
     .tricolor-bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%); z-index: 9998; }
@@ -286,7 +287,6 @@
     .btn-india { background: linear-gradient(135deg, rgba(255,153,51,.15), rgba(19,136,8,.1)); border: 1px solid rgba(255,153,51,.45); color: var(--saffron); font-family: var(--font-display); letter-spacing: 1px; }
     .btn-india:hover { box-shadow: 0 0 20px rgba(255,153,51,.15); }
     .btn-policy { background: linear-gradient(135deg, rgba(59,130,246,.15), rgba(59,130,246,.06)); border: 1px solid rgba(59,130,246,.4); color: #93c5fd; }
-    /* ── NEW: install button style ── */
     .btn-install { background: linear-gradient(135deg, rgba(255,153,51,.2), rgba(0,214,143,.1)); border: 1px solid rgba(255,153,51,.55); color: var(--saffron); font-family: var(--font-display); letter-spacing: 1px; position: relative; overflow: hidden; }
     .btn-install::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); transform: translateX(-100%); transition: transform .5s ease; }
     .btn-install:hover::before { transform: translateX(100%); }
@@ -312,7 +312,6 @@
     #mic-toggle.listening { border-color: var(--accent-go); box-shadow: 0 0 20px rgba(0,214,143,.2); }
     #mic-toggle svg { fill: var(--text-dim); width: 22px; }
 
-    /* ── Install FAB ── */
     #install-fab { position: fixed; bottom: 22px; right: 74px; z-index: 2000; display: none; }
     #install-fab button { background: linear-gradient(135deg,rgba(255,153,51,.25),rgba(0,214,143,.15)); border: 1px solid rgba(255,153,51,.55); color: var(--saffron); font-family: var(--font-mono); font-size: .58rem; letter-spacing: 1.2px; padding: 10px 16px; border-radius: 999px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,.4); white-space: nowrap; transition: all .2s; }
     #install-fab button:hover { box-shadow: 0 0 20px rgba(255,153,51,.2); }
@@ -410,7 +409,6 @@
     @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .animate-in { animation: slideInUp .4s ease both; }
 
-    /* ── Sub-page nav cards ── */
     .subpage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .subpage-card { background: var(--bg-deep); border: 1px solid var(--border); border-radius: 14px; padding: 14px 12px; cursor: pointer; transition: all .2s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; -webkit-tap-highlight-color: transparent; }
     .subpage-card:hover, .subpage-card:active { border-color: rgba(255,153,51,.4); background: rgba(255,153,51,.06); transform: translateY(-1px); }
@@ -466,7 +464,7 @@
           <div class="stat-box" style="transition-delay:.0s"><div class="stat-num" id="cnt-1b">0</div><div class="stat-lbl">Decisions/Day</div></div>
           <div class="stat-box" style="transition-delay:.2s"><div class="stat-num" id="cnt-22">0</div><div class="stat-lbl">Indian Languages</div></div>
           <div class="stat-box" style="transition-delay:.4s"><div class="stat-num" id="cnt-600">0</div><div class="stat-lbl">Districts</div></div>
-          <div class="stat-box" style="transition-delay:.6s"><div class="stat-num" id="cnt-0">0</div><div class="stat-lbl">AI Decision Tools<br>built for Bharat</div></div>
+          <div class="stat-box" style="transition-delay:.6s"><div class="stat-num" id="cnt-0">0</div><div class="stat-lbl">AI Decision Tools built for Bharat</div></div>
         </div>
         <div class="body-text" id="s2-body" style="margin-top:8px;transition-delay:.8s">That last number is the gap <strong>viadecide.com</strong> is here to close.</div>
       </div>
@@ -523,12 +521,12 @@
           <div class="split-col left" id="s5-l">
             <div class="split-eyebrow">🎯 Vision 2030</div>
             <div class="split-hl">India that decides with AI, not for AI.</div>
-            <div class="split-body">A future where every Indian — farmer, student, entrepreneur, policymaker — has access to <strong>structured, explainable, multilingual decision intelligence</strong>. Not a black box. A decision partner.</div>
+            <div class="split-body">A future where every Indian — farmer, student, entrepreneur, policymaker — has access to <strong>structured, explainable, multilingual decision intelligence</strong>.</div>
           </div>
           <div class="split-col right" id="s5-r">
             <div class="split-eyebrow">🏛️ IndiaAI Aligned</div>
             <div class="split-hl">7 pillars. 1 purpose.</div>
-            <div class="split-body">Aligned with <strong>IndiaAI Mission</strong>: sovereign compute, open datasets, responsible AI, skilling at scale, sector adoption, startup financing — and ethical governance as the foundation of all decisions.</div>
+            <div class="split-body">Aligned with <strong>IndiaAI Mission</strong>: sovereign compute, open datasets, responsible AI, skilling at scale, sector adoption, startup financing — and ethical governance as the foundation.</div>
           </div>
         </div>
       </div>
@@ -554,7 +552,7 @@
         <div class="hl hl-lg" id="s7-h1">Not AI <em style="font-style:normal;color:#f87171">for</em> India.</div>
         <div class="hl hl-xl hl-saffron" id="s7-h2" style="transition-delay:.2s">AI <em style="font-style:normal;color:var(--go)">with</em> India.</div>
         <div class="divider" id="s7-div" style="margin-top:16px"></div>
-        <div class="body-text" id="s7-body" style="margin-top:14px;transition-delay:.5s">decide.engine is <strong>open, attributed, multilingual</strong>, and designed to scale from a village in Vidarbha to the corridors of Raisina Hill. The infrastructure of intelligent choices — for every Indian.</div>
+        <div class="body-text" id="s7-body" style="margin-top:14px;transition-delay:.5s">decide.engine is <strong>open, attributed, multilingual</strong>, and designed to scale from a village in Vidarbha to the corridors of Raisina Hill.</div>
         <div class="flag-bar" id="s7-flag" style="max-width:300px;height:4px;margin:20px auto 0"></div>
       </div>
     </div>
@@ -594,7 +592,6 @@
   </div>
 </div>
 
-
 <!-- ═══════════════════════════════════════
      APP
 ═══════════════════════════════════════ -->
@@ -604,7 +601,6 @@
   <div id="depth-fill"></div>
   <div id="toast" class="toast-msg"></div>
 
-  <!-- Install FAB (shown when PWA installable) -->
   <div id="install-fab">
     <button onclick="triggerInstall()">⬇ INSTALL APP</button>
   </div>
@@ -664,19 +660,20 @@
       </div>
       <div class="panel-section">
         <div class="section-title" style="margin-top:0">Tools &amp; Pages</div>
+        <!-- ── ALL LINKS USE /slug/ FORMAT — router.js handles resolution ── -->
         <div class="subpage-grid" style="margin-bottom:10px;">
-          <a class="subpage-card" href="SwipeOS?.html" target="_blank"><div class="subpage-card-icon">📱</div><div class="subpage-card-title">SwipeOS</div><div class="subpage-card-desc">OS interface</div></a>
-          <a class="subpage-card" href="engine-deals.html" target="_blank"><div class="subpage-card-icon">🤝</div><div class="subpage-card-title">Deals</div><div class="subpage-card-desc">Engine deals</div></a>
-          <a class="subpage-card" href="alchemist.html" target="_blank"><div class="subpage-card-icon">🧪</div><div class="subpage-card-title">Alchemist</div><div class="subpage-card-desc">Quiz engine</div></a>
-          <a class="subpage-card" href="cashback-claim.html" target="_blank"><div class="subpage-card-icon">💰</div><div class="subpage-card-title">Cashback</div><div class="subpage-card-desc">Claim rewards</div></a>
-          <a class="subpage-card" href="cashback-rules.html" target="_blank"><div class="subpage-card-icon">📋</div><div class="subpage-card-title">CB Rules</div><div class="subpage-card-desc">Cashback rules</div></a>
-          <a class="subpage-card" href="engine-license.html" target="_blank"><div class="subpage-card-icon">🔑</div><div class="subpage-card-title">License</div><div class="subpage-card-desc">Engine license</div></a>
-          <a class="subpage-card" href="ONDC-demo.html" target="_blank"><div class="subpage-card-icon">🛒</div><div class="subpage-card-title">ONDC Demo</div><div class="subpage-card-desc">Commerce demo</div></a>
-          <a class="subpage-card" href="PromptAlchemy.html" target="_blank"><div class="subpage-card-icon">✨</div><div class="subpage-card-title">PromptAlchemy</div><div class="subpage-card-desc">Prompt tools</div></a>
-          <a class="subpage-card" href="StudentResearch.html" target="_blank"><div class="subpage-card-icon">🎓</div><div class="subpage-card-title">Student Research</div><div class="subpage-card-desc">Academic tools</div></a>
-          <a class="subpage-card" href="contact.html" target="_blank"><div class="subpage-card-icon">📬</div><div class="subpage-card-title">Contact</div><div class="subpage-card-desc">Get in touch</div></a>
-          <a class="subpage-card" href="brief.html" target="_blank"><div class="subpage-card-icon">📄</div><div class="subpage-card-title">Brief</div><div class="subpage-card-desc">Decision brief</div></a>
-          <a class="subpage-card" href="decision-brief.html" target="_blank"><div class="subpage-card-icon">🗂️</div><div class="subpage-card-title">Dec. Brief</div><div class="subpage-card-desc">Full brief</div></a>
+          <a class="subpage-card" href="/swipeos/" target="_blank"><div class="subpage-card-icon">📱</div><div class="subpage-card-title">SwipeOS</div><div class="subpage-card-desc">OS interface</div></a>
+          <a class="subpage-card" href="/engine-deals/" target="_blank"><div class="subpage-card-icon">🤝</div><div class="subpage-card-title">Deals</div><div class="subpage-card-desc">Engine deals</div></a>
+          <a class="subpage-card" href="/alchemist/" target="_blank"><div class="subpage-card-icon">🧪</div><div class="subpage-card-title">Alchemist</div><div class="subpage-card-desc">Quiz engine</div></a>
+          <a class="subpage-card" href="/cashback-claim/" target="_blank"><div class="subpage-card-icon">💰</div><div class="subpage-card-title">Cashback</div><div class="subpage-card-desc">Claim rewards</div></a>
+          <a class="subpage-card" href="/cashback-rules/" target="_blank"><div class="subpage-card-icon">📋</div><div class="subpage-card-title">CB Rules</div><div class="subpage-card-desc">Cashback rules</div></a>
+          <a class="subpage-card" href="/engine-license/" target="_blank"><div class="subpage-card-icon">🔑</div><div class="subpage-card-title">License</div><div class="subpage-card-desc">Engine license</div></a>
+          <a class="subpage-card" href="/ondc-demo/" target="_blank"><div class="subpage-card-icon">🛒</div><div class="subpage-card-title">ONDC Demo</div><div class="subpage-card-desc">Commerce demo</div></a>
+          <a class="subpage-card" href="/promptalchemy/" target="_blank"><div class="subpage-card-icon">✨</div><div class="subpage-card-title">PromptAlchemy</div><div class="subpage-card-desc">Prompt tools</div></a>
+          <a class="subpage-card" href="/student-research/" target="_blank"><div class="subpage-card-icon">🎓</div><div class="subpage-card-title">Student Research</div><div class="subpage-card-desc">Academic tools</div></a>
+          <a class="subpage-card" href="/contact/" target="_blank"><div class="subpage-card-icon">📬</div><div class="subpage-card-title">Contact</div><div class="subpage-card-desc">Get in touch</div></a>
+          <a class="subpage-card" href="/brief/" target="_blank"><div class="subpage-card-icon">📄</div><div class="subpage-card-title">Brief</div><div class="subpage-card-desc">Decision brief</div></a>
+          <a class="subpage-card" href="/decision-brief/" target="_blank"><div class="subpage-card-icon">🗂️</div><div class="subpage-card-title">Dec. Brief</div><div class="subpage-card-desc">Full brief</div></a>
         </div>
       </div>
       <div class="panel-section">
@@ -704,7 +701,6 @@
         <div style="height:8px"></div>
         <button class="btn btn-mini btn-full btn-muted" onclick="openProjectPicker()">LOAD PROJECT</button>
         <div style="height:8px"></div>
-        <!-- Install button in panel -->
         <button class="btn btn-mini btn-full btn-install" id="panel-install-btn" onclick="triggerInstall()" style="display:none">⬇ INSTALL APP</button>
       </div>
     </div>
@@ -716,17 +712,15 @@
   <div id="pro-ui-root" aria-hidden="true"></div>
 </div>
 
-
 <script>
 /* ═══════════════════════════════════════
-   PWA INSTALL LOGIC
+   PWA INSTALL
 ═══════════════════════════════════════ */
 let deferredInstallPrompt = null;
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  // Show the FAB and panel button
   document.getElementById('install-fab').classList.add('visible');
   const panelBtn = document.getElementById('panel-install-btn');
   if (panelBtn) panelBtn.style.display = '';
@@ -741,18 +735,10 @@ window.addEventListener('appinstalled', () => {
 });
 
 async function triggerInstall() {
-  if (!deferredInstallPrompt) {
-    // iOS or already installed — guide the user
-    showToast('IOS: USE SHARE → ADD TO HOME SCREEN');
-    return;
-  }
+  if (!deferredInstallPrompt) { showToast('IOS: USE SHARE → ADD TO HOME SCREEN'); return; }
   deferredInstallPrompt.prompt();
   const { outcome } = await deferredInstallPrompt.userChoice;
-  if (outcome === 'accepted') {
-    showToast('INSTALLING…');
-  } else {
-    showToast('INSTALL DISMISSED');
-  }
+  showToast(outcome === 'accepted' ? 'INSTALLING…' : 'INSTALL DISMISSED');
   deferredInstallPrompt = null;
   document.getElementById('install-fab').classList.remove('visible');
   const panelBtn = document.getElementById('panel-install-btn');
@@ -764,7 +750,6 @@ async function triggerInstall() {
 ═══════════════════════════════════════ */
 const bgCanvas = document.getElementById('bg-canvas');
 const bgCtx = bgCanvas.getContext('2d');
-
 function resizeBg(){ bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
 resizeBg(); window.addEventListener('resize', resizeBg);
 
@@ -1023,12 +1008,10 @@ function enterApp(){
 
 introActivateScene(0);
 
-
 /* ═══════════════════════════════════════
    APP SYSTEM
 ═══════════════════════════════════════ */
 let appBooted = false;
-
 const ALCHEMIST_LS_KEY = "ALCHEMIST_INJECTED_DATA";
 
 async function fetchJSON(url, { timeoutMs = 9000 } = {}) {
@@ -1068,6 +1051,7 @@ function closeUIPanel() { const p=document.getElementById('ui-panel'), o=documen
 function toggleUIPanel() { if (isUIPanelOpen()) closeUIPanel(); else openUIPanel(); }
 function tryGoBack() { if (typeof goToSlide === 'function' && typeof currentIdx === 'number' && currentIdx > 0) { goToSlide(currentIdx-1); return; } showToast("NO BACK"); }
 function safeCall(fnName) { try { const fn=window[fnName]; if (typeof fn==='function') return fn(); showToast("UNAVAILABLE"); } catch(e) { console.error(e); showToast("FAILED"); } }
+
 function updateUIPanel() {
   const set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=String(txt); };
   const domain = ENGINE_STATE?.cuisines_detected?.[0] || "home";
@@ -1083,9 +1067,11 @@ function updateUIPanel() {
   set('panel-time', nowIST());
   set('panel-toast-hint', isUIPanelOpen() ? "Tap outside to close" : "Ready");
   set('panel-project', CURRENT_PROJECT?.name ? CURRENT_PROJECT.name.toUpperCase() : "-");
-  // Show install button if prompt is available
   const panelBtn = document.getElementById('panel-install-btn');
   if (panelBtn) panelBtn.style.display = deferredInstallPrompt ? '' : 'none';
+  // Update landing install button too if present
+  const landingBtn = document.getElementById('landing-install-btn');
+  if (landingBtn) landingBtn.style.display = deferredInstallPrompt ? '' : 'none';
 }
 
 const NOTES_KEY = "decide_engine_notes_v1";
@@ -1105,7 +1091,7 @@ function confidenceFor(source) { if (source==='wiki'||source==='travel') return 
 function openYouTubeSearch(topic) { window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent((topic||"")+" explained")}`, '_blank'); }
 function openWikipedia(title) { window.open(`https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(title||"")}`, "_blank"); }
 
-/* Alchemist Quiz */
+/* ── Alchemist Quiz — uses VDRouter ── */
 function buildAlchemistPayloadFromResearch(nodes, { maxQ=12 }={}) {
   const list=Array.isArray(nodes) ? nodes.slice(0,maxQ) : []; const out=[]; const now=Date.now();
   function pick2Distractors(allTitles, correctTitle) { const pool=allTitles.filter(t=>t&&t!==correctTitle); for (let i=pool.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; } return [pool[0]||"—", pool[1]||"—"]; }
@@ -1121,22 +1107,29 @@ function buildAlchemistPayloadFromResearch(nodes, { maxQ=12 }={}) {
   });
   return out;
 }
+
 function launchAlchemistQuiz() {
   const nodes=ENGINE_STATE?.research_nodes||[];
   if (!nodes.length) return showToast("NO NODES FOR QUIZ");
-  try { const payload=buildAlchemistPayloadFromResearch(nodes,{maxQ:12}); localStorage.setItem(ALCHEMIST_LS_KEY, JSON.stringify(payload)); showToast("QUIZ READY"); window.open("alchemist.html","_blank"); }
-  catch(e) { console.error(e); showToast("QUIZ FAILED"); }
+  try {
+    const payload=buildAlchemistPayloadFromResearch(nodes,{maxQ:12});
+    localStorage.setItem(ALCHEMIST_LS_KEY, JSON.stringify(payload));
+    showToast("QUIZ READY");
+    // ── Uses VDRouter — no hardcoded .html path ──
+    if (window.VDRouter) { window.VDRouter.go('alchemist', { newTab: true }); }
+    else { window.open('/alchemist/', '_blank'); }
+  } catch(e) { console.error(e); showToast("QUIZ FAILED"); }
 }
 
-/* Wiki Engine */
+/* ── Wiki Engine ── */
 const WIKI_ENGINE = {
   activeSource: "wiki",
   cache: new Map(),
   sources: {
-    wiki: { name:"WIKIPEDIA", api:"https://en.wikipedia.org/w/api.php", icon:"📚", description:"General knowledge encyclopedia" },
-    travel: { name:"WIKIVOYAGE", api:"https://en.wikivoyage.org/w/api.php", icon:"🗺️", description:"Travel guides and destinations" },
-    wikibooks: { name:"WIKIBOOKS", api:"https://en.wikibooks.org/w/api.php", icon:"📖", description:"Educational textbooks" },
-    wikinews: { name:"WIKINEWS", api:"https://en.wikinews.org/w/api.php", icon:"📰", description:"News articles" }
+    wiki:      { name:"WIKIPEDIA",  api:"https://en.wikipedia.org/w/api.php",   icon:"📚", description:"General knowledge encyclopedia" },
+    travel:    { name:"WIKIVOYAGE", api:"https://en.wikivoyage.org/w/api.php",  icon:"🗺️", description:"Travel guides and destinations" },
+    wikibooks: { name:"WIKIBOOKS",  api:"https://en.wikibooks.org/w/api.php",   icon:"📖", description:"Educational textbooks" },
+    wikinews:  { name:"WIKINEWS",   api:"https://en.wikinews.org/w/api.php",    icon:"📰", description:"News articles" }
   },
   async search(query, source=this.activeSource) {
     const q=normalizeText(query); const cacheKey=`search_${source}_${q}`;
@@ -1161,7 +1154,7 @@ const WIKI_ENGINE = {
   }
 };
 
-/* Project persistence */
+/* ── Project persistence ── */
 const PROJECTS_INDEX_KEY="decideos_projects_v1";
 const LAST_PROJECT_KEY="decideos_last_project_id_v1";
 const PROJECT_PREFIX="decideos_project_";
@@ -1182,20 +1175,26 @@ function buildProjectFromCurrentState() { const nodes=ENGINE_STATE?.research_nod
 function loadProjectIntoApp(project) { CURRENT_PROJECT=project; const notes=project?.engineState?.notes??""; localStorage.setItem(NOTES_KEY,notes); const ta=document.getElementById("notes-text"); if (ta) ta.value=notes; ENGINE_STATE.cuisines_detected=["research"]; ENGINE_STATE.research_nodes=Array.isArray(project?.engineState?.research_nodes)?project.engineState.research_nodes:[]; ENGINE_STATE.synthesis=project?.engineState?.synthesis||null; if (ENGINE_STATE.research_nodes.length) openStoredDeck(ENGINE_STATE.research_nodes,ENGINE_STATE.synthesis); else renderSearchSlide(); updateUIPanel(); }
 function importShareLinkPrompt() { const link=window.prompt("Paste share link (or payload after #p=):",""); if (!link) return; let payload=link.trim(); const idx=payload.indexOf("#p="); if (idx>=0) payload=payload.slice(idx+3); if (payload.startsWith("p=")) payload=payload.slice(2); try { const project=deserializeProjectFromShare(payload); if (!project.id) project.id=uid(); if (!project.name) project.name="Imported Project"; project.updatedAt=new Date().toISOString(); if (!project.createdAt) project.createdAt=project.updatedAt; saveProjectToStorage(project); loadProjectIntoApp(project); showToast("IMPORTED"); } catch(e) { console.error(e); showToast("INVALID LINK"); } }
 
+/* ── Subpage navigation helper — always use VDRouter ── */
+function openSubpage(slug) {
+  if (window.VDRouter) { window.VDRouter.go(slug, { newTab: true }); }
+  else { window.open('/' + slug + '/', '_blank'); }
+}
+
 const DEFAULT_EXAMPLES = [
   { id:"ex_indiaai", name:"IndiaAI: National AI Mission", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
     engineState:{ notes:"Policy node: map each research node to a policy pillar — compute access, skilling, datasets, sector adoption, ethics.",
       synthesis:{ thesis:"India's National AI Mission anchors on seven pillars: compute infrastructure, foundation models, datasets, skilling, sector adoption, startups, and responsible AI governance.", topTakeaways:["IndiaAI Mission targets sovereign AI infrastructure through the IndiaAI Compute Platform.","10,000+ GPU compute capacity being built for startups, researchers, and government.","India Datasets Platform aims to make high-quality Indian language data publicly accessible.","Responsible AI governance includes safety, ethics, fairness, and accountability frameworks.","FutureSkills Prime and IITs anchor skilling at scale for India's AI workforce."], contradictions:"Tension between data sovereignty and open innovation; compute centralization vs. democratized access.", implications:"Policymakers must align procurement, skilling, and startup enablement simultaneously.", next:"Research: AI Safety Institute India • IndiaAI Startup Financing • Digital Public Infrastructure", recommendation:"Frame every decision through the lens of: 'Does this scale to Bharat's 1.4 billion?'" },
       research_nodes:[
-        { title:"Artificial intelligence in India", summary:"India has emerged as a global hub for AI development and deployment, driven by its large talent pool, growing startup ecosystem, and government-led initiatives such as the National AI Strategy. The government's IndiaAI Mission, launched in 2024, focuses on building sovereign AI infrastructure including compute, datasets, and application frameworks. India aims to be a global leader in responsible AI with a particular emphasis on inclusive AI for agriculture, healthcare, education, and governance at scale.", url:"https://en.wikipedia.org/wiki/Artificial_intelligence_in_India", thumbnail:null, categories:["AI","India","Policy","Technology"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"} },
-        { title:"Digital India", summary:"Digital India is a flagship programme of the Government of India that aims to transform India into a digitally empowered society and knowledge economy. It focuses on digital infrastructure as a utility, governance and services on demand, and digital empowerment of citizens. Key pillars include broadband connectivity, mobile connectivity, public internet access, and e-governance. Digital India has enabled the foundation for AI adoption at population scale.", url:"https://en.wikipedia.org/wiki/Digital_India", thumbnail:null, categories:["Digital","India","Government","e-Governance"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"} }
+        { title:"Artificial intelligence in India", summary:"India has emerged as a global hub for AI development and deployment, driven by its large talent pool, growing startup ecosystem, and government-led initiatives such as the National AI Strategy. The government's IndiaAI Mission, launched in 2024, focuses on building sovereign AI infrastructure including compute, datasets, and application frameworks.", url:"https://en.wikipedia.org/wiki/Artificial_intelligence_in_India", thumbnail:null, categories:["AI","India","Policy"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"} },
+        { title:"Digital India", summary:"Digital India is a flagship programme of the Government of India that aims to transform India into a digitally empowered society and knowledge economy. Key pillars include broadband connectivity, mobile connectivity, public internet access, and e-governance. Digital India has enabled the foundation for AI adoption at population scale.", url:"https://en.wikipedia.org/wiki/Digital_India", thumbnail:null, categories:["Digital","India","Government"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"} }
       ] }
   },
   { id:"ex_stoicism", name:"Stoicism → Decision Discipline", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
     engineState:{ notes:"Use this as a template: connect each node to the same decision context.",
       synthesis:{ thesis:"Stoicism is a practical operating system for reducing noise, focusing on controllables, and improving decision quality under uncertainty.", topTakeaways:["Separate controllables vs uncontrollables to reduce wasted effort.","Use negative visualization to stress-test downside scenarios.","Virtue framing improves consistency: act by principle, not mood.","Daily review loops create compounding behavioral change.","High signal routines beat motivational spikes."], contradictions:"Risk: can be misused as emotional suppression vs regulation.", implications:"For founders: define controllables, build pre-mortems, make principles explicit, review weekly.", next:"Read: Epictetus Enchiridion • Marcus Aurelius Meditations", recommendation:"If your environment is high-volatility, stoic routines tend to increase consistency." },
       research_nodes:[
-        { title:"Stoicism", summary:"Stoicism is a school of Hellenistic philosophy that teaches the development of self-control and fortitude as a means to overcome destructive emotions. It emphasizes virtue, reason, and living in accordance with nature. Stoics distinguish between what is within our control and what is not. The practice includes reflection, negative visualization, and focusing on internal character rather than external outcomes.", url:"https://en.wikipedia.org/wiki/Stoicism", thumbnail:null, categories:["Philosophy","Ethics"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Build discipline system for better decisions",time:"90 days",stake:"Execution consistency",success:"Higher follow-through rate",options:"Stoic routines vs ad-hoc motivation"} }
+        { title:"Stoicism", summary:"Stoicism is a school of Hellenistic philosophy that teaches the development of self-control and fortitude as a means to overcome destructive emotions. It emphasizes virtue, reason, and living in accordance with nature. Stoics distinguish between what is within our control and what is not.", url:"https://en.wikipedia.org/wiki/Stoicism", thumbnail:null, categories:["Philosophy","Ethics"], links:[], source:"wiki", sourceName:"WIKIPEDIA", confidence:"High", decisionMeta:{decision:"Build discipline system for better decisions",time:"90 days",stake:"Execution consistency",success:"Higher follow-through rate",options:"Stoic routines vs ad-hoc motivation"} }
       ] }
   }
 ];
@@ -1205,7 +1204,34 @@ let slideElements = [];
 let currentIdx = 0;
 let currentDecisionContext = null;
 
-/* Founder Letter */
+/* ── Shared subpage grid HTML generator ── */
+function subpageGridHTML() {
+  const pages = [
+    { slug:'swipeos',          icon:'📱', title:'SwipeOS',        desc:'OS interface' },
+    { slug:'engine-deals',     icon:'🤝', title:'Deals',          desc:'Engine deals' },
+    { slug:'alchemist',        icon:'🧪', title:'Alchemist',      desc:'Quiz engine' },
+    { slug:'cashback-claim',   icon:'💰', title:'Cashback',       desc:'Claim rewards' },
+    { slug:'cashback-rules',   icon:'📋', title:'CB Rules',       desc:'Cashback rules' },
+    { slug:'engine-license',   icon:'🔑', title:'License',        desc:'Engine license' },
+    { slug:'ondc-demo',        icon:'🛒', title:'ONDC Demo',      desc:'Commerce demo' },
+    { slug:'promptalchemy',    icon:'✨', title:'PromptAlchemy',  desc:'Prompt tools' },
+    { slug:'student-research', icon:'🎓', title:'Student Research',desc:'Academic tools' },
+    { slug:'contact',          icon:'📬', title:'Contact',        desc:'Get in touch' },
+    { slug:'brief',            icon:'📄', title:'Brief',          desc:'Decision brief' },
+    { slug:'decision-brief',   icon:'🗂️', title:'Dec. Brief',     desc:'Full brief' },
+  ];
+  return `<div class="subpage-grid">` +
+    pages.map(p =>
+      `<a class="subpage-card" href="/${p.slug}/" target="_blank">` +
+        `<div class="subpage-card-icon">${p.icon}</div>` +
+        `<div class="subpage-card-title">${p.title}</div>` +
+        `<div class="subpage-card-desc">${p.desc}</div>` +
+      `</a>`
+    ).join('') +
+  `</div>`;
+}
+
+/* ── Founder Letter ── */
 function openFounderLetter() {
   closeUIPanel();
   const container = document.getElementById('master-container');
@@ -1219,13 +1245,12 @@ function openFounderLetter() {
         <h2>We built this for the billion who decide.</h2>
         <p>Every day, over a billion Indians make decisions that shape their lives — choosing a school, a medication, a business, a policy. Most of them make these decisions <strong>without access to structured information, expert analysis, or decision scaffolding</strong>.</p>
         <p>That gap is not a data problem. It is an <strong>intelligence infrastructure problem</strong>.</p>
-        <p>decide.engine began as a personal tool. A way to think clearly in a noisy world. To build a decision, research it, synthesize it, and act. But when we looked at what India's AI mission was building toward — compute, datasets, skilling, responsible AI — we saw something bigger.</p>
+        <p>decide.engine began as a personal tool. A way to think clearly in a noisy world. But when we looked at what India's AI mission was building toward — compute, datasets, skilling, responsible AI — we saw something bigger.</p>
         <p>We saw the infrastructure for a new kind of decision-making at scale. <strong>Policy-grade intelligence, accessible to every citizen.</strong></p>
-        <p>This is not about replacing human judgment. It is about amplifying it. About giving a farmer in Vidarbha the same structured research process that a policy advisor in South Block uses. About making AI not a product for the elite — but a <strong>decision partner for every Indian</strong>.</p>
+        <p>This is not about replacing human judgment. It is about amplifying it. About giving a farmer in Vidarbha the same structured research process that a policy advisor in South Block uses.</p>
         <p>IndiaAI's mission is sovereign. Inclusive. Responsible. Ours aligns completely.</p>
         <p>We are building decide.engine as an open, policy-grade decision research layer — aligned with IndiaAI's seven pillars, designed for India's languages, and committed to <strong>AI that decides with India, not for India</strong>.</p>
-        <p>The decision is yours. The infrastructure is ours to build together.</p>
-        <div class="letter-sig"><strong>— The decide.engine team</strong><br><span style="color:var(--text-dim); font-size:.78rem;">Building for Bharat · Aligned with IndiaAI Mission · 2024</span></div>
+        <div class="letter-sig"><strong>— The decide.engine team</strong><br><span style="color:var(--text-dim);font-size:.78rem;">Building for Bharat · Aligned with IndiaAI Mission · 2024</span></div>
       </div>
       <div class="mission-pills">
         <span class="mission-pill mp-saffron">🇮🇳 Sovereign AI</span>
@@ -1252,7 +1277,7 @@ function openFounderLetter() {
   container.appendChild(section); slideElements.push(section); goToSlide(slideElements.length - 1);
 }
 
-/* Policy Brief */
+/* ── Policy Brief ── */
 function openPolicyBrief() {
   const container = document.getElementById('master-container');
   const section = document.createElement('section');
@@ -1265,10 +1290,10 @@ function openPolicyBrief() {
       <div class="policy-banner"><div class="policy-icon">🏛️</div><div class="policy-text"><strong>IndiaAI Mission (2024-2030)</strong> — India's national strategy to build sovereign AI infrastructure spanning compute, data, skilling, research, and responsible governance.</div></div>
       <div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 1 — IndiaAI Compute Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> 10,000+ GPU sovereign compute infrastructure.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Lightweight, browser-native — zero GPU dependency for end users.</div></div>
       <div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 2 — IndiaAI Datasets Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> High-quality, multilingual Indian language datasets.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Designed for multilingual expansion — Hindi, Tamil, Bengali, Marathi.</div></div>
-      <div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 3 — FutureSkills Prime / AI Skilling</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Train 1 million AI-skilled workers by 2030.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Quiz engine (Alchemist) creates skill-assessment loops from research nodes.</div></div>
+      <div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 3 — AI Skilling</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Train 1 million AI-skilled workers by 2030.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Quiz engine (Alchemist) creates skill-assessment loops from research nodes.</div></div>
       <div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 4 — Responsible AI</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Safety, ethics, fairness, accountability.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> All research is source-attributed and confidence-rated. No black-box outputs.</div></div>
       <div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 5 — AI for Sector Adoption</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> AI in agriculture, health, education, governance.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Decision nodes pre-configured for sector-specific decisions.</div></div>
-      <div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 6 — IndiaAI Startup Financing</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> ₹2000 Cr+ fund for deep-tech AI startups.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Open-source core, startup-ready API layer. PDF exports as pitch artifacts.</div></div>
+      <div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 6 — Startup Financing</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> ₹2000 Cr+ fund for deep-tech AI startups.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Open-source core, startup-ready API layer. PDF exports as pitch artifacts.</div></div>
       <div class="founder-letter" style="margin-top:6px;"><div class="founder-letter-eyebrow"><span class="pulse-dot"></span>Our Commitment</div><p style="margin:0;font-size:.9rem;color:var(--text-dim);line-height:1.7">decide.engine commits to building in the open, aligning with IndiaAI's data and ethics standards, supporting Indian language expansion, and making policy-grade decision intelligence accessible to every Indian.</p></div>
       <div class="final-actions">
         <button class="btn btn-full btn-india" onclick="openExample('ex_indiaai')">LOAD INDIAAI EXAMPLE →</button>
@@ -1282,7 +1307,7 @@ function openPolicyBrief() {
   container.appendChild(section); slideElements.push(section); goToSlide(slideElements.length - 1);
 }
 
-/* Landing */
+/* ── Landing ── */
 function goHome() { closeUIPanel(); closeNotesPanel(); renderLanding(); }
 
 function renderLanding() {
@@ -1290,9 +1315,9 @@ function renderLanding() {
   container.innerHTML = ""; slideElements = []; currentIdx = 0;
   const lastId = localStorage.getItem(LAST_PROJECT_KEY);
   const hasLast = !!(lastId && loadProjectFromStorage(lastId));
-  const examplesHtml = DEFAULT_EXAMPLES.map(ex => `<button class="cuisine-btn" onclick="openExample('${escapeHTML(ex.id)}')">${escapeHTML(ex.name)}</button>`).join("");
-  // Install button for landing — only shown if prompt available
-  const installHtml = `<button class="btn btn-full btn-install" id="landing-install-btn" onclick="triggerInstall()" style="${deferredInstallPrompt ? '' : 'display:none'}">⬇ INSTALL APP</button>`;
+  const examplesHtml = DEFAULT_EXAMPLES.map(ex =>
+    `<button class="cuisine-btn" onclick="openExample('${escapeHTML(ex.id)}')">${escapeHTML(ex.name)}</button>`
+  ).join("");
   const section = document.createElement('section');
   section.className = "main-slide active"; section.dataset.mode = "landing";
   section.innerHTML = `
@@ -1311,37 +1336,31 @@ function renderLanding() {
       </div>
       <div class="context-panel">
         <div class="section-title" style="margin-top:0">Quick Start</div>
-        <div style="color:var(--text-dim);font-size:.88rem;line-height:1.7;"><strong style="color:var(--text-main)">Search</strong> any topic → select a result → build research nodes.<br><strong style="color:var(--text-main)">Synthesis</strong> → capture thesis, takeaways, and next steps.<br><strong style="color:var(--text-main)">Export</strong> as Research PDF or Decision Brief PDF.<br><strong style="color:var(--text-main)">Share</strong> via link (project embedded in URL).</div>
-      </div>
-      <div class="context-panel"><div class="section-title" style="margin-top:0">Load Example</div><div style="display:grid;gap:10px;">${examplesHtml}</div></div>
-
-      <!-- Sub-page navigation -->
-      <div class="context-panel">
-        <div class="section-title" style="margin-top:0">All Tools &amp; Pages</div>
-        <div class="subpage-grid">
-          <a class="subpage-card" href="SwipeOS?.html" target="_blank"><div class="subpage-card-icon">📱</div><div class="subpage-card-title">SwipeOS</div><div class="subpage-card-desc">OS Interface</div></a>
-          <a class="subpage-card" href="engine-deals.html" target="_blank"><div class="subpage-card-icon">🤝</div><div class="subpage-card-title">Engine Deals</div><div class="subpage-card-desc">Deal engine</div></a>
-          <a class="subpage-card" href="alchemist.html" target="_blank"><div class="subpage-card-icon">🧪</div><div class="subpage-card-title">Alchemist</div><div class="subpage-card-desc">Quiz engine</div></a>
-          <a class="subpage-card" href="cashback-claim.html" target="_blank"><div class="subpage-card-icon">💰</div><div class="subpage-card-title">Cashback Claim</div><div class="subpage-card-desc">Claim rewards</div></a>
-          <a class="subpage-card" href="cashback-rules.html" target="_blank"><div class="subpage-card-icon">📋</div><div class="subpage-card-title">CB Rules</div><div class="subpage-card-desc">Cashback rules</div></a>
-          <a class="subpage-card" href="engine-license.html" target="_blank"><div class="subpage-card-icon">🔑</div><div class="subpage-card-title">Engine License</div><div class="subpage-card-desc">License info</div></a>
-          <a class="subpage-card" href="ONDC-demo.html" target="_blank"><div class="subpage-card-icon">🛒</div><div class="subpage-card-title">ONDC Demo</div><div class="subpage-card-desc">Commerce demo</div></a>
-          <a class="subpage-card" href="PromptAlchemy.html" target="_blank"><div class="subpage-card-icon">✨</div><div class="subpage-card-title">PromptAlchemy</div><div class="subpage-card-desc">Prompt tools</div></a>
-          <a class="subpage-card" href="StudentResearch.html" target="_blank"><div class="subpage-card-icon">🎓</div><div class="subpage-card-title">Student Research</div><div class="subpage-card-desc">Academic tools</div></a>
-          <a class="subpage-card" href="decision-brief.html" target="_blank"><div class="subpage-card-icon">🗂️</div><div class="subpage-card-title">Decision Brief</div><div class="subpage-card-desc">Full brief</div></a>
-          <a class="subpage-card" href="brief.html" target="_blank"><div class="subpage-card-icon">📄</div><div class="subpage-card-title">Brief</div><div class="subpage-card-desc">Quick brief</div></a>
-          <a class="subpage-card" href="contact.html" target="_blank"><div class="subpage-card-icon">📬</div><div class="subpage-card-title">Contact</div><div class="subpage-card-desc">Get in touch</div></a>
+        <div style="color:var(--text-dim);font-size:.88rem;line-height:1.7;">
+          <strong style="color:var(--text-main)">Search</strong> any topic → select a result → build research nodes.<br>
+          <strong style="color:var(--text-main)">Synthesis</strong> → capture thesis, takeaways, and next steps.<br>
+          <strong style="color:var(--text-main)">Export</strong> as Research PDF or Decision Brief PDF.<br>
+          <strong style="color:var(--text-main)">Share</strong> via link (project embedded in URL).
         </div>
       </div>
-
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">Load Example</div>
+        <div style="display:grid;gap:10px;">${examplesHtml}</div>
+      </div>
+      <div class="context-panel">
+        <div class="section-title" style="margin-top:0">All Tools &amp; Pages</div>
+        ${subpageGridHTML()}
+      </div>
       <div class="final-actions">
         <button class="btn btn-full btn-india" onclick="openFounderLetter()">FOUNDER LETTER →</button>
         <button class="btn btn-full btn-policy" onclick="openPolicyBrief()">INDIAAI POLICY BRIEF →</button>
         <button class="btn btn-full btn-pro" onclick="openTool()">OPEN RESEARCH TOOL</button>
-        ${hasLast ? `<button class="btn btn-full" onclick="continueLastProject()">CONTINUE LAST PROJECT</button>` : `<button class="btn btn-full btn-muted" onclick="showToast('NO LAST PROJECT')">CONTINUE LAST PROJECT</button>`}
+        ${hasLast
+          ? `<button class="btn btn-full" onclick="continueLastProject()">CONTINUE LAST PROJECT</button>`
+          : `<button class="btn btn-full btn-muted" onclick="showToast('NO LAST PROJECT')">CONTINUE LAST PROJECT</button>`}
         <button class="btn btn-full" onclick="importShareLinkPrompt()">IMPORT SHARE LINK</button>
         <button class="btn btn-full btn-muted" onclick="openProjectPicker()">LOAD SAVED PROJECT</button>
-        ${installHtml}
+        <button class="btn btn-full btn-install" id="landing-install-btn" onclick="triggerInstall()" style="${deferredInstallPrompt ? '' : 'display:none'}">⬇ INSTALL APP</button>
       </div>
       <div class="nav-hint"><span>☰ Quick Panel</span><span>✎ Notes</span></div>
     </div>
@@ -1355,7 +1374,7 @@ function openExample(exampleId) { const ex = DEFAULT_EXAMPLES.find(x => x.id ===
 function continueLastProject() { const id = localStorage.getItem(LAST_PROJECT_KEY); if (!id) return showToast("NO LAST PROJECT"); const project = loadProjectFromStorage(id); if (!project) return showToast("LOAD FAILED"); loadProjectIntoApp(project); showToast("CONTINUED"); }
 function openTool() { CURRENT_PROJECT = null; renderLobby(); updateUIPanel(); }
 
-/* Lobby */
+/* ── Lobby ── */
 const FALLBACK_MENU = { "research": { label:"DECISION RESEARCH", categories:[] } };
 let RAW_DATA = FALLBACK_MENU;
 
@@ -1370,7 +1389,7 @@ function renderLobby() {
 function toggleDomain(id, btn) { ENGINE_STATE.cuisines_detected = [id]; document.querySelectorAll('.cuisine-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
 function handleStart() { if (!ENGINE_STATE.cuisines_detected.length) return showToast("SELECT DOMAIN"); const domain = ENGINE_STATE.cuisines_detected[0]; if (domain === "research") { ENGINE_STATE.research_nodes=[]; ENGINE_STATE.synthesis=null; CURRENT_PROJECT=null; renderSearchSlide(); } else { showToast("COMING SOON"); } }
 
-/* Research */
+/* ── Search ── */
 function renderSearchSlide() {
   const container = document.getElementById('master-container'); container.innerHTML = "";
   const section = document.createElement('section'); section.className = "main-slide active"; section.dataset.mode = "research-search";
@@ -1441,10 +1460,10 @@ function renderDecisionMetaSlide(ctx) {
         <div class="section-title" style="margin-top:0">Decision context</div>
         <div style="display:grid;gap:10px;">
           <input id="meta-decision" type="text" placeholder="Decision (e.g. cut sugar, choose phone, AI policy)" ${inputStyle}>
-          <input id="meta-time" type="text" placeholder="Time horizon (e.g. 90 days, 5 years)" ${inputStyle}>
-          <input id="meta-stake" type="text" placeholder="Stake (e.g. health, budget, national policy)" ${inputStyle}>
-          <input id="meta-success" type="text" placeholder="Success metric" ${inputStyle}>
-          <input id="meta-options" type="text" placeholder="Options (e.g. A vs B vs C)" ${inputStyle}>
+          <input id="meta-time"     type="text" placeholder="Time horizon (e.g. 90 days, 5 years)" ${inputStyle}>
+          <input id="meta-stake"    type="text" placeholder="Stake (e.g. health, budget, national policy)" ${inputStyle}>
+          <input id="meta-success"  type="text" placeholder="Success metric" ${inputStyle}>
+          <input id="meta-options"  type="text" placeholder="Options (e.g. A vs B vs C)" ${inputStyle}>
         </div>
       </div>
       <div class="final-actions">
@@ -1458,12 +1477,21 @@ function renderDecisionMetaSlide(ctx) {
 
 function saveDecisionMeta() {
   if (!currentDecisionContext) return;
-  currentDecisionContext.decisionMeta = { decision:document.getElementById('meta-decision')?.value?.trim()||"", time:document.getElementById('meta-time')?.value?.trim()||"", stake:document.getElementById('meta-stake')?.value?.trim()||"", success:document.getElementById('meta-success')?.value?.trim()||"", options:document.getElementById('meta-options')?.value?.trim()||"" };
-  ENGINE_STATE.research_nodes=[currentDecisionContext]; ENGINE_STATE.synthesis=null; currentDecisionContext=null; buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]); autosaveProjectIfPossible();
+  currentDecisionContext.decisionMeta = {
+    decision: document.getElementById('meta-decision')?.value?.trim()||"",
+    time:     document.getElementById('meta-time')?.value?.trim()||"",
+    stake:    document.getElementById('meta-stake')?.value?.trim()||"",
+    success:  document.getElementById('meta-success')?.value?.trim()||"",
+    options:  document.getElementById('meta-options')?.value?.trim()||""
+  };
+  ENGINE_STATE.research_nodes=[currentDecisionContext]; ENGINE_STATE.synthesis=null; currentDecisionContext=null;
+  buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]); autosaveProjectIfPossible();
 }
 function skipDecisionMeta() {
   if (!currentDecisionContext) return;
-  currentDecisionContext.decisionMeta={decision:'',time:'',stake:'',success:'',options:''}; ENGINE_STATE.research_nodes=[currentDecisionContext]; ENGINE_STATE.synthesis=null; currentDecisionContext=null; buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]); autosaveProjectIfPossible();
+  currentDecisionContext.decisionMeta={decision:'',time:'',stake:'',success:'',options:''};
+  ENGINE_STATE.research_nodes=[currentDecisionContext]; ENGINE_STATE.synthesis=null; currentDecisionContext=null;
+  buildResearchDeckFromNetwork(ENGINE_STATE.research_nodes[0]); autosaveProjectIfPossible();
 }
 
 async function buildResearchDeckFromNetwork(seedNode) {
@@ -1531,10 +1559,11 @@ async function renderLinkSlide(linkTitle) {
   ENGINE_STATE.research_nodes.push(node); renderNodeSlide(node, false); autosaveProjectIfPossible();
 }
 
-/* Synthesis */
+/* ── Synthesis ── */
 function openSynthesisSlide() {
   if (!ENGINE_STATE.research_nodes||!ENGINE_STATE.research_nodes.length) return showToast("NO NODES YET");
-  const allTakeaways = []; ENGINE_STATE.research_nodes.forEach(n => allTakeaways.push(...extractTakeaways(n.summary||"",4))); const top = allTakeaways.slice(0,5);
+  const allTakeaways = []; ENGINE_STATE.research_nodes.forEach(n => allTakeaways.push(...extractTakeaways(n.summary||"",4)));
+  const top = allTakeaways.slice(0,5);
   const container = document.getElementById('master-container'); const synSlide = document.createElement('section');
   synSlide.className = "main-slide next"; synSlide.dataset.mode = "synthesis";
   const syn = ENGINE_STATE.synthesis||{};
@@ -1557,7 +1586,14 @@ function openSynthesisSlide() {
   container.appendChild(synSlide); slideElements.push(synSlide); goToSlide(slideElements.length - 1);
 }
 function saveSynthesis() {
-  ENGINE_STATE.synthesis = { thesis:document.getElementById('syn-thesis')?.value?.trim()||'', topTakeaways:(document.getElementById('syn-top')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean), contradictions:document.getElementById('syn-contradictions')?.value?.trim()||'', implications:document.getElementById('syn-implications')?.value?.trim()||'', next:document.getElementById('syn-next')?.value?.trim()||'', recommendation:document.getElementById('syn-rec')?.value?.trim()||'' };
+  ENGINE_STATE.synthesis = {
+    thesis:          document.getElementById('syn-thesis')?.value?.trim()||'',
+    topTakeaways:   (document.getElementById('syn-top')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean),
+    contradictions:  document.getElementById('syn-contradictions')?.value?.trim()||'',
+    implications:    document.getElementById('syn-implications')?.value?.trim()||'',
+    next:            document.getElementById('syn-next')?.value?.trim()||'',
+    recommendation:  document.getElementById('syn-rec')?.value?.trim()||''
+  };
   showToast("SYNTHESIS SAVED"); autosaveProjectIfPossible();
 }
 function closeSynthesisSlide() {
@@ -1565,7 +1601,7 @@ function closeSynthesisSlide() {
   if (container?.lastChild?.dataset?.mode==="synthesis") { container.removeChild(container.lastChild); slideElements.pop(); goToSlide(Math.max(0,slideElements.length-1)); }
 }
 
-/* End slide */
+/* ── End slide ── */
 function renderEndSlide() {
   const container = document.getElementById('master-container'); const section = document.createElement('section');
   section.className = "main-slide next"; section.dataset.mode = "end";
@@ -1590,7 +1626,7 @@ function renderEndSlide() {
   container.appendChild(section); slideElements.push(section);
 }
 
-/* PDF */
+/* ── PDF ── */
 function sanitizeForPDF(text) { return normalizeText(text).replace(/[^\x00-\xFF]/g,""); }
 
 async function generateResearchPDF() {
@@ -1606,9 +1642,13 @@ async function generateResearchPDF() {
     doc.setFontSize(11); doc.setTextColor(0,180,120); doc.text("decide.engine | India AI Decision Research", pw/2, 67, {align:'center'});
     doc.setDrawColor(40,60,90); doc.setLineWidth(0.5); doc.rect(mg,82,cw,36);
     doc.setFontSize(9.5); doc.setTextColor(60,60,60); doc.setFont(undefined,'normal');
-    doc.text(`Nodes: ${ENGINE_STATE.research_nodes.length}`, pw/2, 94, {align:'center'}); doc.text(`Primary Source: ${ENGINE_STATE.research_nodes[0]?.sourceName||'Local'}`, pw/2, 102, {align:'center'}); doc.text(`Export Date: ${new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})}`, pw/2, 110, {align:'center'}); addFooter(pageNum,totalPages);
+    doc.text(`Nodes: ${ENGINE_STATE.research_nodes.length}`, pw/2, 94, {align:'center'});
+    doc.text(`Primary Source: ${ENGINE_STATE.research_nodes[0]?.sourceName||'Local'}`, pw/2, 102, {align:'center'});
+    doc.text(`Export Date: ${new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})}`, pw/2, 110, {align:'center'});
+    addFooter(pageNum,totalPages);
     ENGINE_STATE.research_nodes.forEach((node,index)=>{
-      doc.addPage(); pageNum++; const title=sanitizeForPDF(node.title||""); const summaryRaw=sanitizeForPDF(node.summary||""); const takeaways=extractTakeaways(summaryRaw,4).map(sanitizeForPDF);
+      doc.addPage(); pageNum++;
+      const title=sanitizeForPDF(node.title||""); const summaryRaw=sanitizeForPDF(node.summary||""); const takeaways=extractTakeaways(summaryRaw,4).map(sanitizeForPDF);
       doc.setFillColor(255,153,51); doc.rect(0,0,pw/3,4,'F'); doc.setFillColor(255,255,255); doc.rect(pw/3,0,pw/3,4,'F'); doc.setFillColor(19,136,8); doc.rect((pw/3)*2,0,pw/3,4,'F');
       let y=22; doc.setFillColor(0,180,120); doc.circle(mg+7,y+3,7,'F'); doc.setFontSize(10); doc.setTextColor(255,255,255); doc.setFont(undefined,'bold'); doc.text(String(index+1), mg+7, y+5, {align:'center'}); doc.setFont(undefined,'normal');
       doc.setFontSize(16); doc.setTextColor(255,153,51); doc.setFont(undefined,'bold'); const titleLines=doc.splitTextToSize(title,cw-18); doc.text(titleLines,mg+18,y); y+=titleLines.length*7+6; doc.setFont(undefined,'normal');
@@ -1667,7 +1707,7 @@ async function generateDecisionProUIPDF() {
   } catch(e) { console.error("Decision PDF error:",e); showToast("DECISION PDF FAILED"); }
 }
 
-/* App swipe navigation */
+/* ── Swipe navigation ── */
 let startY=null, startX=null, isSwiping=false;
 function onTouchStart(e) {
   if (!e.touches||e.touches.length!==1) return;
@@ -1693,14 +1733,19 @@ function goToSlide(idx) {
   if (curr) curr.className="main-slide active"; updateUIPanel();
 }
 
-/* App boot */
+/* ── App boot — reads hash AFTER router.js already handled /slug/ redirects ── */
 function appBoot() {
   try {
+    // Router already handled /slug/ paths before we got here.
+    // Only thing left to handle: #p= share payloads on the root URL.
     const hash=(location.hash||"").trim();
     if (hash.startsWith("#p=")) {
-      const payload=hash.slice(3); const project=deserializeProjectFromShare(payload);
-      if (!project.id) project.id=uid(); if (!project.name) project.name="Shared Project";
-      project.updatedAt=new Date().toISOString(); if (!project.createdAt) project.createdAt=project.updatedAt;
+      const payload=hash.slice(3);
+      const project=deserializeProjectFromShare(payload);
+      if (!project.id) project.id=uid();
+      if (!project.name) project.name="Shared Project";
+      project.updatedAt=new Date().toISOString();
+      if (!project.createdAt) project.createdAt=project.updatedAt;
       saveProjectToStorage(project); loadProjectIntoApp(project); showToast("SHARED PROJECT LOADED"); initVoice(); return;
     }
     renderLanding(); initVoice();
@@ -1708,4 +1753,4 @@ function appBoot() {
 }
 </script>
 </body>
-  </html>
+</html>
