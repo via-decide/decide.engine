@@ -1896,7 +1896,155 @@ function appBoot() {
 
 
 </script>
-  <!-- DEMO PAYMENT MODAL -->
+
+<!-- Vercel Web Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+
+<!-- Vercel Speed Insights -->
+<script defer src="/_vercel/speed-insights/script.js"></script>
+
+<script>
+  // ====== PAYMENT CONFIG ======
+  // Keep demo ON while you're testing.
+  const PAYMENT = {
+    mode: "demo",          // "demo" | "upi"
+    upiId: "test@upi",     // change later: "yourname@bank"
+    payeeName: "ViaDecide",
+    amount: "49",
+    note: "ONDC Demo Order"
+  };
+
+  // Detect in-app browsers (Instagram/Facebook mostly)
+  function isInAppBrowser() {
+    const ua = navigator.userAgent || "";
+    return /Instagram|FBAN|FBAV|FB_IAB|Line|Twitter|Snapchat/i.test(ua);
+  }
+
+  function buildUpiIntent() {
+    const params = new URLSearchParams({
+      pa: PAYMENT.upiId,
+      pn: PAYMENT.payeeName,
+      am: PAYMENT.amount,
+      cu: "INR",
+      tn: PAYMENT.note
+    });
+    return `upi://pay?${params.toString()}`;
+  }
+
+  function openPayDemo(messageHtml, opts = {}) {
+    const modal = document.getElementById("payDemoModal");
+    const extra = document.getElementById("payDemoExtra");
+    const copyBtn = document.getElementById("copyUpiBtn");
+    const openBtn = document.getElementById("openBrowserBtn");
+
+    if (!modal || !extra || !copyBtn || !openBtn) return;
+
+    extra.style.display = messageHtml ? "block" : "none";
+    extra.innerHTML = messageHtml || "";
+
+    const showCopy = !!opts.showCopy;
+    const showOpen = !!opts.showOpen;
+
+    copyBtn.style.display = showCopy ? "inline-block" : "none";
+    openBtn.style.display = showOpen ? "inline-block" : "none";
+
+    modal.classList.add("open");
+  }
+
+  function closePayDemo() {
+    const modal = document.getElementById("payDemoModal");
+    if (modal) modal.classList.remove("open");
+  }
+
+  function copyUPI() {
+    const text = PAYMENT.upiId;
+    if (!navigator.clipboard?.writeText) {
+      openPayDemo(`UPI: <b>${text}</b><br/>Copy manually (clipboard blocked).`);
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      openPayDemo(`✅ Copied UPI ID: <b>${text}</b><br/>Paste inside any UPI app.`);
+    }).catch(() => {
+      openPayDemo(`UPI: <b>${text}</b><br/>Copy manually (clipboard blocked).`);
+    });
+  }
+
+  // Best-effort "Open in Chrome" / browser CTA for Instagram in-app browser
+  function openInBrowser() {
+    const url = location.href;
+
+    // Android Chrome intent (best)
+    const isAndroid = /Android/i.test(navigator.userAgent || "");
+    if (isAndroid) {
+      // This works on many Android devices to open Chrome directly
+      const chromeIntent = `intent://${location.host}${location.pathname}${location.search}${location.hash}#Intent;scheme=https;package=com.android.chrome;end`;
+      window.location.href = chromeIntent;
+      return;
+    }
+
+    // iOS / fallback: open a new tab (may still be in-app) + copy link
+    try { window.open(url, "_blank", "noopener,noreferrer"); } catch (e) {}
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        openPayDemo(`✅ Link copied.<br/>Open Chrome/Safari and paste the link:<br/><b>${url}</b>`);
+      });
+    } else {
+      openPayDemo(`Open in your browser and paste this link:<br/><b>${url}</b>`);
+    }
+  }
+
+  // Call this on your "Pay" button click
+  function handlePayClick() {
+    const isTest = /test/i.test(PAYMENT.upiId);
+
+    // 1) Demo mode OR test UPI => show demo modal (no broken redirect)
+    if (PAYMENT.mode === "demo" || isTest) {
+      const inApp = isInAppBrowser();
+      openPayDemo(
+        `Payments are disabled in this prototype.<br/>
+         <b>Demo Environment</b> (UPI is not enabled yet).<br/>
+         Production payment gateway coming soon.`,
+        { showCopy: false, showOpen: inApp } // show "Open in Browser" CTA only inside in-app browsers
+      );
+      return;
+    }
+
+    // 2) UPI mode (real UPI)
+    const upiUrl = buildUpiIntent();
+
+    // Instagram in-app browser: show fallback + try intent
+    if (isInAppBrowser()) {
+      openPayDemo(
+        `You're in an in-app browser (Instagram/Facebook).<br/>
+         UPI apps may not open correctly here.<br/><br/>
+         Tap <b>Open in Browser</b> for best results, or <b>Copy UPI</b>.`,
+        { showCopy: true, showOpen: true }
+      );
+
+      setTimeout(() => { window.location.href = upiUrl; }, 300);
+      return;
+    }
+
+    // Normal browser: try open intent then fallback modal
+    window.location.href = upiUrl;
+
+    setTimeout(() => {
+      openPayDemo(
+        `If your UPI app didn't open, tap <b>Copy UPI</b> and pay manually.`,
+        { showCopy: true, showOpen: false }
+      );
+    }, 1200);
+  }
+
+  // Close modal when clicking outside the card
+  document.addEventListener("click", (e) => {
+    const modal = document.getElementById("payDemoModal");
+    if (!modal || !modal.classList.contains("open")) return;
+    if (e.target === modal) closePayDemo();
+  });
+</script>
+
+<!-- DEMO PAYMENT MODAL (must be OUTSIDE scripts) -->
 <div id="payDemoModal" class="pay-modal">
   <div class="pay-modal-card">
     <div class="pay-modal-title">🚧 Demo Mode Active</div>
@@ -1909,6 +2057,7 @@ function appBoot() {
 
     <div class="pay-modal-actions">
       <button class="pay-btn secondary" onclick="closePayDemo()">Close</button>
+      <button class="pay-btn secondary" id="openBrowserBtn" style="display:none" onclick="openInBrowser()">Open in Browser</button>
       <button class="pay-btn primary" id="copyUpiBtn" style="display:none" onclick="copyUPI()">Copy UPI</button>
     </div>
   </div>
