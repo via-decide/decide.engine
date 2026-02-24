@@ -415,6 +415,43 @@
     .subpage-card-icon { font-size: 1.1rem; }
     .subpage-card-title { font-family: var(--font-display); font-size: .78rem; font-weight: 800; color: var(--text-main); }
     .subpage-card-desc { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); letter-spacing: .5px; }
+
+    .pay-modal{
+  position:fixed; inset:0; background:rgba(0,0,0,.75);
+  display:none; align-items:center; justify-content:center;
+  z-index:9999; padding:18px; backdrop-filter: blur(4px);
+}
+.pay-modal.open{ display:flex; }
+
+.pay-modal-card{
+  width:100%; max-width:420px;
+  background:#0f1116; border:1px solid rgba(255,255,255,.12);
+  border-radius:16px; padding:18px;
+  box-shadow: 0 20px 70px rgba(0,0,0,.6);
+}
+.pay-modal-title{
+  font-weight:800; font-size:16px; color:#ffb830; margin-bottom:8px;
+}
+.pay-modal-text{
+  color:rgba(255,255,255,.75); font-size:13px; line-height:1.6;
+}
+.pay-modal-extra{
+  margin-top:12px; padding:10px;
+  border:1px dashed rgba(255,184,48,.35);
+  border-radius:12px; color:rgba(255,255,255,.8);
+  font-size:12px; line-height:1.6;
+}
+.pay-modal-actions{
+  display:flex; gap:10px; margin-top:14px; justify-content:flex-end;
+}
+.pay-btn{
+  border:none; border-radius:12px; padding:10px 14px;
+  cursor:pointer; font-weight:700; font-size:12px;
+}
+.pay-btn.primary{ background:#d64000; color:#fff; }
+.pay-btn.secondary{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.15); }
+.pay-btn.primary:hover{ background:#ff6b35; }
+.pay-btn.secondary:hover{ border-color:rgba(255,255,255,.35); }
   </style>
 </head>
 <body>
@@ -1759,6 +1796,25 @@ function appBoot() {
 
 <!-- Vercel Speed Insights -->
 <script defer src="/_vercel/speed-insights/script.js">
+
+
 </script>
+  <!-- DEMO PAYMENT MODAL -->
+<div id="payDemoModal" class="pay-modal">
+  <div class="pay-modal-card">
+    <div class="pay-modal-title">🚧 Demo Mode Active</div>
+    <div class="pay-modal-text">
+      Payments are disabled in this prototype.<br />
+      This is a system demonstration only.
+    </div>
+
+    <div id="payDemoExtra" class="pay-modal-extra" style="display:none"></div>
+
+    <div class="pay-modal-actions">
+      <button class="pay-btn secondary" onclick="closePayDemo()">Close</button>
+      <button class="pay-btn primary" id="copyUpiBtn" style="display:none" onclick="copyUPI()">Copy UPI</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
