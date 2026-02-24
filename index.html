@@ -1946,14 +1946,30 @@ function appBoot() {
 </script>
 
 <!-- Vercel Web Analytics -->
-<script defer src="/_vercel/insights/script.js"></script>
+         <script defer src="/_vercel/insights/script.js"></script>
 
-<!-- Vercel Speed Insights -->
 <script defer src="/_vercel/speed-insights/script.js"></script>
+
+<div id="payDemoModal" class="pay-modal">
+  <div class="pay-modal-card">
+    <div class="pay-modal-title">🚧 Demo Mode Active</div>
+    <div class="pay-modal-text">
+      Payments are disabled in this prototype.<br />
+      This is a system demonstration only.
+    </div>
+
+    <div id="payDemoExtra" class="pay-modal-extra" style="display:none"></div>
+
+    <div class="pay-modal-actions">
+      <button class="pay-btn secondary" onclick="closePayDemo()">Close</button>
+      <button class="pay-btn secondary" id="openBrowserBtn" style="display:none" onclick="openInBrowser()">Open in Browser</button>
+      <button class="pay-btn primary" id="copyUpiBtn" style="display:none" onclick="copyUPI()">Copy UPI</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // ====== PAYMENT CONFIG ======
-  // Keep demo ON while you're testing.
   const PAYMENT = {
     mode: "demo",          // "demo" | "upi"
     upiId: "test@upi",     // change later: "yourname@bank"
@@ -2024,7 +2040,6 @@ function appBoot() {
     // Android Chrome intent (best)
     const isAndroid = /Android/i.test(navigator.userAgent || "");
     if (isAndroid) {
-      // This works on many Android devices to open Chrome directly
       const chromeIntent = `intent://${location.host}${location.pathname}${location.search}${location.hash}#Intent;scheme=https;package=com.android.chrome;end`;
       window.location.href = chromeIntent;
       return;
@@ -2092,24 +2107,9 @@ function appBoot() {
   });
 </script>
 
-<!-- DEMO PAYMENT MODAL (must be OUTSIDE scripts) -->
-<div id="payDemoModal" class="pay-modal">
-  <div class="pay-modal-card">
-    <div class="pay-modal-title">🚧 Demo Mode Active</div>
-    <div class="pay-modal-text">
-      Payments are disabled in this prototype.<br />
-      This is a system demonstration only.
-    </div>
+</body>
+</html>
 
-    <div id="payDemoExtra" class="pay-modal-extra" style="display:none"></div>
-
-    <div class="pay-modal-actions">
-      <button class="pay-btn secondary" onclick="closePayDemo()">Close</button>
-      <button class="pay-btn secondary" id="openBrowserBtn" style="display:none" onclick="openInBrowser()">Open in Browser</button>
-      <button class="pay-btn primary" id="copyUpiBtn" style="display:none" onclick="copyUPI()">Copy UPI</button>
-    </div>
-  </div>
-</div>
   
 </body>
 </html>
