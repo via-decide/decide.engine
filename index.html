@@ -452,6 +452,7 @@
 .pay-btn.secondary{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.15); }
 .pay-btn.primary:hover{ background:#ff6b35; }
 .pay-btn.secondary:hover{ border-color:rgba(255,255,255,.35); }
+    .disabled { filter: grayscale(1); }
   </style>
 </head>
 <body>
@@ -966,7 +967,54 @@ function introActivateScene(idx){
   document.getElementById('slide-num').textContent=`${idx+1} / ${INTRO_SCENES.length}`;
   introStartTimer(idx);
 }
+function placeOrder() {
+  const isDemo = (PAYMENT.mode === "demo" || /test/i.test(PAYMENT.upiId));
+  const method = window.SELECTED_PAYMENT_METHOD || "COD"; // however you store it
 
+  // ✅ DEMO: never open UPI
+  if (isDemo) {
+    // create order as demo-safe status
+    createOrder({
+      paymentMethod: method,
+      paymentStatus: "DEMO",
+      utr: "",
+      status: "CONFIRMED" // or "DEMO_CONFIRMED"
+    });
+
+    openPayDemo(
+      `✅ Order placed in <b>Demo Mode</b>.<br/>
+       No payment is collected.<br/>
+       UTR is not applicable.`,
+      { showCopy: false, showOpen: isInAppBrowser() }
+    );
+    return;
+  }
+
+  // REAL MODE:
+  if (method === "UPI") {
+    handlePayClick(); // your UPI intent function
+    // Mark order payment pending until confirmed
+    createOrder({
+      paymentMethod: "UPI",
+      paymentStatus: "PENDING",
+      utr: "",
+      status: "PAYMENT_PENDING"
+    });
+    return;
+  }
+
+  // COD real
+  createOrder({ paymentMethod:"COD", paymentStatus:"NA", utr:"", status:"CONFIRMED" });
+  }
+
+  function getReadableStatus(order) {
+  if (order.paymentMethod === "UPI" && (!order.utr || order.paymentStatus === "PENDING")) {
+    return "PAYMENT PENDING";
+  }
+  if (order.paymentStatus === "DEMO") return "DEMO CONFIRMED";
+  return order.status || "CONFIRMED";
+  }
+  
 function introNext(){
   if(introCurrentScene<INTRO_SCENES.length-1){ introCurrentScene++; introActivateScene(introCurrentScene); introElapsed=0; }
   else { enterApp(); }
