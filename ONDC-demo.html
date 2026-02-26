@@ -6,16 +6,14 @@
 <title>Decide - India's Smart Marketplace</title>
 <meta name="description" content="India's first commission-free marketplace. Compare products by YOUR priorities. Starting in Gujarat - Gandhidham & Rajkot." />
 <meta name="theme-color" content="#ff671f" />
-
-<!-- FAVICON -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-
-<!-- MANIFEST -->
 <link rel="manifest" href="/manifest.json" />
 
-<!-- Supabase (client) -->
+<!-- Supabase -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- jsPDF for client-side PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 :root{
@@ -23,6 +21,8 @@
   --border:rgba(255,255,255,0.15);
   --accent:#00e676;
   --ondc-blue:#1e88e5;
+  --demo-red:#ff3b3b;
+  --demo-amber:#ffb300;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -34,40 +34,124 @@ button:focus{outline:none}
 [role="button"],.card,.filter-btn,.payment-option{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #app{min-height:100vh;display:flex;flex-direction:column;padding:20px;padding-bottom:calc(80px + var(--safe-bottom))}
 
-/* ===== DEMO LABELS ===== */
+/* ===== ENHANCED DEMO SYSTEM ===== */
+
+/* Corner ribbon */
 .demo-ribbon{
   position:fixed;top:18px;right:-52px;
-  background:#ff3b3b;color:#fff;
+  background:var(--demo-red);color:#fff;
   padding:10px 78px;
   font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;
-  transform:rotate(45deg);
-  z-index:9999;
-  box-shadow:0 10px 25px rgba(0,0,0,.35)
+  transform:rotate(45deg);z-index:9999;
+  box-shadow:0 10px 25px rgba(0,0,0,.45);
+  pointer-events:none;
 }
-.demo-pill{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:6px 10px;border-radius:999px;
-  border:1px solid rgba(255,59,59,.45);
-  background:rgba(255,59,59,.12);
-  color:#ff6b6b;font-weight:900;letter-spacing:1px;font-size:.75rem;text-transform:uppercase
+
+/* Floating demo bar at top */
+.demo-topbar{
+  position:fixed;top:0;left:0;right:0;z-index:999;
+  background:rgba(255,59,59,0.92);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,100,100,0.4);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 16px;gap:12px;
 }
-.demo-note{
-  background:rgba(255,255,255,0.04);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:14px 16px;
-  margin:0 0 16px;
-  color:#bbb;
-  line-height:1.65
+.demo-topbar-label{
+  display:flex;align-items:center;gap:8px;
+  font-weight:900;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;
+  color:#fff;flex:1;
 }
-.demo-note b{color:#fff}
+.demo-topbar-label span{font-size:1rem}
+.demo-topbar-btn{
+  background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);
+  color:#fff;padding:5px 12px;border-radius:999px;font-size:.72rem;font-weight:900;
+  letter-spacing:.5px;cursor:pointer;white-space:nowrap;transition:.2s;
+}
+.demo-topbar-btn:hover{background:rgba(255,255,255,0.3)}
+
+/* Offset for top bar */
+body{padding-top:38px}
+#app{padding-top:26px}
+
+/* Watermark */
 .demo-watermark{
   position:fixed;bottom:calc(14px + var(--safe-bottom));left:14px;
-  z-index:999;
-  opacity:.18;
-  pointer-events:none;
+  z-index:999;opacity:.12;pointer-events:none;
   font-weight:900;letter-spacing:6px;text-transform:uppercase;font-size:12px;color:#fff
 }
+
+/* Demo pill badge */
+.demo-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:999px;
+  border:1px solid rgba(255,59,59,.5);
+  background:rgba(255,59,59,.15);
+  color:#ff7070;font-weight:900;letter-spacing:1px;font-size:.72rem;text-transform:uppercase;
+}
+
+/* Feature-level demo note (inline) */
+.demo-note{
+  background:rgba(255,179,0,0.07);
+  border:1px solid rgba(255,179,0,0.3);
+  border-left:3px solid var(--demo-amber);
+  border-radius:0 14px 14px 0;
+  padding:12px 16px;
+  margin:0 0 16px;
+  color:#d4a017;
+  line-height:1.65;
+  font-size:.85rem;
+}
+.demo-note b{color:#ffca28}
+.demo-note .dn-icon{font-size:1.1rem;vertical-align:middle;margin-right:6px}
+
+/* Specific feature demo callouts */
+.demo-feature-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,179,0,0.12);
+  border:1px solid rgba(255,179,0,0.35);
+  border-radius:10px;padding:4px 10px;
+  color:#ffca28;font-size:.72rem;font-weight:900;letter-spacing:.5px;
+  text-transform:uppercase;margin-left:8px;vertical-align:middle;
+}
+
+/* Demo guide modal */
+.modal-overlay{
+  position:fixed;inset:0;z-index:10000;
+  background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:20px;overflow-y:auto;padding-top:60px;
+}
+.modal-box{
+  background:#0e0e0e;border:1px solid rgba(255,255,255,0.15);
+  border-radius:24px;max-width:640px;width:100%;
+  padding:28px 24px;animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-close{
+  float:right;background:rgba(255,255,255,0.08);border:1px solid var(--border);
+  border-radius:50%;width:32px;height:32px;font-size:1.1rem;
+  cursor:pointer;color:#fff;margin-top:-6px;
+}
+.modal-close:hover{background:rgba(255,255,255,0.18)}
+.modal-title{font-size:1.3rem;font-weight:900;margin:0 0 20px;text-transform:uppercase}
+.guide-row{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px;border-radius:14px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  margin-bottom:10px;
+}
+.guide-icon{font-size:1.8rem;flex-shrink:0;margin-top:2px}
+.guide-text{flex:1}
+.guide-title{font-weight:900;font-size:.95rem;margin-bottom:4px}
+.guide-desc{color:#888;font-size:.85rem;line-height:1.6}
+.guide-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:900;margin-top:6px;
+}
+.gt-sim{background:rgba(255,179,0,0.15);color:#ffca28;border:1px solid rgba(255,179,0,0.3)}
+.gt-local{background:rgba(0,230,118,0.12);color:#00e676;border:1px solid rgba(0,230,118,0.25)}
+.gt-edge{background:rgba(30,136,229,0.15);color:#42a5f5;border:1px solid rgba(30,136,229,0.3)}
+.gt-fake{background:rgba(255,59,59,0.12);color:#ff7070;border:1px solid rgba(255,59,59,0.25)}
 
 /* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:15px}
@@ -143,6 +227,19 @@ button:focus{outline:none}
 }
 .secondary:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3)}
 
+/* PDF button */
+.btn-pdf{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:rgba(255,103,31,0.12);
+  border:2px solid var(--brand-orange);
+  color:var(--brand-orange);
+  padding:14px 20px;border-radius:16px;
+  font-weight:900;font-size:.95rem;cursor:pointer;width:100%;
+  transition:.2s;text-transform:uppercase;letter-spacing:.5px;
+  margin-top:10px;
+}
+.btn-pdf:hover{background:rgba(255,103,31,0.22);transform:translateY(-2px)}
+
 /* RESULTS */
 .results{max-width:860px;margin:0 auto;padding:8px 0}
 .result{
@@ -193,13 +290,9 @@ button:focus{outline:none}
   font-weight:900;font-size:.85rem;
 }
 input,textarea{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-  outline:none;
+  width:100%;padding:14px;border-radius:14px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.05);
+  color:#fff;outline:none;margin-top:4px;
 }
 textarea{min-height:120px;resize:vertical}
 
@@ -220,7 +313,7 @@ textarea{min-height:120px;resize:vertical}
 .toast{
   position:fixed;bottom:calc(24px + var(--safe-bottom));left:50%;transform:translateX(-50%);
   background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;
-  font-size:.85rem;opacity:0;transition:opacity .2s;z-index:1000;
+  font-size:.85rem;opacity:0;transition:opacity .2s;z-index:20000;white-space:nowrap;
 }
 .toast.show{opacity:1}
 
@@ -229,17 +322,111 @@ textarea{min-height:120px;resize:vertical}
 .footer a{color:#888;margin:0 10px;text-decoration:none}
 .footer a:hover{color:var(--brand-orange)}
 
+/* Receipt divider */
+.receipt-section{
+  border:1px dashed rgba(255,103,31,0.35);
+  border-radius:14px;padding:16px;margin-bottom:12px;
+  background:rgba(255,103,31,0.03);
+}
+.receipt-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.receipt-row:last-child{border-bottom:none}
+.receipt-total{font-size:1.1rem;font-weight:900;color:var(--brand-orange)}
+
 @media (max-width:600px){
   .two-col-grid{grid-template-columns:1fr}
   .details{grid-template-columns:1fr}
   .actions{grid-template-columns:1fr}
+  .demo-topbar{padding:6px 12px}
 }
 </style>
 </head>
 
 <body>
-<div class="demo-ribbon">DEMO</div>
-<div class="demo-watermark">DEMO</div>
+
+<!-- ===== DEMO TOP BAR ===== -->
+<div class="demo-topbar" id="demoTopbar">
+  <div class="demo-topbar-label">
+    <span>🧪</span> DEMO BUILD — Payments &amp; confirmations are UX tests only
+  </div>
+  <button class="demo-topbar-btn" type="button" data-action="demoGuide">HOW DEMO WORKS?</button>
+</div>
+
+<!-- Corner ribbon -->
+<div class="demo-ribbon" aria-hidden="true">DEMO</div>
+<div class="demo-watermark" aria-hidden="true">DEMO</div>
+
+<!-- Demo Guide Modal (hidden by default) -->
+<div class="modal-overlay" id="demoModal" style="display:none" role="dialog" aria-modal="true" aria-label="How Demo Works">
+  <div class="modal-box">
+    <button class="modal-close" type="button" data-action="closeDemoGuide" aria-label="Close">✕</button>
+    <div class="modal-title">🧪 How This Demo Works</div>
+
+    <div class="guide-row">
+      <div class="guide-icon">💳</div>
+      <div class="guide-text">
+        <div class="guide-title">UPI Payment Flow</div>
+        <div class="guide-desc">The UPI ID and payment amount are real-looking but this is a UX prototype. No actual money is transferred. The UTR submission tests the form &amp; duplicate-detection logic only.</div>
+        <span class="guide-tag gt-fake">Simulated — no real payment</span>
+      </div>
+    </div>
+
+    <div class="guide-row">
+      <div class="guide-icon">🔢</div>
+      <div class="guide-text">
+        <div class="guide-title">UTR Validation</div>
+        <div class="guide-desc">Enter any 12-digit number as a UTR. The app checks format (exactly 12 digits) and prevents duplicate submission within the same browser session via localStorage.</div>
+        <span class="guide-tag gt-local">Stored in localStorage</span>
+      </div>
+    </div>
+
+    <div class="guide-row">
+      <div class="guide-icon">🟢</div>
+      <div class="guide-text">
+        <div class="guide-title">Seller Confirmation Simulation</div>
+        <div class="guide-desc">In production, the seller manually verifies UTR and updates the order status. Here, tap "Simulate Seller Confirm" to advance the order through the tracking timeline instantly.</div>
+        <span class="guide-tag gt-sim">Manual simulation button</span>
+      </div>
+    </div>
+
+    <div class="guide-row">
+      <div class="guide-icon">📦</div>
+      <div class="guide-text">
+        <div class="guide-title">Order Tracking</div>
+        <div class="guide-desc">Live tracking auto-refreshes every 10 seconds by checking localStorage for status changes. In production this would use real-time DB listeners.</div>
+        <span class="guide-tag gt-local">localStorage polling</span>
+      </div>
+    </div>
+
+    <div class="guide-row">
+      <div class="guide-icon">📄</div>
+      <div class="guide-text">
+        <div class="guide-title">PDF Receipt Download</div>
+        <div class="guide-desc">After placing an order, you can download a PDF receipt from the tracking screen. Generated client-side using jsPDF — no server involved.</div>
+        <span class="guide-tag gt-local">Client-side PDF (jsPDF)</span>
+      </div>
+    </div>
+
+    <div class="guide-row">
+      <div class="guide-icon">☁️</div>
+      <div class="guide-text">
+        <div class="guide-title">Waitlist / Seller Interest / Feedback</div>
+        <div class="guide-desc">These forms call Supabase Edge Functions if available. If the function fails (not deployed), data is saved locally and a "Saved locally (demo)" notice is shown.</div>
+        <span class="guide-tag gt-edge">Edge Function → localStorage fallback</span>
+      </div>
+    </div>
+
+    <div class="guide-row">
+      <div class="guide-icon">🛒</div>
+      <div class="guide-text">
+        <div class="guide-title">E-commerce Products</div>
+        <div class="guide-desc">All product listings, prices, stock counts, and discount percentages are hardcoded demo data. Rankings change based on your selected filters (Camera, Battery, etc.).</div>
+        <span class="guide-tag gt-fake">Hardcoded demo data</span>
+      </div>
+    </div>
+
+    <button class="action" type="button" data-action="closeDemoGuide" style="margin-top:16px">GOT IT ✓</button>
+  </div>
+</div>
 
 <div id="app"></div>
 <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -248,9 +435,6 @@ textarea{min-height:120px;resize:vertical}
 (function(){
   "use strict";
 
-  // ======================
-  // SUPABASE CONFIG (INSERTED)
-  // ======================
   const SUPABASE_URL = "https://zdarsygrpqbbcafrqcjt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkYXJzeWdycHFiYmNhZnJxY2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODczMTUsImV4cCI6MjA4NjU2MzMxNX0.ut97BRi9_UFkeZuG_6Ue4mXdAAmtH6MFFdi2vUgHiW4";
 
@@ -258,80 +442,55 @@ textarea{min-height:120px;resize:vertical}
 
   function initSupabase(){
     try{
-      if(window.supabase && window.supabase.createClient){
+      if(window.supabase && window.supabase.createClient)
         return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }
     }catch(e){}
     return null;
   }
 
-  // ======================
-  // "DON'T REVEAL BACKEND LOGIC"
-  // Frontend only calls Edge Functions (no table names / DB logic here).
-  // Create functions in Supabase: feedback, seller-interest, waitlist
-  // ======================
   async function apiPost(fnName, payload){
-    // Edge Function URL:
-    // https://<project>.supabase.co/functions/v1/<fnName>
     const url = SUPABASE_URL.replace(/\/+$/,"") + "/functions/v1/" + encodeURIComponent(fnName);
-
     const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify(payload || {})
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+SUPABASE_ANON_KEY},
+      body:JSON.stringify(payload||{})
     });
-
-    // Edge Functions may return non-JSON sometimes; handle both
     const text = await res.text();
     let data = null;
-    try{ data = text ? JSON.parse(text) : null; }catch(e){ data = { raw: text }; }
-
+    try{ data = text ? JSON.parse(text) : null; }catch(e){ data={raw:text}; }
     if(!res.ok){
-      const msg = (data && (data.error || data.message)) ? (data.error || data.message) : ("Request failed ("+res.status+")");
+      const msg = (data&&(data.error||data.message)) ? (data.error||data.message) : "Request failed ("+res.status+")";
       throw new Error(msg);
     }
     return data;
   }
 
-  // ---------- helpers ----------
   function $(id){ return document.getElementById(id); }
   function esc(s){
-    s = String(s == null ? "" : s);
+    s = String(s==null?"":s);
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
   function toast(msg){
     var t = $("toast"); if(!t) return;
-    t.textContent = String(msg || "");
+    t.textContent = String(msg||"");
     t.classList.add("show");
     clearTimeout(toast._t);
-    toast._t = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+    toast._t = setTimeout(function(){ t.classList.remove("show"); }, 2400);
   }
   function safeId(){
-    try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
-    return "dev-" + Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
+    try{ if(window.crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+    return "dev-"+Math.random().toString(36).slice(2)+"-"+Date.now().toString(36);
   }
-  function money(n){ return "₹" + Number(n||0).toLocaleString("en-IN"); }
+  function money(n){ return "₹"+Number(n||0).toLocaleString("en-IN"); }
 
-  // ---------- device/session ----------
   var DEVICE_ID = localStorage.getItem("decide_device_id");
-  if(!DEVICE_ID){ DEVICE_ID = safeId(); localStorage.setItem("decide_device_id", DEVICE_ID); }
+  if(!DEVICE_ID){ DEVICE_ID = safeId(); localStorage.setItem("decide_device_id",DEVICE_ID); }
 
   var STATE = {
-    domain: null,
-    filters: [],
-    cart: [],
-    orders: [],
-    session: "SID-" + Math.random().toString(36).slice(2,6).toUpperCase(),
-    selectedRestaurantId: null,
-    liveTrackingInterval: null,
-    lastEcomCategory: null
+    domain:null, filters:[], cart:[], orders:[], session:"SID-"+Math.random().toString(36).slice(2,6).toUpperCase(),
+    selectedRestaurantId:null, liveTrackingInterval:null, lastEcomCategory:null
   };
 
-  // ---------- demo data ----------
   var ECOMMERCE_DATA = [
     {category:"smartphones",name:"iPhone 15 Pro",price:134900,cam:9,gam:9,bat:7,seller:"Apple Store",rating:4.8,stock:50,delivery:"2 days",warranty:"1 year",city:"Gandhidham"},
     {category:"smartphones",name:"Samsung S24 Ultra",price:129999,cam:10,gam:9,bat:8,seller:"Samsung",rating:4.9,stock:40,delivery:"3 days",warranty:"1 year",city:"Gandhidham"},
@@ -343,177 +502,235 @@ textarea{min-height:120px;resize:vertical}
   ];
 
   var FOOD_DATA = {
-    restaurants: [
-      {
-        id: "rajkot-thali-001",
-        name: "Unlimited Gujarati Thali",
-        brand: "Family Restaurant",
-        city: "Rajkot",
-        area: "Race Course Road",
-        priceHint: 150,
-        upiId: "6351537770@yapl",
-        whatsapp: "https://wa.me/91XXXXXXXXXX",
-        hours: "11:00 AM - 3:30 PM, 7:00 PM - 10:30 PM",
-        tags: ["veg","family","unlimited"],
-        menu: [
-          { id:"thali-150", name:"Unlimited Gujarati Thali", price:150, veg:true, desc:"Traditional unlimited thali", prepMins:20 },
-          { id:"pavbhaji-120", name:"Pav Bhaji", price:120, veg:true, desc:"Butter pav bhaji", prepMins:20 },
-          { id:"chaas-25", name:"Chaas", price:25, veg:true, desc:"Fresh buttermilk", prepMins:5 }
-        ]
-      }
-    ]
+    restaurants:[{
+      id:"rajkot-thali-001",name:"Unlimited Gujarati Thali",brand:"Family Restaurant",city:"Rajkot",area:"Race Course Road",
+      priceHint:150,upiId:"6351537770@yapl",whatsapp:"https://wa.me/91XXXXXXXXXX",
+      hours:"11:00 AM – 3:30 PM, 7:00 PM – 10:30 PM",tags:["veg","family","unlimited"],
+      menu:[
+        {id:"thali-150",name:"Unlimited Gujarati Thali",price:150,veg:true,desc:"Traditional unlimited thali",prepMins:20},
+        {id:"pavbhaji-120",name:"Pav Bhaji",price:120,veg:true,desc:"Butter pav bhaji",prepMins:20},
+        {id:"chaas-25",name:"Chaas",price:25,veg:true,desc:"Fresh buttermilk",prepMins:5}
+      ]
+    }]
   };
 
-  // ---------- memory db ----------
-  var DB = { smartphones:{}, earbuds:{}, laptops:{} };
+  var DB = {smartphones:{},earbuds:{},laptops:{}};
   var RESULTS = [];
   var payMethod = null;
 
   function loadToMemory(arr){
-    DB = { smartphones:{}, earbuds:{}, laptops:{} };
-    (arr || []).forEach(function(p){
-      if(!p || !p.category || !p.name) return;
-      if(!DB[p.category]) DB[p.category] = {};
-      if(!DB[p.category][p.name]) DB[p.category][p.name] = [];
+    DB = {smartphones:{},earbuds:{},laptops:{}};
+    (arr||[]).forEach(function(p){
+      if(!p||!p.category||!p.name) return;
+      if(!DB[p.category]) DB[p.category]={};
+      if(!DB[p.category][p.name]) DB[p.category][p.name]=[];
       DB[p.category][p.name].push({
-        name:p.name,
-        price:Number(p.price)||0,
-        seller:p.seller||"Seller",
-        rating:Number(p.rating)||4.0,
-        stock:Number(p.stock)||0,
-        delivery:p.delivery||"2-5 days",
-        warranty:p.warranty||"6 months",
-        city:p.city||"",
-        attr:{
-          cam:Number(p.cam)||0, gam:Number(p.gam)||0, bat:Number(p.bat)||0,
-          snd:Number(p.snd)||0, anc:Number(p.anc)||0, mic:Number(p.mic)||0,
-          perf:Number(p.perf)||0, port:Number(p.port)||0, scr:Number(p.scr)||0
-        }
+        name:p.name,price:Number(p.price)||0,seller:p.seller||"Seller",rating:Number(p.rating)||4.0,
+        stock:Number(p.stock)||0,delivery:p.delivery||"2-5 days",warranty:p.warranty||"6 months",city:p.city||"",
+        attr:{cam:Number(p.cam)||0,gam:Number(p.gam)||0,bat:Number(p.bat)||0,snd:Number(p.snd)||0,anc:Number(p.anc)||0,mic:Number(p.mic)||0,perf:Number(p.perf)||0,port:Number(p.port)||0,scr:Number(p.scr)||0}
       });
     });
   }
 
   function loadOrders(){
-    try{
-      var x = JSON.parse(localStorage.getItem("order_history") || "[]");
-      STATE.orders = Array.isArray(x) ? x : [];
-    }catch(e){ STATE.orders = []; }
+    try{ var x=JSON.parse(localStorage.getItem("order_history")||"[]"); STATE.orders=Array.isArray(x)?x:[]; }catch(e){ STATE.orders=[]; }
   }
-  function saveOrders(){
-    try{ localStorage.setItem("order_history", JSON.stringify(STATE.orders)); }catch(e){}
-  }
+  function saveOrders(){ try{ localStorage.setItem("order_history",JSON.stringify(STATE.orders)); }catch(e){} }
+  function loadUtrIndex(){ try{ var x=JSON.parse(localStorage.getItem("utr_index")||"{}"); return(x&&typeof x==="object")?x:{}; }catch(e){ return{}; } }
+  function saveUtrIndex(idx){ try{ localStorage.setItem("utr_index",JSON.stringify(idx||{})); }catch(e){} }
 
-  // UTR index (for duplicate detection)
-  function loadUtrIndex(){
-    try{
-      var x = JSON.parse(localStorage.getItem("utr_index") || "{}");
-      return (x && typeof x === "object") ? x : {};
-    }catch(e){ return {}; }
-  }
-  function saveUtrIndex(idx){
-    try{ localStorage.setItem("utr_index", JSON.stringify(idx || {})); }catch(e){}
-  }
-
-  // ---------- live tracking ----------
   function stopLiveTracking(){
-    if(STATE.liveTrackingInterval){
-      clearInterval(STATE.liveTrackingInterval);
-      STATE.liveTrackingInterval = null;
-    }
+    if(STATE.liveTrackingInterval){ clearInterval(STATE.liveTrackingInterval); STATE.liveTrackingInterval=null; }
   }
+
+  // ---------- supabase helpers with fallback ----------
+  function saveFeedbackLocal(t,m){ try{ var a=JSON.parse(localStorage.getItem("feedback_items")||"[]"); if(!Array.isArray(a))a=[]; a.push({id:safeId(),title:t||"Feedback",message:m,ts:new Date().toISOString(),device:DEVICE_ID}); localStorage.setItem("feedback_items",JSON.stringify(a)); }catch(e){} }
+  async function submitFeedback(title,message){ try{ await apiPost("feedback",{title:title||"Feedback",message:message,device_id:DEVICE_ID}); toast("✅ Feedback saved!"); return true; }catch(err){ saveFeedbackLocal(title,message); toast("Saved locally (demo)"); return true; } }
+  function saveSellerInterestLocal(type,b,c,p,idea){ try{ var a=JSON.parse(localStorage.getItem("seller_interest")||"[]"); if(!Array.isArray(a))a=[]; a.push({id:safeId(),type:type,businessName:b,city:c,phone:p,idea:idea,device:DEVICE_ID,ts:new Date().toISOString()}); localStorage.setItem("seller_interest",JSON.stringify(a)); }catch(e){} }
+  async function submitSellerInterest(type,b,c,p,idea){ try{ await apiPost("seller-interest",{category:type,business_name:b,city:c,phone:p,idea:idea||null,device_id:DEVICE_ID}); toast("✅ Submitted!"); return true; }catch(err){ saveSellerInterestLocal(type,b,c,p,idea); toast("Submitted (local demo)"); return true; } }
+  function saveWaitlistLocal(e,ph,ci,int){ try{ var a=JSON.parse(localStorage.getItem("waitlist_local")||"[]"); if(!Array.isArray(a))a=[]; a.push({id:safeId(),email:e,phone:ph||"",city:ci||"",interest:int||"",device:DEVICE_ID,ts:new Date().toISOString()}); localStorage.setItem("waitlist_local",JSON.stringify(a)); }catch(e){} }
+  async function joinWaitlist(email,phone,city,interest){ try{ const out=await apiPost("waitlist",{email:email,phone:phone||null,city:city||null,interest:interest||null,source:"website",device_id:DEVICE_ID}); if(out&&out.already){ toast("Already registered!"); return false; } toast("✅ Added to waitlist!"); return true; }catch(err){ saveWaitlistLocal(email,phone,city,interest); toast("Saved locally (demo)"); return true; } }
 
   // ======================
-  // Safe wrappers (Edge Functions w/ local fallback)
+  // PDF RECEIPT GENERATOR
   // ======================
-  function saveFeedbackLocal(title, message){
-    try{
-      var arr = JSON.parse(localStorage.getItem("feedback_items") || "[]");
-      if(!Array.isArray(arr)) arr = [];
-      arr.push({ id:safeId(), title:title||"Feedback", message:message, ts:new Date().toISOString(), device:DEVICE_ID });
-      localStorage.setItem("feedback_items", JSON.stringify(arr));
-    }catch(e){}
-  }
-
-  async function submitFeedback(title, message){
-    // Uses Edge Function: feedback
-    try{
-      await apiPost("feedback", { title:title||"Feedback", message:message, device_id: DEVICE_ID });
-      toast("✅ Feedback saved!");
-      return true;
-    }catch(err){
-      console.warn("feedback fn failed, local fallback:", err);
-      saveFeedbackLocal(title, message);
-      toast("Saved locally (demo)");
-      return true;
+  function downloadReceiptPDF(orderId){
+    if(typeof window.jspdf === "undefined" && typeof jsPDF === "undefined"){
+      toast("PDF library loading... try again");
+      return;
     }
-  }
 
-  function saveSellerInterestLocal(type, businessName, city, phone, idea){
-    try{
-      var arr = JSON.parse(localStorage.getItem("seller_interest") || "[]");
-      if(!Array.isArray(arr)) arr = [];
-      arr.push({ id:safeId(), type:type, businessName:businessName, city:city, phone:phone, idea:idea, device:DEVICE_ID, ts:new Date().toISOString() });
-      localStorage.setItem("seller_interest", JSON.stringify(arr));
-    }catch(e){}
-  }
-
-  async function submitSellerInterest(type, businessName, city, phone, idea){
-    // Uses Edge Function: seller-interest
-    try{
-      await apiPost("seller-interest", {
-        category:type, business_name:businessName, city:city, phone:phone, idea:idea||null, device_id:DEVICE_ID
-      });
-      toast("✅ Submitted!");
-      return true;
-    }catch(err){
-      console.warn("seller-interest fn failed, local fallback:", err);
-      saveSellerInterestLocal(type, businessName, city, phone, idea);
-      toast("Submitted (local demo)");
-      return true;
+    loadOrders();
+    var order = null;
+    for(var i=0;i<STATE.orders.length;i++){
+      if(STATE.orders[i].id===orderId){ order=STATE.orders[i]; break; }
     }
-  }
+    if(!order){ toast("Order not found"); return; }
 
-  function saveWaitlistLocal(email, phone, city, interest){
-    try{
-      var arr = JSON.parse(localStorage.getItem("waitlist_local") || "[]");
-      if(!Array.isArray(arr)) arr = [];
-      arr.push({ id:safeId(), email:email, phone:phone||"", city:city||"", interest:interest||"", device:DEVICE_ID, ts:new Date().toISOString() });
-      localStorage.setItem("waitlist_local", JSON.stringify(arr));
-    }catch(e){}
-  }
+    var jspdfLib = (typeof window.jspdf !== "undefined") ? window.jspdf.jsPDF : jsPDF;
+    var doc = new jspdfLib({ orientation:"portrait", unit:"mm", format:"a4" });
 
-  async function joinWaitlist(email, phone, city, interest){
-    // Uses Edge Function: waitlist
-    try{
-      const out = await apiPost("waitlist", {
-        email: email,
-        phone: phone || null,
-        city: city || null,
-        interest: interest || null,
-        source: "website",
-        device_id: DEVICE_ID
-      });
+    var W = doc.internal.pageSize.getWidth();
+    var marginL = 20;
+    var col2 = W/2 + 10;
+    var y = 0;
 
-      // if your function returns {already:true}
-      if(out && out.already){
-        toast("Already registered!");
-        return false;
-      }
+    // ── helpers ──
+    function line(x1,y1,x2,y2,r,g,b){ doc.setDrawColor(r||80,g||80,b||80); doc.line(x1,y1,x2,y2); }
+    function dashedLine(yy){ doc.setDrawColor(180,100,30); doc.setLineDashPattern([2,2],0); doc.line(marginL,yy,W-marginL,yy); doc.setLineDashPattern([],0); }
+    function txt(text,x,yy,size,bold,colorR,colorG,colorB){ doc.setFontSize(size||10); doc.setFont("helvetica",bold?"bold":"normal"); doc.setTextColor(colorR||255,colorG||255,colorB||255); doc.text(String(text||""),x,yy); }
 
-      toast("✅ Added to waitlist!");
-      return true;
-    }catch(err){
-      console.warn("waitlist fn failed, local fallback:", err);
-      saveWaitlistLocal(email, phone, city, interest);
-      toast("Saved locally (demo)");
-      return true;
+    // ── BACKGROUND ──
+    doc.setFillColor(10,10,10);
+    doc.rect(0,0,W,297,"F");
+
+    // ── ORANGE HEADER BAR ──
+    doc.setFillColor(255,103,31);
+    doc.rect(0,0,W,38,"F");
+
+    // Brand name
+    doc.setFontSize(22); doc.setFont("helvetica","bold"); doc.setTextColor(0,0,0);
+    doc.text("DECIDE", marginL, 16);
+    doc.setFontSize(9); doc.setFont("helvetica","normal");
+    doc.text("India's Smart Marketplace", marginL, 23);
+
+    // DEMO badge in header
+    doc.setFillColor(0,0,0);
+    doc.roundedRect(W-52, 6, 34, 13, 3, 3, "F");
+    doc.setFontSize(8); doc.setFont("helvetica","bold"); doc.setTextColor(255,59,59);
+    doc.text("DEMO", W-47, 14.5);
+
+    // Receipt title right side
+    doc.setFontSize(14); doc.setFont("helvetica","bold"); doc.setTextColor(0,0,0);
+    doc.text("ORDER RECEIPT", W-marginL, 16, {align:"right"});
+    doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text("Demo Build • UX Testing Only", W-marginL, 23, {align:"right"});
+
+    y = 50;
+
+    // ── DEMO DISCLAIMER BOX ──
+    doc.setFillColor(40,25,0);
+    doc.setDrawColor(255,179,0);
+    doc.roundedRect(marginL, y, W-(marginL*2), 16, 3, 3, "FD");
+    doc.setFontSize(8); doc.setFont("helvetica","bold"); doc.setTextColor(255,179,0);
+    doc.text("⚠  DEMO RECEIPT: No real payment was processed. This is a UX prototype.", marginL+6, y+6.5);
+    doc.setFont("helvetica","normal"); doc.setTextColor(200,160,50);
+    doc.text("UTR submitted is for testing duplicate-detection logic only.", marginL+6, y+12.5);
+    y += 24;
+
+    // ── ORDER META ──
+    // Left box
+    doc.setFillColor(25,25,25);
+    doc.setDrawColor(60,60,60);
+    doc.roundedRect(marginL, y, (W/2)-marginL-4, 34, 4, 4, "FD");
+    txt("ORDER ID", marginL+6, y+8, 7, false, 130,130,130);
+    txt(order.id, marginL+6, y+15, 10, true, 255,103,31);
+    txt("DATE & TIME", marginL+6, y+23, 7, false, 130,130,130);
+    txt(new Date(order.timestamp).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}), marginL+6, y+30, 8.5, false, 220,220,220);
+
+    // Right box
+    doc.roundedRect(col2, y, (W/2)-marginL-4, 34, 4, 4, "FD");
+    txt("PAYMENT METHOD", col2+6, y+8, 7, false, 130,130,130);
+    txt(String(order.payment||"UPI").toUpperCase(), col2+6, y+15, 10, true, 0,230,118);
+    if(order.utr){
+      txt("UTR NUMBER", col2+6, y+23, 7, false, 130,130,130);
+      txt(order.utr, col2+6, y+30, 8.5, false, 220,220,220);
     }
+    y += 42;
+
+    // ── STATUS BANNER ──
+    var statusColors = {
+      delivered:[0,230,118], confirmed:[255,103,31], preparing:[255,179,0],
+      utr_submitted:[255,179,0], placed:[150,150,150]
+    };
+    var sc = statusColors[order.status] || [150,150,150];
+    doc.setFillColor(sc[0], sc[1], sc[2], 0.15);
+    doc.setFillColor(Math.round(sc[0]*0.15), Math.round(sc[1]*0.15), Math.round(sc[2]*0.15));
+    doc.setDrawColor(sc[0],sc[1],sc[2]);
+    doc.roundedRect(marginL, y, W-(marginL*2), 12, 3, 3, "FD");
+    doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(sc[0],sc[1],sc[2]);
+    doc.text("STATUS: "+String(order.status||"").toUpperCase().replace(/_/g," "), W/2, y+8, {align:"center"});
+    y += 20;
+
+    // ── ITEMS TABLE ──
+    txt("ITEMS ORDERED", marginL, y, 9, true, 180,180,180);
+    y += 8;
+
+    // Table header
+    doc.setFillColor(40,40,40); doc.setDrawColor(60,60,60);
+    doc.rect(marginL, y, W-(marginL*2), 9, "FD");
+    txt("Item", marginL+4, y+6.5, 8, true, 200,200,200);
+    txt("Seller", W*0.55, y+6.5, 8, true, 200,200,200);
+    txt("Qty", W*0.75, y+6.5, 8, true, 200,200,200);
+    txt("Price", W-marginL-4, y+6.5, 8, true, 200,200,200, {align:"right"});
+    y += 9;
+
+    var items = order.items || [];
+    items.forEach(function(it, idx){
+      doc.setFillColor(idx%2===0 ? 20 : 26, idx%2===0 ? 20 : 26, idx%2===0 ? 20 : 26);
+      doc.setDrawColor(45,45,45);
+      doc.rect(marginL, y, W-(marginL*2), 10, "FD");
+      txt(String(it.name||"").substring(0,28), marginL+4, y+7, 8.5, false, 240,240,240);
+      txt(String(it.seller||"").substring(0,16), W*0.55, y+7, 7.5, false, 160,160,160);
+      txt(String(it.qty||1), W*0.75, y+7, 8, false, 160,160,160);
+      txt(money(it.price), W-marginL-4, y+7, 8.5, true, 255,103,31, {align:"right"});
+      y += 10;
+    });
+
+    y += 4;
+    // ── TOTALS ──
+    dashedLine(y); y += 8;
+
+    function totalRow(label, val, big, orange){
+      txt(label, W*0.55, y, big?11:9, big, 160,160,160);
+      txt(val, W-marginL-4, y, big?11:9, big, orange?255:200, orange?103:200, orange?31:200, {align:"right"});
+      y += big ? 10 : 8;
+    }
+    totalRow("Subtotal", money(order.subtotal||0), false, false);
+    totalRow("Tax / GST", money(order.tax||0), false, false);
+    dashedLine(y); y += 10;
+    totalRow("TOTAL PAID", money(order.total||0), true, true);
+    y += 6;
+
+    // ── TRACKING TIMELINE ──
+    txt("ORDER TIMELINE", marginL, y, 9, true, 180,180,180);
+    y += 8;
+    var steps = order.updates || [];
+    steps.forEach(function(s){
+      var done = s.completed;
+      doc.setFillColor(done?0:40, done?80:40, done?30:40);
+      doc.setDrawColor(done?0:60, done?180:60, done?100:60);
+      doc.circle(marginL+5, y-1.5, 3, "FD");
+      doc.setDrawColor(done?0:60, done?180:60, done?100:60);
+      doc.line(marginL+5, y+1.5, marginL+5, y+7);
+      txt(s.label||"", marginL+12, y+1, 8, done, done?200:100, done?200:100, done?200:100);
+      if(s.time) txt(new Date(s.time).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}), W-marginL-4, y+1, 7, false, 110,110,110, {align:"right"});
+      y += 10;
+    });
+
+    // ── FOOTER ──
+    y = Math.max(y+10, 260);
+    doc.setFillColor(255,103,31);
+    doc.rect(0,y,W,4,"F");
+    y += 10;
+    doc.setFontSize(7); doc.setFont("helvetica","normal"); doc.setTextColor(100,100,100);
+    doc.text("DECIDE INDIA • India's Commission-Free Marketplace • decideindia.com", W/2, y, {align:"center"});
+    doc.text("⚠ DEMO: This receipt is generated for UX testing. No real transaction occurred.", W/2, y+6, {align:"center"});
+    doc.setTextColor(80,80,80);
+    doc.text("Generated "+new Date().toLocaleString("en-IN")+" • Device: "+DEVICE_ID.slice(0,16), W/2, y+11, {align:"center"});
+
+    doc.save("Decide-Receipt-"+order.id+".pdf");
+    toast("📄 Receipt downloaded!");
   }
+
+  // ---------- demo guide modal ----------
+  function showDemoGuide(){ var m=$("demoModal"); if(m) m.style.display="flex"; }
+  function hideDemoGuide(){ var m=$("demoModal"); if(m) m.style.display="none"; }
 
   // ======================
-  // LANDING (no inline onclick)
+  // LANDING
   // ======================
-  function isVisited(){ return localStorage.getItem("decide_visited") === "true"; }
+  function isVisited(){ return localStorage.getItem("decide_visited")==="true"; }
   function markVisited(){ localStorage.setItem("decide_visited","true"); }
 
   function renderLanding(){
@@ -521,11 +738,11 @@ textarea{min-height:120px;resize:vertical}
     $("app").innerHTML =
       '<div class="wrap" style="text-align:center;padding-top:26px">' +
         '<div class="header" style="margin-bottom:10px">' +
-          '<div class="header-badge">DECIDE INDIA <span class="status-dot" aria-hidden="true"></span> <span class="demo-pill">DEMO</span></div>' +
+          '<div class="header-badge">DECIDE INDIA <span class="status-dot" aria-hidden="true"></span> <span class="demo-pill">🧪 DEMO</span></div>' +
           '<button class="btn" type="button" data-action="home">HOME</button>' +
         '</div>' +
 
-        '<div class="demo-note">⚠ <b>Demo build</b> — UX testing only. Payments/UTR are demo flows.</div>' +
+        '<div class="demo-note"><span class="dn-icon">⚠️</span><b>Demo build</b> — This is a UX prototype. Payments, UTR submissions, and seller confirmations are all simulated. <a href="#" data-action="demoGuide" style="color:#ffca28;font-weight:900">Learn more →</a></div>' +
 
         '<h1 style="font-size:3rem;margin:10px 0 10px;color:var(--brand-orange);letter-spacing:2px">DECIDE</h1>' +
         '<div class="p" style="font-size:1.05rem;margin-bottom:18px;color:#bbb">India\'s Smart Marketplace (Commission-free)</div>' +
@@ -544,7 +761,7 @@ textarea{min-height:120px;resize:vertical}
           '<div style="font-size:1.05rem;font-weight:900;margin-bottom:10px">🚀 What\'s Live Now?</div>' +
           '<div style="color:#ccc;line-height:1.7">' +
             '✅ <b>Gandhidham:</b> E-commerce (phones, laptops, audio)<br>' +
-            '✅ <b>Rajkot:</b> Food (UPI → UTR flow for UX)<br>' +
+            '✅ <b>Rajkot:</b> Food (UPI → UTR flow for UX) <span class="demo-feature-badge">🧪 Simulated</span><br>' +
             '⏳ <b>Next:</b> Ahmedabad → Surat → All India' +
           '</div>' +
         '</div>' +
@@ -552,33 +769,29 @@ textarea{min-height:120px;resize:vertical}
         '<div class="payment-box" style="max-width:760px;margin:0 auto 18px;text-align:left">' +
           '<div style="font-size:1.05rem;font-weight:900;margin-bottom:10px">📧 Join Waitlist</div>' +
           '<div class="label">Email</div>' +
-          '<input id="wl_email" type="email" placeholder="you@gmail.com" style="margin:8px 0 10px" />' +
-          '<div class="label">City (optional)</div>' +
-          '<input id="wl_city" placeholder="e.g. Rajkot" style="margin:8px 0 10px" />' +
-          '<div class="label">I am (optional)</div>' +
-          '<input id="wl_interest" placeholder="buyer / seller / developer" style="margin:8px 0 12px" />' +
+          '<input id="wl_email" type="email" placeholder="you@gmail.com" />' +
+          '<div class="label" style="margin-top:10px">City (optional)</div>' +
+          '<input id="wl_city" placeholder="e.g. Rajkot" />' +
+          '<div class="label" style="margin-top:10px">I am (optional)</div>' +
+          '<input id="wl_interest" placeholder="buyer / seller / developer" />' +
+          '<div style="height:12px"></div>' +
           '<button class="action" type="button" data-action="waitlistSubmit">GET EARLY ACCESS</button>' +
           '<div style="color:#777;font-size:.85rem;margin-top:10px;line-height:1.6">We store only minimal info. You can request removal anytime.</div>' +
         '</div>' +
 
         '<button class="secondary" type="button" data-action="lobby">SKIP TO DEMO →</button>' +
+        '<div style="margin-top:14px"><button class="demo-topbar-btn" type="button" data-action="demoGuide" style="margin:auto">🧪 HOW DOES THIS DEMO WORK?</button></div>' +
 
-        '<div class="footer">' +
-          '<a href="/privacy.html">Privacy</a> • ' +
-          '<a href="/terms.html">Terms</a> • ' +
-          '<a href="/contact.html">Contact</a>' +
-        '</div>' +
+        '<div class="footer"><a href="/privacy.html">Privacy</a> • <a href="/terms.html">Terms</a> • <a href="/contact.html">Contact</a></div>' +
       '</div>';
   }
 
   function submitWaitlist(){
-    var email = (($("wl_email")||{}).value || "").trim();
-    var city = (($("wl_city")||{}).value || "").trim();
-    var interest = (($("wl_interest")||{}).value || "").trim();
-    if(!email || email.indexOf("@") < 1){ toast("Enter valid email"); return; }
-    joinWaitlist(email, null, city, interest || "landing").then(function(ok){
-      if(ok){ markVisited(); setTimeout(function(){ renderLobby(); }, 500); }
-    });
+    var email = (($("wl_email")||{}).value||"").trim();
+    var city = (($("wl_city")||{}).value||"").trim();
+    var interest = (($("wl_interest")||{}).value||"").trim();
+    if(!email||email.indexOf("@")<1){ toast("Enter valid email"); return; }
+    joinWaitlist(email,null,city,interest||"landing").then(function(ok){ if(ok){ markVisited(); setTimeout(function(){ renderLobby(); },500); } });
   }
 
   // ---------- lobby ----------
@@ -589,75 +802,48 @@ textarea{min-height:120px;resize:vertical}
 
     app.innerHTML =
       '<div class="header">' +
-        '<div class="header-badge">DECIDE INDIA <span class="status-dot" aria-hidden="true"></span> <span class="demo-pill">DEMO</span></div>' +
+        '<div class="header-badge">DECIDE INDIA <span class="status-dot" aria-hidden="true"></span> <span class="demo-pill">🧪 DEMO</span></div>' +
         '<button class="btn" type="button" data-action="home">HOME</button>' +
       '</div>' +
 
-      '<div class="demo-note">⚠ <b>Demo build</b> — Payments & confirmations are for testing UX. Data saved locally (unless Edge Functions are live).</div>' +
+      '<div class="demo-note"><span class="dn-icon">⚠️</span><b>Demo build</b> — Payments &amp; confirmations are for testing UX. <a href="#" data-action="demoGuide" style="color:#ffca28;font-weight:900">See what\'s simulated →</a></div>' +
 
       '<div class="two-col-grid">' +
         '<div class="left-col">' +
           '<div class="col-header">MAIN CATEGORIES</div>' +
           '<div class="card" role="button" tabindex="0" data-action="seller">' +
-            '<div class="icon">🏪</div><div class="title">BECOME A SELLER</div>' +
-            '<div class="tag" style="background:var(--brand-orange);color:#000">START</div>' +
+            '<div class="icon">🏪</div><div class="title">BECOME A SELLER</div><div class="tag" style="background:var(--brand-orange);color:#000">START</div>' +
           '</div>' +
           '<div class="card" role="button" tabindex="0" data-action="module" data-module="ecommerce">' +
             '<div class="icon">🛍️</div><div class="title">E-COMMERCE</div><div class="tag tag-live">GANDHIDHAM</div>' +
           '</div>' +
           '<div class="card" role="button" tabindex="0" data-action="module" data-module="food">' +
-            '<div class="icon">🍽️</div><div class="title">FOOD</div><div class="tag tag-live">RAJKOT • UPI</div>' +
+            '<div class="icon">🍽️</div><div class="title">FOOD</div><div class="tag tag-live">RAJKOT • UPI 🧪</div>' +
           '</div>' +
-          '<div class="card" role="button" tabindex="0" aria-disabled="true">' +
-            '<div class="icon">👕</div><div class="title">FASHION</div><div class="tag tag-soon">DISABLED</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" aria-disabled="true">' +
-            '<div class="icon">🛒</div><div class="title">GROCERIES</div><div class="tag tag-soon">DISABLED</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" aria-disabled="true">' +
-            '<div class="icon">🕶️</div><div class="title">ACCESSORIES</div><div class="tag tag-soon">DISABLED</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" data-action="feedback">' +
-            '<div class="icon">💬</div><div class="title">FEEDBACK CENTER</div><div class="tag tag-beta">OPEN</div>' +
-          '</div>' +
+          '<div class="card" role="button" tabindex="0" aria-disabled="true"><div class="icon">👕</div><div class="title">FASHION</div><div class="tag tag-soon">DISABLED</div></div>' +
+          '<div class="card" role="button" tabindex="0" aria-disabled="true"><div class="icon">🛒</div><div class="title">GROCERIES</div><div class="tag tag-soon">DISABLED</div></div>' +
+          '<div class="card" role="button" tabindex="0" aria-disabled="true"><div class="icon">🕶️</div><div class="title">ACCESSORIES</div><div class="tag tag-soon">DISABLED</div></div>' +
+          '<div class="card" role="button" tabindex="0" data-action="feedback"><div class="icon">💬</div><div class="title">FEEDBACK CENTER</div><div class="tag tag-beta">OPEN</div></div>' +
         '</div>' +
-
         '<div class="right-col">' +
           '<div class="col-header">ACTIVE MVP CITIES</div>' +
-          '<div class="card" role="button" tabindex="0" data-action="city" data-city="Gandhidham">' +
-            '<div class="icon">🏙️</div><div class="title">GANDHIDHAM</div><div class="tag tag-city">E-COM LIVE</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" data-action="city" data-city="Rajkot">' +
-            '<div class="icon">🏙️</div><div class="title">RAJKOT</div><div class="tag tag-city">FOOD LIVE</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" aria-disabled="true">' +
-            '<div class="icon">🏙️</div><div class="title">AHMEDABAD</div><div class="tag tag-soon">SOON</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" aria-disabled="true">' +
-            '<div class="icon">🏙️</div><div class="title">SURAT</div><div class="tag tag-soon">SOON</div>' +
-          '</div>' +
-          '<div class="card" role="button" tabindex="0" aria-disabled="true">' +
-            '<div class="icon">🇮🇳</div><div class="title">ALL INDIA</div><div class="tag tag-soon">PHASE 2</div>' +
-          '</div>' +
+          '<div class="card" role="button" tabindex="0" data-action="city" data-city="Gandhidham"><div class="icon">🏙️</div><div class="title">GANDHIDHAM</div><div class="tag tag-city">E-COM LIVE</div></div>' +
+          '<div class="card" role="button" tabindex="0" data-action="city" data-city="Rajkot"><div class="icon">🏙️</div><div class="title">RAJKOT</div><div class="tag tag-city">FOOD LIVE</div></div>' +
+          '<div class="card" role="button" tabindex="0" aria-disabled="true"><div class="icon">🏙️</div><div class="title">AHMEDABAD</div><div class="tag tag-soon">SOON</div></div>' +
+          '<div class="card" role="button" tabindex="0" aria-disabled="true"><div class="icon">🏙️</div><div class="title">SURAT</div><div class="tag tag-soon">SOON</div></div>' +
+          '<div class="card" role="button" tabindex="0" aria-disabled="true"><div class="icon">🇮🇳</div><div class="title">ALL INDIA</div><div class="tag tag-soon">PHASE 2</div></div>' +
         '</div>' +
       '</div>' +
 
       '<div class="action-grid">' +
-        '<div class="card" role="button" tabindex="0" data-action="orders">' +
-          '<div class="icon">📦</div><div class="title">MY ORDERS</div><div class="tag tag-beta">TRACK</div>' +
-        '</div>' +
-        '<div class="card" role="button" tabindex="0" data-action="cart" aria-disabled="' + (cartCount? "false":"true") + '">' +
-          '<div class="icon">🛒</div><div class="title">CART</div><div class="tag tag-neutral">' + cartCount + ' ITEMS</div>' +
-        '</div>' +
+        '<div class="card" role="button" tabindex="0" data-action="orders"><div class="icon">📦</div><div class="title">MY ORDERS</div><div class="tag tag-beta">TRACK</div></div>' +
+        '<div class="card" role="button" tabindex="0" data-action="cart" aria-disabled="'+(cartCount?"false":"true")+'"><div class="icon">🛒</div><div class="title">CART</div><div class="tag tag-neutral">'+cartCount+' ITEMS</div></div>' +
       '</div>' +
 
-      '<div style="text-align:center;margin-top:18px;color:#888;font-size:.85rem">Session: ' + esc(STATE.session) + '</div>' +
+      '<div style="text-align:center;margin-top:18px;color:#888;font-size:.85rem">Session: '+esc(STATE.session)+'</div>' +
+      '<div style="text-align:center;margin-top:10px"><button class="demo-topbar-btn" type="button" data-action="demoGuide">🧪 HOW DOES THIS DEMO WORK?</button></div>' +
 
-      '<div class="footer">' +
-        '<a href="/privacy.html">Privacy</a> • ' +
-        '<a href="/terms.html">Terms</a> • ' +
-        '<a href="/contact.html">Contact</a>' +
-      '</div>';
+      '<div class="footer"><a href="/privacy.html">Privacy</a> • <a href="/terms.html">Terms</a> • <a href="/contact.html">Contact</a></div>';
   }
 
   // ---------- seller ----------
@@ -667,22 +853,14 @@ textarea{min-height:120px;resize:vertical}
       '<div class="wrap">' +
         '<div class="h1">Join Decide</div>' +
         '<div class="p">A clean, local-first way to get customers — without commission.</div>' +
-        '<div class="demo-note"><b>DEMO:</b> Saved via Edge Function if available, otherwise local.</div>' +
+        '<div class="demo-note"><span class="dn-icon">⚠️</span><b>Demo:</b> Saved via Edge Function if available, otherwise stored locally in your browser.</div>' +
         '<div class="payment-box">' +
           '<div style="font-weight:900;font-size:1.1rem;margin-bottom:10px">Why join Decide?</div>' +
-          '<div style="color:#bbb;line-height:1.7">' +
-            '• <b>No commission</b> like big apps<br />' +
-            '• <b>Direct customer connection</b> (you build trust)<br />' +
-            '• <b>Local-first discovery</b> (city + area matters)<br />' +
-            '• <b>No algorithm suppression</b> (transparent listing)<br />' +
-          '</div>' +
+          '<div style="color:#bbb;line-height:1.7">• <b>No commission</b> like big apps<br/>• <b>Direct customer connection</b><br/>• <b>Local-first discovery</b><br/>• <b>No algorithm suppression</b></div>' +
         '</div>' +
         '<div class="payment-box">' +
           '<div style="font-weight:900;margin-bottom:10px">I want to join as</div>' +
-          '<div class="actions">' +
-            '<button class="buy" type="button" data-action="sellerForm" data-type="Food">🍽️ Food</button>' +
-            '<button class="add" type="button" data-action="sellerForm" data-type="Electronics">🛍️ Electronics</button>' +
-          '</div>' +
+          '<div class="actions"><button class="buy" type="button" data-action="sellerForm" data-type="Food">🍽️ Food</button><button class="add" type="button" data-action="sellerForm" data-type="Electronics">🛍️ Electronics</button></div>' +
           '<div style="height:10px"></div>' +
           '<button class="secondary" type="button" data-action="sellerForm" data-type="Services">🧰 Services</button>' +
         '</div>' +
@@ -695,620 +873,274 @@ textarea{min-height:120px;resize:vertical}
     $("app").innerHTML =
       '<div class="wrap">' +
         '<div class="h1">Seller Interest</div>' +
-        '<div class="p">Fast onboarding. You’ll be manually verified first.</div>' +
+        '<div class="demo-note"><span class="dn-icon">☁️</span><b>Submission:</b> Calls Edge Function "seller-interest". Falls back to localStorage if function not deployed.</div>' +
         '<div class="payment-box">' +
-          '<div class="label">Category</div>' +
-          '<div class="value" style="margin:6px 0 12px">' + esc(type) + '</div>' +
-          '<div class="label">Business Name</div>' +
-          '<input id="s_bname" placeholder="e.g. Rajkot Thali House" />' +
-          '<div style="height:10px"></div>' +
-          '<div class="label">City</div>' +
-          '<input id="s_city" placeholder="e.g. Rajkot" />' +
-          '<div style="height:10px"></div>' +
-          '<div class="label">Phone (WhatsApp)</div>' +
-          '<input id="s_phone" placeholder="e.g. 9XXXXXXXXX" />' +
-          '<div style="height:10px"></div>' +
-          '<div class="label">Your idea (optional)</div>' +
-          '<textarea id="s_idea" placeholder="Tell us what you want Decide to build for you..."></textarea>' +
+          '<div class="label">Category</div><div class="value" style="margin:6px 0 12px">'+esc(type)+'</div>' +
+          '<div class="label">Business Name</div><input id="s_bname" placeholder="e.g. Rajkot Thali House" />' +
+          '<div style="height:10px"></div><div class="label">City</div><input id="s_city" placeholder="e.g. Rajkot" />' +
+          '<div style="height:10px"></div><div class="label">Phone (WhatsApp)</div><input id="s_phone" placeholder="e.g. 9XXXXXXXXX" />' +
+          '<div style="height:10px"></div><div class="label">Your idea (optional)</div><textarea id="s_idea" placeholder="Tell us what you want Decide to build for you..."></textarea>' +
         '</div>' +
-        '<button class="action" type="button" data-action="sellerSubmit" data-type="' + esc(type) + '">SUBMIT INTEREST</button>' +
-        '<button class="secondary" type="button" data-action="seller">← BACK</button>' +
+        '<button class="action" type="button" data-action="sellerSubmit" data-type="'+esc(type)+'">SUBMIT INTEREST</button>' +
+        '<button class="secondary" type="button" data-action="seller" style="margin-top:10px">← BACK</button>' +
       '</div>';
   }
 
   function sellerSubmit(type){
-    var b = (($("s_bname")||{}).value || "").trim();
-    var c = (($("s_city")||{}).value || "").trim();
-    var p = (($("s_phone")||{}).value || "").trim();
-    var idea = (($("s_idea")||{}).value || "").trim();
-    if(b.length < 2){ toast("Enter business name"); return; }
-    if(c.length < 2){ toast("Enter city"); return; }
-    if(p.length < 8){ toast("Enter valid phone"); return; }
-    submitSellerInterest(type, b, c, p, idea).then(function(){ renderLobby(); });
+    var b=(($("s_bname")||{}).value||"").trim(), c=(($("s_city")||{}).value||"").trim(),
+        p=(($("s_phone")||{}).value||"").trim(), idea=(($("s_idea")||{}).value||"").trim();
+    if(b.length<2){ toast("Enter business name"); return; }
+    if(c.length<2){ toast("Enter city"); return; }
+    if(p.length<8){ toast("Enter valid phone"); return; }
+    submitSellerInterest(type,b,c,p,idea).then(function(){ renderLobby(); });
   }
 
   // ---------- feedback ----------
   function renderFeedbackCenter(){
     stopLiveTracking();
     var list = [];
-    try{
-      list = JSON.parse(localStorage.getItem("feedback_items") || "[]");
-      if(!Array.isArray(list)) list = [];
-    }catch(e){ list = []; }
+    try{ list=JSON.parse(localStorage.getItem("feedback_items")||"[]"); if(!Array.isArray(list)) list=[]; }catch(e){ list=[]; }
 
     var itemsHtml = list.slice().reverse().map(function(it){
-      return (
-        '<div class="result">' +
-          '<div class="name" style="font-size:1rem">' + esc(it.title || "Feedback") + '</div>' +
-          '<div style="color:#888;font-size:.85rem;margin-top:6px;line-height:1.6">' + esc(it.message || "") + '</div>' +
-          '<div style="color:#666;font-size:.8rem;margin-top:10px">Saved: ' + esc(new Date(it.ts).toLocaleString("en-IN")) + '</div>' +
-        '</div>'
-      );
+      return '<div class="result"><div class="name" style="font-size:1rem">'+esc(it.title||"Feedback")+'</div><div style="color:#888;font-size:.85rem;margin-top:6px;line-height:1.6">'+esc(it.message||"")+'</div><div style="color:#666;font-size:.8rem;margin-top:10px">Saved: '+esc(new Date(it.ts).toLocaleString("en-IN"))+'</div></div>';
     }).join("");
 
     $("app").innerHTML =
       '<div class="wrap">' +
         '<div class="h1">Feedback Center</div>' +
         '<div class="p">Tell your ideas. This builds real UX connection.</div>' +
-        '<div class="demo-note"><b>DEMO:</b> Uses Edge Function if available, otherwise local.</div>' +
-        '<div class="payment-box">' +
-          '<div class="label">Title</div>' +
-          '<input id="fb_title" placeholder="e.g. Add seller rating, Add swipe mode..." />' +
-          '<div style="height:10px"></div>' +
-          '<div class="label">Message</div>' +
-          '<textarea id="fb_msg" placeholder="Write your idea in detail..."></textarea>' +
-        '</div>' +
+        '<div class="demo-note"><span class="dn-icon">☁️</span><b>Demo:</b> Uses Edge Function "feedback" if available, otherwise stored locally in your browser.</div>' +
+        '<div class="payment-box"><div class="label">Title</div><input id="fb_title" placeholder="e.g. Add seller rating, Add swipe mode..." /><div style="height:10px"></div><div class="label">Message</div><textarea id="fb_msg" placeholder="Write your idea in detail..."></textarea></div>' +
         '<button class="action" type="button" data-action="fbSubmit">SUBMIT FEEDBACK</button>' +
         '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button>' +
         '<div style="height:18px"></div>' +
         '<div class="p" style="margin-bottom:10px">Your saved feedback (local demo)</div>' +
-        (itemsHtml || '<div class="p">No feedback yet.</div>') +
+        (itemsHtml||'<div class="p">No feedback yet.</div>') +
       '</div>';
   }
 
   function fbSubmit(){
-    var title = (($("fb_title")||{}).value || "").trim();
-    var msg = (($("fb_msg")||{}).value || "").trim();
-    if(msg.length < 5){ toast("Write a longer message"); return; }
-    submitFeedback(title, msg).then(function(){ renderFeedbackCenter(); });
+    var title=(($("fb_title")||{}).value||"").trim(), msg=(($("fb_msg")||{}).value||"").trim();
+    if(msg.length<5){ toast("Write a longer message"); return; }
+    submitFeedback(title,msg).then(function(){ renderFeedbackCenter(); });
   }
 
-  // ---------- city view ----------
+  // ---------- city ----------
   function renderCity(city){
     stopLiveTracking();
-    var cards = '';
-    if(city === "Gandhidham"){
-      cards += cardLink("🛍️","E-COMMERCE","LIVE","tag-live","ecommerce");
-    }else if(city === "Rajkot"){
-      cards += cardLink("🍽️","FOOD","LIVE","tag-live","food");
-    }else{
-      toast("City coming soon");
-      renderLobby();
-      return;
-    }
-
-    $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">' + esc(city) + '</div>' +
-        '<div class="p">Available modules</div>' +
-        cards +
-        '<button class="secondary" type="button" data-action="home">← HOME</button>' +
-      '</div>';
-
-    function cardLink(icon,title,status,tagClass,action){
-      return (
-        '<div class="card" role="button" tabindex="0" data-action="' + esc(action) + '" style="margin-bottom:12px">' +
-          '<div class="icon">' + icon + '</div><div class="title">' + esc(title) + '</div><div class="tag ' + tagClass + '">' + esc(status) + '</div>' +
-        '</div>'
-      );
-    }
+    function cardLink(icon,title,status,tagClass,action){ return '<div class="card" role="button" tabindex="0" data-action="'+esc(action)+'" style="margin-bottom:12px"><div class="icon">'+icon+'</div><div class="title">'+esc(title)+'</div><div class="tag '+tagClass+'">'+esc(status)+'</div></div>'; }
+    var cards = city==="Gandhidham" ? cardLink("🛍️","E-COMMERCE","LIVE","tag-live","ecommerce") :
+                city==="Rajkot"    ? cardLink("🍽️","FOOD","LIVE 🧪","tag-live","food") :
+                (function(){ toast("City coming soon"); renderLobby(); return ""; })();
+    if(!cards) return;
+    $("app").innerHTML = '<div class="wrap"><div class="h1">'+esc(city)+'</div><div class="p">Available modules</div>'+cards+'<button class="secondary" type="button" data-action="home">← HOME</button></div>';
   }
 
   // ---------- ecommerce ----------
   function renderEcommerce(){
-    stopLiveTracking();
-    STATE.domain = "ecommerce";
+    stopLiveTracking(); STATE.domain="ecommerce";
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">E-COMMERCE</div>' +
-        '<div class="p">Gandhidham MVP • Choose category</div>' +
-        '<div class="card" role="button" tabindex="0" data-action="category" data-cat="smartphones" style="margin-bottom:12px">' +
-          '<div class="icon">📱</div><div class="title">SMARTPHONES</div><div class="tag tag-live">AVAILABLE</div>' +
-        '</div>' +
-        '<div class="card" role="button" tabindex="0" data-action="category" data-cat="earbuds" style="margin-bottom:12px">' +
-          '<div class="icon">🎧</div><div class="title">AUDIO DEVICES</div><div class="tag tag-live">AVAILABLE</div>' +
-        '</div>' +
-        '<div class="card" role="button" tabindex="0" data-action="category" data-cat="laptops" style="margin-bottom:12px">' +
-          '<div class="icon">💻</div><div class="title">LAPTOPS</div><div class="tag tag-live">AVAILABLE</div>' +
-        '</div>' +
-        '<button class="secondary" type="button" data-action="home">← HOME</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">E-COMMERCE</div><div class="p">Gandhidham MVP • Choose category</div>' +
+      '<div class="demo-note"><span class="dn-icon">🛒</span><b>Demo data:</b> Products, prices &amp; stock counts are hardcoded. Rankings change based on your filter priorities.</div>' +
+      '<div class="card" role="button" tabindex="0" data-action="category" data-cat="smartphones" style="margin-bottom:12px"><div class="icon">📱</div><div class="title">SMARTPHONES</div><div class="tag tag-live">AVAILABLE</div></div>' +
+      '<div class="card" role="button" tabindex="0" data-action="category" data-cat="earbuds" style="margin-bottom:12px"><div class="icon">🎧</div><div class="title">AUDIO DEVICES</div><div class="tag tag-live">AVAILABLE</div></div>' +
+      '<div class="card" role="button" tabindex="0" data-action="category" data-cat="laptops" style="margin-bottom:12px"><div class="icon">💻</div><div class="title">LAPTOPS</div><div class="tag tag-live">AVAILABLE</div></div>' +
+      '<button class="secondary" type="button" data-action="home">← HOME</button></div>';
   }
 
   function renderFilters(cat){
-    stopLiveTracking();
-    STATE.domain = cat;
-    STATE.lastEcomCategory = cat;
-    STATE.filters = [];
-
-    var filters = {
-      smartphones:["cam","gam","bat"],
-      earbuds:["snd","anc","mic"],
-      laptops:["perf","port","scr"]
-    };
-    var labels = {
-      cam:"CAMERA",gam:"GAMING",bat:"BATTERY",
-      snd:"SOUND",anc:"NOISE",mic:"MIC",
-      perf:"POWER",port:"TRAVEL",scr:"SCREEN"
-    };
-
-    var btns = (filters[cat] || []).map(function(f){
-      return '<div class="filter-btn" role="button" tabindex="0" data-action="toggle" data-filter="' + f + '">' + labels[f] + '</div>';
-    }).join("");
-
+    stopLiveTracking(); STATE.domain=cat; STATE.lastEcomCategory=cat; STATE.filters=[];
+    var filters={smartphones:["cam","gam","bat"],earbuds:["snd","anc","mic"],laptops:["perf","port","scr"]};
+    var labels={cam:"CAMERA",gam:"GAMING",bat:"BATTERY",snd:"SOUND",anc:"NOISE",mic:"MIC",perf:"POWER",port:"TRAVEL",scr:"SCREEN"};
+    var btns=(filters[cat]||[]).map(function(f){ return '<div class="filter-btn" role="button" tabindex="0" data-action="toggle" data-filter="'+f+'">'+labels[f]+'</div>'; }).join("");
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">' + esc(cat) + '</div>' +
-        '<div class="p">Pick priorities (tap)</div>' +
-        '<div class="filter-grid">' + btns + '</div>' +
-        '<button class="action" type="button" data-action="search">FIND BEST DEALS</button>' +
-        '<button class="secondary" type="button" data-action="ecommerce" style="margin-top:10px">← BACK</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">'+esc(cat)+'</div><div class="p">Pick your priorities (tap to activate)</div>' +
+      '<div class="filter-grid">'+btns+'</div>' +
+      '<button class="action" type="button" data-action="search">FIND BEST DEALS</button>' +
+      '<button class="secondary" type="button" data-action="ecommerce" style="margin-top:10px">← BACK</button></div>';
   }
 
-  function toggleFilter(key, el){
-    var i = STATE.filters.indexOf(key);
-    if(i >= 0){ STATE.filters.splice(i, 1); el.classList.remove("active"); }
-    else { STATE.filters.push(key); el.classList.add("active"); }
-  }
+  function toggleFilter(key,el){ var i=STATE.filters.indexOf(key); if(i>=0){ STATE.filters.splice(i,1); el.classList.remove("active"); }else{ STATE.filters.push(key); el.classList.add("active"); } }
 
   function search(){
-    var cat = STATE.domain;
-    var db = DB[cat];
-    if(!db || !Object.keys(db).length){ toast("No items"); return; }
-
-    var all = [];
-    Object.keys(db).forEach(function(name){
-      (db[name] || []).forEach(function(seller){
-        var score = 0;
-        if(STATE.filters.length){
-          STATE.filters.forEach(function(f){ score += (seller.attr && seller.attr[f]) ? seller.attr[f] : 0; });
-        }
-        all.push({
-          type:"ecommerce",
-          name:seller.name,
-          price:seller.price,
-          seller:seller.seller,
-          rating:seller.rating,
-          stock:seller.stock,
-          delivery:seller.delivery,
-          warranty:seller.warranty,
-          city:seller.city,
-          score:score
-        });
-      });
-    });
-
-    all.sort(function(a,b){
-      if(b.score !== a.score) return b.score - a.score;
-      return a.price - b.price;
-    });
-
-    RESULTS = all.slice(0,10);
-    renderMarketplace();
+    var cat=STATE.domain, db=DB[cat];
+    if(!db||!Object.keys(db).length){ toast("No items"); return; }
+    var all=[];
+    Object.keys(db).forEach(function(name){ (db[name]||[]).forEach(function(seller){ var score=0; if(STATE.filters.length){ STATE.filters.forEach(function(f){ score+=(seller.attr&&seller.attr[f])?seller.attr[f]:0; }); } all.push({type:"ecommerce",name:seller.name,price:seller.price,seller:seller.seller,rating:seller.rating,stock:seller.stock,delivery:seller.delivery,warranty:seller.warranty,city:seller.city,score:score}); }); });
+    all.sort(function(a,b){ if(b.score!==a.score) return b.score-a.score; return a.price-b.price; });
+    RESULTS=all.slice(0,10); renderMarketplace();
   }
 
   function renderMarketplace(){
     stopLiveTracking();
     if(!RESULTS.length){ toast("No results"); return; }
-
-    var list = RESULTS.map(function(p, idx){
-      var discount = Math.floor(Math.random()*20)+5;
-      var original = p.price ? Math.floor(p.price/(1-discount/100)) : p.price;
-      var stockColor = (p.stock > 50) ? "var(--accent)" : "#FFA726";
-
-      return (
-        '<div class="result">' +
-          '<div class="row">' +
-            '<div>' +
-              '<div class="name">' + esc(p.name) + '</div>' +
-              '<div class="seller">' +
-                '<span class="badge">' + esc(p.seller) + '</span>' +
-                '<span class="rating">⭐ ' + Number(p.rating||0).toFixed(1) + '</span>' +
-                '<span class="badge">' + esc(p.city) + '</span>' +
-              '</div>' +
-            '</div>' +
-            '<div class="price">' +
-              '<div class="price-main">' + money(p.price) + '</div>' +
-              '<div style="font-size:.9rem;color:#888;text-decoration:line-through;margin-top:5px">' + money(original) + '</div>' +
-              '<div style="color:var(--accent);font-size:.85rem;font-weight:800;margin-top:5px">' + discount + '% OFF</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="details">' +
-            '<div><div class="label">Stock</div><div class="value" style="color:' + stockColor + '">' + Number(p.stock||0) + ' units</div></div>' +
-            '<div><div class="label">Delivery</div><div class="value">' + esc(p.delivery||"") + '</div></div>' +
-            '<div><div class="label">Warranty</div><div class="value">' + esc(p.warranty||"") + '</div></div>' +
-            '<div><div class="label">GST</div><div class="value" style="color:var(--accent)">Included ✓</div></div>' +
-          '</div>' +
-          '<div class="actions">' +
-            '<button class="buy" type="button" data-action="buy" data-idx="' + idx + '">BUY NOW</button>' +
-            '<button class="add" type="button" data-action="add" data-idx="' + idx + '">ADD TO CART</button>' +
-          '</div>' +
-        '</div>'
-      );
+    var list=RESULTS.map(function(p,idx){
+      var discount=Math.floor(Math.random()*20)+5, original=p.price?Math.floor(p.price/(1-discount/100)):p.price;
+      var stockColor=(p.stock>50)?"var(--accent)":"#FFA726";
+      return '<div class="result"><div class="row"><div><div class="name">'+esc(p.name)+'</div><div class="seller"><span class="badge">'+esc(p.seller)+'</span><span class="rating">⭐ '+Number(p.rating||0).toFixed(1)+'</span><span class="badge">'+esc(p.city)+'</span></div></div><div class="price"><div class="price-main">'+money(p.price)+'</div><div style="font-size:.9rem;color:#888;text-decoration:line-through;margin-top:5px">'+money(original)+'</div><div style="color:var(--accent);font-size:.85rem;font-weight:800;margin-top:5px">'+discount+'% OFF <span class="demo-feature-badge">🧪 Demo Price</span></div></div></div><div class="details"><div><div class="label">Stock</div><div class="value" style="color:'+stockColor+'">'+Number(p.stock||0)+' units</div></div><div><div class="label">Delivery</div><div class="value">'+esc(p.delivery||"")+'</div></div><div><div class="label">Warranty</div><div class="value">'+esc(p.warranty||"")+'</div></div><div><div class="label">GST</div><div class="value" style="color:var(--accent)">Included ✓</div></div></div><div class="actions"><button class="buy" type="button" data-action="buy" data-idx="'+idx+'">BUY NOW</button><button class="add" type="button" data-action="add" data-idx="'+idx+'">ADD TO CART</button></div></div>';
     }).join("");
-
     $("app").innerHTML =
       '<div class="results">' +
-        '<div style="text-align:center;margin-bottom:16px">' +
-          '<h2 style="margin:0;font-size:1.6rem">BEST DEALS</h2>' +
-          '<div class="p" style="margin:8px 0 0">Comparing ' + RESULTS.length + ' options</div>' +
-        '</div>' +
+        '<div style="text-align:center;margin-bottom:16px"><h2 style="margin:0;font-size:1.6rem">BEST DEALS</h2><div class="p" style="margin:8px 0 0">Comparing '+RESULTS.length+' options • Ranked by your priorities</div></div>' +
+        '<div class="demo-note" style="text-align:center"><span class="dn-icon">🛒</span><b>Demo data</b> — Discounts are randomly generated on load. Not real prices.</div>' +
         list +
-        '<button class="secondary" type="button" data-action="category" data-cat="' + esc(STATE.lastEcomCategory || "smartphones") + '">← REFINE</button>' +
+        '<button class="secondary" type="button" data-action="category" data-cat="'+esc(STATE.lastEcomCategory||"smartphones")+'">← REFINE</button>' +
         '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button>' +
       '</div>';
   }
 
   // ---------- food ----------
   function renderFood(){
-    stopLiveTracking();
-    STATE.domain = "food";
-    var restaurants = FOOD_DATA.restaurants || [];
-    var cards = restaurants.map(function(r){
-      return (
-        '<div class="result" role="button" tabindex="0" data-action="restaurant" data-rid="' + esc(r.id) + '">' +
-          '<div class="row">' +
-            '<div>' +
-              '<div class="name">' + esc(r.name) + '</div>' +
-              '<div class="seller">' +
-                '<span class="badge">' + esc(r.city) + '</span>' +
-                '<span class="rating">⭐ 4.8</span>' +
-                '<span class="badge">UPI</span>' +
-              '</div>' +
-              '<div style="color:#888;margin-top:8px;font-size:.9rem">' + esc(r.brand) + ' • From ' + money(r.priceHint) + '</div>' +
-              '<div style="color:#888;margin-top:6px;font-size:.85rem">' + esc(r.hours) + '</div>' +
-            '</div>' +
-            '<div class="price"><div class="price-main">' + money(r.priceHint) + '</div></div>' +
-          '</div>' +
-        '</div>'
-      );
+    stopLiveTracking(); STATE.domain="food";
+    var restaurants=FOOD_DATA.restaurants||[];
+    var cards=restaurants.map(function(r){
+      return '<div class="result" role="button" tabindex="0" data-action="restaurant" data-rid="'+esc(r.id)+'"><div class="row"><div><div class="name">'+esc(r.name)+'</div><div class="seller"><span class="badge">'+esc(r.city)+'</span><span class="rating">⭐ 4.8</span><span class="badge">UPI 🧪</span></div><div style="color:#888;margin-top:8px;font-size:.9rem">'+esc(r.brand)+' • From '+money(r.priceHint)+'</div><div style="color:#888;margin-top:6px;font-size:.85rem">'+esc(r.hours)+'</div></div><div class="price"><div class="price-main">'+money(r.priceHint)+'</div></div></div></div>';
     }).join("");
-
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">FOOD</div>' +
-        '<div class="p">Rajkot MVP • Pay via UPI → submit UTR (demo flow)</div>' +
-        '<div class="demo-note"><b>DEMO:</b> UTR is validated & stored locally for now.</div>' +
-        cards +
-        '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">FOOD</div><div class="p">Rajkot MVP • Pay via UPI → submit UTR</div>' +
+      '<div class="demo-note"><span class="dn-icon">💳</span><b>UPI Demo:</b> No real payment is processed. UTR submission tests the 12-digit validation &amp; duplicate-detection logic only.</div>' +
+      cards +
+      '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button></div>';
   }
 
-  function getRestaurantById(id){
-    var list = FOOD_DATA.restaurants || [];
-    for(var i=0;i<list.length;i++){
-      if(String(list[i].id) === String(id)) return list[i];
-    }
-    return null;
-  }
+  function getRestaurantById(id){ var list=FOOD_DATA.restaurants||[]; for(var i=0;i<list.length;i++){ if(String(list[i].id)===String(id)) return list[i]; } return null; }
 
   function renderRestaurant(rid){
     stopLiveTracking();
-    var r = getRestaurantById(rid);
-    if(!r){ toast("Restaurant not found"); renderFood(); return; }
-    STATE.selectedRestaurantId = r.id;
-
-    var menu = (r.menu || []).map(function(it){
-      return (
-        '<div class="result">' +
-          '<div class="row">' +
-            '<div>' +
-              '<div class="name">' + esc(it.name) + '</div>' +
-              '<div style="color:#888;font-size:.9rem;margin-top:6px">' + esc(it.desc || "") + '</div>' +
-              '<div style="color:#888;font-size:.85rem;margin-top:6px">Prep: ' + Number(it.prepMins||15) + ' mins • ' + (it.veg ? "🟢 Veg" : "🔴 Non-veg") + '</div>' +
-            '</div>' +
-            '<div class="price">' +
-              '<div class="price-main">' + money(it.price) + '</div>' +
-              '<button class="add" type="button" data-action="addFood" data-item="' + esc(it.id) + '" style="margin-top:10px">ADD</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>'
-      );
-    }).join("");
-
+    var r=getRestaurantById(rid); if(!r){ toast("Restaurant not found"); renderFood(); return; }
+    STATE.selectedRestaurantId=r.id;
+    var menu=(r.menu||[]).map(function(it){ return '<div class="result"><div class="row"><div><div class="name">'+esc(it.name)+'</div><div style="color:#888;font-size:.9rem;margin-top:6px">'+esc(it.desc||"")+'</div><div style="color:#888;font-size:.85rem;margin-top:6px">Prep: '+Number(it.prepMins||15)+' mins • '+(it.veg?"🟢 Veg":"🔴 Non-veg")+'</div></div><div class="price"><div class="price-main">'+money(it.price)+'</div><button class="add" type="button" data-action="addFood" data-item="'+esc(it.id)+'" style="margin-top:10px">ADD</button></div></div></div>'; }).join("");
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">' + esc(r.name) + '</div>' +
-        '<div class="p">' + esc(r.city) + ' • ' + esc(r.brand) + '</div>' +
-        '<div class="payment-box">' +
-          '<div class="label">UPI ID (demo)</div>' +
-          '<div class="value" style="font-size:1.05rem;margin-top:6px;word-break:break-all">' + esc(r.upiId) + '</div>' +
-        '</div>' +
-        '<div class="h1" style="font-size:1.1rem;margin-bottom:10px">MENU</div>' +
-        menu +
-        '<button class="action" type="button" data-action="cart">GO TO CART →</button>' +
-        '<button class="secondary" type="button" data-action="food" style="margin-top:10px">← BACK</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">'+esc(r.name)+'</div><div class="p">'+esc(r.city)+' • '+esc(r.brand)+'</div>' +
+      '<div class="demo-note"><span class="dn-icon">💳</span><b>Demo UPI flow:</b> The UPI ID below is real-looking but this is a prototype. No real transaction occurs when you "pay".</div>' +
+      '<div class="payment-box"><div class="label">UPI ID (demo)</div><div class="value" style="font-size:1.05rem;margin-top:6px;word-break:break-all">'+esc(r.upiId)+'</div></div>' +
+      '<div class="h1" style="font-size:1.1rem;margin-bottom:10px">MENU</div>' +
+      menu +
+      '<button class="action" type="button" data-action="cart">GO TO CART →</button>' +
+      '<button class="secondary" type="button" data-action="food" style="margin-top:10px">← BACK</button></div>';
   }
 
   function addFoodItem(itemId){
-    var r = getRestaurantById(STATE.selectedRestaurantId);
-    if(!r) return toast("Restaurant missing");
-
-    var item = null;
-    for(var i=0;i<(r.menu||[]).length;i++){
-      if(String(r.menu[i].id) === String(itemId)){ item = r.menu[i]; break; }
-    }
+    var r=getRestaurantById(STATE.selectedRestaurantId); if(!r) return toast("Restaurant missing");
+    var item=null; for(var i=0;i<(r.menu||[]).length;i++){ if(String(r.menu[i].id)===String(itemId)){ item=r.menu[i]; break; } }
     if(!item) return toast("Item missing");
-
-    STATE.cart.push({
-      type: "food",
-      restaurantId: r.id,
-      seller: r.name,
-      name: item.name,
-      price: Number(item.price)||0,
-      qty: 1,
-      upiId: r.upiId
-    });
-
-    toast("Added: " + item.name);
+    STATE.cart.push({type:"food",restaurantId:r.id,seller:r.name,name:item.name,price:Number(item.price)||0,qty:1,upiId:r.upiId});
+    toast("Added: "+item.name);
   }
 
-  // ---------- cart/checkout ----------
-  function add(idx){
-    var p = RESULTS[idx]; if(!p) return;
-    STATE.cart.push({ type:p.type||"ecommerce", name:p.name, seller:p.seller, price:Number(p.price)||0, qty:1 });
-    toast("Added to cart");
-  }
-
-  function buy(idx){
-    var p = RESULTS[idx]; if(!p) return;
-    STATE.cart = [{ type:p.type||"ecommerce", name:p.name, seller:p.seller, price:Number(p.price)||0, qty:1 }];
-    renderPayment();
-  }
-
-  function remove(idx){
-    STATE.cart.splice(idx, 1);
-    if(!STATE.cart.length){ toast("Cart empty"); renderLobby(); return; }
-    toast("Removed");
-    renderCart();
-  }
+  // ---------- cart / checkout ----------
+  function add(idx){ var p=RESULTS[idx]; if(!p) return; STATE.cart.push({type:p.type||"ecommerce",name:p.name,seller:p.seller,price:Number(p.price)||0,qty:1}); toast("Added to cart"); }
+  function buy(idx){ var p=RESULTS[idx]; if(!p) return; STATE.cart=[{type:p.type||"ecommerce",name:p.name,seller:p.seller,price:Number(p.price)||0,qty:1}]; renderPayment(); }
+  function remove(idx){ STATE.cart.splice(idx,1); if(!STATE.cart.length){ toast("Cart empty"); renderLobby(); return; } toast("Removed"); renderCart(); }
 
   function renderCart(){
     stopLiveTracking();
     if(!STATE.cart.length){ toast("Cart is empty"); renderLobby(); return; }
-
-    var subtotal = STATE.cart.reduce(function(s,p){ return s + (Number(p.price)||0) * (Number(p.qty)||1); }, 0);
-    var taxRate = (STATE.cart[0] && STATE.cart[0].type === "food") ? 0.05 : 0.18;
-    var gst = Math.floor(subtotal * taxRate);
-    var total = subtotal + gst;
-
-    var items = STATE.cart.map(function(it, idx){
-      return (
-        '<div style="display:flex;justify-content:space-between;gap:10px;padding:14px;background:rgba(255,255,255,0.03);border-radius:14px;margin-bottom:10px">' +
-          '<div>' +
-            '<div style="font-weight:900">' + esc(it.name) + '</div>' +
-            '<div style="font-size:0.85rem;color:#888;margin-top:6px">' + esc(it.seller || "") + '</div>' +
-          '</div>' +
-          '<div style="text-align:right;min-width:120px">' +
-            '<div style="font-weight:900;color:var(--brand-orange)">' + money(it.price) + '</div>' +
-            '<button type="button" data-action="remove" data-idx="' + idx + '" style="margin-top:6px;color:#ff4d4d;font-weight:900">Remove</button>' +
-          '</div>' +
-        '</div>'
-      );
-    }).join("");
-
+    var subtotal=STATE.cart.reduce(function(s,p){ return s+(Number(p.price)||0)*(Number(p.qty)||1); },0);
+    var taxRate=(STATE.cart[0]&&STATE.cart[0].type==="food")?0.05:0.18, gst=Math.floor(subtotal*taxRate), total=subtotal+gst;
+    var items=STATE.cart.map(function(it,idx){ return '<div style="display:flex;justify-content:space-between;gap:10px;padding:14px;background:rgba(255,255,255,0.03);border-radius:14px;margin-bottom:10px"><div><div style="font-weight:900">'+esc(it.name)+'</div><div style="font-size:0.85rem;color:#888;margin-top:6px">'+esc(it.seller||"")+'</div></div><div style="text-align:right;min-width:120px"><div style="font-weight:900;color:var(--brand-orange)">'+money(it.price)+'</div><button type="button" data-action="remove" data-idx="'+idx+'" style="margin-top:6px;color:#ff4d4d;font-weight:900">Remove</button></div></div>'; }).join("");
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">CART</div>' +
-        '<div class="result">' +
-          '<div style="font-weight:900;margin-bottom:12px">Items (' + STATE.cart.length + ')</div>' +
-          items +
-        '</div>' +
-        '<div style="height:12px"></div>' +
-        '<div class="result">' +
-          '<div class="label">Subtotal</div><div class="value">' + money(subtotal) + '</div>' +
-          '<div style="height:8px"></div>' +
-          '<div class="label">Tax (' + (taxRate*100) + '%)</div><div class="value">' + money(gst) + '</div>' +
-          '<div style="height:12px;border-top:1px solid var(--border);margin-top:12px;padding-top:12px"></div>' +
-          '<div class="value" style="color:var(--brand-orange);font-size:1.2rem">Total ' + money(total) + '</div>' +
-        '</div>' +
-        '<button class="action" type="button" data-action="pay">PROCEED TO PAY</button>' +
-        '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">CART</div>' +
+      '<div class="result"><div style="font-weight:900;margin-bottom:12px">Items ('+STATE.cart.length+')</div>'+items+'</div>' +
+      '<div style="height:12px"></div>' +
+      '<div class="result receipt-section"><div class="receipt-row"><span class="label">Subtotal</span><span class="value">'+money(subtotal)+'</span></div><div class="receipt-row"><span class="label">Tax ('+Math.round(taxRate*100)+'%)</span><span class="value">'+money(gst)+'</span></div><div class="receipt-row" style="margin-top:6px"><span class="label receipt-total">Total</span><span class="receipt-total">'+money(total)+'</span></div></div>' +
+      '<button class="action" type="button" data-action="pay">PROCEED TO PAY</button>' +
+      '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button></div>';
   }
 
   function renderPayment(){
     stopLiveTracking();
     if(!STATE.cart.length){ toast("Cart is empty"); renderLobby(); return; }
-
-    payMethod = null;
-
-    var subtotal = STATE.cart.reduce(function(s,p){ return s + (Number(p.price)||0) * (Number(p.qty)||1); }, 0);
-    var isFood = (STATE.cart[0] && STATE.cart[0].type === "food");
-    var taxRate = isFood ? 0.05 : 0.18;
-    var gst = Math.floor(subtotal * taxRate);
-    var total = subtotal + gst;
+    payMethod=null;
+    var subtotal=STATE.cart.reduce(function(s,p){ return s+(Number(p.price)||0)*(Number(p.qty)||1); },0);
+    var isFood=(STATE.cart[0]&&STATE.cart[0].type==="food");
+    var taxRate=isFood?0.05:0.18, gst=Math.floor(subtotal*taxRate), total=subtotal+gst;
 
     if(isFood){
-      var upiId = STATE.cart[0].upiId || "6351537770@yapl";
+      var upiId=STATE.cart[0].upiId||"6351537770@yapl";
       $("app").innerHTML =
-        '<div class="wrap">' +
-          '<div class="h1">PAY VIA UPI</div>' +
-          '<div class="p">Pay ' + money(total) + ' → then submit UTR</div>' +
-          '<div class="demo-note"><b>DEMO:</b> UPI open + UTR flow is for testing.</div>' +
-          '<div class="payment-box" style="text-align:center">' +
-            '<div style="font-size:2.6rem;margin-bottom:10px">📲</div>' +
-            '<div style="font-weight:900;font-size:1.4rem;color:var(--brand-orange)">' + money(total) + '</div>' +
-            '<div style="color:#888;margin-top:8px">UPI ID:</div>' +
-            '<div id="upiId" style="margin-top:8px;font-weight:900;word-break:break-all">' + esc(upiId) + '</div>' +
-            '<div style="height:12px"></div>' +
-            '<button class="secondary" type="button" data-action="copyUpi">📋 COPY UPI ID</button>' +
-            '<div style="height:10px"></div>' +
-            '<button class="action" type="button" data-action="openUpiApp">OPEN UPI APP</button>' +
-            '<div style="height:10px"></div>' +
-            '<button class="action" type="button" data-action="submitUtr" style="background:var(--accent)">I HAVE PAID → SUBMIT UTR</button>' +
-            '<div style="color:#888;font-size:.85rem;margin-top:14px;line-height:1.6">' +
-              'Your order is confirmed after seller verifies UTR.' +
-            '</div>' +
-          '</div>' +
-          '<button class="secondary" type="button" data-action="cart">← BACK</button>' +
-        '</div>';
+        '<div class="wrap"><div class="h1">PAY VIA UPI</div><div class="p">Pay '+money(total)+' → then submit UTR</div>' +
+        '<div class="demo-note"><span class="dn-icon">💳</span><b>Demo UPI:</b> Opening a UPI app and submitting a UTR tests the UX flow only. No real money moves.</div>' +
+        '<div class="payment-box" style="text-align:center">' +
+          '<div style="font-size:2.6rem;margin-bottom:10px">📲</div>' +
+          '<div style="font-weight:900;font-size:1.4rem;color:var(--brand-orange)">'+money(total)+'</div>' +
+          '<div style="color:#888;margin-top:8px">UPI ID: <span class="demo-feature-badge">🧪 Demo ID</span></div>' +
+          '<div id="upiId" style="margin-top:8px;font-weight:900;word-break:break-all">'+esc(upiId)+'</div>' +
+          '<div style="height:12px"></div>' +
+          '<button class="secondary" type="button" data-action="copyUpi">📋 COPY UPI ID</button>' +
+          '<div style="height:10px"></div>' +
+          '<button class="action" type="button" data-action="openUpiApp">OPEN UPI APP</button>' +
+          '<div style="height:10px"></div>' +
+          '<button class="action" type="button" data-action="submitUtr" style="background:var(--accent)">I HAVE PAID → SUBMIT UTR</button>' +
+          '<div style="color:#888;font-size:.85rem;margin-top:14px;line-height:1.6">Your order is confirmed after seller verifies UTR. <span style="color:#ff7070">(Demo: use Simulate button)</span></div>' +
+        '</div>' +
+        '<button class="secondary" type="button" data-action="cart">← BACK</button></div>';
       return;
     }
 
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">PAYMENT</div>' +
-        '<div class="p">Total: ' + money(total) + '</div>' +
-        '<div class="demo-note"><b>DEMO:</b> E-commerce checkout is demo.</div>' +
-        '<div class="payment-box">' +
-          '<div style="font-weight:900;margin-bottom:12px">Choose Payment</div>' +
-          '<div class="payment-option" role="button" tabindex="0" data-action="pm" data-method="upi">' +
-            '<div style="font-size:2rem">📱</div><div><div style="font-weight:900">UPI</div><div style="color:#888;font-size:.85rem">GPay / PhonePe / Paytm</div></div>' +
-          '</div>' +
-          '<div class="payment-option" role="button" tabindex="0" data-action="pm" data-method="cod">' +
-            '<div style="font-size:2rem">💵</div><div><div style="font-weight:900">Cash on Delivery</div><div style="color:#888;font-size:.85rem">Demo mode</div></div>' +
-          '</div>' +
-        '</div>' +
-        '<button class="action" type="button" data-action="place">PLACE ORDER</button>' +
-        '<button class="secondary" type="button" data-action="cart" style="margin-top:10px">← BACK</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">PAYMENT</div><div class="p">Total: '+money(total)+'</div>' +
+      '<div class="demo-note"><span class="dn-icon">💳</span><b>Demo checkout:</b> E-commerce payment is fully simulated. No real processing occurs.</div>' +
+      '<div class="payment-box"><div style="font-weight:900;margin-bottom:12px">Choose Payment</div>' +
+        '<div class="payment-option" role="button" tabindex="0" data-action="pm" data-method="upi"><div style="font-size:2rem">📱</div><div><div style="font-weight:900">UPI</div><div style="color:#888;font-size:.85rem">GPay / PhonePe / Paytm</div></div></div>' +
+        '<div class="payment-option" role="button" tabindex="0" data-action="pm" data-method="cod"><div style="font-size:2rem">💵</div><div><div style="font-weight:900">Cash on Delivery</div><div style="color:#888;font-size:.85rem">Demo mode</div></div></div>' +
+      '</div>' +
+      '<button class="action" type="button" data-action="place">PLACE ORDER</button>' +
+      '<button class="secondary" type="button" data-action="cart" style="margin-top:10px">← BACK</button></div>';
   }
 
-  function copyUpi(){
-    var upiId = (STATE.cart[0] && STATE.cart[0].upiId) ? STATE.cart[0].upiId : "6351537770@yapl";
-    try{
-      if(navigator.clipboard){
-        navigator.clipboard.writeText(upiId);
-        toast("UPI ID copied!");
-      }else{
-        var tmp = document.createElement("input");
-        tmp.value = upiId;
-        document.body.appendChild(tmp);
-        tmp.select();
-        document.execCommand("copy");
-        document.body.removeChild(tmp);
-        toast("UPI ID copied!");
-      }
-    }catch(e){
-      toast("Copy failed: " + upiId);
-    }
-  }
+  function copyUpi(){ var upiId=(STATE.cart[0]&&STATE.cart[0].upiId)?STATE.cart[0].upiId:"6351537770@yapl"; try{ if(navigator.clipboard){ navigator.clipboard.writeText(upiId); toast("UPI ID copied!"); }else{ var tmp=document.createElement("input"); tmp.value=upiId; document.body.appendChild(tmp); tmp.select(); document.execCommand("copy"); document.body.removeChild(tmp); toast("UPI ID copied!"); } }catch(e){ toast("Copy failed: "+upiId); } }
 
-  function openUpiApp(){
-    var subtotal = STATE.cart.reduce(function(s,p){ return s + (Number(p.price)||0) * (Number(p.qty)||1); }, 0);
-    var gst = Math.floor(subtotal * 0.05);
-    var total = subtotal + gst;
-
-    var upiId = (STATE.cart[0] && STATE.cart[0].upiId) ? STATE.cart[0].upiId : "6351537770@yapl";
-    var upiLink = "upi://pay?pa=" + encodeURIComponent(upiId) +
-                  "&pn=" + encodeURIComponent("Decide") +
-                  "&am=" + encodeURIComponent(String(total)) +
-                  "&cu=INR&tn=" + encodeURIComponent("Decide Food Order");
-    window.location.href = upiLink;
-    toast("Opening UPI app...");
-  }
+  function openUpiApp(){ var subtotal=STATE.cart.reduce(function(s,p){ return s+(Number(p.price)||0)*(Number(p.qty)||1); },0), gst=Math.floor(subtotal*0.05), total=subtotal+gst, upiId=(STATE.cart[0]&&STATE.cart[0].upiId)?STATE.cart[0].upiId:"6351537770@yapl"; var upiLink="upi://pay?pa="+encodeURIComponent(upiId)+"&pn="+encodeURIComponent("Decide")+"&am="+encodeURIComponent(String(total))+"&cu=INR&tn="+encodeURIComponent("Decide Food Order"); window.location.href=upiLink; toast("Opening UPI app..."); }
 
   function submitUtr(){
     stopLiveTracking();
-    var subtotal = STATE.cart.reduce(function(s,p){ return s + (Number(p.price)||0) * (Number(p.qty)||1); }, 0);
-    var gst = Math.floor(subtotal * 0.05);
-    var total = subtotal + gst;
-
+    var subtotal=STATE.cart.reduce(function(s,p){ return s+(Number(p.price)||0)*(Number(p.qty)||1); },0), gst=Math.floor(subtotal*0.05), total=subtotal+gst;
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">Submit UTR</div>' +
-        '<div class="p">Amount: <span class="kbd">' + money(total) + '</span></div>' +
-        '<div class="demo-note"><b>DEMO:</b> We validate 12-digit UTR and detect duplicates (device-level).</div>' +
-        '<div class="payment-box">' +
-          '<div style="font-weight:900;margin-bottom:10px">Enter 12-digit UTR</div>' +
-          '<div style="color:#888;font-size:.85rem;line-height:1.6;margin-bottom:12px">UTR is shown in your UPI transaction details.</div>' +
-          '<input id="utrNumber" inputmode="numeric" placeholder="12-digit UTR" maxlength="12" />' +
-          '<div style="height:10px"></div>' +
-          '<div style="color:#666;font-size:.85rem">Tip: no spaces, digits only.</div>' +
-        '</div>' +
-        '<button class="action" type="button" data-action="confirmUtr">SUBMIT</button>' +
-        '<button class="secondary" type="button" data-action="pay" style="margin-top:10px">← BACK</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">Submit UTR</div><div class="p">Amount: <span class="kbd">'+money(total)+'</span></div>' +
+      '<div class="demo-note"><span class="dn-icon">🔢</span><b>UTR Validation Demo:</b> Enter any 12-digit number. The app checks format and prevents re-use within the same browser session using localStorage.</div>' +
+      '<div class="payment-box"><div style="font-weight:900;margin-bottom:10px">Enter 12-digit UTR <span class="demo-feature-badge">🧪 Any 12 digits</span></div><div style="color:#888;font-size:.85rem;line-height:1.6;margin-bottom:12px">In the real app, copy from your UPI transaction details.</div><input id="utrNumber" inputmode="numeric" placeholder="e.g. 123456789012" maxlength="12" /><div style="height:10px"></div><div style="color:#666;font-size:.85rem">Tip: no spaces, digits only.</div></div>' +
+      '<button class="action" type="button" data-action="confirmUtr">SUBMIT UTR</button>' +
+      '<button class="secondary" type="button" data-action="pay" style="margin-top:10px">← BACK</button></div>';
   }
 
   function confirmUtr(){
-    var el = $("utrNumber");
-    var raw = (el && el.value) ? el.value : "";
-    var utr = raw.replace(/\s+/g,"").trim();
+    var el=$("utrNumber"), raw=(el&&el.value)?el.value:"", utr=raw.replace(/\s+/g,"").trim();
+    if(!/^\d{12}$/.test(utr)){ toast("UTR must be exactly 12 digits"); return; }
+    var idx=loadUtrIndex();
+    if(idx[utr]){ toast("Duplicate UTR detected (already used)"); return; }
 
-    if(!/^\d{12}$/.test(utr)){
-      toast("UTR must be exactly 12 digits");
-      return;
-    }
+    var subtotal=STATE.cart.reduce(function(s,p){ return s+(Number(p.price)||0)*(Number(p.qty)||1); },0), gst=Math.floor(subtotal*0.05), total=subtotal+gst;
+    var id="DEC-"+Math.random().toString(36).slice(2,4).toUpperCase()+String(Math.floor(Math.random()*10000)).padStart(4,"0");
+    var now=new Date();
 
-    var idx = loadUtrIndex();
-    if(idx[utr]){
-      toast("Duplicate UTR detected (already used)");
-      return;
-    }
-
-    var subtotal = STATE.cart.reduce(function(s,p){ return s + (Number(p.price)||0) * (Number(p.qty)||1); }, 0);
-    var gst = Math.floor(subtotal * 0.05);
-    var total = subtotal + gst;
-
-    var id = "DEC-" + Math.random().toString(36).slice(2,4).toUpperCase() + String(Math.floor(Math.random()*10000)).padStart(4,"0");
-    var now = new Date();
-
-    var order = {
-      id: id,
-      items: STATE.cart.slice(),
-      subtotal: subtotal,
-      tax: gst,
-      total: total,
-      payment: "upi",
-      utr: utr,
-      status: "utr_submitted",
-      timestamp: now.toISOString(),
-      restaurantId: STATE.cart[0] ? STATE.cart[0].restaurantId : null,
-      updates: [
-        {status:"placed", time: now.toISOString(), label:"Order Placed", completed:true},
-        {status:"utr_submitted", time: now.toISOString(), label:"UTR Submitted - Awaiting Seller Confirmation", completed:true}
+    var order={
+      id:id, items:STATE.cart.slice(), subtotal:subtotal, tax:gst, total:total,
+      payment:"upi", utr:utr, status:"utr_submitted", timestamp:now.toISOString(),
+      restaurantId:STATE.cart[0]?STATE.cart[0].restaurantId:null,
+      updates:[
+        {status:"placed",time:now.toISOString(),label:"Order Placed",completed:true},
+        {status:"utr_submitted",time:now.toISOString(),label:"UTR Submitted – Awaiting Seller Confirmation",completed:true}
       ]
     };
 
-    idx[utr] = { orderId: id, ts: now.toISOString() };
-    saveUtrIndex(idx);
+    idx[utr]={orderId:id,ts:now.toISOString()}; saveUtrIndex(idx);
+    loadOrders(); STATE.orders.push(order); saveOrders();
 
-    loadOrders();
-    STATE.orders.push(order);
-    saveOrders();
+    var r=getRestaurantById(order.restaurantId);
+    if(r&&r.whatsapp){ var msg="New Order: "+id+"%0AAmount: "+total+"%0AUTR: "+utr+"%0AStatus: Awaiting confirmation."; setTimeout(function(){ try{ window.open(r.whatsapp+"?text="+msg,"_blank"); }catch(e){} },300); }
 
-    var r = getRestaurantById(order.restaurantId);
-    if(r && r.whatsapp){
-      var msg = "New Order: " + id +
-                "%0AAmount: " + total +
-                "%0AUTR: " + utr +
-                "%0AStatus: Awaiting confirmation.";
-      setTimeout(function(){
-        try{ window.open(r.whatsapp + "?text=" + msg, "_blank"); }catch(e){}
-      }, 300);
-    }
-
-    STATE.cart = [];
-
+    STATE.cart=[];
     $("app").innerHTML =
       '<div class="wrap" style="text-align:center;margin-top:24px">' +
         '<div style="font-size:4.2rem;margin-bottom:14px">⏳</div>' +
         '<div class="h1" style="color:var(--accent)">UTR SUBMITTED</div>' +
-        '<div class="p">Order ID: <span class="kbd">' + esc(id) + '</span></div>' +
-        '<div class="demo-note"><b>DEMO:</b> Seller confirmation is simulated for testing.</div>' +
-        '<div class="payment-box" style="text-align:left">' +
-          '<div style="font-weight:900;margin-bottom:10px">Current status</div>' +
-          '<div style="background:rgba(255,103,31,0.10);padding:14px;border-radius:14px">' +
-            '<div style="font-weight:900;color:var(--brand-orange)">Awaiting seller confirmation</div>' +
-            '<div style="color:#888;font-size:.85rem;margin-top:8px;line-height:1.6">Seller verifies UTR manually. Auto-refresh tracking is available.</div>' +
-          '</div>' +
-        '</div>' +
-        '<button class="action" type="button" data-action="trackLive" data-order="' + esc(id) + '">TRACK (LIVE)</button>' +
-        '<button class="secondary" type="button" data-action="simulateConfirm" data-order="' + esc(id) + '" style="margin-top:10px;border-color:var(--accent);color:var(--accent)">SIMULATE SELLER CONFIRM</button>' +
+        '<div class="p">Order ID: <span class="kbd">'+esc(id)+'</span></div>' +
+        '<div class="demo-note" style="text-align:left"><span class="dn-icon">🟢</span><b>Simulation:</b> Seller confirmation is manual in production. Here, use the "Simulate Seller Confirm" button to advance the order status instantly.</div>' +
+        '<div class="payment-box" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">Current status</div><div style="background:rgba(255,103,31,0.10);padding:14px;border-radius:14px"><div style="font-weight:900;color:var(--brand-orange)">Awaiting seller confirmation</div><div style="color:#888;font-size:.85rem;margin-top:8px;line-height:1.6">Seller verifies UTR manually. Auto-refresh tracking is active (10s).</div></div></div>' +
+        '<button class="action" type="button" data-action="trackLive" data-order="'+esc(id)+'">TRACK (LIVE)</button>' +
+        '<button class="secondary" type="button" data-action="simulateConfirm" data-order="'+esc(id)+'" style="margin-top:10px;border-color:var(--accent);color:var(--accent)">🟢 SIMULATE SELLER CONFIRM</button>' +
+        '<button class="btn-pdf" type="button" data-action="downloadPdf" data-order="'+esc(id)+'">📄 DOWNLOAD RECEIPT PDF</button>' +
         '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button>' +
       '</div>';
 
@@ -1317,243 +1149,169 @@ textarea{min-height:120px;resize:vertical}
 
   function place(){
     if(!payMethod){ toast("Select payment method"); return; }
-    var subtotal = STATE.cart.reduce(function(s,p){ return s + (Number(p.price)||0) * (Number(p.qty)||1); }, 0);
-    var gst = Math.floor(subtotal * 0.18);
-    var total = subtotal + gst;
-
-    var id = "ORD-" + Math.random().toString(36).slice(2,10).toUpperCase();
-    var now = new Date();
-    var order = { id:id, items:STATE.cart.slice(), subtotal:subtotal, tax:gst, total:total, payment:payMethod, status:"confirmed", timestamp:now.toISOString(), updates:[
-      {status:"placed", time:now.toISOString(), label:"Order Placed", completed:true},
-      {status:"confirmed", time:now.toISOString(), label:"Payment Confirmed", completed:true}
-    ]};
-
+    var subtotal=STATE.cart.reduce(function(s,p){ return s+(Number(p.price)||0)*(Number(p.qty)||1); },0), gst=Math.floor(subtotal*0.18), total=subtotal+gst;
+    var id="ORD-"+Math.random().toString(36).slice(2,10).toUpperCase(), now=new Date();
+    var order={id:id,items:STATE.cart.slice(),subtotal:subtotal,tax:gst,total:total,payment:payMethod,status:"confirmed",timestamp:now.toISOString(),updates:[{status:"placed",time:now.toISOString(),label:"Order Placed",completed:true},{status:"confirmed",time:now.toISOString(),label:"Payment Confirmed",completed:true}]};
     loadOrders(); STATE.orders.push(order); saveOrders();
-    STATE.cart = []; payMethod = null;
-
+    STATE.cart=[]; payMethod=null;
     toast("Order placed!");
     renderOrders();
   }
 
   function renderOrders(){
-    stopLiveTracking();
-    loadOrders();
+    stopLiveTracking(); loadOrders();
     if(!STATE.orders.length){ toast("No orders yet"); renderLobby(); return; }
-
-    var list = STATE.orders.slice().reverse().map(function(o){
-      var statusColor = (o.status === "delivered") ? "var(--accent)" : (o.status === "confirmed" || o.status === "preparing") ? "var(--brand-orange)" : "#888";
-      return (
-        '<div class="result" role="button" tabindex="0" data-action="trackLive" data-order="' + esc(o.id) + '" style="cursor:pointer">' +
-          '<div class="row">' +
-            '<div>' +
-              '<div class="name" style="font-size:1.05rem">' + esc(o.id) + '</div>' +
-              '<div style="color:#888;font-size:.85rem;margin-top:6px">' + esc(new Date(o.timestamp).toLocaleString("en-IN")) + '</div>' +
-            '</div>' +
-            '<div style="text-align:right">' +
-              '<div style="font-weight:900;color:var(--brand-orange)">' + money(o.total||0) + '</div>' +
-              '<div style="margin-top:6px;font-weight:900;color:' + statusColor + ';font-size:.85rem">' + esc(String(o.status||"").toUpperCase()) + '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>'
-      );
+    var list=STATE.orders.slice().reverse().map(function(o){
+      var statusColor=(o.status==="delivered")?"var(--accent)":(o.status==="confirmed"||o.status==="preparing")?"var(--brand-orange)":"#888";
+      return '<div class="result" role="button" tabindex="0" data-action="trackLive" data-order="'+esc(o.id)+'" style="cursor:pointer"><div class="row"><div><div class="name" style="font-size:1.05rem">'+esc(o.id)+'</div><div style="color:#888;font-size:.85rem;margin-top:6px">'+esc(new Date(o.timestamp).toLocaleString("en-IN"))+'</div></div><div style="text-align:right"><div style="font-weight:900;color:var(--brand-orange)">'+money(o.total||0)+'</div><div style="margin-top:6px;font-weight:900;color:'+statusColor+';font-size:.85rem">'+esc(String(o.status||"").toUpperCase())+'</div></div></div></div>';
     }).join("");
-
     $("app").innerHTML =
-      '<div class="wrap">' +
-        '<div class="h1">MY ORDERS</div>' +
-        '<div class="p">Tap any order to track live</div>' +
-        list +
-        '<button class="secondary" type="button" data-action="home">← HOME</button>' +
-      '</div>';
+      '<div class="wrap"><div class="h1">MY ORDERS</div><div class="p">Tap any order to track • Tap ↓ to download receipt</div>'+list +
+      '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button></div>';
   }
 
   function simulateSellerConfirmation(orderId){
     loadOrders();
-    var order = null;
-    for(var i=0;i<STATE.orders.length;i++){
-      if(STATE.orders[i].id === orderId){ order = STATE.orders[i]; break; }
-    }
+    var order=null; for(var i=0;i<STATE.orders.length;i++){ if(STATE.orders[i].id===orderId){ order=STATE.orders[i]; break; } }
     if(!order){ toast("Order not found"); return; }
-
-    var now = new Date();
-    order.status = "confirmed";
-    order.updates = order.updates || [];
-    order.updates.push({status:"confirmed", time: now.toISOString(), label:"Payment Confirmed ✓", completed:true});
-    order.updates.push({status:"preparing", time: now.toISOString(), label:"Restaurant Preparing", completed:true});
-    saveOrders();
-
-    toast("Seller confirmed payment");
-    renderLiveTracking(orderId);
+    var now=new Date(); order.status="confirmed"; order.updates=order.updates||[];
+    order.updates.push({status:"confirmed",time:now.toISOString(),label:"Payment Confirmed ✓",completed:true});
+    order.updates.push({status:"preparing",time:now.toISOString(),label:"Restaurant Preparing",completed:true});
+    saveOrders(); toast("Seller confirmed payment (simulated)"); renderLiveTracking(orderId);
   }
 
+  // ========================================================
+  // LIVE TRACKING — includes PDF download button
+  // ========================================================
   function renderLiveTracking(orderId){
-    stopLiveTracking();
-    loadOrders();
-
-    var order = null;
-    for(var i=0;i<STATE.orders.length;i++){
-      if(STATE.orders[i].id === orderId){ order = STATE.orders[i]; break; }
-    }
+    stopLiveTracking(); loadOrders();
+    var order=null; for(var i=0;i<STATE.orders.length;i++){ if(STATE.orders[i].id===orderId){ order=STATE.orders[i]; break; } }
     if(!order){ toast("Order not found"); renderLobby(); return; }
 
-    var allSteps = [
-      {status:"placed", label:"Order Placed", icon:"✓"},
-      {status:"utr_submitted", label:"UTR Submitted", icon:"✓"},
-      {status:"confirmed", label:"Payment Confirmed", icon:"✓"},
-      {status:"preparing", label:"Preparing", icon:"⏳"},
-      {status:"ready", label:"Ready", icon:"📦"},
-      {status:"delivered", label:"Delivered", icon:"🎉"}
+    var allSteps=[
+      {status:"placed",label:"Order Placed",icon:"✓"},
+      {status:"utr_submitted",label:"UTR Submitted",icon:"✓"},
+      {status:"confirmed",label:"Payment Confirmed",icon:"✓"},
+      {status:"preparing",label:"Preparing",icon:"⏳"},
+      {status:"ready",label:"Ready",icon:"📦"},
+      {status:"delivered",label:"Delivered",icon:"🎉"}
     ];
+    function isDone(st){ var u=order.updates||[]; for(var k=0;k<u.length;k++) if(u[k].status===st) return u[k]; return null; }
 
-    function isDone(st){
-      var u = order.updates || [];
-      for(var k=0;k<u.length;k++) if(u[k].status === st) return u[k];
-      return null;
-    }
-
-    var timeline = allSteps.map(function(step){
-      var u = isDone(step.status);
-      var active = u ? "active" : "";
-      var time = u ? new Date(u.time).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}) : "Pending";
-      return (
-        '<div class="timeline-item ' + active + '">' +
-          '<div class="timeline-dot">' + step.icon + '</div>' +
-          '<div class="timeline-line"></div>' +
-          '<div class="timeline-content">' + esc(step.label) + '</div>' +
-          '<div class="timeline-time">' + esc(time) + '</div>' +
-        '</div>'
-      );
+    var timeline=allSteps.map(function(step){
+      var u=isDone(step.status), active=u?"active":"";
+      var time=u?new Date(u.time).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}):"Pending";
+      return '<div class="timeline-item '+active+'"><div class="timeline-dot">'+step.icon+'</div><div class="timeline-line"></div><div class="timeline-content">'+esc(step.label)+'</div><div class="timeline-time">'+esc(time)+'</div></div>';
     }).join("");
 
-    var statusLabel =
-      (order.status === "delivered") ? "Delivered ✓" :
-      (order.status === "preparing") ? "Preparing" :
-      (order.status === "confirmed") ? "Payment Confirmed" :
-      (order.status === "utr_submitted") ? "Awaiting Confirmation" :
-      "Placed";
+    var statusLabel=(order.status==="delivered")?"Delivered ✓":(order.status==="preparing")?"Preparing":(order.status==="confirmed")?"Payment Confirmed":(order.status==="utr_submitted")?"Awaiting Confirmation":"Placed";
 
     $("app").innerHTML =
       '<div class="wrap">' +
         '<div class="h1">LIVE TRACKING</div>' +
-        '<div class="p">Order: <span class="kbd">' + esc(orderId) + '</span></div>' +
+        '<div class="p">Order: <span class="kbd">'+esc(orderId)+'</span></div>' +
+
+        '<div class="demo-note"><span class="dn-icon">🟢</span><b>Auto-refresh demo:</b> Polls localStorage every 10s. In production this would be a real-time DB listener.</div>' +
+
         '<div class="tracking-status" style="text-align:center">' +
           '<div style="font-size:2.2rem">📦</div>' +
-          '<div style="font-weight:900;font-size:1.15rem;margin-top:8px;color:var(--brand-orange)">' + esc(statusLabel) + '</div>' +
+          '<div style="font-weight:900;font-size:1.15rem;margin-top:8px;color:var(--brand-orange)">'+esc(statusLabel)+'</div>' +
           '<div style="color:#888;font-size:.85rem;margin-top:8px">Auto refresh: 10s</div>' +
         '</div>' +
+
         '<div class="result">' +
-          '<div style="font-weight:900;margin-bottom:14px">Progress</div>' +
-          '<div class="tracking-timeline">' + timeline + '</div>' +
+          '<div style="font-weight:900;margin-bottom:14px">Order Timeline</div>' +
+          '<div class="tracking-timeline">'+timeline+'</div>' +
         '</div>' +
-        (order.status === "utr_submitted"
-          ? '<button class="action" type="button" data-action="simulateConfirm" data-order="' + esc(orderId) + '" style="background:var(--accent)">SIMULATE SELLER CONFIRM</button>'
-          : '') +
+
+        // Receipt summary
+        '<div class="receipt-section">' +
+          '<div style="font-weight:900;margin-bottom:10px;font-size:.9rem;color:#aaa;text-transform:uppercase;letter-spacing:1px">Receipt Summary</div>' +
+          '<div class="receipt-row"><span class="label">Order ID</span><span class="value">'+esc(order.id)+'</span></div>' +
+          '<div class="receipt-row"><span class="label">Date</span><span class="value">'+new Date(order.timestamp).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"})+'</span></div>' +
+          '<div class="receipt-row"><span class="label">Payment</span><span class="value" style="color:var(--accent)">'+String(order.payment||"UPI").toUpperCase()+'</span></div>' +
+          (order.utr?'<div class="receipt-row"><span class="label">UTR</span><span class="value">'+esc(order.utr)+'</span></div>':'')+
+          '<div class="receipt-row"><span class="label">Items</span><span class="value">'+(order.items||[]).map(function(it){ return esc(it.name); }).join(", ")+'</span></div>' +
+          '<div class="receipt-row"><span class="label">Subtotal</span><span class="value">'+money(order.subtotal||0)+'</span></div>' +
+          '<div class="receipt-row"><span class="label">Tax</span><span class="value">'+money(order.tax||0)+'</span></div>' +
+          '<div class="receipt-row"><span class="label receipt-total">Total Paid</span><span class="receipt-total">'+money(order.total||0)+'</span></div>' +
+        '</div>' +
+
+        // PDF Download button
+        '<button class="btn-pdf" type="button" data-action="downloadPdf" data-order="'+esc(orderId)+'">📄 DOWNLOAD RECEIPT PDF</button>' +
+
+        (order.status==="utr_submitted"?
+          '<button class="action" type="button" data-action="simulateConfirm" data-order="'+esc(orderId)+'" style="background:var(--accent);margin-top:10px">🟢 SIMULATE SELLER CONFIRM</button>':'')+
+
         '<button class="secondary" type="button" data-action="orders" style="margin-top:10px">← ORDERS</button>' +
         '<button class="secondary" type="button" data-action="home" style="margin-top:10px">← HOME</button>' +
       '</div>';
 
-    STATE.liveTrackingInterval = setInterval(function(){
+    STATE.liveTrackingInterval=setInterval(function(){
       loadOrders();
-      var updated = null;
-      for(var j=0;j<STATE.orders.length;j++){
-        if(STATE.orders[j].id === orderId){ updated = STATE.orders[j]; break; }
-      }
-      if(updated && JSON.stringify(updated.updates||[]) !== JSON.stringify(order.updates||[])){
-        renderLiveTracking(orderId);
-      }
-    }, 10000);
+      var updated=null; for(var j=0;j<STATE.orders.length;j++){ if(STATE.orders[j].id===orderId){ updated=STATE.orders[j]; break; } }
+      if(updated&&JSON.stringify(updated.updates||[])!==JSON.stringify(order.updates||[])){ renderLiveTracking(orderId); }
+    },10000);
   }
 
-  // ---------- nav / events ----------
-  function goHome(){
-    if(isVisited()) renderLobby();
-    else renderLanding();
-  }
+  // ---------- event routing ----------
+  function goHome(){ if(isVisited()) renderLobby(); else renderLanding(); }
 
   function handle(el){
-    var action = el.getAttribute("data-action");
-    if(!action || action === "disabled") return;
-    if(el.getAttribute("aria-disabled") === "true") return;
+    var action=el.getAttribute("data-action");
+    if(!action||action==="disabled") return;
+    if(el.getAttribute("aria-disabled")==="true") return;
 
-    if(action === "home"){ goHome(); return; }
+    if(action==="demoGuide"){ showDemoGuide(); return; }
+    if(action==="closeDemoGuide"){ hideDemoGuide(); return; }
+    if(action==="downloadPdf"){ downloadReceiptPDF(el.getAttribute("data-order")); return; }
 
-    if(action === "lobby"){ markVisited(); renderLobby(); return; }
-    if(action === "waitlistSubmit"){ submitWaitlist(); return; }
-
-    if(action === "module"){
-      var mod = el.getAttribute("data-module");
-      if(mod === "ecommerce") { renderEcommerce(); return; }
-      if(mod === "food") { renderFood(); return; }
-      toast("Module coming soon");
-      return;
-    }
-    if(action === "city"){ renderCity(el.getAttribute("data-city")); return; }
-
-    if(action === "seller"){ renderSellerCTA(); return; }
-    if(action === "sellerForm"){ renderSellerForm(el.getAttribute("data-type") || "Seller"); return; }
-    if(action === "sellerSubmit"){ sellerSubmit(el.getAttribute("data-type") || "Seller"); return; }
-
-    if(action === "feedback"){ renderFeedbackCenter(); return; }
-    if(action === "fbSubmit"){ fbSubmit(); return; }
-
-    if(action === "ecommerce"){ renderEcommerce(); return; }
-    if(action === "category"){ renderFilters(el.getAttribute("data-cat")); return; }
-    if(action === "toggle"){ toggleFilter(el.getAttribute("data-filter"), el); return; }
-    if(action === "search"){ search(); return; }
-    if(action === "add"){ add(Number(el.getAttribute("data-idx"))); return; }
-    if(action === "buy"){ buy(Number(el.getAttribute("data-idx"))); return; }
-
-    if(action === "food"){ renderFood(); return; }
-    if(action === "restaurant"){ renderRestaurant(el.getAttribute("data-rid")); return; }
-    if(action === "addFood"){ addFoodItem(el.getAttribute("data-item")); return; }
-
-    if(action === "cart"){ renderCart(); return; }
-    if(action === "remove"){ remove(Number(el.getAttribute("data-idx"))); return; }
-    if(action === "pay"){ renderPayment(); return; }
-    if(action === "copyUpi"){ copyUpi(); return; }
-    if(action === "openUpiApp"){ openUpiApp(); return; }
-    if(action === "submitUtr"){ submitUtr(); return; }
-    if(action === "confirmUtr"){ confirmUtr(); return; }
-
-    if(action === "pm"){
-      var method = el.getAttribute("data-method");
-      var opts = document.querySelectorAll(".payment-option");
-      for(var i=0;i<opts.length;i++) opts[i].classList.remove("selected");
-      el.classList.add("selected");
-      payMethod = method;
-      toast("Selected: " + method.toUpperCase());
-      return;
-    }
-    if(action === "place"){ place(); return; }
-
-    if(action === "orders"){ renderOrders(); return; }
-    if(action === "trackLive"){ renderLiveTracking(el.getAttribute("data-order")); return; }
-    if(action === "simulateConfirm"){ simulateSellerConfirmation(el.getAttribute("data-order")); return; }
+    if(action==="home"){ goHome(); return; }
+    if(action==="lobby"){ markVisited(); renderLobby(); return; }
+    if(action==="waitlistSubmit"){ submitWaitlist(); return; }
+    if(action==="module"){ var mod=el.getAttribute("data-module"); if(mod==="ecommerce"){ renderEcommerce(); return; } if(mod==="food"){ renderFood(); return; } toast("Module coming soon"); return; }
+    if(action==="city"){ renderCity(el.getAttribute("data-city")); return; }
+    if(action==="seller"){ renderSellerCTA(); return; }
+    if(action==="sellerForm"){ renderSellerForm(el.getAttribute("data-type")||"Seller"); return; }
+    if(action==="sellerSubmit"){ sellerSubmit(el.getAttribute("data-type")||"Seller"); return; }
+    if(action==="feedback"){ renderFeedbackCenter(); return; }
+    if(action==="fbSubmit"){ fbSubmit(); return; }
+    if(action==="ecommerce"){ renderEcommerce(); return; }
+    if(action==="category"){ renderFilters(el.getAttribute("data-cat")); return; }
+    if(action==="toggle"){ toggleFilter(el.getAttribute("data-filter"),el); return; }
+    if(action==="search"){ search(); return; }
+    if(action==="add"){ add(Number(el.getAttribute("data-idx"))); return; }
+    if(action==="buy"){ buy(Number(el.getAttribute("data-idx"))); return; }
+    if(action==="food"){ renderFood(); return; }
+    if(action==="restaurant"){ renderRestaurant(el.getAttribute("data-rid")); return; }
+    if(action==="addFood"){ addFoodItem(el.getAttribute("data-item")); return; }
+    if(action==="cart"){ renderCart(); return; }
+    if(action==="remove"){ remove(Number(el.getAttribute("data-idx"))); return; }
+    if(action==="pay"){ renderPayment(); return; }
+    if(action==="copyUpi"){ copyUpi(); return; }
+    if(action==="openUpiApp"){ openUpiApp(); return; }
+    if(action==="submitUtr"){ submitUtr(); return; }
+    if(action==="confirmUtr"){ confirmUtr(); return; }
+    if(action==="pm"){ var method=el.getAttribute("data-method"); var opts=document.querySelectorAll(".payment-option"); for(var i=0;i<opts.length;i++) opts[i].classList.remove("selected"); el.classList.add("selected"); payMethod=method; toast("Selected: "+method.toUpperCase()); return; }
+    if(action==="place"){ place(); return; }
+    if(action==="orders"){ renderOrders(); return; }
+    if(action==="trackLive"){ renderLiveTracking(el.getAttribute("data-order")); return; }
+    if(action==="simulateConfirm"){ simulateSellerConfirmation(el.getAttribute("data-order")); return; }
   }
 
-  document.addEventListener("click", function(e){
-    var el = e.target.closest("[data-action]");
-    if(el) handle(el);
-  });
-
-  document.addEventListener("keydown", function(e){
-    if(e.key !== "Enter" && e.key !== " ") return;
-    var el = e.target.closest("[data-action][role='button']");
-    if(!el) return;
-    e.preventDefault();
-    handle(el);
-  });
+  document.addEventListener("click",function(e){ var el=e.target.closest("[data-action]"); if(el) handle(el); });
+  document.addEventListener("keydown",function(e){ if(e.key!=="Enter"&&e.key!==" ") return; var el=e.target.closest("[data-action][role='button']"); if(!el) return; e.preventDefault(); handle(el); });
 
   // ---------- init ----------
   function init(){
-    supabase = initSupabase(); // client exists, but we intentionally use Edge Functions above.
+    supabase=initSupabase();
     loadOrders();
     loadToMemory(ECOMMERCE_DATA);
     goHome();
   }
 
-  window.addEventListener("beforeunload", stopLiveTracking);
-  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, {once:true});
+  window.addEventListener("beforeunload",stopLiveTracking);
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init,{once:true});
   else init();
 
 })();
