@@ -20,7 +20,6 @@
   <!-- PDF libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
-  <!-- ═══ PATCH 1: PptxGenJS for PPTX export ═══ -->
   <script src="https://unpkg.com/pptxgenjs@4.0.1/dist/pptxgen.bundle.js"></script>
 
   <!-- Fonts -->
@@ -526,19 +525,8 @@
       </div>
       <div class="panel-section">
         <div class="section-title" style="margin-top:0">Tools &amp; Pages</div>
-        <div class="subpage-grid" style="margin-bottom:10px;">
-          <a class="subpage-card" href="/swipeos/" target="_blank"><div class="subpage-card-icon">📱</div><div class="subpage-card-title">SwipeOS</div><div class="subpage-card-desc">OS interface</div></a>
-          <a class="subpage-card" href="/engine-deals/" target="_blank"><div class="subpage-card-icon">🤝</div><div class="subpage-card-title">Deals</div><div class="subpage-card-desc">Engine deals</div></a>
-          <a class="subpage-card" href="/alchemist/" target="_blank"><div class="subpage-card-icon">🧪</div><div class="subpage-card-title">Alchemist</div><div class="subpage-card-desc">Quiz engine</div></a>
-          <a class="subpage-card" href="/cashback-claim/" target="_blank"><div class="subpage-card-icon">💰</div><div class="subpage-card-title">Cashback</div><div class="subpage-card-desc">Claim rewards</div></a>
-          <a class="subpage-card" href="/cashback-rules/" target="_blank"><div class="subpage-card-icon">📋</div><div class="subpage-card-title">CB Rules</div><div class="subpage-card-desc">Cashback rules</div></a>
-          <a class="subpage-card" href="/engine-license/" target="_blank"><div class="subpage-card-icon">🔑</div><div class="subpage-card-title">License</div><div class="subpage-card-desc">Engine license</div></a>
-          <a class="subpage-card" href="/ondc-demo/" target="_blank"><div class="subpage-card-icon">🛒</div><div class="subpage-card-title">ONDC Demo</div><div class="subpage-card-desc">Commerce demo</div></a>
-          <a class="subpage-card" href="/promptalchemy/" target="_blank"><div class="subpage-card-icon">✨</div><div class="subpage-card-title">PromptAlchemy</div><div class="subpage-card-desc">Prompt tools</div></a>
-          <a class="subpage-card" href="/student-research/" target="_blank"><div class="subpage-card-icon">🎓</div><div class="subpage-card-title">Student Research</div><div class="subpage-card-desc">Academic tools</div></a>
-          <a class="subpage-card" href="/contact/" target="_blank"><div class="subpage-card-icon">📬</div><div class="subpage-card-title">Contact</div><div class="subpage-card-desc">Get in touch</div></a>
-          <a class="subpage-card" href="/brief/" target="_blank"><div class="subpage-card-icon">📄</div><div class="subpage-card-title">Brief</div><div class="subpage-card-desc">Decision brief</div></a>
-          <a class="subpage-card" href="/decision-brief/" target="_blank"><div class="subpage-card-icon">🗂️</div><div class="subpage-card-title">Dec. Brief</div><div class="subpage-card-desc">Full brief</div></a>
+        <div class="subpage-grid" style="margin-bottom:10px;" id="panel-subpage-grid">
+          <!-- populated by subpageGridHTML() -->
         </div>
       </div>
       <div class="panel-section">
@@ -550,7 +538,6 @@
           <button class="btn btn-mini btn-pro" onclick="safeCall('generateDecisionProUIPDF')">DECISION PDF</button>
         </div>
         <div style="height:8px"></div>
-        <!-- ═══ PATCH 2: EXPORT PPTX button ═══ -->
         <button class="btn btn-mini btn-full btn-india" onclick="generatePPTX()" style="background:linear-gradient(135deg,rgba(255,153,51,.2),rgba(255,153,51,.08));border-color:rgba(255,153,51,.6)">📊 EXPORT PPTX</button>
         <div style="height:8px"></div>
         <button class="btn btn-mini btn-full btn-pro" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button>
@@ -595,6 +582,46 @@
 </div>
 
 <script>
+/* ═══════════════════════════════════════
+   SUBPAGE DEFINITIONS — single source of truth
+   filename: the actual .html file in your repo root
+═══════════════════════════════════════ */
+const SUBPAGES = [
+  { filename: 'SwipeOS.html',                    icon: '📱', title: 'SwipeOS',        desc: 'OS interface'    },
+  { filename: 'engine-deals.html',               icon: '🤝', title: 'Deals',          desc: 'Engine deals'    },
+  { filename: 'Alchemist.html',                  icon: '🧪', title: 'Alchemist',      desc: 'Quiz engine'     },
+  { filename: 'CashbackClaim.html',              icon: '💰', title: 'Cashback',       desc: 'Claim rewards'   },
+  { filename: 'CashbackRules.html',              icon: '📋', title: 'CB Rules',       desc: 'Cashback rules'  },
+  { filename: 'EngineLicense.html',              icon: '🔑', title: 'License',        desc: 'Engine license'  },
+  { filename: 'ONDC-demo.html',                  icon: '🛒', title: 'ONDC Demo',      desc: 'Commerce demo'   },
+  { filename: 'PromptAlchemy.html',              icon: '✨', title: 'PromptAlchemy',  desc: 'Prompt tools'    },
+  { filename: 'StudentResearch.html',            icon: '🎓', title: 'Student Research', desc: 'Academic tools'},
+  { filename: 'Contact.html',                    icon: '📬', title: 'Contact',        desc: 'Get in touch'    },
+  { filename: 'Brief.html',                      icon: '📄', title: 'Brief',          desc: 'Decision brief'  },
+  { filename: 'DecisionBrief.html',              icon: '🗂️', title: 'Dec. Brief',     desc: 'Full brief'      },
+];
+
+function subpageGridHTML() {
+  return `<div class="subpage-grid">` +
+    SUBPAGES.map(p =>
+      `<a class="subpage-card" href="${p.filename}" target="_blank">` +
+      `<div class="subpage-card-icon">${p.icon}</div>` +
+      `<div class="subpage-card-title">${p.title}</div>` +
+      `<div class="subpage-card-desc">${p.desc}</div>` +
+      `</a>`
+    ).join('') +
+    `</div>`;
+}
+
+/* Populate the panel grid on load */
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('panel-subpage-grid');
+  if (grid) grid.outerHTML = subpageGridHTML();
+  // re-query after replace
+  const pg = document.querySelector('#ui-panel .subpage-grid');
+  // already rendered inline above
+});
+
 /* ═══════════════════════════════════════
    PAYMENT CONFIG
 ═══════════════════════════════════════ */
@@ -755,7 +782,7 @@ function openWikipedia(title){window.open(`https://en.wikipedia.org/wiki/Special
 
 function buildAlchemistPayloadFromResearch(nodes,{maxQ=12}={}){const list=Array.isArray(nodes)?nodes.slice(0,maxQ):[];const out=[],now=Date.now();function pick2Distractors(allTitles,correctTitle){const pool=allTitles.filter(t=>t&&t!==correctTitle);for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}return[pool[0]||"—",pool[1]||"—"];}function dirByIndex(i){return["UP","RIGHT","LEFT","DOWN"][i%4];}const titles=list.map(n=>normalizeText(n?.title||"")).filter(Boolean);list.forEach((n,i)=>{const title=normalizeText(n?.title||`Node ${i+1}`),sents=splitIntoSentences(n?.summary||""),qText=sents[0]||(n?.summary?normalizeText(n.summary).slice(0,140):""),prompt=qText?`Which node matches: "${qText}"`:"Which node is this?",[d1,d2]=pick2Distractors(titles,title);out.push({Question_ID:`R_${now}_${String(i+1).padStart(3,"0")}`,Set_Code:"RESEARCH",Domain:"Decision Research",Subdomain:normalizeText(n?.sourceName||n?.source||"wiki").toUpperCase(),Difficulty:String(Math.min(5,Math.max(1,Math.round((wordCount(n?.summary||"")/120)||2)))),Question_Text:prompt,Correct_Answer:title,Distractor_1:d1,Distractor_2:d2,Correct_Direction:dirByIndex(i),Explanation_Short:"Pick the node title that matches the summary snippet.",Explanation_Long:(n?.url?`Source: ${n.url}`:"Source: (none)")});});return out;}
 
-function launchAlchemistQuiz(){const nodes=ENGINE_STATE?.research_nodes||[];if(!nodes.length)return showToast("NO NODES FOR QUIZ");try{const payload=buildAlchemistPayloadFromResearch(nodes,{maxQ:12});localStorage.setItem(ALCHEMIST_LS_KEY,JSON.stringify(payload));showToast("QUIZ READY");if(window.VDRouter){window.VDRouter.go('alchemist',{newTab:true});}else{window.open('/alchemist/','_blank');}}catch(e){console.error(e);showToast("QUIZ FAILED");}}
+function launchAlchemistQuiz(){const nodes=ENGINE_STATE?.research_nodes||[];if(!nodes.length)return showToast("NO NODES FOR QUIZ");try{const payload=buildAlchemistPayloadFromResearch(nodes,{maxQ:12});localStorage.setItem(ALCHEMIST_LS_KEY,JSON.stringify(payload));showToast("QUIZ READY");window.open('Alchemist.html','_blank');}catch(e){console.error(e);showToast("QUIZ FAILED");}}
 
 const WIKI_ENGINE={
   activeSource:"wiki",cache:new Map(),
@@ -781,7 +808,7 @@ function autosaveProjectIfPossible(){if(!CURRENT_PROJECT?.id)return;const p=buil
 function buildProjectFromCurrentState(){const nodes=ENGINE_STATE?.research_nodes||[],syn=ENGINE_STATE?.synthesis||null,notes=(document.getElementById("notes-text")?.value??localStorage.getItem(NOTES_KEY)??"");if(!nodes.length&&!syn&&!notes)return null;return{id:CURRENT_PROJECT?.id||uid(),name:CURRENT_PROJECT?.name||(nodes[0]?.decisionMeta?.decision?`Decision: ${nodes[0].decisionMeta.decision}`:"Decision Research"),createdAt:CURRENT_PROJECT?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),engineState:{research_nodes:nodes,synthesis:syn,notes}};}
 function loadProjectIntoApp(project){CURRENT_PROJECT=project;const notes=project?.engineState?.notes??"";localStorage.setItem(NOTES_KEY,notes);const ta=document.getElementById("notes-text");if(ta)ta.value=notes;ENGINE_STATE.cuisines_detected=["research"];ENGINE_STATE.research_nodes=Array.isArray(project?.engineState?.research_nodes)?project.engineState.research_nodes:[];ENGINE_STATE.synthesis=project?.engineState?.synthesis||null;if(ENGINE_STATE.research_nodes.length)openStoredDeck(ENGINE_STATE.research_nodes,ENGINE_STATE.synthesis);else renderSearchSlide();updateUIPanel();}
 function importShareLinkPrompt(){const link=window.prompt("Paste share link:","");if(!link)return;let payload=link.trim();const idx=payload.indexOf("#p=");if(idx>=0)payload=payload.slice(idx+3);if(payload.startsWith("p="))payload=payload.slice(2);try{const project=deserializeProjectFromShare(payload);if(!project.id)project.id=uid();if(!project.name)project.name="Imported Project";project.updatedAt=new Date().toISOString();if(!project.createdAt)project.createdAt=project.updatedAt;saveProjectToStorage(project);loadProjectIntoApp(project);showToast("IMPORTED");}catch(e){console.error(e);showToast("INVALID LINK");}}
-function openSubpage(slug){if(window.VDRouter){window.VDRouter.go(slug,{newTab:true});}else{window.open('/'+slug+'/','_blank');}}
+function openSubpage(slug){window.open(slug,'_blank');}
 
 const DEFAULT_EXAMPLES=[
   {id:"ex_indiaai",name:"IndiaAI: National AI Mission",createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),engineState:{notes:"Policy node: map each research node to a policy pillar — compute access, skilling, datasets, sector adoption, ethics.",synthesis:{thesis:"India's National AI Mission anchors on seven pillars: compute infrastructure, foundation models, datasets, skilling, sector adoption, startups, and responsible AI governance.",topTakeaways:["IndiaAI Mission targets sovereign AI infrastructure through the IndiaAI Compute Platform.","10,000+ GPU compute capacity being built for startups, researchers, and government.","India Datasets Platform aims to make high-quality Indian language data publicly accessible.","Responsible AI governance includes safety, ethics, fairness, and accountability frameworks.","FutureSkills Prime and IITs anchor skilling at scale for India's AI workforce."],contradictions:"Tension between data sovereignty and open innovation; compute centralization vs. democratized access.",implications:"Policymakers must align procurement, skilling, and startup enablement simultaneously.",next:"Research: AI Safety Institute India • IndiaAI Startup Financing • Digital Public Infrastructure",recommendation:"Frame every decision through the lens of: 'Does this scale to Bharat's 1.4 billion?'"},research_nodes:[{title:"Artificial intelligence in India",summary:"India has emerged as a global hub for AI development and deployment, driven by its large talent pool, growing startup ecosystem, and government-led initiatives such as the National AI Strategy. The government's IndiaAI Mission, launched in 2024, focuses on building sovereign AI infrastructure including compute, datasets, and application frameworks.",url:"https://en.wikipedia.org/wiki/Artificial_intelligence_in_India",thumbnail:null,categories:["AI","India","Policy"],links:[],source:"wiki",sourceName:"WIKIPEDIA",confidence:"High",decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"}},{title:"Digital India",summary:"Digital India is a flagship programme of the Government of India that aims to transform India into a digitally empowered society and knowledge economy. Key pillars include broadband connectivity, mobile connectivity, public internet access, and e-governance. Digital India has enabled the foundation for AI adoption at population scale.",url:"https://en.wikipedia.org/wiki/Digital_India",thumbnail:null,categories:["Digital","India","Government"],links:[],source:"wiki",sourceName:"WIKIPEDIA",confidence:"High",decisionMeta:{decision:"Evaluate IndiaAI Mission strategy",time:"2024-2030",stake:"National AI sovereignty",success:"Self-reliant AI ecosystem",options:"Sovereign compute vs cloud dependency"}}]}},
@@ -791,13 +818,8 @@ const DEFAULT_EXAMPLES=[
 let ENGINE_STATE={cuisines_detected:[],items_detected:{},session_weights:{},active_filters:[],research_history:[],research_nodes:[],synthesis:null};
 let slideElements=[],currentIdx=0,currentDecisionContext=null;
 
-function subpageGridHTML(){const pages=[{slug:'swipeos',icon:'📱',title:'SwipeOS',desc:'OS interface'},{slug:'engine-deals',icon:'🤝',title:'Deals',desc:'Engine deals'},{slug:'alchemist',icon:'🧪',title:'Alchemist',desc:'Quiz engine'},{slug:'cashback-claim',icon:'💰',title:'Cashback',desc:'Claim rewards'},{slug:'cashback-rules',icon:'📋',title:'CB Rules',desc:'Cashback rules'},{slug:'engine-license',icon:'🔑',title:'License',desc:'Engine license'},{slug:'ondc-demo',icon:'🛒',title:'ONDC Demo',desc:'Commerce demo'},{slug:'promptalchemy',icon:'✨',title:'PromptAlchemy',desc:'Prompt tools'},{slug:'student-research',icon:'🎓',title:'Student Research',desc:'Academic tools'},{slug:'contact',icon:'📬',title:'Contact',desc:'Get in touch'},{slug:'brief',icon:'📄',title:'Brief',desc:'Decision brief'},{slug:'decision-brief',icon:'🗂️',title:'Dec. Brief',desc:'Full brief'}];return`<div class="subpage-grid">`+pages.map(p=>`<a class="subpage-card" href="/${p.slug}/" target="_blank"><div class="subpage-card-icon">${p.icon}</div><div class="subpage-card-title">${p.title}</div><div class="subpage-card-desc">${p.desc}</div></a>`).join('')+`</div>`;}
-
-function openFounderLetter(){closeUIPanel();const container=document.getElementById('master-container'),section=document.createElement('section');section.className="main-slide next";section.dataset.mode="founder-letter";section.innerHTML=`<div class="slide-header"><span class="header-title">FOUNDER LETTER</span><span class="header-badge india">INDIA AI</span></div><div class="sub-slide static article-view"><div class="founder-letter"><div class="founder-letter-eyebrow"><span class="pulse-dot"></span>To India — From the Builder</div><h2>We built this for the billion who decide.</h2><p>Every day, over a billion Indians make decisions that shape their lives — choosing a school, a medication, a business, a policy. Most of them make these decisions <strong>without access to structured information, expert analysis, or decision scaffolding</strong>.</p><p>That gap is not a data problem. It is an <strong>intelligence infrastructure problem</strong>.</p><p>decide.engine began as a personal tool. A way to think clearly in a noisy world. But when we looked at what India's AI mission was building toward — compute, datasets, skilling, responsible AI — we saw something bigger.</p><p>We saw the infrastructure for a new kind of decision-making at scale. <strong>Policy-grade intelligence, accessible to every citizen.</strong></p><p>This is not about replacing human judgment. It is about amplifying it. About giving a farmer in Vidarbha the same structured research process that a policy advisor in South Block uses.</p><p>IndiaAI's mission is sovereign. Inclusive. Responsible. Ours aligns completely.</p><p>We are building decide.engine as an open, policy-grade decision research layer — aligned with IndiaAI's seven pillars, designed for India's languages, and committed to <strong>AI that decides with India, not for India</strong>.</p><div class="letter-sig"><strong>— The decide.engine team</strong><br><span style="color:var(--text-dim);font-size:.78rem;">Building for Bharat · Aligned with IndiaAI Mission · 2024</span></div></div><div class="mission-pills"><span class="mission-pill mp-saffron">🇮🇳 Sovereign AI</span><span class="mission-pill mp-green">♿ Inclusive Access</span><span class="mission-pill mp-blue">🔒 Responsible AI</span><span class="mission-pill mp-white">🌐 Multilingual</span><span class="mission-pill mp-saffron">📊 Policy-grade</span><span class="mission-pill mp-green">🌾 Bharat-first</span></div><div class="stats-grid"><div class="stat-card"><div class="number">1.4B</div><div class="label">Indians Deciding Daily</div></div><div class="stat-card"><div class="number">7</div><div class="label">IndiaAI Pillars</div></div><div class="stat-card"><div class="number">10K+</div><div class="label">GPU Target (IndiaAI)</div></div><div class="stat-card"><div class="number">∞</div><div class="label">Decisions to Support</div></div></div><div class="final-actions"><button class="btn btn-full btn-india" onclick="openPolicyBrief()">VIEW INDIAAI POLICY BRIEF →</button><button class="btn btn-full btn-pro" onclick="openTool()">START RESEARCHING</button><button class="btn btn-full btn-muted" onclick="goHome()">← BACK</button></div><div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div></div>`;container.appendChild(section);slideElements.push(section);goToSlide(slideElements.length-1);}
-
-function openPolicyBrief(){const container=document.getElementById('master-container'),section=document.createElement('section');section.className="main-slide next";section.dataset.mode="policy-brief";section.innerHTML=`<div class="slide-header"><span class="header-title">INDIAAI ALIGNMENT</span><span class="header-badge policy">POLICY</span></div><div class="sub-slide static article-view"><h1>Policy Alignment</h1><div class="primary-question">How decide.engine maps to India's National AI Mission pillars.</div><div class="policy-banner"><div class="policy-icon">🏛️</div><div class="policy-text"><strong>IndiaAI Mission (2024-2030)</strong> — India's national strategy to build sovereign AI infrastructure spanning compute, data, skilling, research, and responsible governance.</div></div><div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 1 — IndiaAI Compute Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> 10,000+ GPU sovereign compute infrastructure.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Lightweight, browser-native — zero GPU dependency for end users.</div></div><div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 2 — IndiaAI Datasets Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> High-quality, multilingual Indian language datasets.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Designed for multilingual expansion — Hindi, Tamil, Bengali, Marathi.</div></div><div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 3 — AI Skilling</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Train 1 million AI-skilled workers by 2030.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Quiz engine (Alchemist) creates skill-assessment loops from research nodes.</div></div><div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 4 — Responsible AI</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Safety, ethics, fairness, accountability.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> All research is source-attributed and confidence-rated. No black-box outputs.</div></div><div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 5 — AI for Sector Adoption</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> AI in agriculture, health, education, governance.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Decision nodes pre-configured for sector-specific decisions.</div></div><div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 6 — Startup Financing</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> ₹2000 Cr+ fund for deep-tech AI startups.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Open-source core, startup-ready API layer. PDF exports as pitch artifacts.</div></div><div class="founder-letter" style="margin-top:6px;"><div class="founder-letter-eyebrow"><span class="pulse-dot"></span>Our Commitment</div><p style="margin:0;font-size:.9rem;color:var(--text-dim);line-height:1.7">decide.engine commits to building in the open, aligning with IndiaAI's data and ethics standards, supporting Indian language expansion, and making policy-grade decision intelligence accessible to every Indian.</p></div><div class="final-actions"><button class="btn btn-full btn-india" onclick="openExample('ex_indiaai')">LOAD INDIAAI EXAMPLE →</button><button class="btn btn-full btn-pro" onclick="openTool()">START RESEARCH</button><button class="btn btn-full" onclick="openFounderLetter()">← FOUNDER LETTER</button><button class="btn btn-full btn-muted" onclick="goHome()">HOME</button></div><div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div></div>`;container.appendChild(section);slideElements.push(section);goToSlide(slideElements.length-1);}
-
-function goHome(){closeUIPanel();closeNotesPanel();renderLanding();}
+const DEFAULT_FALLBACK_MENU={"research":{label:"DECISION RESEARCH",categories:[]}};
+let RAW_DATA=DEFAULT_FALLBACK_MENU;
 
 function renderLanding(){
   const container=document.getElementById('master-container');container.innerHTML="";slideElements=[];currentIdx=0;
@@ -811,9 +833,6 @@ function renderLanding(){
 function openExample(exampleId){const ex=DEFAULT_EXAMPLES.find(x=>x.id===exampleId);if(!ex)return showToast("EXAMPLE NOT FOUND");const project={id:uid(),name:ex.name,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),engineState:ex.engineState};saveProjectToStorage(project);loadProjectIntoApp(project);showToast("EXAMPLE LOADED");}
 function continueLastProject(){const id=localStorage.getItem(LAST_PROJECT_KEY);if(!id)return showToast("NO LAST PROJECT");const project=loadProjectFromStorage(id);if(!project)return showToast("LOAD FAILED");loadProjectIntoApp(project);showToast("CONTINUED");}
 function openTool(){CURRENT_PROJECT=null;renderLobby();updateUIPanel();}
-
-const FALLBACK_MENU={"research":{label:"DECISION RESEARCH",categories:[]}};
-let RAW_DATA=FALLBACK_MENU;
 
 function renderLobby(){const container=document.getElementById('master-container');container.innerHTML="";const section=document.createElement('section');section.className="main-slide active";let html=`<div class="slide-header"><span class="header-title">decide.engine</span><span class="header-badge">DOMAIN SELECT</span></div><div class="lobby-container"><h1 style="text-align:center;font-size:1.6rem">Select Domain</h1><div style="display:grid;gap:12px;">`;for(let key in RAW_DATA){const isSelected=ENGINE_STATE.cuisines_detected.includes(key)?"selected":"";html+=`<button class="cuisine-btn ${isSelected}" onclick="toggleDomain('${escapeHTML(key)}', this)">${escapeHTML(RAW_DATA[key].label)}</button>`;}html+=`</div><button class="btn btn-full" style="margin-top:20px" onclick="handleStart()">NEXT →</button><button class="btn btn-full btn-muted" style="margin-top:10px" onclick="goHome()">← WELCOME</button></div>`;section.innerHTML=html;container.appendChild(section);slideElements=[section];currentIdx=0;updateUIPanel();}
 function toggleDomain(id,btn){ENGINE_STATE.cuisines_detected=[id];document.querySelectorAll('.cuisine-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
@@ -847,6 +866,12 @@ function closeSynthesisSlide(){const container=document.getElementById('master-c
 
 function renderEndSlide(){const container=document.getElementById('master-container'),section=document.createElement('section');section.className="main-slide next";section.dataset.mode="end";section.innerHTML=`<div class="slide-header"><span class="header-title">EXPORT</span><span class="header-badge">FINAL</span></div><div class="sub-slide static article-view"><h1>Export</h1><div class="primary-question">Synthesize your research, then export as PDF or share as a link.</div><div class="context-panel"><div class="section-title" style="margin-top:0">Next steps</div><div style="color:var(--text-dim);line-height:1.7;font-size:.9rem;">Use <strong style="color:var(--text-main)">SYNTHESIS</strong> to capture your thesis before exporting.<br><strong style="color:var(--text-main)">DECISION PDF</strong> generates a policy-grade decision brief.<br><strong style="color:var(--text-main)">SHARE LINK</strong> embeds the full project in a URL.</div></div><div class="final-actions"><button class="btn btn-full btn-pro" onclick="openSynthesisSlide()">SYNTHESIS</button><button class="btn btn-full btn-pdf" onclick="generateResearchPDF()">RESEARCH PDF</button><button class="btn btn-full btn-pro" onclick="generateDecisionProUIPDF()">DECISION PDF</button><button class="btn btn-full btn-india" onclick="generatePPTX()">📊 EXPORT PPTX</button><button class="btn btn-full btn-india" onclick="openFounderLetter()">FOUNDER LETTER</button><button class="btn btn-full" onclick="launchAlchemistQuiz()">QUIZ (ALCHEMIST)</button><button class="btn btn-full" onclick="renderSearchSlide()">NEW SEARCH</button><button class="btn btn-full btn-muted" onclick="goHome()">← HOME</button></div><div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div></div>`;container.appendChild(section);slideElements.push(section);}
 
+function goHome(){closeUIPanel();closeNotesPanel();renderLanding();}
+
+function openFounderLetter(){closeUIPanel();const container=document.getElementById('master-container'),section=document.createElement('section');section.className="main-slide next";section.dataset.mode="founder-letter";section.innerHTML=`<div class="slide-header"><span class="header-title">FOUNDER LETTER</span><span class="header-badge india">INDIA AI</span></div><div class="sub-slide static article-view"><div class="founder-letter"><div class="founder-letter-eyebrow"><span class="pulse-dot"></span>To India — From the Builder</div><h2>We built this for the billion who decide.</h2><p>Every day, over a billion Indians make decisions that shape their lives — choosing a school, a medication, a business, a policy. Most of them make these decisions <strong>without access to structured information, expert analysis, or decision scaffolding</strong>.</p><p>That gap is not a data problem. It is an <strong>intelligence infrastructure problem</strong>.</p><p>decide.engine began as a personal tool. A way to think clearly in a noisy world. But when we looked at what India's AI mission was building toward — compute, datasets, skilling, responsible AI — we saw something bigger.</p><p>We saw the infrastructure for a new kind of decision-making at scale. <strong>Policy-grade intelligence, accessible to every citizen.</strong></p><p>This is not about replacing human judgment. It is about amplifying it. About giving a farmer in Vidarbha the same structured research process that a policy advisor in South Block uses.</p><p>IndiaAI's mission is sovereign. Inclusive. Responsible. Ours aligns completely.</p><p>We are building decide.engine as an open, policy-grade decision research layer — aligned with IndiaAI's seven pillars, designed for India's languages, and committed to <strong>AI that decides with India, not for India</strong>.</p><div class="letter-sig"><strong>— The decide.engine team</strong><br><span style="color:var(--text-dim);font-size:.78rem;">Building for Bharat · Aligned with IndiaAI Mission · 2024</span></div></div><div class="mission-pills"><span class="mission-pill mp-saffron">🇮🇳 Sovereign AI</span><span class="mission-pill mp-green">♿ Inclusive Access</span><span class="mission-pill mp-blue">🔒 Responsible AI</span><span class="mission-pill mp-white">🌐 Multilingual</span><span class="mission-pill mp-saffron">📊 Policy-grade</span><span class="mission-pill mp-green">🌾 Bharat-first</span></div><div class="stats-grid"><div class="stat-card"><div class="number">1.4B</div><div class="label">Indians Deciding Daily</div></div><div class="stat-card"><div class="number">7</div><div class="label">IndiaAI Pillars</div></div><div class="stat-card"><div class="number">10K+</div><div class="label">GPU Target (IndiaAI)</div></div><div class="stat-card"><div class="number">∞</div><div class="label">Decisions to Support</div></div></div><div class="final-actions"><button class="btn btn-full btn-india" onclick="openPolicyBrief()">VIEW INDIAAI POLICY BRIEF →</button><button class="btn btn-full btn-pro" onclick="openTool()">START RESEARCHING</button><button class="btn btn-full btn-muted" onclick="goHome()">← BACK</button></div><div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div></div>`;container.appendChild(section);slideElements.push(section);goToSlide(slideElements.length-1);}
+
+function openPolicyBrief(){const container=document.getElementById('master-container'),section=document.createElement('section');section.className="main-slide next";section.dataset.mode="policy-brief";section.innerHTML=`<div class="slide-header"><span class="header-title">INDIAAI ALIGNMENT</span><span class="header-badge policy">POLICY</span></div><div class="sub-slide static article-view"><h1>Policy Alignment</h1><div class="primary-question">How decide.engine maps to India's National AI Mission pillars.</div><div class="policy-banner"><div class="policy-icon">🏛️</div><div class="policy-text"><strong>IndiaAI Mission (2024-2030)</strong> — India's national strategy to build sovereign AI infrastructure spanning compute, data, skilling, research, and responsible governance.</div></div><div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 1 — IndiaAI Compute Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> 10,000+ GPU sovereign compute infrastructure.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Lightweight, browser-native — zero GPU dependency for end users.</div></div><div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 2 — IndiaAI Datasets Platform</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> High-quality, multilingual Indian language datasets.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Designed for multilingual expansion — Hindi, Tamil, Bengali, Marathi.</div></div><div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 3 — AI Skilling</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Train 1 million AI-skilled workers by 2030.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Quiz engine (Alchemist) creates skill-assessment loops from research nodes.</div></div><div class="context-panel blue-glow"><div class="section-title" style="margin-top:0">Pillar 4 — Responsible AI</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> Safety, ethics, fairness, accountability.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> All research is source-attributed and confidence-rated. No black-box outputs.</div></div><div class="context-panel green-glow"><div class="section-title" style="margin-top:0">Pillar 5 — AI for Sector Adoption</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> AI in agriculture, health, education, governance.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Decision nodes pre-configured for sector-specific decisions.</div></div><div class="context-panel glow"><div class="section-title" style="margin-top:0">Pillar 6 — Startup Financing</div><div style="color:var(--text-dim);font-size:.88rem;line-height:1.65"><strong style="color:var(--text-main)">Mission:</strong> ₹2000 Cr+ fund for deep-tech AI startups.<br><br><strong style="color:var(--accent-go)">decide.engine alignment:</strong> Open-source core, startup-ready API layer. PDF exports as pitch artifacts.</div></div><div class="founder-letter" style="margin-top:6px;"><div class="founder-letter-eyebrow"><span class="pulse-dot"></span>Our Commitment</div><p style="margin:0;font-size:.9rem;color:var(--text-dim);line-height:1.7">decide.engine commits to building in the open, aligning with IndiaAI's data and ethics standards, supporting Indian language expansion, and making policy-grade decision intelligence accessible to every Indian.</p></div><div class="final-actions"><button class="btn btn-full btn-india" onclick="openExample('ex_indiaai')">LOAD INDIAAI EXAMPLE →</button><button class="btn btn-full btn-pro" onclick="openTool()">START RESEARCH</button><button class="btn btn-full" onclick="openFounderLetter()">← FOUNDER LETTER</button><button class="btn btn-full btn-muted" onclick="goHome()">HOME</button></div><div class="nav-hint"><span>Swipe up/down: slides</span><span>☰ : panel</span></div></div>`;container.appendChild(section);slideElements.push(section);goToSlide(slideElements.length-1);}
+
 function sanitizeForPDF(text){return normalizeText(text).replace(/[^\x00-\xFF]/g,"");}
 
 async function generateResearchPDF(){if(!ENGINE_STATE.research_nodes||!ENGINE_STATE.research_nodes.length)return showToast("NO RESEARCH TO EXPORT");showToast("GENERATING PDF...");try{const{jsPDF}=window.jspdf,doc=new jsPDF();const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),mg=18,cw=pw-(2*mg);const addFooter=(pageNum,totalPages)=>{doc.setFontSize(7);doc.setTextColor(120,120,120);doc.text(`decide.engine | India AI | Page ${pageNum} of ${totalPages}`,pw/2,ph-8,{align:'center'});doc.setFontSize(6);doc.text(new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}),mg,ph-8);};let pageNum=1;const totalPages=ENGINE_STATE.research_nodes.length+1;doc.setFillColor(255,153,51);doc.rect(0,0,pw/3,5,'F');doc.setFillColor(255,255,255);doc.rect(pw/3,0,pw/3,5,'F');doc.setFillColor(19,136,8);doc.rect((pw/3)*2,0,pw/3,5,'F');doc.setFontSize(28);doc.setTextColor(255,153,51);doc.setFont(undefined,'bold');doc.text("RESEARCH JOURNEY",pw/2,55,{align:'center'});doc.setFontSize(11);doc.setTextColor(0,180,120);doc.text("decide.engine | India AI Decision Research",pw/2,67,{align:'center'});doc.setDrawColor(40,60,90);doc.setLineWidth(0.5);doc.rect(mg,82,cw,36);doc.setFontSize(9.5);doc.setTextColor(60,60,60);doc.setFont(undefined,'normal');doc.text(`Nodes: ${ENGINE_STATE.research_nodes.length}`,pw/2,94,{align:'center'});doc.text(`Primary Source: ${ENGINE_STATE.research_nodes[0]?.sourceName||'Local'}`,pw/2,102,{align:'center'});doc.text(`Export Date: ${new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})}`,pw/2,110,{align:'center'});addFooter(pageNum,totalPages);ENGINE_STATE.research_nodes.forEach((node,index)=>{doc.addPage();pageNum++;const title=sanitizeForPDF(node.title||""),summaryRaw=sanitizeForPDF(node.summary||""),takeaways=extractTakeaways(summaryRaw,4).map(sanitizeForPDF);doc.setFillColor(255,153,51);doc.rect(0,0,pw/3,4,'F');doc.setFillColor(255,255,255);doc.rect(pw/3,0,pw/3,4,'F');doc.setFillColor(19,136,8);doc.rect((pw/3)*2,0,pw/3,4,'F');let y=22;doc.setFillColor(0,180,120);doc.circle(mg+7,y+3,7,'F');doc.setFontSize(10);doc.setTextColor(255,255,255);doc.setFont(undefined,'bold');doc.text(String(index+1),mg+7,y+5,{align:'center'});doc.setFont(undefined,'normal');doc.setFontSize(16);doc.setTextColor(255,153,51);doc.setFont(undefined,'bold');const titleLines=doc.splitTextToSize(title,cw-18);doc.text(titleLines,mg+18,y);y+=titleLines.length*7+6;doc.setFont(undefined,'normal');doc.setFontSize(8);doc.setTextColor(120,120,120);doc.text(`Source: ${node.sourceName||"Local"}`,mg,y);y+=5;if(node.categories&&node.categories.length){const catLines=doc.splitTextToSize(sanitizeForPDF(node.categories.slice(0,4).join(' • ')),cw);doc.text(catLines,mg,y);y+=catLines.length*4.5+4;}doc.setDrawColor(220,220,220);doc.setLineWidth(0.4);doc.line(mg,y,pw-mg,y);y+=8;doc.setFontSize(10);doc.setTextColor(40,40,40);doc.setFont(undefined,'bold');doc.text("Key takeaways",mg,y);y+=6;doc.setFont(undefined,'normal');doc.setFontSize(9.5);takeaways.forEach(t=>{const lines=doc.splitTextToSize(`• ${t}`,cw);lines.forEach(line=>{if(y<ph-34){doc.text(line,mg,y);y+=5.6;}});y+=1.5;});y+=3;doc.setDrawColor(235,235,235);doc.setLineWidth(0.3);doc.line(mg,y,pw-mg,y);y+=8;doc.setFontSize(10);doc.setTextColor(40,40,40);doc.setFont(undefined,'bold');doc.text("Summary",mg,y);y+=6;doc.setFont(undefined,'normal');let summaryText=summaryRaw;if(summaryText.length>2400){summaryText=summaryText.slice(0,2400);const lp=summaryText.lastIndexOf('.');if(lp>2150)summaryText=summaryText.slice(0,lp+1);}const sents=splitIntoSentences(summaryText),paras=[];if(sents.length){paras.push(sents.slice(0,1).join(" "));for(let i=1;i<sents.length;i+=3)paras.push(sents.slice(i,i+3).join(" "));}else paras.push(summaryText);paras.forEach(p=>{const lines=doc.splitTextToSize(p,cw);lines.forEach(line=>{if(y<ph-34){doc.text(line,mg,y);y+=5.6;}});y+=3;});addFooter(pageNum,totalPages);});doc.save(`research-journey-india-${new Date().toISOString().slice(0,10)}.pdf`);showToast("PDF DOWNLOADED!");}catch(e){console.error('PDF error:',e);showToast("PDF FAILED");}}
@@ -857,10 +882,6 @@ function renderDecisionProDocHTML(model){const esc=escapeHTML,wm=esc(model.meta?
 
 async function generateDecisionProUIPDF(){if(!ENGINE_STATE.research_nodes||!ENGINE_STATE.research_nodes.length)return showToast("NO NODES");if(!ENGINE_STATE.synthesis){const agg=[];ENGINE_STATE.research_nodes.forEach(n=>agg.push(...extractTakeaways(n.summary||"",4)));ENGINE_STATE.synthesis={thesis:'',topTakeaways:agg.slice(0,5),contradictions:'',implications:'',next:'',recommendation:''}}showToast("EXPORTING DECISION PDF...");try{const model=buildDecisionProModel(),root=document.getElementById("pro-ui-root");root.innerHTML=renderDecisionProDocHTML(model);const filename=`decision-brief-india-${new Date().toISOString().slice(0,10)}.pdf`,opt={margin:0,filename,image:{type:"jpeg",quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#060c16"},jsPDF:{unit:"pt",format:"a4",orientation:"portrait"}};await html2pdf().set(opt).from(root.firstElementChild).save();showToast("DECISION PDF DOWNLOADED!");}catch(e){console.error("Decision PDF error:",e);showToast("DECISION PDF FAILED");}}
 
-/* ═══════════════════════════════════════
-   PATCH 3: generatePPTX — builds slides directly from ENGINE_STATE.research_nodes
-   No PDF rendering, no canvas, no image overlays — zero orange-box artifacts
-═══════════════════════════════════════ */
 async function generatePPTX() {
   const nodes = ENGINE_STATE.research_nodes || [];
   if (!nodes.length) return showToast("NO NODES TO EXPORT");
@@ -869,184 +890,25 @@ async function generatePPTX() {
   closeUIPanel();
   try {
     const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE"; // 13.333 × 7.5 in
+    pptx.layout = "LAYOUT_WIDE";
     pptx.title = "decide.engine Decision Brief";
-
-    // ── Color tokens — NO # prefix (PptxGenJS rule) ──
-    const C = {
-      bg: "07090f", panel: "0d1825", rim: "1a2640",
-      saf: "FF9933", green: "138808", blue: "3B82F6",
-      white: "FFFFFF", text: "E8EDF5", muted: "6B8AAA"
-    };
-    const SW = 13.333, SH = 7.5;
-
-    // ── Shared header ──
-    function hdr(slide, label, badge, badgeColor) {
-      slide.background = { color: C.bg };
-      slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:SW, h:0.5, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-      slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:0.055, h:0.5, fill:{color:C.saf}, line:{color:C.saf,width:0} });
-      slide.addText("decide.engine  ·  India AI Decision Research", { x:0.18, y:0, w:7, h:0.5, color:C.muted, fontSize:9, fontFace:"Courier New", valign:"middle" });
-      slide.addText(label, { x:SW-4.5, y:0, w:4.4, h:0.5, color:badgeColor||C.saf, fontSize:9, fontFace:"Courier New", bold:true, align:"right", valign:"middle" });
-    }
-
-    // ── Shared footer ──
-    function ftr(slide, txt) {
-      slide.addShape(pptx.shapes.RECTANGLE, { x:0, y:SH-0.38, w:SW, h:0.38, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-      slide.addText(txt || "DECIDE.ENGINE × INDIAAI MISSION  ·  " + new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'}), {
-        x:0.4, y:SH-0.38, w:SW-0.8, h:0.38, color:C.muted, fontSize:8, fontFace:"Courier New", align:"center", valign:"middle"
-      });
-    }
-
-    const syn = ENGINE_STATE.synthesis || {};
-    const firstNode = nodes[0];
-    const projectTitle = (CURRENT_PROJECT?.name || firstNode?.title || "Decision Brief").toUpperCase();
-
-    // ════════════════════════════════════════
-    // SLIDE 1 — COVER
-    // ════════════════════════════════════════
-    {
-      const s = pptx.addSlide();
-      s.background = { color: C.bg };
-      // tricolor bar
-      s.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:SW/3, h:0.12, fill:{color:C.saf}, line:{color:C.saf,width:0} });
-      s.addShape(pptx.shapes.RECTANGLE, { x:SW/3, y:0, w:SW/3, h:0.12, fill:{color:C.white}, line:{color:C.white,width:0} });
-      s.addShape(pptx.shapes.RECTANGLE, { x:(SW/3)*2, y:0, w:SW/3+0.001, h:0.12, fill:{color:C.green}, line:{color:C.green,width:0} });
-      // large watermark number
-      s.addText(String(nodes.length), { x:8, y:0.8, w:5, h:5, color:C.panel, fontSize:280, fontFace:"Arial Black", bold:true, align:"right", valign:"bottom" });
-      s.addText("🇮🇳  IndiaAI Aligned  ·  decide.engine", { x:0.6, y:1.2, w:8, h:0.4, color:C.saf, fontSize:11, fontFace:"Courier New", bold:true });
-      s.addText(projectTitle, { x:0.6, y:1.75, w:10, h:1.6, color:C.white, fontSize:44, fontFace:"Arial Black", bold:true, align:"left", valign:"middle" });
-      // decision context band
-      const ctx = firstNode?.decisionMeta || {};
-      if (ctx.decision) {
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.6, y:3.5, w:12, h:0.5, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-        s.addText(`Decision: ${ctx.decision}  ·  Stake: ${ctx.stake||'–'}  ·  Time: ${ctx.time||'–'}`, { x:0.75, y:3.5, w:11.8, h:0.5, color:C.text, fontSize:12, fontFace:"Courier New", valign:"middle" });
-      }
-      // stats row
-      const stats = [
-        { v:String(nodes.length), l:"NODES" },
-        { v:(nodes[0]?.sourceName||"WIKI").toUpperCase(), l:"SOURCE" },
-        { v:(nodes[0]?.confidence||"HIGH").toUpperCase(), l:"CONFIDENCE" },
-        { v:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',timeZone:'Asia/Kolkata'}), l:"DATE" }
-      ];
-      stats.forEach((st,i) => {
-        const x = 0.6 + i * 3.2;
-        const accent = i===0 ? C.saf : i===1 ? C.green : C.blue;
-        s.addShape(pptx.shapes.RECTANGLE, { x, y:4.2, w:3, h:1, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-        s.addShape(pptx.shapes.RECTANGLE, { x, y:4.2, w:0.055, h:1, fill:{color:accent}, line:{color:accent,width:0} });
-        s.addText(st.v, { x:x+0.18, y:4.25, w:2.7, h:0.5, color:C.saf, fontSize:22, fontFace:"Arial Black", bold:true, valign:"bottom" });
-        s.addText(st.l, { x:x+0.18, y:4.75, w:2.7, h:0.4, color:C.muted, fontSize:9, fontFace:"Courier New", valign:"top" });
-      });
-      ftr(s, "DECIDE.ENGINE × INDIAAI MISSION  ·  CONFIDENTIAL");
-    }
-
-    // ════════════════════════════════════════
-    // SLIDES PER NODE: Title card + Takeaways + Summary
-    // ════════════════════════════════════════
-    nodes.forEach((node, ni) => {
-      const title = (node.title || "Untitled").slice(0, 80);
-      const summaryRaw = normalizeText(node.summary || "No summary available.");
-      const sentences = splitIntoSentences(summaryRaw);
-      const lead = sentences[0] || summaryRaw.slice(0, 180);
-      const takeaways = extractTakeaways(summaryRaw, 4);
-      const cats = (node.categories || []).slice(0, 4);
-
-      // ── Slide A: Title card ──
-      {
-        const s = pptx.addSlide();
-        hdr(s, `NODE ${ni+1} / ${nodes.length}`, "NODE", C.saf);
-        // ghost number
-        s.addText(String(ni+1), { x:9.5, y:0.6, w:3.7, h:4, color:C.panel, fontSize:200, fontFace:"Arial Black", bold:true, align:"right", valign:"bottom" });
-        s.addText(title.toUpperCase(), { x:0.5, y:1.1, w:9.5, h:1.5, color:C.saf, fontSize:36, fontFace:"Arial Black", bold:true, align:"left", valign:"middle" });
-        // source badge
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:2.75, w:2.8, h:0.38, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-        s.addText(`SOURCE: ${(node.sourceName||"WIKIPEDIA").toUpperCase()}`, { x:0.5, y:2.75, w:2.8, h:0.38, color:C.green, fontSize:10, fontFace:"Courier New", bold:true, align:"center", valign:"middle" });
-        if (cats.length) s.addText(cats.join("  ·  "), { x:0.5, y:3.25, w:11, h:0.35, color:C.muted, fontSize:10, fontFace:"Courier New" });
-        const ctx = node.decisionMeta || {};
-        if (ctx.decision) {
-          s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:5.5, w:12.3, h:1.1, fill:{color:C.panel}, line:{color:C.saf,width:1} });
-          s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:5.5, w:0.055, h:1.1, fill:{color:C.saf}, line:{color:C.saf,width:0} });
-          s.addText([
-            { text:"DECISION: ", options:{color:C.muted,fontSize:10,fontFace:"Courier New"} },
-            { text:ctx.decision, options:{color:C.white,fontSize:10,fontFace:"Courier New",bold:true,breakLine:true} },
-            { text:`Stake: ${ctx.stake||'–'}  ·  Time: ${ctx.time||'–'}  ·  Options: ${ctx.options||'–'}`, options:{color:C.muted,fontSize:9,fontFace:"Courier New"} }
-          ], { x:0.75, y:5.5, w:11.8, h:1.1, valign:"middle" });
-        }
-        ftr(s);
-      }
-
-      // ── Slide B: Key takeaways ──
-      {
-        const s = pptx.addSlide();
-        hdr(s, `NODE ${ni+1}  ·  KEY TAKEAWAYS`, "TAKEAWAYS", C.green);
-        s.addText(title, { x:0.5, y:0.6, w:11, h:0.6, color:C.saf, fontSize:22, fontFace:"Arial Black", bold:true, align:"left", valign:"middle" });
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.22, w:12.333, h:0.02, fill:{color:C.rim}, line:{color:C.rim,width:0} });
-        s.addText("KEY TAKEAWAYS", { x:0.5, y:1.28, w:5, h:0.3, color:C.muted, fontSize:9, fontFace:"Courier New", charSpacing:3 });
-        const cardH = Math.min(1.3, (SH - 1.75 - 0.55) / Math.max(1, takeaways.length) - 0.12);
-        takeaways.forEach((t, ti) => {
-          const cy = 1.7 + ti * (cardH + 0.12);
-          s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:cy, w:12.333, h:cardH, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-          s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:cy, w:0.055, h:cardH, fill:{color:C.saf}, line:{color:C.saf,width:0} });
-          s.addShape(pptx.shapes.RECTANGLE, { x:0.72, y:cy+0.1, w:0.35, h:0.35, fill:{color:C.saf}, line:{color:C.saf,width:0} });
-          s.addText(String(ti+1), { x:0.72, y:cy+0.1, w:0.35, h:0.35, color:C.bg, fontSize:12, fontFace:"Arial Black", bold:true, align:"center", valign:"middle" });
-          s.addText(t, { x:1.22, y:cy+0.08, w:11.3, h:cardH-0.16, color:C.text, fontSize:13, fontFace:"Arial", align:"left", valign:"middle", margin:6 });
-        });
-        ftr(s);
-      }
-
-      // ── Slide C: Summary ──
-      {
-        const s = pptx.addSlide();
-        hdr(s, `NODE ${ni+1}  ·  SUMMARY`, "SUMMARY", C.blue);
-        s.addText(title, { x:0.5, y:0.6, w:11, h:0.6, color:C.saf, fontSize:22, fontFace:"Arial Black", bold:true });
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.22, w:12.333, h:0.02, fill:{color:C.rim}, line:{color:C.rim,width:0} });
-        s.addText("SUMMARY", { x:0.5, y:1.28, w:3, h:0.3, color:C.muted, fontSize:9, fontFace:"Courier New", charSpacing:3 });
-        // Lead quote panel
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.7, w:12.333, h:1.2, fill:{color:C.panel}, line:{color:C.blue,width:1} });
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.7, w:0.055, h:1.2, fill:{color:C.blue}, line:{color:C.blue,width:0} });
-        s.addText(lead, { x:0.75, y:1.7, w:11.8, h:1.2, color:C.white, fontSize:14, fontFace:"Georgia", italic:true, align:"left", valign:"middle", margin:10 });
-        // Remaining body
-        const bodyText = sentences.slice(1, 8).join(" ");
-        if (bodyText) s.addText(bodyText, { x:0.5, y:3.05, w:12.333, h:3.0, color:C.text, fontSize:12, fontFace:"Arial", align:"left", valign:"top", margin:8 });
-        ftr(s);
-      }
-    });
-
-    // ════════════════════════════════════════
-    // FINAL SLIDE — SYNTHESIS
-    // ════════════════════════════════════════
-    {
-      const s = pptx.addSlide();
-      s.background = { color: C.bg };
-      s.addShape(pptx.shapes.RECTANGLE, { x:0, y:0, w:SW/3, h:0.12, fill:{color:C.saf}, line:{color:C.saf,width:0} });
-      s.addShape(pptx.shapes.RECTANGLE, { x:SW/3, y:0, w:SW/3, h:0.12, fill:{color:C.white}, line:{color:C.white,width:0} });
-      s.addShape(pptx.shapes.RECTANGLE, { x:(SW/3)*2, y:0, w:SW/3+0.001, h:0.12, fill:{color:C.green}, line:{color:C.green,width:0} });
-      s.addText("SYNTHESIS & NEXT STEPS", { x:0.5, y:0.25, w:12, h:0.8, color:C.green, fontSize:34, fontFace:"Arial Black", bold:true });
-      s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.08, w:12.333, h:0.02, fill:{color:C.rim}, line:{color:C.rim,width:0} });
-      if (syn.thesis) {
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.18, w:12.333, h:1.1, fill:{color:C.panel}, line:{color:C.green,width:1} });
-        s.addShape(pptx.shapes.RECTANGLE, { x:0.5, y:1.18, w:0.055, h:1.1, fill:{color:C.green}, line:{color:C.green,width:0} });
-        s.addText(syn.thesis, { x:0.75, y:1.18, w:11.8, h:1.1, color:C.white, fontSize:13, fontFace:"Georgia", italic:true, align:"left", valign:"middle", margin:8 });
-      }
-      // Node index grid
-      const cols = 2, gridStartY = 2.45, rowH = 0.65;
-      nodes.forEach((n, i) => {
-        const col = i % cols, row = Math.floor(i / cols);
-        const gx = 0.5 + col * 6.3, gy = gridStartY + row * (rowH + 0.1);
-        const accent = i < 2 ? C.saf : i < 4 ? C.green : C.blue;
-        s.addShape(pptx.shapes.RECTANGLE, { x:gx, y:gy, w:6.1, h:rowH, fill:{color:C.panel}, line:{color:C.rim,width:1} });
-        s.addShape(pptx.shapes.RECTANGLE, { x:gx, y:gy, w:0.055, h:rowH, fill:{color:accent}, line:{color:accent,width:0} });
-        s.addText(`#${i+1}  ${(n.title||"").slice(0,38)}`, { x:gx+0.18, y:gy, w:5.8, h:rowH, color:C.text, fontSize:12, fontFace:"Arial", align:"left", valign:"middle", margin:6 });
-      });
-      ftr(s, "DECIDE.ENGINE × INDIAAI MISSION  ·  CONFIDENTIAL");
-    }
-
-    // ── Write file ──
-    const fname = `decision-brief-india-${new Date().toISOString().slice(0,10)}.pptx`;
-    await pptx.writeFile({ fileName: fname });
+    const C = { bg:"07090f",panel:"0d1825",rim:"1a2640",saf:"FF9933",green:"138808",blue:"3B82F6",white:"FFFFFF",text:"E8EDF5",muted:"6B8AAA" };
+    const SW=13.333,SH=7.5;
+    function hdr(slide,label,badge,badgeColor){slide.background={color:C.bg};slide.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:SW,h:0.5,fill:{color:C.panel},line:{color:C.rim,width:1}});slide.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:0.055,h:0.5,fill:{color:C.saf},line:{color:C.saf,width:0}});slide.addText("decide.engine  ·  India AI Decision Research",{x:0.18,y:0,w:7,h:0.5,color:C.muted,fontSize:9,fontFace:"Courier New",valign:"middle"});slide.addText(label,{x:SW-4.5,y:0,w:4.4,h:0.5,color:badgeColor||C.saf,fontSize:9,fontFace:"Courier New",bold:true,align:"right",valign:"middle"});}
+    function ftr(slide,txt){slide.addShape(pptx.shapes.RECTANGLE,{x:0,y:SH-0.38,w:SW,h:0.38,fill:{color:C.panel},line:{color:C.rim,width:1}});slide.addText(txt||"DECIDE.ENGINE × INDIAAI MISSION  ·  "+new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'}),{x:0.4,y:SH-0.38,w:SW-0.8,h:0.38,color:C.muted,fontSize:8,fontFace:"Courier New",align:"center",valign:"middle"});}
+    const syn=ENGINE_STATE.synthesis||{},firstNode=nodes[0],projectTitle=(CURRENT_PROJECT?.name||firstNode?.title||"Decision Brief").toUpperCase();
+    {const s=pptx.addSlide();s.background={color:C.bg};s.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:SW/3,h:0.12,fill:{color:C.saf},line:{color:C.saf,width:0}});s.addShape(pptx.shapes.RECTANGLE,{x:SW/3,y:0,w:SW/3,h:0.12,fill:{color:C.white},line:{color:C.white,width:0}});s.addShape(pptx.shapes.RECTANGLE,{x:(SW/3)*2,y:0,w:SW/3+0.001,h:0.12,fill:{color:C.green},line:{color:C.green,width:0}});s.addText(String(nodes.length),{x:8,y:0.8,w:5,h:5,color:C.panel,fontSize:280,fontFace:"Arial Black",bold:true,align:"right",valign:"bottom"});s.addText("🇮🇳  IndiaAI Aligned  ·  decide.engine",{x:0.6,y:1.2,w:8,h:0.4,color:C.saf,fontSize:11,fontFace:"Courier New",bold:true});s.addText(projectTitle,{x:0.6,y:1.75,w:10,h:1.6,color:C.white,fontSize:44,fontFace:"Arial Black",bold:true,align:"left",valign:"middle"});const ctx=firstNode?.decisionMeta||{};if(ctx.decision){s.addShape(pptx.shapes.RECTANGLE,{x:0.6,y:3.5,w:12,h:0.5,fill:{color:C.panel},line:{color:C.rim,width:1}});s.addText(`Decision: ${ctx.decision}  ·  Stake: ${ctx.stake||'–'}  ·  Time: ${ctx.time||'–'}`,{x:0.75,y:3.5,w:11.8,h:0.5,color:C.text,fontSize:12,fontFace:"Courier New",valign:"middle"});}const stats=[{v:String(nodes.length),l:"NODES"},{v:(nodes[0]?.sourceName||"WIKI").toUpperCase(),l:"SOURCE"},{v:(nodes[0]?.confidence||"HIGH").toUpperCase(),l:"CONFIDENCE"},{v:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',timeZone:'Asia/Kolkata'}),l:"DATE"}];stats.forEach((st,i)=>{const x=0.6+i*3.2,accent=i===0?C.saf:i===1?C.green:C.blue;s.addShape(pptx.shapes.RECTANGLE,{x,y:4.2,w:3,h:1,fill:{color:C.panel},line:{color:C.rim,width:1}});s.addShape(pptx.shapes.RECTANGLE,{x,y:4.2,w:0.055,h:1,fill:{color:accent},line:{color:accent,width:0}});s.addText(st.v,{x:x+0.18,y:4.25,w:2.7,h:0.5,color:C.saf,fontSize:22,fontFace:"Arial Black",bold:true,valign:"bottom"});s.addText(st.l,{x:x+0.18,y:4.75,w:2.7,h:0.4,color:C.muted,fontSize:9,fontFace:"Courier New",valign:"top"});});ftr(s,"DECIDE.ENGINE × INDIAAI MISSION  ·  CONFIDENTIAL");}
+    nodes.forEach((node,ni)=>{const title=(node.title||"Untitled").slice(0,80),summaryRaw=normalizeText(node.summary||"No summary available."),sentences=splitIntoSentences(summaryRaw),lead=sentences[0]||summaryRaw.slice(0,180),takeaways=extractTakeaways(summaryRaw,4),cats=(node.categories||[]).slice(0,4);
+    {const s=pptx.addSlide();hdr(s,`NODE ${ni+1} / ${nodes.length}`,"NODE",C.saf);s.addText(String(ni+1),{x:9.5,y:0.6,w:3.7,h:4,color:C.panel,fontSize:200,fontFace:"Arial Black",bold:true,align:"right",valign:"bottom"});s.addText(title.toUpperCase(),{x:0.5,y:1.1,w:9.5,h:1.5,color:C.saf,fontSize:36,fontFace:"Arial Black",bold:true,align:"left",valign:"middle"});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:2.75,w:2.8,h:0.38,fill:{color:C.panel},line:{color:C.rim,width:1}});s.addText(`SOURCE: ${(node.sourceName||"WIKIPEDIA").toUpperCase()}`,{x:0.5,y:2.75,w:2.8,h:0.38,color:C.green,fontSize:10,fontFace:"Courier New",bold:true,align:"center",valign:"middle"});if(cats.length)s.addText(cats.join("  ·  "),{x:0.5,y:3.25,w:11,h:0.35,color:C.muted,fontSize:10,fontFace:"Courier New"});const ctx=node.decisionMeta||{};if(ctx.decision){s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:5.5,w:12.3,h:1.1,fill:{color:C.panel},line:{color:C.saf,width:1}});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:5.5,w:0.055,h:1.1,fill:{color:C.saf},line:{color:C.saf,width:0}});s.addText([{text:"DECISION: ",options:{color:C.muted,fontSize:10,fontFace:"Courier New"}},{text:ctx.decision,options:{color:C.white,fontSize:10,fontFace:"Courier New",bold:true,breakLine:true}},{text:`Stake: ${ctx.stake||'–'}  ·  Time: ${ctx.time||'–'}  ·  Options: ${ctx.options||'–'}`,options:{color:C.muted,fontSize:9,fontFace:"Courier New"}}],{x:0.75,y:5.5,w:11.8,h:1.1,valign:"middle"});}ftr(s);}
+    {const s=pptx.addSlide();hdr(s,`NODE ${ni+1}  ·  KEY TAKEAWAYS`,"TAKEAWAYS",C.green);s.addText(title,{x:0.5,y:0.6,w:11,h:0.6,color:C.saf,fontSize:22,fontFace:"Arial Black",bold:true,align:"left",valign:"middle"});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.22,w:12.333,h:0.02,fill:{color:C.rim},line:{color:C.rim,width:0}});s.addText("KEY TAKEAWAYS",{x:0.5,y:1.28,w:5,h:0.3,color:C.muted,fontSize:9,fontFace:"Courier New",charSpacing:3});const cardH=Math.min(1.3,(SH-1.75-0.55)/Math.max(1,takeaways.length)-0.12);takeaways.forEach((t,ti)=>{const cy=1.7+ti*(cardH+0.12);s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:cy,w:12.333,h:cardH,fill:{color:C.panel},line:{color:C.rim,width:1}});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:cy,w:0.055,h:cardH,fill:{color:C.saf},line:{color:C.saf,width:0}});s.addShape(pptx.shapes.RECTANGLE,{x:0.72,y:cy+0.1,w:0.35,h:0.35,fill:{color:C.saf},line:{color:C.saf,width:0}});s.addText(String(ti+1),{x:0.72,y:cy+0.1,w:0.35,h:0.35,color:C.bg,fontSize:12,fontFace:"Arial Black",bold:true,align:"center",valign:"middle"});s.addText(t,{x:1.22,y:cy+0.08,w:11.3,h:cardH-0.16,color:C.text,fontSize:13,fontFace:"Arial",align:"left",valign:"middle",margin:6});});ftr(s);}
+    {const s=pptx.addSlide();hdr(s,`NODE ${ni+1}  ·  SUMMARY`,"SUMMARY",C.blue);s.addText(title,{x:0.5,y:0.6,w:11,h:0.6,color:C.saf,fontSize:22,fontFace:"Arial Black",bold:true});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.22,w:12.333,h:0.02,fill:{color:C.rim},line:{color:C.rim,width:0}});s.addText("SUMMARY",{x:0.5,y:1.28,w:3,h:0.3,color:C.muted,fontSize:9,fontFace:"Courier New",charSpacing:3});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.7,w:12.333,h:1.2,fill:{color:C.panel},line:{color:C.blue,width:1}});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.7,w:0.055,h:1.2,fill:{color:C.blue},line:{color:C.blue,width:0}});s.addText(lead,{x:0.75,y:1.7,w:11.8,h:1.2,color:C.white,fontSize:14,fontFace:"Georgia",italic:true,align:"left",valign:"middle",margin:10});const bodyText=sentences.slice(1,8).join(" ");if(bodyText)s.addText(bodyText,{x:0.5,y:3.05,w:12.333,h:3.0,color:C.text,fontSize:12,fontFace:"Arial",align:"left",valign:"top",margin:8});ftr(s);}});
+    {const s=pptx.addSlide();s.background={color:C.bg};s.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:SW/3,h:0.12,fill:{color:C.saf},line:{color:C.saf,width:0}});s.addShape(pptx.shapes.RECTANGLE,{x:SW/3,y:0,w:SW/3,h:0.12,fill:{color:C.white},line:{color:C.white,width:0}});s.addShape(pptx.shapes.RECTANGLE,{x:(SW/3)*2,y:0,w:SW/3+0.001,h:0.12,fill:{color:C.green},line:{color:C.green,width:0}});s.addText("SYNTHESIS & NEXT STEPS",{x:0.5,y:0.25,w:12,h:0.8,color:C.green,fontSize:34,fontFace:"Arial Black",bold:true});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.08,w:12.333,h:0.02,fill:{color:C.rim},line:{color:C.rim,width:0}});if(syn.thesis){s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.18,w:12.333,h:1.1,fill:{color:C.panel},line:{color:C.green,width:1}});s.addShape(pptx.shapes.RECTANGLE,{x:0.5,y:1.18,w:0.055,h:1.1,fill:{color:C.green},line:{color:C.green,width:0}});s.addText(syn.thesis,{x:0.75,y:1.18,w:11.8,h:1.1,color:C.white,fontSize:13,fontFace:"Georgia",italic:true,align:"left",valign:"middle",margin:8});}const cols=2,gridStartY=2.45,rowH=0.65;nodes.forEach((n,i)=>{const col=i%cols,row=Math.floor(i/cols),gx=0.5+col*6.3,gy=gridStartY+row*(rowH+0.1),accent=i<2?C.saf:i<4?C.green:C.blue;s.addShape(pptx.shapes.RECTANGLE,{x:gx,y:gy,w:6.1,h:rowH,fill:{color:C.panel},line:{color:C.rim,width:1}});s.addShape(pptx.shapes.RECTANGLE,{x:gx,y:gy,w:0.055,h:rowH,fill:{color:accent},line:{color:accent,width:0}});s.addText(`#${i+1}  ${(n.title||"").slice(0,38)}`,{x:gx+0.18,y:gy,w:5.8,h:rowH,color:C.text,fontSize:12,fontFace:"Arial",align:"left",valign:"middle",margin:6});});ftr(s,"DECIDE.ENGINE × INDIAAI MISSION  ·  CONFIDENTIAL");}
+    const fname=`decision-brief-india-${new Date().toISOString().slice(0,10)}.pptx`;
+    await pptx.writeFile({fileName:fname});
     showToast("PPTX DOWNLOADED!");
   } catch(err) {
-    console.error("PPTX error:", err);
-    showToast("PPTX FAILED: " + (err?.message||String(err)));
+    console.error("PPTX error:",err);
+    showToast("PPTX FAILED: "+(err?.message||String(err)));
   }
 }
 
