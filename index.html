@@ -100,7 +100,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Subtle noise texture overlay */
     body::before {
       content: '';
       position: fixed;
@@ -117,9 +116,6 @@
     button:focus-visible, a:focus-visible { outline: 2px solid var(--saffron); outline-offset: 3px; border-radius: 4px; }
     a { color: inherit; text-decoration: none; }
 
-    /* ============================================================
-       TRICOLOR STRIPE
-    ============================================================ */
     .tribar,
     .tricolor-bar {
       position: fixed;
@@ -182,7 +178,6 @@
     }
     .scene.enter { opacity: 1; pointer-events: auto; }
 
-    /* ── Progress dots ── */
     #prog-wrap {
       position: fixed;
       bottom: calc(8px + var(--safe-bottom));
@@ -209,7 +204,6 @@
     .prog-dot.active { background: var(--saffron); width: 22px; border-radius: 3px; }
     .prog-dot.done { background: var(--go); }
 
-    /* ── Intro controls ── */
     #controls {
       position: fixed;
       bottom: calc(44px + var(--safe-bottom));
@@ -266,7 +260,6 @@
     }
     .ctrl-btn.skip-to-app:hover { background: linear-gradient(135deg, rgba(0,201,122,0.22), rgba(0,201,122,0.12)); border-color: rgba(0,201,122,0.65); }
 
-    /* Timer ring */
     #timer-ring {
       position: fixed;
       top: calc(14px + var(--safe-top));
@@ -294,7 +287,6 @@
       border: 1px solid rgba(255,255,255,0.06);
     }
 
-    /* ── Intro Typography ── */
     .hl {
       font-family: var(--fn);
       font-weight: 900;
@@ -533,8 +525,6 @@
     /* ============================================================
        APP SHELL
     ============================================================ */
-
-    /* Top nav */
     #app-nav {
       position: fixed;
       top: calc(3px + var(--safe-top));
@@ -601,7 +591,6 @@
     }
     #share-pill.good { border-color: rgba(0,201,122,0.35); color: var(--go); background: rgba(0,201,122,0.06); }
 
-    /* IAB banner */
     #iab-banner {
       position: fixed;
       top: calc(var(--nav-h) + 3px + var(--safe-top) + 6px);
@@ -631,7 +620,6 @@
     }
     .iab-mini.primary { border-color: rgba(255,153,51,0.50); background: rgba(255,153,51,0.12); color: var(--saffron); }
 
-    /* Master container */
     #master-container {
       position: fixed;
       top: calc(3px + var(--safe-top) + var(--nav-h));
@@ -640,7 +628,6 @@
       overflow: hidden;
     }
 
-    /* Main slides */
     .main-slide {
       height: 100%; width: 100%;
       position: absolute;
@@ -652,10 +639,9 @@
       will-change: transform;
     }
     .main-slide.prev { transform: translateY(-100%); }
-    .main-slide.active { transform: translateY(0); z-index: 10; }
+    .main-slide.active { transform: translateY(0); }
     .main-slide.next { transform: translateY(100%); z-index: 20; }
 
-    /* Route pages */
     .route-page {
       height: 100%; width: 100%;
       position: absolute;
@@ -676,7 +662,6 @@
     .route-scroll::-webkit-scrollbar-track { background: transparent; }
     .route-scroll::-webkit-scrollbar-thumb { background: rgba(255,153,51,0.18); border-radius: 3px; }
 
-    /* Slide header */
     .slide-header {
       padding: 0 calc(58px + var(--safe-right)) 0 16px;
       border-left: 3px solid var(--saffron);
@@ -712,7 +697,6 @@
     }
     .header-badge.india { border-color: rgba(19,136,8,0.35); color: #4ade80; background: rgba(19,136,8,0.08); }
 
-    /* Sub-slide */
     .sub-slide {
       position: absolute;
       inset: 0;
@@ -769,7 +753,6 @@
     .tab-btn.active .tab-label { color: var(--saffron); }
     .tab-btn.active .tab-icon { filter: drop-shadow(0 0 5px rgba(255,153,51,0.5)); transform: scale(1.1); }
 
-    /* Depth fill line */
     #depth-fill {
       position: fixed;
       right: 0;
@@ -783,7 +766,6 @@
       border-radius: 2px;
     }
 
-    /* Toast */
     .toast-msg {
       position: fixed;
       bottom: calc(var(--tab-h) + var(--safe-bottom) + 14px);
@@ -809,7 +791,6 @@
     }
     .toast-msg.visible { opacity: 1; }
 
-    /* Mic button */
     #mic-toggle {
       position: fixed;
       bottom: calc(var(--tab-h) + var(--safe-bottom) + 14px);
@@ -831,7 +812,6 @@
     #mic-toggle:hover { border-color: rgba(255,153,51,0.35); box-shadow: var(--shadow-glow); }
     #mic-toggle svg { fill: var(--text-dim); width: 17px; }
 
-    /* Panel toggle */
     #panel-toggle {
       position: fixed;
       top: calc(3px + var(--safe-top) + 4px);
@@ -854,7 +834,6 @@
     #panel-toggle:hover { border-color: rgba(255,153,51,0.35); background: rgba(255,153,51,0.06); }
     #panel-toggle svg { width: 16px; height: 16px; fill: var(--text-dim); }
 
-    /* UI Panel */
     #ui-panel-overlay {
       position: fixed;
       inset: 0;
@@ -994,7 +973,6 @@
       margin: 8px 0 7px;
     }
 
-    /* ── Buttons ── */
     .final-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .btn {
       background: var(--bg-card);
@@ -1034,7 +1012,6 @@
     .btn-go:hover { background: rgba(0,201,122,0.20); border-color: rgba(0,201,122,0.62); }
     .btn-danger { background: rgba(251,113,133,0.10); border-color: rgba(251,113,133,0.40); color: #fecdd3; }
 
-    /* Join form */
     .join-grid { display: grid; gap: 8px; }
     .field {
       width: 100%;
@@ -1053,7 +1030,6 @@
     .field::placeholder { color: var(--text-muted); }
     select.field option { background: var(--bg-card); color: var(--text-main); }
 
-    /* Products */
     .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .p-card { background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.2s; }
     .p-card:hover { border-color: rgba(255,153,51,0.20); }
@@ -1067,7 +1043,6 @@
     .p-tag { font-family: var(--font-mono); font-size: 0.58rem; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,153,51,0.28); color: var(--saffron); background: rgba(255,153,51,0.07); }
     .aff-note { font-size: 0.78rem; color: var(--text-dim); line-height: 1.6; }
 
-    /* Subpages grid */
     .subpage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .subpage-card {
       background: rgba(11,22,35,0.6);
@@ -1089,7 +1064,6 @@
     .subpage-card-title { font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--text-main); }
     .subpage-card-desc { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.5px; }
 
-    /* 3D viewer */
     model-viewer.product-3d { width: 100%; height: 100%; background: rgba(11,22,35,0.8); }
     model-viewer::part(default-progress-bar) { background: rgba(255,153,51,0.35); }
 
@@ -1120,7 +1094,6 @@
     .sd-badge.warn { border-color: rgba(255,153,51,0.30); color: var(--saffron); background: rgba(255,153,51,0.07); }
     .sd-badge.blue { border-color: rgba(79,142,247,0.30); color: #93c5fd; background: rgba(79,142,247,0.07); }
 
-    /* Table */
     .sd-table { width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.16); }
     .sd-table th, .sd-table td { padding: 9px 11px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; font-size: 0.82rem; }
     .sd-table th { font-family: var(--fm); font-size: 0.6rem; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.02); }
@@ -1134,7 +1107,6 @@
 
     .kbd { font-family: var(--fm); font-size: 0.6rem; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.14); color: rgba(255,255,255,0.70); }
 
-    /* Tasks */
     .task-list { display: grid; gap: 6px; }
     .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border-radius: var(--radius-md); background: rgba(0,0,0,0.16); border: 1px solid rgba(255,255,255,0.06); transition: border-color 0.15s; }
     .task-item:hover { border-color: rgba(255,255,255,0.10); }
@@ -1144,14 +1116,12 @@
     .task-d { color: var(--text-dim); font-size: 0.76rem; margin-top: 2px; line-height: 1.5; }
     .task-tag { font-family: var(--fm); font-size: 0.58rem; color: var(--text-dim); border: 1px solid rgba(255,255,255,0.09); border-radius: 999px; padding: 4px 8px; white-space: nowrap; flex-shrink: 0; background: rgba(0,0,0,0.12); }
 
-    /* Legal */
     .legal-content h3 { margin: 14px 0 6px; letter-spacing: -0.02em; font-family: var(--font-display); font-size: 1rem; color: var(--text-main); }
     .legal-content ul { margin: 6px 0 10px 18px; color: rgba(255,255,255,0.75); }
     .legal-content li { margin-bottom: 4px; line-height: 1.6; font-size: 0.88rem; }
     .legal-content p { margin: 8px 0; color: rgba(255,255,255,0.75); line-height: 1.75; font-size: 0.88rem; }
     .legal-meta { font-family: var(--fm); color: rgba(255,255,255,0.45); font-size: 0.62rem; margin-top: 3px; letter-spacing: 0.5px; }
 
-    /* Page footer */
     .pg-footer {
       margin-top: 12px;
       padding: 12px 2px 6px;
@@ -1168,7 +1138,6 @@
     .pg-footer a { color: rgba(255,255,255,0.55); border-bottom: 1px dashed rgba(255,255,255,0.15); cursor: pointer; transition: color 0.15s; }
     .pg-footer a:hover { color: var(--saffron); }
 
-    /* Stats strip */
     .stats-strip {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1197,7 +1166,6 @@
       margin-top: 3px;
     }
 
-    /* Field label helper */
     .field-label {
       font-family: var(--fm);
       font-size: 0.62rem;
@@ -1206,6 +1174,196 @@
       text-transform: uppercase;
       display: block;
       margin-bottom: 4px;
+    }
+
+    /* ============================================================
+       ★ SUBPAGE DRAWER — In-app subpage viewer
+       Opens on top of the app shell, slides up from bottom.
+       Loads the subpage in a sandboxed iframe.
+    ============================================================ */
+
+    /* Scrim behind the drawer */
+    #subpage-scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0);
+      z-index: 3100;
+      pointer-events: none;
+      transition: background 0.32s ease;
+    }
+    #subpage-scrim.open {
+      background: rgba(0,0,0,0.60);
+      pointer-events: auto;
+    }
+
+    /* Drawer container */
+    #subpage-drawer {
+      position: fixed;
+      left: 0; right: 0;
+      bottom: 0;
+      height: calc(100% - var(--safe-top) - 8px);   /* leaves a tiny gap at top */
+      z-index: 3200;
+      display: flex;
+      flex-direction: column;
+      border-radius: 20px 20px 0 0;
+      overflow: hidden;
+      background: var(--bg-deep);
+      box-shadow: 0 -12px 60px rgba(0,0,0,0.75), 0 -2px 0 rgba(255,153,51,0.18);
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.22, 0.9, 0.36, 1);
+      will-change: transform;
+    }
+    #subpage-drawer.open {
+      transform: translateY(0);
+    }
+
+    /* Handle bar at the very top of the drawer */
+    #drawer-handle {
+      flex-shrink: 0;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-deep);
+      cursor: pointer;
+      touch-action: none;
+    }
+    #drawer-handle::after {
+      content: '';
+      width: 44px;
+      height: 4px;
+      background: rgba(255,255,255,0.14);
+      border-radius: 99px;
+    }
+
+    /* Drawer top bar with title + close */
+    #drawer-topbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px 0 16px;
+      height: 50px;
+      background: linear-gradient(180deg, rgba(5,11,20,0.98), rgba(5,11,20,0.88));
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      border-left: 3px solid var(--saffron);
+    }
+    #drawer-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,153,51,0.08);
+      border: 1px solid rgba(255,153,51,0.28);
+      color: var(--saffron);
+      font-family: var(--fm);
+      font-size: 0.65rem;
+      padding: 7px 13px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.16s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.8px;
+      min-height: 36px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #drawer-back-btn:hover { background: rgba(255,153,51,0.15); border-color: rgba(255,153,51,0.50); }
+    #drawer-back-btn:active { transform: scale(0.96); }
+
+    #drawer-title {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #drawer-open-btn {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: var(--text-dim);
+      font-family: var(--fm);
+      font-size: 0.6rem;
+      padding: 6px 10px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.16s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.5px;
+      min-height: 32px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #drawer-open-btn:hover { border-color: rgba(255,255,255,0.18); color: var(--text-main); }
+
+    /* Loading state inside drawer */
+    #drawer-loader {
+      position: absolute;
+      inset: 74px 0 0;   /* below topbar */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: var(--bg-deep);
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+    #drawer-loader.hidden { opacity: 0; pointer-events: none; }
+    .drawer-spinner {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,153,51,0.12);
+      border-top-color: var(--saffron);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #drawer-loader-text {
+      font-family: var(--fm);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* The iframe itself */
+    #subpage-iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      background: var(--bg-deep);
+      display: block;
+    }
+
+    /* Progress bar at top of iframe area */
+    #drawer-progress {
+      position: absolute;
+      top: 74px;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--saffron), var(--go));
+      z-index: 11;
+      transform-origin: left;
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+      border-radius: 0 1px 1px 0;
+    }
+    #drawer-progress.loading { transform: scaleX(0.7); transition: transform 2s ease; }
+    #drawer-progress.done { transform: scaleX(1); transition: transform 0.2s ease; }
+
+    /* Tricolor strip inside drawer */
+    #drawer-tribar {
+      flex-shrink: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #FF9933 33.33%, #fff 33.33%, #fff 66.66%, #138808 66.66%);
     }
 
     /* ============================================================
@@ -1503,6 +1661,28 @@
     </div>
   </aside>
 
+  <!-- ============================================================
+       ★ SUBPAGE DRAWER — In-app subpage overlay
+  ============================================================ -->
+  <div id="subpage-scrim" onclick="closeSubpageDrawer()"></div>
+  <div id="subpage-drawer" role="dialog" aria-modal="true" aria-label="Subpage viewer">
+    <div id="drawer-tribar"></div>
+    <div id="drawer-handle" onclick="closeSubpageDrawer()" role="button" aria-label="Close drawer"></div>
+    <div id="drawer-topbar">
+      <button id="drawer-back-btn" onclick="closeSubpageDrawer()">
+        ← BACK
+      </button>
+      <div id="drawer-title">Loading…</div>
+      <button id="drawer-open-btn">↗ FULL</button>
+    </div>
+    <div id="drawer-progress"></div>
+    <div id="drawer-loader">
+      <div class="drawer-spinner"></div>
+      <div id="drawer-loader-text">LOADING…</div>
+    </div>
+    <iframe id="subpage-iframe" title="Subpage content" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+  </div>
+
   <!-- Bottom tab bar -->
   <nav id="tab-bar" aria-label="Tab navigation">
     <button class="tab-btn" data-route="#/" onclick="appNavigate('#/')">
@@ -1647,7 +1827,7 @@ function withAffiliate(url){
   catch(e){return url+(url.includes("?")?"&":"?")+"tag="+encodeURIComponent(aff);}
 }
 function appendAffiliate(url){return withAffiliate(url);}
-function goSubpage(filename){if(!filename)return;location.assign(withAffiliate(filename));}
+
 function isRealSubpageHref(href){
   try{const u=new URL(href,location.href);const path=(u.pathname||"").toLowerCase();return u.origin===location.origin&&path.endsWith(".html")&&!/index\.html$/i.test(path);}
   catch(e){return (href||"").toLowerCase().endsWith(".html")&&!/index\.html$/i.test(href);}
@@ -1658,13 +1838,153 @@ function setSharePill(on){
 }
 
 /* ============================================================
+   ★ SUBPAGE DRAWER SYSTEM
+   Opens .html subpages inside an in-app iframe drawer
+   instead of navigating away from the PWA shell.
+============================================================ */
+let _drawerCurrentUrl = null;
+
+/**
+ * Open a subpage inside the in-app drawer.
+ * @param {string} filename  e.g. "StudentResearch.html"
+ * @param {string} [title]   Optional display title override
+ */
+function goSubpage(filename, title) {
+  if (!filename) return;
+
+  const url = withAffiliate(filename);
+  _drawerCurrentUrl = url;
+
+  // Derive a nice display title
+  const displayTitle = title
+    || (SUBPAGES.find(p => p.filename === filename) || {}).title
+    || filename.replace(/\.html$/i, '').replace(/[-_]/g, ' ');
+
+  const drawer     = document.getElementById('subpage-drawer');
+  const scrim      = document.getElementById('subpage-scrim');
+  const iframe     = document.getElementById('subpage-iframe');
+  const titleEl    = document.getElementById('drawer-title');
+  const loader     = document.getElementById('drawer-loader');
+  const loaderTxt  = document.getElementById('drawer-loader-text');
+  const progress   = document.getElementById('drawer-progress');
+  const openBtn    = document.getElementById('drawer-open-btn');
+
+  if (!drawer || !iframe) {
+    // Fallback: navigate directly if drawer elements missing
+    location.assign(url);
+    return;
+  }
+
+  // Reset state
+  titleEl.textContent = displayTitle;
+  loaderTxt.textContent = 'LOADING ' + displayTitle.toUpperCase() + '…';
+  loader.classList.remove('hidden');
+  progress.className = '';                  // reset
+  iframe.src = 'about:blank';               // clear previous
+
+  // Open button wires to full navigation
+  openBtn.onclick = () => {
+    window.open(_drawerCurrentUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // Show drawer
+  drawer.classList.add('open');
+  scrim.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+
+  // Start progress bar animation
+  requestAnimationFrame(() => {
+    progress.classList.add('loading');
+  });
+
+  // Load the page into the iframe
+  iframe.src = url;
+
+  // Hide loader when iframe finishes
+  iframe.onload = () => {
+    loader.classList.add('hidden');
+    progress.classList.remove('loading');
+    progress.classList.add('done');
+    // Attempt to read the iframe title for display
+    try {
+      const iframeTitle = iframe.contentDocument?.title;
+      if (iframeTitle) titleEl.textContent = iframeTitle;
+    } catch(e) { /* cross-origin — ignore */ }
+    // Fade out the done progress bar
+    setTimeout(() => { progress.className = ''; }, 600);
+  };
+
+  iframe.onerror = () => {
+    loader.classList.add('hidden');
+    loaderTxt.textContent = 'FAILED TO LOAD';
+    showToast('Could not load: ' + filename);
+  };
+}
+
+/** Close the subpage drawer and restore app state. */
+function closeSubpageDrawer() {
+  const drawer = document.getElementById('subpage-drawer');
+  const scrim  = document.getElementById('subpage-scrim');
+  const iframe = document.getElementById('subpage-iframe');
+
+  if (!drawer) return;
+
+  drawer.classList.remove('open');
+  scrim.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = 'hidden'; // keep body locked (app uses overflow:hidden)
+
+  // Blank out the iframe after animation so it stops running
+  setTimeout(() => {
+    if (iframe) iframe.src = 'about:blank';
+    _drawerCurrentUrl = null;
+  }, 400);
+}
+
+/** Swipe-down-to-close on the drawer handle */
+(function wireDrawerSwipe() {
+  const handle = document.getElementById('drawer-handle');
+  const drawer = document.getElementById('subpage-drawer');
+  if (!handle || !drawer) return;
+
+  let sy = null;
+  handle.addEventListener('touchstart', e => { sy = e.touches[0].clientY; }, { passive: true });
+  handle.addEventListener('touchmove', e => {
+    if (sy == null) return;
+    const dy = e.touches[0].clientY - sy;
+    if (dy > 0) {
+      drawer.style.transform = `translateY(${Math.min(dy, window.innerHeight * 0.6)}px)`;
+      e.preventDefault();
+    }
+  }, { passive: false });
+  handle.addEventListener('touchend', e => {
+    if (sy == null) return;
+    const dy = e.changedTouches[0].clientY - sy;
+    drawer.style.transform = '';    // reset inline style, let CSS transition take over
+    if (dy > 80) closeSubpageDrawer();
+    sy = null;
+  }, { passive: true });
+})();
+
+/** ESC key closes the drawer */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('subpage-drawer')?.classList.contains('open')) {
+    closeSubpageDrawer();
+  }
+});
+
+/* ============================================================
    ROUTING
 ============================================================ */
 document.addEventListener('click',(e)=>{
   const a=e.target?.closest?.('a'); if(!a)return;
   const href=a.getAttribute('href')||"";
   if(!href||href.startsWith('#')||href.startsWith('javascript:'))return;
-  if(isRealSubpageHref(href)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.();location.assign(withAffiliate(href));}
+  if(isRealSubpageHref(href)){
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation?.();
+    goSubpage(href);  // ← now opens in drawer, not location.assign
+  }
 },true);
 
 function appNavigate(hash){
@@ -1689,6 +2009,12 @@ function hasSeenIntro(){try{return!!sessionStorage.getItem(SESSION_KEY);}catch(e
 function markIntroSeen(){try{sessionStorage.setItem(SESSION_KEY,'1');}catch(e){}}
 function pushAppState(){try{history.replaceState({view:'intro'},'',location.href);history.pushState({view:'app'},'',location.href);}catch(e){}}
 window.addEventListener('popstate',(e)=>{
+  // If drawer is open, close it on back gesture
+  if(document.getElementById('subpage-drawer')?.classList.contains('open')){
+    closeSubpageDrawer();
+    history.pushState({view:'app'},'',location.href);
+    return;
+  }
   const view=e.state?.view;
   if(view==='intro'&&hasSeenIntro()){history.pushState({view:'app'},'',location.href);showToast("USE BROWSER TABS TO NAVIGATE");}
 });
@@ -1860,7 +2186,7 @@ function enterApp(){
 /* ============================================================
    APP SYSTEM
 ============================================================ */
-var appBooted = false;  /* single declaration — avoids duplicate-let error */
+var appBooted = false;
 var slideElements=[], currentIdx=0, currentRoute='#/';
 
 function isUIPanelOpen(){const p=document.getElementById('ui-panel');return!!(p&&p.classList.contains('open'));}
@@ -1897,6 +2223,8 @@ function goToSlide(idx){
 
 let startY=null,startX=null,isSwiping=false;
 function onTouchStart(e){
+  // Don't intercept swipes when drawer is open
+  if(document.getElementById('subpage-drawer')?.classList.contains('open'))return;
   if(!e.touches||e.touches.length!==1)return;
   if(!document.getElementById('app-wrapper').classList.contains('visible'))return;
   const target=e.target;if(target&&(target.tagName==='TEXTAREA'||target.tagName==='INPUT'||target.tagName==='SELECT'||target.closest('#ui-panel')))return;
@@ -1922,6 +2250,7 @@ let wheelLock=false;
 document.addEventListener("wheel",(e)=>{
   if(!document.getElementById('app-wrapper').classList.contains('visible'))return;
   if(isUIPanelOpen()||currentRoute!=='#/')return;
+  if(document.getElementById('subpage-drawer')?.classList.contains('open'))return;
   const scroller=e.target&&e.target.closest&&e.target.closest(".sub-slide");
   if(scroller&&scroller.scrollHeight>scroller.clientHeight){
     const atTop=scroller.scrollTop<=0,atBottom=scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-1;
@@ -1934,7 +2263,10 @@ document.addEventListener("wheel",(e)=>{
 document.addEventListener("keydown",(e)=>{
   if(!document.getElementById('app-wrapper').classList.contains('visible'))return;
   const t=e.target;if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))return;
-  if(e.key==="Escape"&&isUIPanelOpen()){e.preventDefault();closeUIPanel();return;}
+  if(e.key==="Escape"){
+    if(document.getElementById('subpage-drawer')?.classList.contains('open')){e.preventDefault();closeSubpageDrawer();return;}
+    if(isUIPanelOpen()){e.preventDefault();closeUIPanel();return;}
+  }
   if(currentRoute==='#/'){
     if(e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault();goToSlide(currentIdx+1);}
     if(e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault();goToSlide(currentIdx-1);}
@@ -1972,8 +2304,12 @@ function render(){
 ============================================================ */
 function subpageGridHTML(){
   return `<div class="subpage-grid">`+SUBPAGES.map(p=>{
-    const href=escapeHTML(withAffiliate(p.filename));
-    return `<a class="subpage-card" href="${href}"><div class="subpage-card-icon">${escapeHTML(p.icon)}</div><div class="subpage-card-title">${escapeHTML(p.title)}</div><div class="subpage-card-desc">${escapeHTML(p.desc)}</div></a>`;
+    // Use data-subpage attribute so the global click handler can open drawer
+    return `<div class="subpage-card" role="button" tabindex="0" data-subpage="${escapeHTML(p.filename)}" onclick="goSubpage('${escapeHTML(p.filename)}','${escapeHTML(p.title)}')">
+      <div class="subpage-card-icon">${escapeHTML(p.icon)}</div>
+      <div class="subpage-card-title">${escapeHTML(p.title)}</div>
+      <div class="subpage-card-desc">${escapeHTML(p.desc)}</div>
+    </div>`;
   }).join('')+`</div>`;
 }
 
@@ -2035,7 +2371,7 @@ function renderHome(){
 
       <div class="final-actions">
         <button class="btn btn-full btn-india" onclick="appNavigate('#/studyos')">📚 STUDYOS →</button>
-        <button class="btn btn-india" onclick="goSubpage('StudentResearch.html')">RESEARCH TOOL</button>
+        <button class="btn btn-india" onclick="goSubpage('StudentResearch.html','Student Research')">RESEARCH TOOL</button>
         <button class="btn btn-policy" onclick="appNavigate('#/seller')">🛒 SELLER DASH</button>
         <button class="btn btn-full btn-yt" onclick="openYT()">▶ YOUTUBE PLAYLIST</button>
         <button class="btn btn-full btn-muted" onclick="enterIntroAgain()">↺ VIEW INTRO AGAIN</button>
@@ -2064,7 +2400,7 @@ function renderProductsIntoGrid(){
       :(p.img?`<img src="${escapeHTML(p.img)}" alt="${safeTitle}" loading="lazy">`:`<div style="color:#3d5168;font-family:var(--font-mono);font-size:0.68rem;padding:20px">NO IMAGE</div>`);
     const btn=p.comingSoon
       ?`<button class="btn btn-muted" disabled style="opacity:0.65;cursor:not-allowed">COMING SOON</button>`
-      :`<a class="btn btn-india" href="${escapeHTML(appendAffiliate(p.link))}" target="_blank" rel="noopener noreferrer">OPEN →</a>`;
+      :`<button class="btn btn-india" onclick="goSubpage('${escapeHTML(p.link)}','${safeTitle}')">OPEN →</button>`;
     return `<div class="p-card"><div class="p-img">${media}</div><div class="p-body"><div class="p-meta">${safeTag}</div><div class="p-title">${safeTitle}</div><div class="p-row"><div class="p-price">${safePrice}</div><div class="p-tag">${p.comingSoon?"UPCOMING":"AFF: "+aff}</div></div>${btn}</div></div>`;
   }).join("");
 }
@@ -2117,10 +2453,7 @@ function renderSellerPage(){
     </div>
     <div class="route-scroll">
       <div class="sd-grid two">
-
-        <!-- LEFT: Main dashboard -->
         <div>
-          <!-- Stats strip -->
           <div class="stats-strip" style="margin-bottom:12px">
             <div class="stat-mini">
               <div class="stat-mini-num" style="color:var(--saffron)">${escapeHTML(String(Seller.products.length))}</div>
@@ -2191,7 +2524,6 @@ function renderSellerPage(){
           </div>
         </div>
 
-        <!-- RIGHT: Tools & Info -->
         <div>
           <div class="sd-card">
             <div class="sd-h"><div class="title">Seller Tools</div><div class="meta">utilities</div></div>
@@ -2285,8 +2617,6 @@ function renderStudyOSPage(){
     </div>
     <div class="route-scroll">
       <div class="sd-grid three">
-
-        <!-- Plan builder -->
         <div class="sd-card">
           <div class="sd-h"><div class="title">Create Study Plan</div><div class="meta" id="planMeta">demo</div></div>
           <div class="sd-row">
@@ -2319,7 +2649,6 @@ function renderStudyOSPage(){
           </div>
         </div>
 
-        <!-- Tasks + Pomodoro -->
         <div class="sd-card">
           <div class="sd-h"><div class="title">Tasks + Pomodoro</div><div class="meta" id="timerLabel">25:00</div></div>
           <div class="sd-row">
@@ -2352,13 +2681,12 @@ function renderStudyOSPage(){
           </div>
         </div>
 
-        <!-- Tools sidebar -->
         <div class="sd-card">
           <div class="sd-h"><div class="title">Quick Tools</div><div class="meta">navigate</div></div>
           <div class="sd-row">
             <button class="btn btn-pro" type="button" onclick="appNavigate('#/')">🏠 Home</button>
             <button class="btn btn-policy" type="button" onclick="appNavigate('#/seller')">🛒 Seller Dashboard</button>
-            <button class="btn btn-india" type="button" onclick="goSubpage('StudentResearch.html')">Research Tool →</button>
+            <button class="btn btn-india" type="button" onclick="goSubpage('StudentResearch.html','Student Research')">Research Tool →</button>
             <button class="btn btn-yt" type="button" onclick="openYT()">▶ YouTube</button>
             <button class="btn" type="button" onclick="copyStudyLink()">🔗 Copy StudyOS Link</button>
             <div class="sd-muted" style="font-size:0.76rem;padding:8px;background:rgba(0,0,0,0.10);border-radius:8px;border:1px solid rgba(255,255,255,0.04)">Share links include plan+tasks in the URL so opening in another device restores your state.</div>
