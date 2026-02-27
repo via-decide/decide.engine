@@ -1,105 +1,80 @@
-// sw.js — Service Worker for viadecide.com
-// Cache-busting strategy: Network-first with versioned cache
+/**
+ * sw.js — viadecide.com Service Worker
+ * Provides offline support and caching for the PWA.
+ */
 
-const CACHE_VERSION = 'vd-v' + Date.now(); // Dynamic version on each SW install
-const STATIC_CACHE = CACHE_VERSION + '-static';
-const RUNTIME_CACHE = CACHE_VERSION + '-runtime';
+var CACHE_NAME = "viadecide-v1";
 
-// Files to precache (adjust paths as needed)
-const PRECACHE_URLS = [
-  './',
-  './index.html',
-  './manifest.json',
+// Core files to cache on install
+var PRECACHE_URLS = [
+  "/",
+  "/index.html",
+  "/router.js",
+  "/manifest.json"
 ];
 
-// Install: cache core assets
-self.addEventListener('install', event => {
-  self.skipWaiting(); // Force activate immediately
+// ---- Install: precache core assets ----
+self.addEventListener("install", function (event) {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then(cache => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_NAME).then(function (cache) {
+      return cache.addAll(PRECACHE_URLS);
+    }).then(function () {
+      return self.skipWaiting();
+    })
   );
 });
 
-// Activate: delete ALL old caches immediately
-self.addEventListener('activate', event => {
+// ---- Activate: clean up old caches ----
+self.addEventListener("activate", function (event) {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
+    caches.keys().then(function (keys) {
+      return Promise.all(
         keys
-          .filter(key => key !== STATIC_CACHE && key !== RUNTIME_CACHE)
-          .map(key => {
-            console.log('[SW] Deleting old cache:', key);
-            return caches.delete(key);
-          })
-      )
-    ).then(() => self.clients.claim()) // Take control of all pages immediately
+          .filter(function (key) { return key !== CACHE_NAME; })
+          .map(function (key) { return caches.delete(key); })
+      );
+    }).then(function () {
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch: Network-first strategy (always try network, fallback to cache)
-self.addEventListener('fetch', event => {
-  const { request } = event;
-  const url = new URL(request.url);
+// ---- Fetch: network-first, fallback to cache ----
+self.addEventListener("fetch", function (event) {
+  var req = event.request;
 
-  // Skip non-GET, cross-origin analytics, chrome-extension
-  if (request.method !== 'GET') return;
-  if (url.hostname.includes('vercel') && url.pathname.includes('insights')) return;
-  if (url.protocol === 'chrome-extension:') return;
+  // Only handle GET requests
+  if (req.method !== "GET") return;
 
-  // HTML pages: always network-first, no caching (always fresh)
-  if (request.headers.get('Accept')?.includes('text/html') || url.pathname.endsWith('.html')) {
-    event.respondWith(
-      fetch(request, { cache: 'no-store' })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
+  // Skip cross-origin requests (CDN fonts, analytics, etc.)
+  var url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
 
-  // JS/CSS: Network-first with short cache
-  if (url.pathname.match(/\.(js|css)$/)) {
-    event.respondWith(
-      fetch(request, { cache: 'no-cache' })
-        .then(response => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(RUNTIME_CACHE).then(cache => cache.put(request, clone));
+  // Skip Vercel analytics / speed insights
+  if (url.pathname.startsWith("/_vercel")) return;
+
+  event.respondWith(
+    fetch(req)
+      .then(function (networkResponse) {
+        // Cache a clone of the successful response
+        if (networkResponse && networkResponse.status === 200) {
+          var responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(function (cache) {
+            cache.put(req, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(function () {
+        // Network failed — try cache
+        return caches.match(req).then(function (cached) {
+          if (cached) return cached;
+          // For navigation requests, return index.html as fallback
+          if (req.mode === "navigate") {
+            return caches.match("/index.html");
           }
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // Assets (fonts, images): Cache-first (they rarely change)
-  if (url.pathname.match(/\.(woff2?|ttf|eot|png|jpg|jpeg|webp|svg|ico|gltf|glb)$/)) {
-    event.respondWith(
-      caches.match(request).then(cached => {
-        if (cached) return cached;
-        return fetch(request).then(response => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(RUNTIME_CACHE).then(cache => cache.put(request, clone));
-          }
-          return response;
+          return new Response("Offline", { status: 503 });
         });
       })
-    );
-    return;
-  }
-
-  // Default: Network-first
-  event.respondWith(
-    fetch(request, { cache: 'no-cache' }).catch(() => caches.match(request))
   );
-});
-
-// Listen for SKIP_WAITING message from app
-self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  if (event.data?.type === 'CLEAR_CACHE') {
-    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
-  }
 });
