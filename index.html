@@ -6,6 +6,12 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>viadecide.com | India's Decision Engine</title>
 
+
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <!-- Router MUST be first -->
   <script src="./router.js"></script>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -1623,6 +1629,19 @@
 
       startQPTicker();
     })();
+
+    
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
+        console.log("SW registered:", reg.scope);
+      } catch (e) {
+        console.log("SW register failed:", e);
+      }
+    });
+  }
+
   </script>
 </body>
 </html>
