@@ -1,19 +1,13 @@
 {
-  "name": "ViaDecide | Decision Engine",
+  "name": "ViaDecide",
   "short_name": "ViaDecide",
-  "description": "India's decision research engine — structured, attributable, multilingual.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
-  "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "./assets/product-3d-poster.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
