@@ -999,15 +999,13 @@
 
           <!--
             INSTALL BUTTON A — INTRO OVERLAY
-            Shown by default; hidden when:
-              • App is already installed (standalone mode) or
-              • appinstalled event fires or
-              • localStorage["pwaInstalled"] === "1"
-            On iOS Safari: triggers the iOS hint sheet instead of
-            the native prompt (which is unavailable on iOS).
+            Always visible unless already installed.
+            Chrome/Android: triggers native prompt when ready.
+            iOS Safari:     shows manual install instructions.
+            Before prompt fires: shows "coming soon" nudge.
           -->
           <button
-            class="install-btn install-btn-intro hidden"
+            class="install-btn install-btn-intro"
             id="installBtnIntro"
             type="button"
             aria-label="Install ViaDecide as an app"
@@ -1168,11 +1166,11 @@
         <div class="right">
           <!--
             INSTALL BUTTON B — APP TOPBAR
-            Same visibility rules as Install Button A.
-            Shows on both Chrome/Android and iOS.
+            Always visible unless already installed.
+            Same click logic as Button A.
           -->
           <button
-            class="install-btn install-btn-topbar hidden"
+            class="install-btn install-btn-topbar"
             id="installBtnTopbar"
             type="button"
             aria-label="Install ViaDecide as an app"
@@ -1395,16 +1393,15 @@
 
       /**
        * showInstallButtons()
-       * Reveals all install buttons (unless already installed).
+       * Makes all install buttons visible.
        */
       function showInstallButtons(){
-        if (isInstalled()) return;
         installButtons.forEach(function(btn){ btn.classList.remove("hidden"); });
       }
 
       /**
        * hideInstallButtons()
-       * Hides all install buttons unconditionally.
+       * Hides all install buttons (called after install confirmed).
        */
       function hideInstallButtons(){
         installButtons.forEach(function(btn){ btn.classList.add("hidden"); });
@@ -1413,28 +1410,35 @@
       /**
        * handleInstallClick()
        * Called when any install button is clicked.
-       * On Chrome/Android: triggers the deferred native prompt.
-       * On iOS Safari: shows the manual install hint sheet.
-       * On other browsers: shows iOS-style tip as fallback.
+       *
+       * States:
+       *  A) Chrome/Android, prompt ready → show native prompt
+       *  B) iOS Safari               → show manual hint sheet
+       *  C) Prompt not yet available → show "how to install" hint
        */
       function handleInstallClick(){
         if (_deferredInstallPrompt){
-          // Chrome / Android — native prompt
+          // ── A) Chrome / Android — native install prompt ──────
           _deferredInstallPrompt.prompt();
           _deferredInstallPrompt.userChoice.then(function(result){
-            if (result.outcome === "accepted"){
-              markInstalled();
-            }
-            // Clear regardless of outcome
+            if (result.outcome === "accepted") markInstalled();
             _deferredInstallPrompt = null;
+            // If dismissed, keep button visible so they can try again
           }).catch(function(){
             _deferredInstallPrompt = null;
           });
         } else if (isIOS){
+          // ── B) iOS Safari — manual instructions ──────────────
           showIOSHint();
+        } else if (isStandalone || isInstalled()){
+          // Already installed — button shouldn't be showing but just in case
+          markInstalled();
         } else {
-          // Generic fallback for browsers that don't support
-          // beforeinstallprompt (Firefox, Safari desktop, etc.)
+          // ── C) Chrome but prompt not yet available ────────────
+          // This can happen if:
+          //   • manifest.json is missing / not served
+          //   • service-worker.js not registered yet
+          //   • Browser criteria not met (HTTP vs HTTPS, etc.)
           showIOSHint("generic");
         }
       }
@@ -1445,16 +1449,15 @@
       });
 
       /* ── beforeinstallprompt — Chrome / Android ────────────── */
+      // Fired when Chrome decides the site meets PWA install criteria.
+      // We capture it so our button can trigger it on demand.
       window.addEventListener("beforeinstallprompt", function(e){
-        // Prevent the mini-infobar from appearing on mobile
+        // Prevent Chrome's automatic mini-infobar
         e.preventDefault();
-        // Store the event for later use
+        // Store the event — our button click will call .prompt()
         _deferredInstallPrompt = e;
-
-        // Only show install buttons if not already installed
-        if (!isInstalled()){
-          showInstallButtons();
-        }
+        // Buttons are already visible; update QP status
+        updateQPPwaStatus();
       });
 
       /* ── appinstalled — fires after successful install ──────── */
@@ -1463,31 +1466,20 @@
         _deferredInstallPrompt = null;
       });
 
-      /* ── Auto-prompt: show install buttons after 3 s delay ──── */
-      // Only for Chrome/Android — iOS hint is on-demand only.
-      // This runs after page load; the buttons were hidden by default.
-      if (!isInstalled() && !isIOS){
-        // Buttons will show when beforeinstallprompt fires.
-        // The event itself is deferred — no timeout needed here.
-        // But on environments where beforeinstallprompt never fires
-        // (unlikely but possible), we don't show anything.
-      }
-
-      /* ── iOS: show install hint after 3.5 s (first visit only) */
+      /* ── iOS: auto-show hint after delay on first visit ────── */
       if (isIOS && !isStandalone && !isInstalled()){
         try {
-          // Only show once per session unless they dismissed permanently
           var permaDismissed = localStorage.getItem(LS_IOS_HINT_KEY) === "1";
           if (!permaDismissed){
-            // Show iOS buttons immediately
-            showInstallButtons();
-            // Auto-show hint after a polite delay
+            // Auto-show hint after a polite delay (buttons already visible)
             setTimeout(function(){ showIOSHint(); }, 3500);
           }
         } catch(e){}
       }
 
-      /* ── If already installed, ensure buttons stay hidden ────── */
+      /* ── Hide buttons immediately if already installed ─────── */
+      // Buttons are visible by default in HTML; hide them now if
+      // the app is already installed so there's no flash.
       if (isInstalled()){
         hideInstallButtons();
       }
@@ -1513,27 +1505,41 @@
         hint.setAttribute("aria-live", "polite");
         hint.setAttribute("aria-label", "Install app hint");
 
+        var bodyHtml;
+        if (isGeneric){
+          bodyHtml = [
+            '<strong>Install ViaDecide</strong>',
+            '<p>Your browser needs a moment to verify the PWA. Make sure:</p>',
+            '<p>① <strong>manifest.json</strong> is served at <code>/manifest.json</code><br>',
+            '② <strong>service-worker.js</strong> is served at <code>/service-worker.js</code><br>',
+            '③ Site is on <strong>HTTPS</strong> (not HTTP)<br>',
+            '④ Icons exist at <strong>/icons/icon-192.png</strong> &amp; <strong>/icons/icon-512.png</strong></p>',
+            '<p>Once Chrome verifies all criteria, tap this button again to install.</p>'
+          ].join("");
+        } else {
+          bodyHtml = [
+            '<strong>Install ViaDecide on iOS</strong>',
+            '<p>Tap <span class="iih-share-icon" aria-label="Safari share button">⬆</span> <strong>Share</strong>, ',
+            'then scroll down and tap <strong>"Add to Home Screen"</strong>.</p>',
+            '<p>You\'ll get the full app experience with no browser bar.</p>'
+          ].join("");
+        }
+
         hint.innerHTML = [
           '<div class="iih-icon" aria-hidden="true">📲</div>',
-          '<div class="iih-body">',
-            '<strong>Install ViaDecide</strong>',
-            isGeneric
-              ? '<p>Open your browser menu and choose <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong> to install ViaDecide.</p>'
-              : '<p>Tap <span class="iih-share-icon" aria-label="Safari share button">⬆</span> Share, then choose <strong>"Add to Home Screen"</strong> to install.</p>',
-          '</div>',
+          '<div class="iih-body">' + bodyHtml + '</div>',
           '<button class="iih-close" type="button" aria-label="Dismiss install hint">✕</button>'
         ].join("");
 
         document.body.appendChild(hint);
         _iosHintEl = hint;
 
-        // Close button
         hint.querySelector(".iih-close").addEventListener("click", function(){
           dismissIOSHint(false);
         });
 
-        // Auto-dismiss after 12 s
-        setTimeout(function(){ dismissIOSHint(false); }, 12000);
+        // Auto-dismiss after 14 s for generic (more to read), 10 s for iOS
+        setTimeout(function(){ dismissIOSHint(false); }, isGeneric ? 14000 : 10000);
       }
 
       /**
@@ -2149,16 +2155,4 @@
   </script>
 </body>
 </html>
-
-<!--
-  ╔══════════════════════════════════════════════════════════════════╗
-  ║  REQUIRED COMPANION FILES                                        ║
-  ║  Place both files at your server / CDN root (same level as      ║
-  ║  index.html so the absolute paths /manifest.json and            ║
-  ║  /service-worker.js resolve correctly on all subpages too).     ║
-  ╚══════════════════════════════════════════════════════════════════╝
-
-  ─── /manifest.json ──────────────────────────────────────────────
-  {
-
 
