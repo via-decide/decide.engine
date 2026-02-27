@@ -1,4 +1,17 @@
 <!doctype html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  ViaDecide — India's Decision Engine                            ║
+  ║  Production PWA — index.html                                    ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║  FILE PLACEMENT (all files at server root):                     ║
+  ║    /index.html           ← this file                            ║
+  ║    /manifest.json        ← see bottom-of-file comment block     ║
+  ║    /service-worker.js    ← see bottom-of-file comment block     ║
+  ║    /icons/icon-192.png   ← 192×192 PNG app icon                ║
+  ║    /icons/icon-512.png   ← 512×512 PNG app icon                ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -6,17 +19,29 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>viadecide.com | India's Decision Engine</title>
 
+  <!-- ── PWA Manifest ──────────────────────────────────────────── -->
+  <link rel="manifest" href="/manifest.json" />
 
-  <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0a0a0a">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- ── iOS PWA support ──────────────────────────────────────── -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ViaDecide" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+  <!-- ── OG / SEO basics ──────────────────────────────────────── -->
+  <meta name="description" content="Policy-grade decision intelligence for Bharat. Multi-source research, synthesis and export — for students, founders, farmers and officials." />
+  <meta property="og:title" content="ViaDecide — India's Decision Engine" />
+  <meta property="og:description" content="Policy-grade decision intelligence for Bharat." />
+  <meta property="og:type" content="website" />
+
   <!-- Router MUST be first -->
   <script src="./router.js"></script>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
+    /* ═══════════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════════════════ */
     :root{
       --bg:#0a0a0a;
       --card:#101010;
@@ -36,6 +61,11 @@
       --safeLeft: env(safe-area-inset-left, 0px);
       --safeRight: env(safe-area-inset-right, 0px);
       --maxw: 980px;
+
+      /* Install button accent — separate from regular accent so
+         we can tweak independently without cascade surprises     */
+      --install-color: #ff671f;
+      --install-glow: rgba(255,103,31,.45);
     }
 
     html, body { height: 100%; }
@@ -63,7 +93,198 @@
       white-space:nowrap;border:0;
     }
 
-    /* INTRO */
+    /* ═══════════════════════════════════════════════════════════
+       PWA INSTALL BUTTON — ANIMATED PULSE
+       Visible in two locations:
+         1. .install-btn-intro  (intro overlay)
+         2. .install-btn-topbar (app topbar)
+       Both share base .install-btn styles; location variants add
+       minor sizing / layout tweaks.
+    ═══════════════════════════════════════════════════════════ */
+
+    /* Keyframe: pulsing outer glow ring */
+    @keyframes installPulse {
+      0%   { box-shadow: 0 0 0 0   var(--install-glow), 0 8px 24px rgba(255,103,31,.35); }
+      55%  { box-shadow: 0 0 0 7px transparent,          0 8px 24px rgba(255,103,31,.25); }
+      100% { box-shadow: 0 0 0 0   transparent,          0 8px 24px rgba(255,103,31,.15); }
+    }
+
+    /* Keyframe: subtle icon bounce */
+    @keyframes installIconBounce {
+      0%, 100% { transform: translateY(0); }
+      40%       { transform: translateY(-2px); }
+    }
+
+    .install-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,103,31,.55);
+      background: linear-gradient(135deg, rgba(255,103,31,.92), rgba(220,74,10,.88));
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      white-space: nowrap;
+      /* Continuous pulse animation */
+      animation: installPulse 2.2s ease-out infinite;
+      transition: transform 130ms ease, opacity 200ms ease, filter 130ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Shimmer sweep on hover */
+    .install-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg,
+        transparent 30%,
+        rgba(255,255,255,.18) 50%,
+        transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 500ms ease;
+    }
+    .install-btn:hover::before { transform: translateX(100%); }
+    .install-btn:hover { filter: brightness(1.12); }
+    .install-btn:active { transform: translateY(1px); filter: brightness(.95); }
+
+    /* Icon inside install button */
+    .install-btn .ib-icon {
+      font-size: 14px;
+      animation: installIconBounce 2.2s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    /* Topbar variant — slightly smaller */
+    .install-btn-topbar {
+      padding: 9px 13px;
+      font-size: 11px;
+      border-radius: 11px;
+    }
+
+    /* Intro variant — slightly larger, more prominent */
+    .install-btn-intro {
+      padding: 12px 18px;
+      font-size: 13px;
+      border-radius: 13px;
+    }
+
+    /* ── iOS install tip banner ─────────────────────────────── */
+    /* Shown on iOS Safari when standalone is not available.
+       Appears as a slide-up bottom sheet nudge.               */
+    @keyframes iosHintSlideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .ios-install-hint {
+      position: fixed;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      left: calc(16px + env(safe-area-inset-left, 0px));
+      right: calc(16px + env(safe-area-inset-right, 0px));
+      z-index: 999;
+      border-radius: 18px;
+      border: 1px solid rgba(255,103,31,.35);
+      background: linear-gradient(170deg, rgba(22,14,10,.96), rgba(12,8,6,.98));
+      box-shadow: 0 20px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,103,31,.12);
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+      animation: iosHintSlideUp 400ms cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ios-install-hint .iih-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255,103,31,.9), rgba(200,60,10,.8));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .ios-install-hint .iih-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .ios-install-hint .iih-body strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: rgba(242,242,242,.96);
+    }
+    .ios-install-hint .iih-body p {
+      margin: 5px 0 0;
+      font-size: 12px;
+      color: rgba(242,242,242,.72);
+      line-height: 1.4;
+    }
+    .ios-install-hint .iih-body .iih-share-icon {
+      display: inline-block;
+      padding: 2px 5px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      font-size: 11px;
+      vertical-align: middle;
+    }
+    .ios-install-hint .iih-close {
+      flex-shrink: 0;
+      padding: 6px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      color: rgba(242,242,242,.7);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+    .ios-install-hint .iih-close:hover { background: rgba(255,255,255,.14); }
+
+    /* ── Installed confirmation toast ───────────────────────── */
+    @keyframes toastIn  { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+    .install-toast {
+      position: fixed;
+      top: calc(16px + env(safe-area-inset-top, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      border-radius: 40px;
+      border: 1px solid rgba(0,230,118,.35);
+      background: linear-gradient(135deg, rgba(10,30,18,.96), rgba(6,20,12,.98));
+      box-shadow: 0 14px 40px rgba(0,0,0,.55);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      white-space: nowrap;
+      color: rgba(0,230,118,.95);
+      font-size: 13px;
+      font-weight: 700;
+      animation: toastIn 340ms cubic-bezier(.22,1,.36,1) both;
+    }
+    .install-toast.out { animation: toastOut 300ms ease both; }
+
+    /* ═══════════════════════════════════════════════════════════
+       INTRO OVERLAY
+    ═══════════════════════════════════════════════════════════ */
     .intro {
       position: fixed;
       inset: 0;
@@ -324,7 +545,9 @@
       border-radius: 11px;
     }
 
-    /* APP */
+    /* ═══════════════════════════════════════════════════════════
+       APP
+    ═══════════════════════════════════════════════════════════ */
     .app{
       position: fixed;
       inset: 0;
@@ -748,12 +971,17 @@
 
     @media (prefers-reduced-motion: reduce){
       .intro-slide, .main-slide, .btn, .nav-btn, .card { transition: none !important; }
+      .install-btn { animation: none !important; }
+      .install-btn .ib-icon { animation: none !important; }
     }
   </style>
 </head>
 
 <body>
-  <!-- INTRO OVERLAY -->
+  <!-- ══════════════════════════════════════════════════════════
+       INTRO OVERLAY
+       Install button [A] lives here — hidden once app installed
+  ══════════════════════════════════════════════════════════ -->
   <div class="intro" id="intro" aria-label="Intro cinematic">
     <div class="intro-shell">
       <div class="intro-top">
@@ -768,6 +996,26 @@
           <div class="pill" title="Affiliate tag for this session">
             <span>Tag</span><strong id="affTagPill">viadecide</strong>
           </div>
+
+          <!--
+            INSTALL BUTTON A — INTRO OVERLAY
+            Shown by default; hidden when:
+              • App is already installed (standalone mode) or
+              • appinstalled event fires or
+              • localStorage["pwaInstalled"] === "1"
+            On iOS Safari: triggers the iOS hint sheet instead of
+            the native prompt (which is unavailable on iOS).
+          -->
+          <button
+            class="install-btn install-btn-intro hidden"
+            id="installBtnIntro"
+            type="button"
+            aria-label="Install ViaDecide as an app"
+          >
+            <span class="ib-icon" aria-hidden="true">⬇</span>
+            INSTALL APP
+          </button>
+
           <button class="btn small ghost" id="introOpenQP" type="button" aria-label="Open quick panel">QUICK PANEL</button>
         </div>
       </div>
@@ -812,7 +1060,7 @@
               </div>
               <div class="intro-stat">
                 <div class="num">Synthesize</div>
-                <div class="lab">Thesis & contradictions</div>
+                <div class="lab">Thesis &amp; contradictions</div>
                 <div class="hint">Capture takeaways and implications.</div>
               </div>
               <div class="intro-stat">
@@ -832,7 +1080,7 @@
             <h1>Built <span class="accent">with India</span>. Not for India.</h1>
             <p>Open, attributed, multilingual — designed to scale from a village in Vidarbha to the corridors of Raisina Hill.</p>
             <div class="intro-quote">
-              “To give every Indian the same structured decision intelligence that a policy advisor uses — in any language, on any device, for any decision.”
+              "To give every Indian the same structured decision intelligence that a policy advisor uses — in any language, on any device, for any decision."
               <div style="margin-top:8px;color:rgba(242,242,242,.62);font-size:12px;">viadecide.com — Mission statement</div>
             </div>
             <div class="intro-grid" style="margin-top:14px;">
@@ -862,7 +1110,9 @@
     </div>
   </div>
 
-  <!-- QUICK PANEL -->
+  <!-- ══════════════════════════════════════════════════════════
+       QUICK PANEL
+  ══════════════════════════════════════════════════════════ -->
   <div class="qp" id="quickPanel" aria-hidden="true">
     <div class="qp-card" role="dialog" aria-modal="true" aria-label="Quick panel">
       <div class="qp-head">
@@ -881,6 +1131,7 @@
               <div class="k">Affiliate</div><div id="qpAff">-</div>
               <div class="k">Slide</div><div id="qpSlide">-</div>
               <div class="k">Project</div><div id="qpProject">-</div>
+              <div class="k">PWA</div><div id="qpPwaStatus">-</div>
             </div>
             <p style="margin-top:10px;">Tip: <span class="mono">Esc</span> closes this panel. <span class="mono">↑/↓</span> navigates slides.</p>
           </div>
@@ -900,7 +1151,9 @@
     </div>
   </div>
 
-  <!-- APP -->
+  <!-- ══════════════════════════════════════════════════════════
+       APP
+  ══════════════════════════════════════════════════════════ -->
   <main class="app" id="app" aria-label="App">
     <div class="app-shell">
       <div class="app-topbar">
@@ -913,6 +1166,21 @@
           <div class="kbd" id="slideKbd">Slide <span id="slideIdx">1</span>/<span id="slideTotal">3</span></div>
         </div>
         <div class="right">
+          <!--
+            INSTALL BUTTON B — APP TOPBAR
+            Same visibility rules as Install Button A.
+            Shows on both Chrome/Android and iOS.
+          -->
+          <button
+            class="install-btn install-btn-topbar hidden"
+            id="installBtnTopbar"
+            type="button"
+            aria-label="Install ViaDecide as an app"
+          >
+            <span class="ib-icon" aria-hidden="true">⬇</span>
+            INSTALL
+          </button>
+
           <button class="nav-btn" type="button" id="openQP">QUICK PANEL</button>
           <button class="nav-btn" type="button" id="showIntro">VIEW INTRO</button>
         </div>
@@ -958,7 +1226,7 @@
           <div class="panel" style="min-height:0;">
             <div class="panel-h">
               <div style="min-width:0;">
-                <h2>Products & subpages <span class="tag">live</span></h2>
+                <h2>Products &amp; subpages <span class="tag">live</span></h2>
                 <div class="sub">Open any module below. On desktop: 3 columns (≥900px), 4 columns (≥1200px).</div>
               </div>
             </div>
@@ -1033,7 +1301,7 @@
                 </div>
 
                 <div class="help">
-                  If you don’t see a reply, check spam/promotions. Your tag is included as <span class="mono">affiliate_tag</span>.
+                  If you don't see a reply, check spam/promotions. Your tag is included as <span class="mono">affiliate_tag</span>.
                 </div>
               </form>
             </div>
@@ -1055,13 +1323,297 @@
     </div>
   </main>
 
+  <!-- ══════════════════════════════════════════════════════════
+       iOS INSTALL HINT  (dynamically injected by JS)
+       Shown only on iOS Safari when not already in standalone.
+       Template kept as comment; JS clones and inserts it.
+  ══════════════════════════════════════════════════════════ -->
+
   <script>
+    /* ═══════════════════════════════════════════════════════════
+       VIADECIDE — MAIN APP SCRIPT
+       All logic is IIFE-isolated. No globals except intentional
+       window.VDRouter shim references.
+    ═══════════════════════════════════════════════════════════ */
     (function(){
       "use strict";
 
-      // Only apply affiliate tags to HTML pages (local .html or absolute URLs ending in .html)
+      /* ── Constants ─────────────────────────────────────────── */
       var LOCAL_ASSET_EXT_RE = /\.(gltf|glb|bin|png|jpe?g|webp|svg|css|js|map|mp4|webm|mp3|wav|json)(?:[?#].*)?$/i;
       var HTML_PAGE_RE = /\.html(?:[?#].*)?$/i;
+      var LS_INSTALLED_KEY = "pwaInstalled";   // localStorage key for install tracking
+      var LS_IOS_HINT_KEY  = "iosHintDismissed";
+
+      /* ══════════════════════════════════════════════════════════
+         ██████  ██     ██ █████
+         ██   ██ ██     ██ ██   ██
+         ██████  ██  █  ██ █████
+         ██      ██ ███ ██ ██   ██
+         ██       ███ ███  ██   ██
+
+         PROGRESSIVE WEB APP — INSTALL SYSTEM
+      ══════════════════════════════════════════════════════════ */
+
+      /* ── Platform detection ──────────────────────────────── */
+      var isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
+      var isStandalone = (
+        window.navigator.standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: fullscreen)").matches
+      );
+
+      /* ── Deferred beforeinstallprompt event (Chrome/Android) */
+      var _deferredInstallPrompt = null;
+
+      /* ── All install button elements (both locations) ──────── */
+      var installButtons = [
+        document.getElementById("installBtnIntro"),
+        document.getElementById("installBtnTopbar")
+      ].filter(Boolean);
+
+      /**
+       * isInstalled()
+       * Returns true if the app is running in standalone mode or
+       * was previously installed (tracked in localStorage).
+       */
+      function isInstalled(){
+        if (isStandalone) return true;
+        try { return localStorage.getItem(LS_INSTALLED_KEY) === "1"; }
+        catch(e){ return false; }
+      }
+
+      /**
+       * markInstalled()
+       * Persists install state and hides all install buttons.
+       */
+      function markInstalled(){
+        try { localStorage.setItem(LS_INSTALLED_KEY, "1"); } catch(e){}
+        hideInstallButtons();
+        showInstallToast();
+        updateQPPwaStatus();
+      }
+
+      /**
+       * showInstallButtons()
+       * Reveals all install buttons (unless already installed).
+       */
+      function showInstallButtons(){
+        if (isInstalled()) return;
+        installButtons.forEach(function(btn){ btn.classList.remove("hidden"); });
+      }
+
+      /**
+       * hideInstallButtons()
+       * Hides all install buttons unconditionally.
+       */
+      function hideInstallButtons(){
+        installButtons.forEach(function(btn){ btn.classList.add("hidden"); });
+      }
+
+      /**
+       * handleInstallClick()
+       * Called when any install button is clicked.
+       * On Chrome/Android: triggers the deferred native prompt.
+       * On iOS Safari: shows the manual install hint sheet.
+       * On other browsers: shows iOS-style tip as fallback.
+       */
+      function handleInstallClick(){
+        if (_deferredInstallPrompt){
+          // Chrome / Android — native prompt
+          _deferredInstallPrompt.prompt();
+          _deferredInstallPrompt.userChoice.then(function(result){
+            if (result.outcome === "accepted"){
+              markInstalled();
+            }
+            // Clear regardless of outcome
+            _deferredInstallPrompt = null;
+          }).catch(function(){
+            _deferredInstallPrompt = null;
+          });
+        } else if (isIOS){
+          showIOSHint();
+        } else {
+          // Generic fallback for browsers that don't support
+          // beforeinstallprompt (Firefox, Safari desktop, etc.)
+          showIOSHint("generic");
+        }
+      }
+
+      // Attach click handler to every install button
+      installButtons.forEach(function(btn){
+        btn.addEventListener("click", handleInstallClick);
+      });
+
+      /* ── beforeinstallprompt — Chrome / Android ────────────── */
+      window.addEventListener("beforeinstallprompt", function(e){
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Store the event for later use
+        _deferredInstallPrompt = e;
+
+        // Only show install buttons if not already installed
+        if (!isInstalled()){
+          showInstallButtons();
+        }
+      });
+
+      /* ── appinstalled — fires after successful install ──────── */
+      window.addEventListener("appinstalled", function(){
+        markInstalled();
+        _deferredInstallPrompt = null;
+      });
+
+      /* ── Auto-prompt: show install buttons after 3 s delay ──── */
+      // Only for Chrome/Android — iOS hint is on-demand only.
+      // This runs after page load; the buttons were hidden by default.
+      if (!isInstalled() && !isIOS){
+        // Buttons will show when beforeinstallprompt fires.
+        // The event itself is deferred — no timeout needed here.
+        // But on environments where beforeinstallprompt never fires
+        // (unlikely but possible), we don't show anything.
+      }
+
+      /* ── iOS: show install hint after 3.5 s (first visit only) */
+      if (isIOS && !isStandalone && !isInstalled()){
+        try {
+          // Only show once per session unless they dismissed permanently
+          var permaDismissed = localStorage.getItem(LS_IOS_HINT_KEY) === "1";
+          if (!permaDismissed){
+            // Show iOS buttons immediately
+            showInstallButtons();
+            // Auto-show hint after a polite delay
+            setTimeout(function(){ showIOSHint(); }, 3500);
+          }
+        } catch(e){}
+      }
+
+      /* ── If already installed, ensure buttons stay hidden ────── */
+      if (isInstalled()){
+        hideInstallButtons();
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         iOS INSTALL HINT SHEET
+      ══════════════════════════════════════════════════════════ */
+      var _iosHintEl = null;
+
+      /**
+       * showIOSHint(mode)
+       * mode === "generic" → generic "add to homescreen" tip
+       * mode === undefined → iOS-specific with Share icon reference
+       */
+      function showIOSHint(mode){
+        if (_iosHintEl) return; // already visible
+
+        var isGeneric = (mode === "generic");
+
+        var hint = document.createElement("div");
+        hint.className = "ios-install-hint";
+        hint.setAttribute("role", "status");
+        hint.setAttribute("aria-live", "polite");
+        hint.setAttribute("aria-label", "Install app hint");
+
+        hint.innerHTML = [
+          '<div class="iih-icon" aria-hidden="true">📲</div>',
+          '<div class="iih-body">',
+            '<strong>Install ViaDecide</strong>',
+            isGeneric
+              ? '<p>Open your browser menu and choose <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong> to install ViaDecide.</p>'
+              : '<p>Tap <span class="iih-share-icon" aria-label="Safari share button">⬆</span> Share, then choose <strong>"Add to Home Screen"</strong> to install.</p>',
+          '</div>',
+          '<button class="iih-close" type="button" aria-label="Dismiss install hint">✕</button>'
+        ].join("");
+
+        document.body.appendChild(hint);
+        _iosHintEl = hint;
+
+        // Close button
+        hint.querySelector(".iih-close").addEventListener("click", function(){
+          dismissIOSHint(false);
+        });
+
+        // Auto-dismiss after 12 s
+        setTimeout(function(){ dismissIOSHint(false); }, 12000);
+      }
+
+      /**
+       * dismissIOSHint(permanent)
+       * permanent = true → write to localStorage so it never shows again.
+       */
+      function dismissIOSHint(permanent){
+        if (!_iosHintEl) return;
+        _iosHintEl.style.animation = "iosHintSlideUp 350ms cubic-bezier(.22,1,.36,1) reverse both";
+        setTimeout(function(){
+          if (_iosHintEl && _iosHintEl.parentNode){
+            _iosHintEl.parentNode.removeChild(_iosHintEl);
+          }
+          _iosHintEl = null;
+        }, 360);
+        if (permanent){
+          try { localStorage.setItem(LS_IOS_HINT_KEY, "1"); } catch(e){}
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         INSTALL SUCCESS TOAST
+      ══════════════════════════════════════════════════════════ */
+      function showInstallToast(){
+        var toast = document.createElement("div");
+        toast.className = "install-toast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        toast.innerHTML = '<span aria-hidden="true">✓</span> ViaDecide installed!';
+        document.body.appendChild(toast);
+
+        setTimeout(function(){
+          toast.classList.add("out");
+          setTimeout(function(){
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+          }, 320);
+        }, 3000);
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         QP PWA STATUS UPDATE
+      ══════════════════════════════════════════════════════════ */
+      function updateQPPwaStatus(){
+        var el = document.getElementById("qpPwaStatus");
+        if (!el) return;
+        if (isStandalone)               { el.textContent = "Standalone"; return; }
+        if (isInstalled())              { el.textContent = "Installed";  return; }
+        if (isIOS)                      { el.textContent = "iOS / manual"; return; }
+        if (_deferredInstallPrompt)     { el.textContent = "Prompt ready"; return; }
+        el.textContent = "Browser";
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         SERVICE WORKER REGISTRATION
+      ══════════════════════════════════════════════════════════ */
+      if ("serviceWorker" in navigator){
+        window.addEventListener("load", function(){
+          navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
+            .then(function(reg){
+              // SW registered — update available?
+              reg.addEventListener("updatefound", function(){
+                var nw = reg.installing;
+                if (!nw) return;
+                nw.addEventListener("statechange", function(){
+                  if (nw.state === "installed" && navigator.serviceWorker.controller){
+                    // New content is available; optionally notify the user here
+                    console.info("[ViaDecide SW] Update available — reload to apply.");
+                  }
+                });
+              });
+            })
+            .catch(function(err){
+              console.warn("[ViaDecide SW] Registration failed:", err);
+            });
+        });
+      }
+
+      /* ══════════════════════════════════════════════════════════
+         EXISTING APP LOGIC (unchanged)
+      ══════════════════════════════════════════════════════════ */
 
       function safeNowIST(){
         try{
@@ -1125,12 +1677,8 @@
       function appendAffiliateToHref(href, aff){
         try{
           if (!isHtmlHref(href)) return href;
-
           var u = /^https?:\/\//i.test(href) ? new URL(href) : new URL(href, location.href);
           if (!u.searchParams.get("tag")) u.searchParams.set("tag", aff);
-
-          // Keep relative links relative (prevents surprises in GH Pages subpaths)
-          // If original was relative, return relative + query
           if (!/^https?:\/\//i.test(href)){
             var rel = u.pathname.split("/").pop() || u.pathname;
             var qs = u.searchParams.toString();
@@ -1150,18 +1698,14 @@
           if (!isHtmlHref(href)) return;
           a.setAttribute("href", appendAffiliateToHref(href, aff));
         });
-
         var affEls = [document.getElementById("affTagPill"), document.getElementById("affInline")];
         affEls.forEach(function(el){ if (el) el.textContent = aff; });
-
         var joinAff = document.getElementById("joinAffiliate");
         if (joinAff) joinAff.value = aff;
-
         var qpAff = document.getElementById("qpAff");
         if (qpAff) qpAff.textContent = aff;
       }
 
-      // Router shim
       function getRouter(){
         return (window.VDRouter && typeof window.VDRouter.go === "function") ? window.VDRouter : null;
       }
@@ -1181,39 +1725,32 @@
         return false;
       }
 
-      // Support ?go=student-research (optional deep-link)
       function handleGoRedirect(){
         var go = getParam("go");
         if (!go) return;
         var router = getRouter();
         if (!router) return;
-
         var slug = String(go || "").trim();
         if (!slug) return;
-
-        // allow go to be a url or path
         try{
           var u = new URL(slug, location.href);
           slug = (u.pathname || "").split("/").filter(Boolean).pop() || slug;
         }catch(e){}
-
         slug = slug.replace(/\.html?$/i, "").replace(/^\/+/, "").replace(/\/+$/, "");
         if (!slug) return;
-
         if (isKnownSubpage(slug)){
           var aff = getAffiliateTag();
           router.go(slug, { newTab:false, search:"?tag=" + encodeURIComponent(aff), hash:"" });
         }
       }
 
-      // UI helpers
       function escapeHtml(s){
         return String(s || "").replace(/[&<>"']/g, function(m){
           return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[m];
         });
       }
 
-      // Quick Panel
+      /* ── Quick Panel ───────────────────────────────────────── */
       var qp = document.getElementById("quickPanel");
       var openQPBtn = document.getElementById("openQP");
       var introOpenQPBtn = document.getElementById("introOpenQP");
@@ -1224,7 +1761,10 @@
         if (!qp) return;
         qp.classList.toggle("open", !!open);
         qp.setAttribute("aria-hidden", open ? "false" : "true");
-        if (open) { try { closeQPBtn && closeQPBtn.focus({preventScroll:true}); } catch(e){} }
+        if (open){
+          updateQPPwaStatus();
+          try { closeQPBtn && closeQPBtn.focus({preventScroll:true}); } catch(e){}
+        }
       }
 
       if (openQPBtn) openQPBtn.addEventListener("click", function(){ setQP(true); });
@@ -1232,7 +1772,7 @@
       if (closeQPBtn) closeQPBtn.addEventListener("click", function(){ setQP(false); });
       if (qp) qp.addEventListener("click", function(e){ if (e.target === qp) setQP(false); });
 
-      // Intro show/hide
+      /* ── Intro show/hide ────────────────────────────────────── */
       var intro = document.getElementById("intro");
       var showIntroBtn = document.getElementById("showIntro");
       var introHidden = false;
@@ -1247,17 +1787,17 @@
       if (showIntroBtn) showIntroBtn.addEventListener("click", function(){ showIntro(true); });
       if (qpViewIntro) qpViewIntro.addEventListener("click", function(){ setQP(false); showIntro(true); });
 
-      // Intro slides
+      /* ── Intro slides ──────────────────────────────────────── */
       var introSlides = Array.prototype.slice.call(document.querySelectorAll(".intro-slide"));
-      var introDots = Array.prototype.slice.call(document.querySelectorAll(".dot"));
-      var introPrev = document.getElementById("introPrev");
-      var introNext = document.getElementById("introNext");
-      var introPause = document.getElementById("introPause");
-      var enterApp = document.getElementById("enterApp");
-      var introIdx = 0;
-      var introTimer = null;
-      var introTick = null;
-      var INTRO_MS = 6500;
+      var introDots   = Array.prototype.slice.call(document.querySelectorAll(".dot"));
+      var introPrev   = document.getElementById("introPrev");
+      var introNext   = document.getElementById("introNext");
+      var introPause  = document.getElementById("introPause");
+      var enterApp    = document.getElementById("enterApp");
+      var introIdx    = 0;
+      var introTimer  = null;
+      var introTick   = null;
+      var INTRO_MS    = 6500;
       var introPaused = false;
 
       function setIntroSlide(idx){
@@ -1274,7 +1814,7 @@
 
       function stopIntroAutoplay(){
         if (introTimer) { clearTimeout(introTimer); introTimer = null; }
-        if (introTick) { clearInterval(introTick); introTick = null; }
+        if (introTick)  { clearInterval(introTick); introTick = null; }
         introPaused = true;
         if (introPause) introPause.textContent = "▶ PLAY";
       }
@@ -1284,11 +1824,11 @@
         introPaused = false;
         if (introPause) introPause.textContent = "⏸ PAUSE";
         if (introTimer) clearTimeout(introTimer);
-        if (introTick) clearInterval(introTick);
+        if (introTick)  clearInterval(introTick);
 
         var start = performance.now();
-        var dot = introDots[introIdx];
-        var prog = dot ? dot.querySelector(".prog") : null;
+        var dot   = introDots[introIdx];
+        var prog  = dot ? dot.querySelector(".prog") : null;
 
         introTick = setInterval(function(){
           if (introPaused || introHidden) return;
@@ -1325,7 +1865,7 @@
 
       function animateNumber(el, to, duration){
         if (!el) return;
-        var from = 0;
+        var from  = 0;
         var start = performance.now();
         function frame(now){
           var t = Math.min(1, (now - start) / duration);
@@ -1341,9 +1881,9 @@
         if (introStatsAnimated) return;
         introStatsAnimated = true;
         animateNumber(document.getElementById("statDecisions"), 1400000000, 1100);
-        animateNumber(document.getElementById("statLang"), 22, 900);
-        animateNumber(document.getElementById("statDistricts"), 770, 1000);
-        animateNumber(document.getElementById("statTools"), 4, 900);
+        animateNumber(document.getElementById("statLang"),      22,         900);
+        animateNumber(document.getElementById("statDistricts"), 770,        1000);
+        animateNumber(document.getElementById("statTools"),     4,          900);
       }
 
       if (enterApp) enterApp.addEventListener("click", function(){
@@ -1351,12 +1891,12 @@
         try { sessionStorage.setItem("enteredApp","1"); } catch(e){}
       });
 
-      // Main slides
-      var mainSlides = Array.prototype.slice.call(document.querySelectorAll(".main-slide"));
-      var slideIdxEl = document.getElementById("slideIdx");
+      /* ── Main slides ────────────────────────────────────────── */
+      var mainSlides   = Array.prototype.slice.call(document.querySelectorAll(".main-slide"));
+      var slideIdxEl   = document.getElementById("slideIdx");
       var slideTotalEl = document.getElementById("slideTotal");
-      var appHeader = document.getElementById("appHeader");
-      var qpSlide = document.getElementById("qpSlide");
+      var appHeader    = document.getElementById("appHeader");
+      var qpSlide      = document.getElementById("qpSlide");
       var currentSlide = 0;
 
       if (slideTotalEl) slideTotalEl.textContent = String(mainSlides.length);
@@ -1395,28 +1935,26 @@
       var qpGoHome = document.getElementById("qpGoHome");
       if (qpGoHome) qpGoHome.addEventListener("click", function(){ setQP(false); goToSlide(0); });
 
-      // Product grid
+      /* ── Product grid ───────────────────────────────────────── */
       var productGrid = document.getElementById("productGrid");
       var products = [
-        { kind:"page", title:"Student Research", href:"student-research.html", img:"assets/product-engine-pro.jpg", chip:"Research", desc:"Multi-source topic research. Synthesize and export.", foot:"Open tool" },
-        { kind:"page", title:"SwipeOS", href:"SwipeOS.html", img:"assets/product-ondc.jpg", chip:"OS", desc:"Swipe-based decision workflows and briefs.", foot:"Open module" },
-        { kind:"page", title:"Brief", href:"brief.html", img:"assets/product-promptalchemy.jpg", chip:"Synthesis", desc:"Capture thesis, takeaways, contradictions.", foot:"Open brief" },
-        { kind:"page", title:"Decision Brief (PDF)", href:"decision-brief.html", img:"assets/product-alchemist.jpg", chip:"PDF", desc:"Policy-grade export and share links.", foot:"Open PDF" },
-        { kind:"page", title:"PromptAlchemy", href:"prompt-alchemy.html", img:"assets/product-promptalchemy.jpg", chip:"Prompts", desc:"Prompt tools for structured decision work.", foot:"Open" },
-        { kind:"page", title:"Alchemist", href:"alchemist.html", img:"assets/product-alchemist.jpg", chip:"Quiz", desc:"Assessments generated from research nodes.", foot:"Open" },
-        { kind:"page", title:"ONDC Demo", href:"ONDC-demo.html", img:"assets/product-ondc.jpg", chip:"Commerce", desc:"Local commerce flows and demos.", foot:"Open demo" },
-        { kind:"model", title:"Engine (3D)", href:"engine-license.html", modelSrc:"assets/viadecide-3d.gltf", poster:"assets/product-3d-poster.jpg", chip:"3D", desc:"Interactive engine preview (local asset, no tag injection).", foot:"License" }
+        { kind:"page",  title:"Student Research",    href:"student-research.html", img:"assets/product-engine-pro.jpg",     chip:"Research",  desc:"Multi-source topic research. Synthesize and export.", foot:"Open tool" },
+        { kind:"page",  title:"SwipeOS",             href:"SwipeOS.html",           img:"assets/product-ondc.jpg",           chip:"OS",        desc:"Swipe-based decision workflows and briefs.",          foot:"Open module" },
+        { kind:"page",  title:"Brief",               href:"brief.html",             img:"assets/product-promptalchemy.jpg",  chip:"Synthesis", desc:"Capture thesis, takeaways, contradictions.",          foot:"Open brief" },
+        { kind:"page",  title:"Decision Brief (PDF)",href:"decision-brief.html",    img:"assets/product-alchemist.jpg",      chip:"PDF",       desc:"Policy-grade export and share links.",                foot:"Open PDF" },
+        { kind:"page",  title:"PromptAlchemy",       href:"prompt-alchemy.html",    img:"assets/product-promptalchemy.jpg",  chip:"Prompts",   desc:"Prompt tools for structured decision work.",          foot:"Open" },
+        { kind:"page",  title:"Alchemist",           href:"alchemist.html",         img:"assets/product-alchemist.jpg",      chip:"Quiz",      desc:"Assessments generated from research nodes.",          foot:"Open" },
+        { kind:"page",  title:"ONDC Demo",           href:"ONDC-demo.html",         img:"assets/product-ondc.jpg",           chip:"Commerce",  desc:"Local commerce flows and demos.",                     foot:"Open demo" },
+        { kind:"model", title:"Engine (3D)",         href:"engine-license.html",    modelSrc:"assets/viadecide-3d.gltf", poster:"assets/product-3d-poster.jpg", chip:"3D", desc:"Interactive engine preview (local asset, no tag injection).", foot:"License" }
       ];
 
       function makeCard(p){
         var aff = getAffiliateTag();
-
         if (p.kind === "model"){
           var a = document.createElement("a");
           a.className = "card";
           a.href = appendAffiliateToHref(p.href, aff);
           a.setAttribute("aria-label", p.title);
-
           var mv = document.createElement("model-viewer");
           mv.setAttribute("loading", "lazy");
           mv.setAttribute("reveal", "interaction");
@@ -1428,9 +1966,8 @@
           mv.setAttribute("touch-action", "pan-y");
           mv.setAttribute("alt", p.title);
           mv.setAttribute("poster", p.poster);
-          mv.setAttribute("src", p.modelSrc); // never tag model src
+          mv.setAttribute("src", p.modelSrc);
           a.appendChild(mv);
-
           var c = document.createElement("div");
           c.className = "card-c";
           c.innerHTML =
@@ -1443,20 +1980,17 @@
           a.appendChild(c);
           return a;
         }
-
         var a2 = document.createElement("a");
         a2.className = "card";
         a2.href = appendAffiliateToHref(p.href, aff);
         a2.setAttribute("aria-label", p.title);
-
         var img = document.createElement("img");
         img.className = "thumb";
         img.alt = p.title;
         img.loading = "lazy";
         img.decoding = "async";
-        img.src = p.img; // local asset: no tagging
+        img.src = p.img;
         a2.appendChild(img);
-
         var c2 = document.createElement("div");
         c2.className = "card-c";
         c2.innerHTML =
@@ -1476,7 +2010,7 @@
         products.forEach(function(p){ productGrid.appendChild(makeCard(p)); });
       }
 
-      // Wheel + keys slide nav (don’t hijack scrollables/inputs)
+      /* ── Wheel + key nav ────────────────────────────────────── */
       function isTypingContext(){
         var ae = document.activeElement;
         if (!ae) return false;
@@ -1506,13 +2040,10 @@
         if (intro && !intro.classList.contains("hidden")) return;
         if (isTypingContext()) return;
         if (wheelLock) return;
-
         var deltaY = e.deltaY || 0;
         if (Math.abs(deltaY) < 8) return;
-
         var sc = closestScrollable(e.target);
         if (canScrollInDirection(sc, deltaY)) return;
-
         e.preventDefault();
         wheelLock = true;
         setTimeout(function(){ wheelLock = false; }, 220);
@@ -1520,7 +2051,6 @@
       }, { passive:false });
 
       window.addEventListener("keydown", function(e){
-        // ESC closes qp always
         if (e.key === "Escape"){
           if (qp && qp.classList.contains("open")){
             e.preventDefault();
@@ -1528,45 +2058,33 @@
             return;
           }
         }
-
-        // while intro visible, only allow ESC/Enter
         if (intro && !intro.classList.contains("hidden")){
           if (e.key === "Enter"){
-            // allow button presses
             var t = (e.target && e.target.tagName || "").toLowerCase();
-            if (t !== "button"){
-              e.preventDefault();
-              showIntro(false);
-            }
+            if (t !== "button"){ e.preventDefault(); showIntro(false); }
           }
           return;
         }
-
         if (isTypingContext()) return;
-
-        if (e.key === "ArrowDown" || e.key === "PageDown"){
-          e.preventDefault(); nextSlide();
-        } else if (e.key === "ArrowUp" || e.key === "PageUp"){
-          e.preventDefault(); prevSlide();
-        } else if (e.key === "Home"){
-          e.preventDefault(); goToSlide(0);
-        }
+        if (e.key === "ArrowDown" || e.key === "PageDown"){ e.preventDefault(); nextSlide(); }
+        else if (e.key === "ArrowUp" || e.key === "PageUp"){ e.preventDefault(); prevSlide(); }
+        else if (e.key === "Home"){ e.preventDefault(); goToSlide(0); }
       }, { passive:false });
 
-      // QP clock
+      /* ── QP clock ───────────────────────────────────────────── */
       function startQPTicker(){
         var el = document.getElementById("qpTime");
         if (!el) return;
         setInterval(function(){ el.textContent = safeNowIST().slice(11, 16); }, 1000);
       }
 
-      // Join form UX
-      var joinForm = document.getElementById("joinForm");
+      /* ── Join form ──────────────────────────────────────────── */
+      var joinForm      = document.getElementById("joinForm");
       var joinTimestamp = document.getElementById("joinTimestamp");
       var joinAffiliate = document.getElementById("joinAffiliate");
-      var joinStatus = document.getElementById("joinStatus");
-      var joinClear = document.getElementById("joinClear");
-      var joinSubmit = document.getElementById("joinSubmit");
+      var joinStatus    = document.getElementById("joinStatus");
+      var joinClear     = document.getElementById("joinClear");
+      var joinSubmit    = document.getElementById("joinSubmit");
 
       function setJoinStatus(msg, cls){
         if (!joinStatus) return;
@@ -1578,7 +2096,7 @@
         if (!joinForm) return;
         joinForm.reset();
         if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
-        if (joinTimestamp) joinTimestamp.value = safeNowIST();
+        if (joinTimestamp) joinTimestamp.value  = safeNowIST();
         setJoinStatus("", "");
       }
 
@@ -1586,26 +2104,24 @@
 
       if (joinForm){
         joinForm.addEventListener("submit", function(){
-          if (joinTimestamp) joinTimestamp.value = safeNowIST();
-          if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
+          if (joinTimestamp) joinTimestamp.value  = safeNowIST();
+          if (joinAffiliate) joinAffiliate.value  = getAffiliateTag();
           setJoinStatus("Submitting…", "");
           if (joinSubmit) joinSubmit.disabled = true;
           setTimeout(function(){ if (joinSubmit) joinSubmit.disabled = false; }, 2500);
         });
       }
 
-      // Boot
+      /* ── Boot sequence ──────────────────────────────────────── */
       handleGoRedirect();
-
       setIntroSlide(0);
       startIntroAutoplay();
-
       goToSlide(0);
       renderProducts();
-
       applyAffiliateToLinks();
+      updateQPPwaStatus();
 
-      // QP project placeholder
+      // QP project
       var qpProject = document.getElementById("qpProject");
       if (qpProject){
         try { qpProject.textContent = localStorage.getItem("decideProject") || "-"; }
@@ -1614,34 +2130,35 @@
 
       // Join prefill
       if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
-      if (joinTimestamp) joinTimestamp.value = safeNowIST();
+      if (joinTimestamp) joinTimestamp.value  = safeNowIST();
 
-      // Remember intro dismissed
+      // Restore intro-dismissed state from sessionStorage
       try{
         var entered = sessionStorage.getItem("enteredApp") === "1";
         if (entered) showIntro(false);
       }catch(e){}
 
-      // Soft refresh on return
+      // Re-apply affiliate tags on tab focus (back-navigation)
       document.addEventListener("visibilitychange", function(){
         if (document.visibilityState === "visible") applyAffiliateToLinks();
       });
 
       startQPTicker();
+
     })();
-
-    
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async () => {
-      try {
-        const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
-        console.log("SW registered:", reg.scope);
-      } catch (e) {
-        console.log("SW register failed:", e);
-      }
-    });
-  }
-
   </script>
 </body>
 </html>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  REQUIRED COMPANION FILES                                        ║
+  ║  Place both files at your server / CDN root (same level as      ║
+  ║  index.html so the absolute paths /manifest.json and            ║
+  ║  /service-worker.js resolve correctly on all subpages too).     ║
+  ╚══════════════════════════════════════════════════════════════════╝
+
+  ─── /manifest.json ──────────────────────────────────────────────
+  {
+
+
