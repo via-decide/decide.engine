@@ -1,17 +1,17 @@
 <!doctype html>
 <!--
-  ╔══════════════════════════════════════════════════════════════════╗
-  ║  ViaDecide — India's Decision Engine                            ║
-  ║  Production PWA — index.html  [UPGRADED v1.0 Public Beta]      ║
-  ╠══════════════════════════════════════════════════════════════════╣
-  ║  FILE PLACEMENT (all files at server root):                     ║
-  ║    /index.html           ← this file                            ║
-  ║    /manifest.json        ← see bottom-of-file comment block     ║
-  ║    /service-worker.js    ← see bottom-of-file comment block     ║
-  ║    /icons/icon-192.png   ← 192×192 PNG app icon                ║
-  ║    /icons/icon-512.png   ← 512×512 PNG app icon                ║
-  ╚══════════════════════════════════════════════════════════════════╝
+  ViaDecide — India's Decision Engine
+  index.html — Public Beta
+
+  FIX (Mobile UI after intro):
+  ✅ Prevent headline overflow / clipping (wrap + clamp + safe word-breaking)
+  ✅ Better mobile spacing (smaller paddings, stacked header rows)
+  ✅ CTA buttons wrap + become full-width on small screens
+  ✅ Home “Navigation Shortcuts / Session” becomes 1-column on mobile
+  ✅ Product grid becomes 1-column on small screens
+  ✅ Topbar + bottom nav wrap cleanly on mobile (no squish)
 -->
+
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -19,1199 +19,932 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>viadecide.com | India's Decision Engine</title>
 
-  <!-- ── PWA Manifest ──────────────────────────────────────────── -->
   <link rel="manifest" href="/manifest.json" />
-
-  <!-- ── iOS PWA support ──────────────────────────────────────── -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="ViaDecide" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 
-  <!-- ── OG / SEO basics ──────────────────────────────────────── -->
   <meta name="description" content="Policy-grade decision intelligence for Bharat. Multi-source research, synthesis and export — for students, founders, farmers and officials." />
   <meta property="og:title" content="ViaDecide — India's Decision Engine" />
   <meta property="og:description" content="Policy-grade decision intelligence for Bharat." />
   <meta property="og:type" content="website" />
 
-  <!-- Router MUST be first -->
   <script src="./router.js"></script>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <!-- ── Premium typography: DM Sans for UI, DM Mono for code ── -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <style>
-    /* ═══════════════════════════════════════════════════════════
-       DESIGN TOKENS — UPGRADED
-       Reduced glow intensity, tighter border opacity,
-       increased spatial breathing room.
-    ═══════════════════════════════════════════════════════════ */
-    :root {
-      /* Core palette */
-      --bg:          #0a0a0a;
-      --bg-lift:     #0d0d0d;
-      --card:        #101010;
-      --card2:       #0f0f0f;
-      --line:        #1e1e1e;   /* was #222 — slightly softer */
-      --line2:       #191919;   /* was #1b1b1b */
-      --text:        #f0f0f0;
-      --muted:       #8a8a8a;
-      --accent:      #ff671f;
-      --accent-dim:  rgba(255,103,31,.65);
-      --ok:          #00e676;
-      --warn:        #ffcc00;
+    :root{
+      --bg:#080808;
+      --text:#f0f0f0;
+      --muted:#7a7a7a;
+      --accent:#ff671f;
+      --ok:#00e676;
 
-      /* Shadows — reduced intensity */
-      --shadow:      0 12px 32px rgba(0,0,0,.38);
-      --shadow-card: 0 8px 24px rgba(0,0,0,.28);
+      --shadow:0 20px 60px rgba(0,0,0,.5);
+      --shadow-card:0 8px 24px rgba(0,0,0,.28);
 
-      /* Radii */
-      --radius:      18px;
-      --radius2:     14px;
-      --radius3:     10px;
+      --radius:20px;
+      --radius2:14px;
+      --radius3:10px;
 
-      /* Safe areas */
-      --safeTop:    env(safe-area-inset-top, 0px);
+      --safeTop: env(safe-area-inset-top, 0px);
       --safeBottom: env(safe-area-inset-bottom, 0px);
-      --safeLeft:   env(safe-area-inset-left, 0px);
-      --safeRight:  env(safe-area-inset-right, 0px);
+      --safeLeft: env(safe-area-inset-left, 0px);
+      --safeRight: env(safe-area-inset-right, 0px);
 
-      /* Layout */
       --maxw: 980px;
+      --gap: 16px;
 
-      /* Install accent */
-      --install-color: #ff671f;
-      --install-glow:  rgba(255,103,31,.32); /* was .45 — 40% reduced */
-
-      /* Spacing upgrade */
-      --pad-sm:  12px;
-      --pad:     20px;          /* was 14px */
-      --pad-lg:  28px;
-      --gap:     16px;          /* was 12px */
-      --gap-sm:  10px;
+      --install-glow: rgba(255,103,31,.28);
     }
 
     html, body { height: 100%; }
-
-    body {
-      margin: 0;
-      /* Reduced radial glow intensity by ~40% */
-      background:
-        radial-gradient(1200px 500px at 50% -8%,  rgba(255,103,31,.10), transparent 55%),
-        radial-gradient(900px  400px at 82% 118%, rgba(0,230,118,.06),  transparent 50%),
-        var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow:hidden;
+      -webkit-font-smoothing:antialiased;
     }
-
-    a   { color: inherit; text-decoration: none; }
+    *{ box-sizing:border-box; }
+    a{ color:inherit; text-decoration:none; }
     button, input, textarea, select { font: inherit; color: inherit; }
-    button { border: none; background: transparent; cursor: pointer; }
-    * { box-sizing: border-box; }
+    button{ border:none; background:transparent; cursor:pointer; }
+    .hidden{ display:none !important; }
+    .sr-only{ position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
 
-    .hidden     { display: none !important; }
-    .sr-only {
-      position: absolute !important;
-      width: 1px; height: 1px;
-      padding: 0; margin: -1px;
-      overflow: hidden; clip: rect(0,0,0,0);
-      white-space: nowrap; border: 0;
+    /* ─── INSTALL BUTTON ─────────────────────────────────────── */
+    @keyframes installPulse{
+      0%{ box-shadow:0 0 0 0 var(--install-glow), 0 4px 14px rgba(255,103,31,.22); }
+      55%{ box-shadow:0 0 0 5px transparent, 0 4px 14px rgba(255,103,31,.14); }
+      100%{ box-shadow:0 0 0 0 transparent, 0 4px 14px rgba(255,103,31,.08); }
     }
+    @keyframes installIconBounce{
+      0%,100%{ transform:translateY(0); }
+      40%{ transform:translateY(-2px); }
+    }
+    .install-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:6px; padding:9px 15px; border-radius:10px;
+      border:1px solid rgba(255,103,31,.4);
+      background:linear-gradient(135deg, rgba(255,103,31,.92), rgba(210,68,8,.88));
+      color:#fff; font-weight:700; font-size:11.5px; letter-spacing:.08em;
+      text-transform:uppercase;
+      user-select:none; -webkit-user-select:none; white-space:nowrap;
+      animation:installPulse 2.4s ease-out infinite;
+      transition:transform 130ms ease, filter 130ms ease;
+      position:relative; overflow:hidden;
+    }
+    .install-btn::before{
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(110deg, transparent 30%, rgba(255,255,255,.14) 50%, transparent 70%);
+      transform:translateX(-100%); transition:transform 460ms ease;
+    }
+    .install-btn:hover::before{ transform:translateX(100%); }
+    .install-btn:hover{ filter:brightness(1.08); }
+    .install-btn:active{ transform:translateY(1px); }
+    .install-btn .ib-icon{ font-size:12px; animation:installIconBounce 2.4s ease-in-out infinite; display:inline-block; }
+    .install-btn.installed{
+      animation:none;
+      background:linear-gradient(135deg, rgba(0,180,80,.82), rgba(0,150,60,.78));
+      border-color:rgba(0,230,118,.32);
+      cursor:default; pointer-events:none;
+    }
+    .install-btn.installed .ib-icon{ animation:none; }
 
-    /* ═══════════════════════════════════════════════════════════
-       UPGRADED TYPOGRAPHY SCALE
-       H1: 34px bold | H2: 21px | Body: 14.5px | Micro: 11px
-    ═══════════════════════════════════════════════════════════ */
-    h1 { font-size: 34px; font-weight: 800; letter-spacing: -.025em; line-height: 1.05; margin: 0; }
-    h2 { font-size: 21px; font-weight: 700; letter-spacing: -.015em; margin: 0; }
-    h3 { font-size: 15px; font-weight: 700; letter-spacing: -.01em;  margin: 0; }
-    p  { font-size: 14.5px; line-height: 1.55; margin: 0; color: rgba(240,240,240,.76); }
+    /* ─── BUTTON SYSTEM ─────────────────────────────────────── */
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:8px; padding:11px 16px; border-radius:var(--radius3);
+      border:1px solid rgba(255,255,255,.09); background:rgba(16,16,16,.8);
+      color:rgba(240,240,240,.92); font-weight:600; font-size:13px;
+      box-shadow:0 6px 16px rgba(0,0,0,.2);
+      transition:transform 130ms ease, filter 130ms ease, border-color 130ms ease;
+      user-select:none; white-space:nowrap;
+      max-width:100%;
+    }
+    .btn:hover{ filter:brightness(1.06); border-color:rgba(255,255,255,.16); }
+    .btn:active{ transform:translateY(1px); filter:brightness(.94); }
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(255,103,31,.95), rgba(255,103,31,.52));
+      border-color:rgba(255,103,31,.38); color:#0c0c0c; font-weight:800;
+    }
+    .btn.ghost{ background:rgba(16,16,16,.45); border-color:rgba(255,255,255,.09); }
+    .btn.outlined{ background:transparent; border-color:rgba(255,103,31,.4); color:rgba(255,140,60,.92); }
+    .btn.outlined:hover{ background:rgba(255,103,31,.08); border-color:rgba(255,103,31,.6); }
+    .btn.small{ padding:9px 13px; font-size:12px; border-radius:9px; }
 
-    .micro {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      color: var(--muted);
+    /* ─── TOAST ──────────────────────────────────────────────── */
+    @keyframes toastIn{ from{ transform:translateX(-50%) translateY(-10px); opacity:0; } to{ transform:translateX(-50%) translateY(0); opacity:1; } }
+    @keyframes toastOut{ from{ opacity:1; } to{ opacity:0; transform:translateX(-50%) translateY(-8px); } }
+    .vd-toast{
+      position:fixed; top:calc(16px + env(safe-area-inset-top, 0px));
+      left:50%; transform:translateX(-50%); z-index:9999;
+      border-radius:40px; border:1px solid rgba(0,230,118,.28);
+      background:linear-gradient(135deg, rgba(8,26,16,.97), rgba(5,18,10,.99));
+      box-shadow:0 12px 36px rgba(0,0,0,.5); padding:10px 20px;
+      display:flex; align-items:center; gap:9px; white-space:nowrap;
+      color:rgba(0,230,118,.92); font-size:13px; font-weight:700;
+      animation:toastIn 340ms cubic-bezier(.22,1,.36,1) both; pointer-events:none;
     }
+    .vd-toast.accent{
+      border-color:rgba(255,103,31,.28);
+      background:linear-gradient(135deg, rgba(22,10,4,.97), rgba(14,6,2,.99));
+      color:rgba(255,160,80,.95);
+    }
+    .vd-toast.out{ animation:toastOut 300ms ease both; }
 
-    /* ═══════════════════════════════════════════════════════════
-       MICRO-INTERACTION TOKENS — shared transitions
-    ═══════════════════════════════════════════════════════════ */
-    .interactive {
-      transition:
-        transform   160ms cubic-bezier(.22,1,.36,1),
-        filter      160ms ease,
-        border-color 160ms ease,
-        background  160ms ease,
-        box-shadow  160ms ease;
+    /* ─── iOS HINT ───────────────────────────────────────────── */
+    @keyframes iosHintSlideUp{ from{ transform:translateY(100%); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+    .ios-install-hint{
+      position:fixed;
+      bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+      left:calc(16px + env(safe-area-inset-left, 0px));
+      right:calc(16px + env(safe-area-inset-right, 0px));
+      z-index:999; border-radius:var(--radius);
+      border:1px solid rgba(255,103,31,.25);
+      background:linear-gradient(170deg, rgba(20,13,9,.97), rgba(12,8,6,.99));
+      box-shadow:0 16px 50px rgba(0,0,0,.65);
+      padding:16px 18px; display:flex; align-items:flex-start; gap:14px;
+      max-width:480px; margin:0 auto;
+      animation:iosHintSlideUp 400ms cubic-bezier(.22,1,.36,1) both;
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       PWA INSTALL BUTTON — REFINED PULSE
-       Both .install-btn-intro and .install-btn-topbar share base.
-    ═══════════════════════════════════════════════════════════ */
-    @keyframes installPulse {
-      0%   { box-shadow: 0 0 0 0   var(--install-glow), 0 6px 18px rgba(255,103,31,.25); }
-      55%  { box-shadow: 0 0 0 6px transparent,         0 6px 18px rgba(255,103,31,.18); }
-      100% { box-shadow: 0 0 0 0   transparent,         0 6px 18px rgba(255,103,31,.10); }
+    .ios-install-hint .iih-icon{
+      flex-shrink:0; width:36px; height:36px; border-radius:10px;
+      background:linear-gradient(135deg, rgba(255,103,31,.88), rgba(190,55,8,.78));
+      display:flex; align-items:center; justify-content:center; font-size:18px;
     }
-    @keyframes installIconBounce {
-      0%, 100% { transform: translateY(0); }
-      40%       { transform: translateY(-2px); }
+    .ios-install-hint .iih-body{ flex:1; min-width:0; }
+    .ios-install-hint .iih-body strong{ display:block; font-size:13px; font-weight:700; color:rgba(240,240,240,.96); }
+    .ios-install-hint .iih-body p{ margin:5px 0 0; font-size:12px; color:rgba(240,240,240,.65); line-height:1.45; }
+    .ios-install-hint .iih-body .iih-share-icon{
+      display:inline-block; padding:2px 5px; border-radius:6px;
+      background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.15); font-size:11px; vertical-align:middle;
     }
-    /* [UPGRADED] Install-installed state */
-    @keyframes installedFade {
-      from { opacity: 0; transform: scale(.94); }
-      to   { opacity: 1; transform: scale(1); }
+    .ios-install-hint .iih-close{
+      flex-shrink:0; padding:6px; border-radius:8px;
+      background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.09);
+      color:rgba(240,240,240,.65); font-size:14px; line-height:1; cursor:pointer; align-self:flex-start;
     }
-
-    .install-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 10px 16px;
-      border-radius: 11px;
-      border: 1px solid rgba(255,103,31,.45);
-      background: linear-gradient(135deg, rgba(255,103,31,.92), rgba(210,68,8,.88));
-      color: #fff;
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: .07em;
-      text-transform: uppercase;
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-      white-space: nowrap;
-      animation: installPulse 2.4s ease-out infinite;
-      transition: transform 140ms ease, filter 140ms ease;
-      position: relative;
-      overflow: hidden;
-    }
-    /* Shimmer sweep */
-    .install-btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.15) 50%, transparent 70%);
-      transform: translateX(-100%);
-      transition: transform 480ms ease;
-    }
-    .install-btn:hover::before { transform: translateX(100%); }
-    .install-btn:hover  { filter: brightness(1.10); }
-    .install-btn:active { transform: translateY(1px); filter: brightness(.95); }
-    .install-btn .ib-icon {
-      font-size: 13px;
-      animation: installIconBounce 2.4s ease-in-out infinite;
-      display: inline-block;
-    }
-
-    /* [UPGRADED] Installed state — stop pulse, show check */
-    .install-btn.installed {
-      animation: none;
-      background: linear-gradient(135deg, rgba(0,180,80,.82), rgba(0,150,60,.78));
-      border-color: rgba(0,230,118,.35);
-      cursor: default;
-      pointer-events: none;
-    }
-    .install-btn.installed .ib-icon { animation: none; }
-
-    /* Size variants */
-    .install-btn-topbar { padding: 8px 13px; font-size: 11px; border-radius: 10px; }
-    .install-btn-intro  { padding: 12px 18px; font-size: 13px; border-radius: 12px; }
-
-    /* ═══════════════════════════════════════════════════════════
-       iOS INSTALL HINT
-    ═══════════════════════════════════════════════════════════ */
-    @keyframes iosHintSlideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    .ios-install-hint {
-      position: fixed;
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      left:   calc(16px + env(safe-area-inset-left,   0px));
-      right:  calc(16px + env(safe-area-inset-right,  0px));
-      z-index: 999;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,103,31,.28);
-      background: linear-gradient(170deg, rgba(20,13,9,.97), rgba(12,8,6,.99));
-      box-shadow: 0 16px 50px rgba(0,0,0,.65), 0 0 0 1px rgba(255,103,31,.08);
-      padding: 16px 18px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      max-width: 480px;
-      margin: 0 auto;
-      animation: iosHintSlideUp 400ms cubic-bezier(.22,1,.36,1) both;
-    }
-    .ios-install-hint .iih-icon {
-      flex-shrink: 0; width: 36px; height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(255,103,31,.88), rgba(190,55,8,.78));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-    .ios-install-hint .iih-body { flex: 1; min-width: 0; }
-    .ios-install-hint .iih-body strong {
-      display: block; font-size: 13px; font-weight: 700;
-      letter-spacing: .02em; color: rgba(240,240,240,.96);
-    }
-    .ios-install-hint .iih-body p {
-      margin: 5px 0 0; font-size: 12px;
-      color: rgba(240,240,240,.68); line-height: 1.45;
-    }
-    .ios-install-hint .iih-body .iih-share-icon {
-      display: inline-block; padding: 2px 5px;
-      border-radius: 6px; background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.15); font-size: 11px;
-      vertical-align: middle;
-    }
-    .ios-install-hint .iih-close {
-      flex-shrink: 0; padding: 6px; border-radius: 8px;
-      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.09);
-      color: rgba(240,240,240,.65); font-size: 14px;
-      line-height: 1; cursor: pointer; align-self: flex-start;
-    }
-    .ios-install-hint .iih-close:hover { background: rgba(255,255,255,.13); }
 
     /* ═══════════════════════════════════════════════════════════
-       TOAST SYSTEM — [UPGRADED] Generic toasts + install toast
+       INTRO — perfect mobile layout (same as before)
     ═══════════════════════════════════════════════════════════ */
-    @keyframes toastIn  { from { transform: translateX(-50%) translateY(-10px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
 
-    .vd-toast {
-      position: fixed;
-      top: calc(16px + env(safe-area-inset-top, 0px));
-      left: 50%; transform: translateX(-50%);
-      z-index: 9999;
-      border-radius: 40px;
-      border: 1px solid rgba(0,230,118,.28);
-      background: linear-gradient(135deg, rgba(8,26,16,.97), rgba(5,18,10,.99));
-      box-shadow: 0 12px 36px rgba(0,0,0,.5);
-      padding: 10px 20px;
-      display: flex; align-items: center; gap: 9px;
-      white-space: nowrap;
-      color: rgba(0,230,118,.92);
-      font-size: 13px; font-weight: 700;
-      animation: toastIn 340ms cubic-bezier(.22,1,.36,1) both;
-      pointer-events: none;
-    }
-    .vd-toast.accent {
-      border-color: rgba(255,103,31,.28);
-      background: linear-gradient(135deg, rgba(22,10,4,.97), rgba(14,6,2,.99));
-      color: rgba(255,160,80,.95);
-    }
-    .vd-toast.out { animation: toastOut 300ms ease both; }
-
-    /* Backwards compat alias */
-    .install-toast { /* uses same .vd-toast class */ }
-
-    /* ═══════════════════════════════════════════════════════════
-       INTRO OVERLAY — REFINED
-    ═══════════════════════════════════════════════════════════ */
-    .intro {
-      position: fixed; inset: 0; z-index: 50;
+    .intro{
+      position:fixed; inset:0; z-index:50;
+      height: 100dvh;
+      display:flex;
+      flex-direction:column;
       background:
-        radial-gradient(800px 400px at 50% 12%, rgba(255,103,31,.14), transparent 52%),
-        linear-gradient(180deg, rgba(10,10,10,.88), rgba(10,10,10,.98)),
-        var(--bg);
-      user-select: none; -webkit-user-select: none;
-      touch-action: manipulation; overflow: hidden;
-      padding: calc(18px + var(--safeTop)) calc(var(--pad) + var(--safeRight)) calc(var(--pad) + var(--safeBottom)) calc(var(--pad) + var(--safeLeft));
-    }
-    .intro-shell {
-      height: 100%; max-width: 1100px; margin: 0 auto;
-      display: grid; grid-template-rows: auto 1fr auto; gap: var(--gap);
-    }
-
-    /* ── Intro top bar ── */
-    .intro-top {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 12px;
-    }
-    .brand {
-      display: flex; align-items: center; gap: 12px; min-width: 0;
-    }
-    .brand-badge {
-      width: 38px; height: 38px; border-radius: 12px;
-      background: linear-gradient(135deg, rgba(255,103,31,.92), rgba(255,103,31,.18));
-      box-shadow: 0 6px 18px rgba(255,103,31,.14);   /* reduced from .18 */
-      border: 1px solid rgba(255,103,31,.28);
-      position: relative; flex-shrink: 0;
-    }
-    .brand-badge::after {
-      content: ""; position: absolute; inset: 8px;
-      border-radius: 8px; border: 1px solid rgba(10,10,10,.5);
-      background: radial-gradient(12px 12px at 60% 40%, rgba(10,10,10,.0), rgba(10,10,10,.5));
-      opacity: .9;
-    }
-    .brand-text { display: flex; flex-direction: column; min-width: 0; }
-    .brand-text .kicker {
-      font-size: 11px; letter-spacing: .12em;
-      color: rgba(240,240,240,.62); text-transform: uppercase;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .brand-text .title {
-      font-size: 15px; font-weight: 700; letter-spacing: .01em;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    
-    /* ===== ViaDecide UI Polish Patch (non-breaking) ===== */
-
-/* Better font rendering + slightly improved default sizing */
-body{
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Softer borders + clearer depth */
-.panel, .intro-stage, .slides, .app-topbar, .app-nav, .qp-card, .mini, .card, .intro-stat{
-  border-color: rgba(255,255,255,.07) !important;
-}
-
-/* Subtle lift for cards, but keep your behavior */
-.card{
-  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.30) !important;
-}
-.card:hover{
-  transform: translateY(-3px);
-  border-color: rgba(255,103,31,.22) !important;
-  box-shadow: 0 18px 44px rgba(0,0,0,.42) !important;
-}
-
-/* Buttons: clearer hierarchy, less “flat” */
-.btn, .nav-btn{
-  box-shadow: 0 10px 20px rgba(0,0,0,.22) !important;
-  transition: transform 120ms ease, filter 120ms ease, border-color 120ms ease !important;
-}
-.btn:hover, .nav-btn:hover{ filter: brightness(1.06); }
-.btn:active, .nav-btn:active{ transform: translateY(1px); }
-
-/* Headings: slightly tighter for premium look */
-.panel-h h2{
-  letter-spacing: .005em !important;
-}
-
-/* Better text contrast for descriptions */
-.panel-h .sub,
-.help,
-.card-c p,
-.intro-slide p,
-.intro-quote{
-  color: rgba(242,242,242,.74) !important;
-}
-
-/* Scrollbar polish (won’t affect iOS) */
-.scrollable::-webkit-scrollbar{ width: 10px; height: 10px; }
-.scrollable::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,.10);
-  border-radius: 999px;
-  border: 2px solid rgba(0,0,0,.35);
-}
-.scrollable::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.16); }
-
-/* ===== Install button styling (visible + premium) ===== */
-@keyframes vdInstallPulse{
-  0%   { box-shadow: 0 0 0 0 rgba(255,103,31,.28); }
-  70%  { box-shadow: 0 0 0 8px rgba(255,103,31,0); }
-  100% { box-shadow: 0 0 0 0 rgba(255,103,31,0); }
-}
-
-.install-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,103,31,.45);
-  background: linear-gradient(135deg, rgba(255,103,31,.95), rgba(255,103,31,.55));
-  color:#0b0b0b;
-  font-weight: 900;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  font-size: 11px;
-  user-select:none;
-  -webkit-user-select:none;
-  animation: vdInstallPulse 2.2s ease-out infinite;
-}
-
-.install-btn:hover{ filter: brightness(1.05); }
-.install-btn:active{ transform: translateY(1px); }
-
-.install-btn.installed{
-  animation: none;
-  background: rgba(0,230,118,.16);
-  border-color: rgba(0,230,118,.40);
-  color: rgba(0,230,118,.95);
-}
-
-    /* [UPGRADED] Version badge */
-    .ver-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 10px; border-radius: 999px;
-      border: 1px solid rgba(255,103,31,.22);
-      background: rgba(255,103,31,.08);
-      font-size: 11px; font-weight: 600;
-      color: rgba(255,140,60,.88); letter-spacing: .06em;
-      text-transform: uppercase; flex-shrink: 0;
-    }
-    .ver-badge::before {
-      content: ""; display: block; width: 5px; height: 5px;
-      border-radius: 50%; background: var(--accent);
-      box-shadow: 0 0 5px rgba(255,103,31,.5);
-    }
-
-    .intro-cta {
-      display: flex; align-items: center; gap: 10px;
-      flex-wrap: wrap; justify-content: flex-end;
-    }
-
-    .pill {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 8px 12px; border-radius: 999px;
-      background: rgba(15,15,15,.8);
-      border: 1px solid rgba(255,255,255,.07);
-      box-shadow: 0 6px 16px rgba(0,0,0,.2);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      color: rgba(240,240,240,.88); font-size: 12px; line-height: 1;
-    }
-    .pill strong { color: var(--accent); font-weight: 700; letter-spacing: .02em; }
-
-    /* ── Intro stage ── */
-    .intro-stage {
-      position: relative; border-radius: calc(var(--radius) + 4px);
-      border: 1px solid rgba(255,255,255,.055);
-      background: linear-gradient(180deg, rgba(16,16,16,.5), rgba(11,11,11,.7));
-      box-shadow: var(--shadow); overflow: hidden; min-height: 0;
-    }
-    .intro-slides { position: absolute; inset: 0; }
-    .intro-slide {
-      position: absolute; inset: 0;
-      padding: var(--pad-lg);
-      display: grid; grid-template-rows: auto auto 1fr; gap: var(--gap);
-      opacity: 0; transform: translateY(8px);
-      transition: opacity 400ms ease, transform 400ms ease;
-    }
-    .intro-slide.active { opacity: 1; transform: translateY(0); }
-
-    /* [UPGRADED] Intro typography */
-    .intro-slide h1 {
-      font-size: 32px; font-weight: 800;
-      letter-spacing: -.025em; line-height: 1.05;
-    }
-    .intro-slide h1 .accent { color: var(--accent); }
-    .intro-slide > p {
-      color: rgba(240,240,240,.74); font-size: 14.5px;
-      line-height: 1.5; max-width: 64ch;
-    }
-
-    /* [UPGRADED] Slide 0 — reduced cognitive load,
-       focus on headline + 2-item CTA layout          */
-    .intro-hero-cta {
-      display: flex; align-items: center; gap: 12px;
-      flex-wrap: wrap; margin-top: 4px;
-    }
-
-    .intro-grid {
-      display: grid; gap: var(--gap); align-content: start;
-      grid-template-columns: 1fr 1fr; margin-top: 4px;
-    }
-    .intro-stat {
-      border-radius: var(--radius2);
-      background: rgba(10,10,10,.3);
-      border: 1px solid rgba(255,255,255,.055);
-      padding: var(--pad);
-      display: flex; flex-direction: column; gap: 6px;
-      transition: border-color 200ms ease;
-    }
-    .intro-stat:hover { border-color: rgba(255,103,31,.18); }
-    .intro-stat .num {
-      font-size: 24px; font-weight: 800;
-      letter-spacing: .01em; color: rgba(240,240,240,.95);
-    }
-    .intro-stat .lab { font-size: 12px; color: rgba(240,240,240,.62); font-weight: 600; }
-    .intro-stat .hint { font-size: 11px; color: rgba(240,240,240,.48); }
-
-    .intro-quote {
-      border-left: 2px solid rgba(255,103,31,.6);
-      padding-left: 14px; margin-top: 4px;
-      color: rgba(240,240,240,.78); font-size: 13.5px; line-height: 1.55;
-      max-width: 68ch;
-    }
-
-    /* ── Intro bottom actions ── */
-    .intro-actions {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 12px;
-      padding: 4px 2px 0; flex-wrap: wrap;
-    }
-    .dots {
-      display: flex; align-items: center;
-      gap: 8px; flex: 1; min-width: 140px;
-    }
-    .dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.06);
-      position: relative; overflow: hidden; cursor: pointer;
-      transition: border-color 200ms ease;
-    }
-    .dot.active {
-      border-color: rgba(255,103,31,.5);
-      background: rgba(255,103,31,.15);
-    }
-    .dot .prog {
-      position: absolute; inset: 0; width: 0%;
-      background: rgba(255,103,31,.82); opacity: .6;
-    }
-    .intro-buttons {
-      display: flex; align-items: center;
-      justify-content: flex-end; gap: 8px; flex-wrap: wrap;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       BUTTON SYSTEM — REFINED
-    ═══════════════════════════════════════════════════════════ */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 8px; padding: 11px 16px;
-      border-radius: var(--radius3);
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(16,16,16,.8);
-      color: rgba(240,240,240,.92);
-      font-weight: 600; font-size: 13px; letter-spacing: .02em;
-      box-shadow: 0 6px 16px rgba(0,0,0,.2);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      transition: transform 130ms ease, filter 130ms ease, border-color 130ms ease, background 130ms ease;
-      user-select: none; -webkit-user-select: none;
-      white-space: nowrap;
-    }
-    .btn:hover  { filter: brightness(1.08); border-color: rgba(255,255,255,.16); }
-    .btn:active { transform: translateY(1px); filter: brightness(.94); }
-
-    .btn.primary {
-      background: linear-gradient(135deg, rgba(255,103,31,.95), rgba(255,103,31,.52));
-      border-color: rgba(255,103,31,.38); color: #0c0c0c; font-weight: 700;
-    }
-    .btn.primary:hover { filter: brightness(1.10); }
-
-    .btn.ghost {
-      background: rgba(16,16,16,.45); border-color: rgba(255,255,255,.09);
-    }
-    .btn.outlined {
-      background: transparent;
-      border-color: rgba(255,103,31,.4);
-      color: rgba(255,140,60,.92);
-    }
-    .btn.outlined:hover { background: rgba(255,103,31,.08); border-color: rgba(255,103,31,.6); }
-
-    .btn.small { padding: 9px 13px; font-size: 12px; border-radius: 9px; }
-
-    /* ═══════════════════════════════════════════════════════════
-       APP SHELL
-    ═══════════════════════════════════════════════════════════ */
-    .app {
-      position: fixed; inset: 0; z-index: 1; overflow: hidden;
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,103,31,.13) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 110%, rgba(255,103,31,.07) 0%, transparent 55%),
+        #080808;
+      overflow:hidden;
       padding:
-        calc(12px + var(--safeTop))
-        calc(12px + var(--safeRight))
-        calc(12px + var(--safeBottom))
-        calc(12px + var(--safeLeft));
-      user-select: text; -webkit-user-select: text; touch-action: pan-y;
+        calc(10px + var(--safeTop))
+        calc(10px + var(--safeRight))
+        calc(10px + var(--safeBottom))
+        calc(10px + var(--safeLeft));
+      gap: 10px;
+      user-select:none; -webkit-user-select:none;
+      touch-action:manipulation;
     }
-    .app-shell {
-      height: 100%; max-width: var(--maxw); margin: 0 auto;
-      display: grid; grid-template-rows: auto 1fr auto; gap: 10px;
+    .intro::before{
+      content:"";
+      position:absolute; top:0; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg, transparent, rgba(255,103,31,.4) 40%, rgba(255,103,31,.4) 60%, transparent);
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       [UPGRADED] PERSISTENT TOP NAVIGATION
-       Logo | Research | Brief | Quiz | ONDC | Install
-       Replaces the plain topbar with a full SaaS nav.
-    ═══════════════════════════════════════════════════════════ */
-    .app-topbar {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 10px;
-      padding: 10px 16px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.06);
-      background: rgba(13,13,13,.72);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 12px 32px rgba(0,0,0,.28);
-      min-width: 0; position: relative;
+    .intro-wrap{
+      width:100%;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      min-height: 0;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      flex: 1;
     }
-
-    /* Left: brand */
-    .app-topbar .nav-brand {
-      display: flex; align-items: center; gap: 10px; min-width: 0; flex-shrink: 0;
+    .intro-topbar{
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:10px;
+      padding: 0 2px 8px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      flex-wrap:wrap;
     }
-    .app-title { display: flex; flex-direction: column; min-width: 0; }
-    .app-title .k {
-      font-size: 11px; color: rgba(240,240,240,.55);
-      letter-spacing: .12em; text-transform: uppercase;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    .intro-brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 0;
+      flex: 1 1 260px;
+      flex-wrap:wrap;
     }
-    .app-title .t {
-      font-size: 15px; font-weight: 700; letter-spacing: .01em;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    .intro-logo{
+      width:32px; height:32px; border-radius:10px;
+      background:linear-gradient(135deg, #ff671f 0%, rgba(255,103,31,.2) 100%);
+      border:1px solid rgba(255,103,31,.3);
+      position:relative; flex-shrink:0;
     }
-
-    /* Centre: persistent nav links (hidden on small screens, see media query) */
-    .nav-links {
-      display: none;  /* shown at ≥ 740px */
-      align-items: center; gap: 2px;
+    .intro-logo::after{
+      content:""; position:absolute; inset:7px;
+      border-radius:5px; border:1.5px solid rgba(255,255,255,.18);
     }
-    .nav-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 11px; border-radius: 8px;
-      font-size: 12.5px; font-weight: 600; letter-spacing: .01em;
-      color: rgba(240,240,240,.72);
-      border: 1px solid transparent;
-      transition: color 140ms ease, background 140ms ease, border-color 140ms ease;
-      white-space: nowrap;
+    .intro-brand-text{
+      display:flex; flex-direction:column; gap:1px;
+      min-width: 140px;
+      flex: 1 1 auto;
     }
-    .nav-link:hover {
-      color: rgba(240,240,240,.96);
-      background: rgba(255,255,255,.06);
-      border-color: rgba(255,255,255,.08);
+    .intro-brand-text .ibrand-kicker{
+      font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+      color:rgba(240,240,240,.45);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    .nav-link.active {
-      color: rgba(255,140,60,.96);
-      background: rgba(255,103,31,.09);
-      border-color: rgba(255,103,31,.22);
+    .intro-brand-text .ibrand-name{
+      font-size:14px; font-weight:700; letter-spacing:.005em;
+      color:rgba(240,240,240,.92);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    .nav-link .nl-icon { font-size: 13px; opacity: .75; }
-
-    /* Right: actions */
-    .app-topbar .nav-actions {
-      display: flex; align-items: center; gap: 8px;
-      flex-wrap: nowrap; justify-content: flex-end; flex-shrink: 0;
+    .intro-ver{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 9px; border-radius:999px;
+      border:1px solid rgba(255,103,31,.2);
+      background:rgba(255,103,31,.07);
+      font-size:10px; font-weight:700; letter-spacing:.09em;
+      text-transform:uppercase; color:rgba(255,140,60,.82);
+      flex: 0 0 auto;
+      margin-left: 2px;
     }
-
-    /* Slide indicator pill */
-    .kbd {
-      padding: 5px 10px; border-radius: 8px;
-      background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.08);
-      color: rgba(240,240,240,.72); font-size: 11.5px; letter-spacing: .02em;
-      font-family: 'DM Mono', ui-monospace, monospace;
-      white-space: nowrap;
+    .intro-ver::before{
+      content:""; width:4px; height:4px; border-radius:50%;
+      background:var(--accent); box-shadow:0 0 5px rgba(255,103,31,.6);
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       SLIDES CONTAINER
-    ═══════════════════════════════════════════════════════════ */
-    .slides {
-      position: relative; border-radius: calc(var(--radius) + 4px);
-      border: 1px solid rgba(255,255,255,.055);
-      background: rgba(10,10,10,.3);
-      box-shadow: var(--shadow); overflow: hidden; min-height: 0;
+    .intro-topbar-right{
+      display:flex; align-items:center; gap:8px;
+      flex: 1 1 220px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
     }
-    .main-slide {
-      position: absolute; inset: 0;
-      padding: var(--pad);
-      display: flex; flex-direction: column; gap: var(--gap);
-      overflow: hidden; opacity: 0; pointer-events: none;
-      transform: translateY(12px);
-      transition: opacity 360ms ease, transform 360ms ease;
+    .intro-stage{
+      position:relative;
+      flex: 1;
+      min-height: 0;
+      border-radius: calc(var(--radius) + 2px);
+      border:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(16,16,16,.56), rgba(10,10,10,.72));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
     }
-    .main-slide.active  { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .main-slide.prev    { transform: translateY(-8px); }
-    .main-slide.next    { transform: translateY(8px); }
-
-    /* ═══════════════════════════════════════════════════════════
-       PANEL COMPONENT — increased padding
-    ═══════════════════════════════════════════════════════════ */
-    .panel {
-      border-radius: var(--radius);
-      background: rgba(15,15,15,.82);
-      border: 1px solid rgba(255,255,255,.055);
-      box-shadow: 0 10px 28px rgba(0,0,0,.28);
-      overflow: hidden; min-height: 0;
-      display: flex; flex-direction: column;
+    .intro-counter{
+      position:absolute; top:12px; right:12px;
+      font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+      color:rgba(240,240,240,.32);
+      font-family:'DM Mono', monospace;
+      display:flex; align-items:center; gap:6px;
+      z-index:3;
+      pointer-events:none;
     }
-    .panel-h {
-      padding: var(--pad) var(--pad) 14px;
-      border-bottom: 1px solid rgba(255,255,255,.055);
-      display: flex; align-items: flex-start;
-      justify-content: space-between; gap: var(--gap);
+    .intro-counter .ic-current{
+      color:rgba(255,140,60,.70);
+      font-size:13px;
+      font-weight:600;
     }
-    .panel-h h2 {
-      font-size: 20px; letter-spacing: -.015em;
-      display: flex; align-items: center; gap: 10px;
+    .intro-stage::before{
+      content:"";
+      position:absolute; left:0; top:10%; bottom:10%;
+      width:1px;
+      background:linear-gradient(180deg, transparent, rgba(255,103,31,.25) 40%, rgba(255,103,31,.25) 60%, transparent);
+      z-index:2; pointer-events:none;
     }
-    .panel-h h2 .tag {
-      font-size: 11px; padding: 4px 9px; border-radius: 999px;
-      border: 1px solid rgba(255,103,31,.3);
-      background: rgba(255,103,31,.10);
-      color: rgba(255,130,60,.92);
-      letter-spacing: .07em; text-transform: uppercase; font-weight: 700;
+    .intro-stage-scroll{
+      width:100%;
+      height:100%;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
+      padding: 18px 16px 16px;
     }
-    .panel-h .sub {
-      margin-top: 5px; color: rgba(240,240,240,.62);
-      font-size: 13px; line-height: 1.45; max-width: 72ch;
+    .intro-slide{ display:none; }
+    .intro-slide.active{ display:block; }
+    .slide-label{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:10.5px; font-weight:800; letter-spacing:.15em;
+      text-transform:uppercase; color:rgba(255,140,60,.78);
+      margin-bottom: 12px;
     }
-    .panel-b { padding: var(--pad); min-height: 0; }
-    .scrollable {
-      overflow: auto; -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
+    .slide-label::before{ content:""; width:18px; height:1px; background:rgba(255,103,31,.5); }
+    .slide-headline{
+      font-size: clamp(28px, 7.2vw, 50px);
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1.05;
+      margin: 0 0 10px;
+      max-width: 22ch;
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       GRID — increased gap
-    ═══════════════════════════════════════════════════════════ */
-    .grid {
-      display: grid;
+    .slide-headline .accent{ color:var(--accent); }
+    .slide-headline .dim{ color:rgba(240,240,240,.55); }
+    .slide-body{
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(240,240,240,.60);
+      max-width: 56ch;
+      margin: 0 0 14px;
+    }
+    .slide-body strong{ color: rgba(240,240,240,.84); font-weight:700; }
+    .intro-stats{
+      display:grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--gap);
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.06);
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       CARD COMPONENT — premium micro-interaction on hover
-    ═══════════════════════════════════════════════════════════ */
-    .card {
-      border-radius: var(--radius2);
-      border: 1px solid rgba(255,255,255,.055);
-      background: linear-gradient(180deg, rgba(16,16,16,.8), rgba(11,11,11,.88));
-      overflow: hidden; display: flex; flex-direction: column;
-      min-height: 0; box-shadow: var(--shadow-card);
-      /* [UPGRADED] smooth hover lift */
-      transition: transform 200ms cubic-bezier(.22,1,.36,1), border-color 200ms ease, box-shadow 200ms ease;
+    .intro-stat-item{
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+      display:flex; flex-direction:column; gap:6px;
+      min-width:0;
     }
-    .card:hover {
-      transform: translateY(-4px);  /* [UPGRADED] premium lift */
-      border-color: rgba(255,103,31,.20);
-      box-shadow: 0 16px 40px rgba(0,0,0,.38), 0 0 0 1px rgba(255,103,31,.08);
+    .intro-stat-item .stat-num{
+      font-size: clamp(18px, 4.5vw, 26px);
+      font-weight: 900;
+      letter-spacing: -.02em;
+      line-height: 1;
     }
-    .card:active { transform: translateY(-1px); }
-
-    .thumb {
-      width: 100%; aspect-ratio: 16 / 10;
-      object-fit: cover; display: block;
-      background: rgba(0,0,0,.3);
-      border-bottom: 1px solid rgba(255,255,255,.045);
+    .intro-stat-item .stat-lab{
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(240,240,240,.48);
     }
-    .card-c {
-      padding: var(--pad-sm) 14px 14px;
-      display: flex; flex-direction: column; gap: 7px; min-height: 0;
+    .intro-stat-item .stat-hint{
+      font-size: 11px;
+      color: rgba(240,240,240,.35);
+      line-height: 1.35;
     }
-    .card-title {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 8px;
-    }
-    .card-title h3 {
-      font-size: 14px; font-weight: 700;
-      min-width: 0; overflow: hidden;
-      text-overflow: ellipsis; white-space: nowrap;
-    }
-    .chip {
-      font-size: 11px; padding: 4px 8px; border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(0,0,0,.22); color: rgba(240,240,240,.68);
-      white-space: nowrap;
-    }
-    .chip.accent {
-      border-color: rgba(255,103,31,.3);
-      background: rgba(255,103,31,.10);
-      color: rgba(255,140,60,.88); font-weight: 700;
-    }
-    .card-c p {
-      color: rgba(240,240,240,.65); font-size: 12px;
-      line-height: 1.4; min-height: 30px;
-    }
-    .card-foot {
-      margin-top: 4px; display: flex; align-items: center;
-      justify-content: space-between; gap: 10px;
-      color: rgba(240,240,240,.58); font-size: 12px;
-    }
-    .card-foot .arrow {
-      color: rgba(255,103,31,.85); font-weight: 800; letter-spacing: .02em;
-      transition: transform 150ms ease;
-    }
-    .card:hover .card-foot .arrow { transform: translateX(3px); }
-
-    model-viewer {
-      width: 100%; height: auto; aspect-ratio: 16 / 10;
-      background: rgba(0,0,0,.3);
-      border-bottom: 1px solid rgba(255,255,255,.045);
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       [UPGRADED] HOME SLIDE LAYOUT — reduced cognitive load
-       Focus: headline + subheadline + 2 CTAs
-    ═══════════════════════════════════════════════════════════ */
-    .home-hero {
-      display: flex; flex-direction: column; gap: 20px;
-    }
-    .home-hero-text h1 {
-      font-size: 30px; font-weight: 800; letter-spacing: -.02em;
-      line-height: 1.08; margin-bottom: 10px;
-    }
-    .home-hero-text h1 .accent { color: var(--accent); }
-    .home-hero-text .sub {
-      font-size: 14px; color: rgba(240,240,240,.68);
-      line-height: 1.55; max-width: 60ch;
-    }
-    .home-ctas {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    }
-
-    /* [UPGRADED] Quick reference panel in home */
-    .home-quick {
-      display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap);
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       FORMS — increased padding
-    ═══════════════════════════════════════════════════════════ */
-    .form { display: grid; gap: 14px; max-width: 720px; }
-    .row2 { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    .field label {
-      display: block; font-size: 12px; font-weight: 600;
-      color: rgba(240,240,240,.68); margin-bottom: 7px;
-      letter-spacing: .02em;
-    }
-    .field input, .field textarea, .field select {
-      width: 100%; padding: 12px 14px;
-      border-radius: var(--radius3);
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(0,0,0,.22); outline: none;
-      color: rgba(240,240,240,.94); font-size: 14px;
-    }
-    .field input:focus, .field textarea:focus, .field select:focus {
-      border-color: rgba(255,103,31,.4);
-      box-shadow: 0 0 0 3px rgba(255,103,31,.12);
-    }
-    .field textarea { min-height: 96px; resize: vertical; }
-    .help { font-size: 12.5px; color: rgba(240,240,240,.58); line-height: 1.45; }
-    .submitRow {
-      display: flex; align-items: center; gap: 10px;
-      flex-wrap: wrap; margin-top: 4px;
-    }
-    .status { font-size: 12px; color: rgba(240,240,240,.68); }
-    .status.ok  { color: rgba(0,230,118,.92); }
-    .status.bad { color: rgba(255,103,31,.92); }
-
-    /* ═══════════════════════════════════════════════════════════
-       BOTTOM NAV — [UPGRADED] cleaner layout
-    ═══════════════════════════════════════════════════════════ */
-    .app-nav {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 10px;
-      padding: 10px 14px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.055);
-      background: rgba(13,13,13,.72);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    .intro-bottom{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px;
+      padding: 8px 2px 0;
+      border-top:1px solid rgba(255,255,255,.05);
       flex-wrap: wrap;
     }
-    .nav-left  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .nav-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; flex: 1; flex-wrap: wrap; }
-    .nav-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 7px; padding: 9px 13px; border-radius: 9px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(0,0,0,.22); color: rgba(240,240,240,.86);
-      font-weight: 600; font-size: 12px; letter-spacing: .02em;
-      transition: transform 130ms ease, filter 130ms ease, border-color 130ms ease;
-      user-select: none; -webkit-user-select: none; white-space: nowrap;
+    .intro-dots{ display:flex; align-items:center; gap:10px; flex: 0 0 auto; }
+    .intro-dot{
+      position:relative;
+      width:26px; height:3px;
+      border-radius:99px;
+      overflow:hidden;
+      background:rgba(255,255,255,.10);
+      cursor:pointer;
+      transition:background 200ms ease, width 200ms ease;
+      border:none; padding:0;
     }
-    .nav-btn:hover  { filter: brightness(1.1); border-color: rgba(255,255,255,.16); }
-    .nav-btn:active { transform: translateY(1px); }
-    .nav-btn.primary {
-      background: rgba(255,103,31,.11); border-color: rgba(255,103,31,.3);
-      color: rgba(255,140,60,.92); font-weight: 700;
+    .intro-dot.active{ background:rgba(255,103,31,.2); width:38px; }
+    .intro-dot:hover{ background:rgba(255,255,255,.18); }
+    .intro-dot .dot-prog{
+      position:absolute; inset:0; width:0%;
+      background:rgba(255,103,31,.85); border-radius:99px;
     }
-    .nav-btn.primary:hover { background: rgba(255,103,31,.18); }
-    .nav-btn.muted { color: rgba(240,240,240,.65); }
-
-    /* ═══════════════════════════════════════════════════════════
-       QUICK PANEL
-    ═══════════════════════════════════════════════════════════ */
-    .qp {
-      position: fixed; inset: 0; z-index: 40;
-      background: rgba(0,0,0,.5);
-      display: none; align-items: flex-end; justify-content: center;
-      padding:
-        calc(12px + var(--safeTop))
-        calc(12px + var(--safeRight))
-        calc(12px + var(--safeBottom))
-        calc(12px + var(--safeLeft));
+    .intro-controls{
+      display:flex; align-items:center; gap:6px;
+      flex: 1 1 260px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
     }
-    .qp.open { display: flex; }
-    .qp-card {
-      width: min(980px, 100%); max-height: min(76vh, 620px);
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: linear-gradient(180deg, rgba(16,16,16,.94), rgba(10,10,10,.96));
-      box-shadow: 0 24px 60px rgba(0,0,0,.55);
-      overflow: hidden; display: flex; flex-direction: column;
+    .intro-ctrl-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:8px 10px; border-radius:9px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:rgba(240,240,240,.74);
+      font-size:11px; font-weight:800; letter-spacing:.04em;
+      text-transform:uppercase;
+      transition:background 130ms ease, color 130ms ease, border-color 130ms ease, transform 130ms ease;
+      white-space:nowrap;
     }
-    .qp-head {
-      padding: 14px 18px;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; border-bottom: 1px solid rgba(255,255,255,.07);
-      user-select: none; -webkit-user-select: none;
+    .intro-ctrl-btn:hover{ background:rgba(255,255,255,.08); color:rgba(240,240,240,.95); border-color:rgba(255,255,255,.14); }
+    .intro-ctrl-btn:active{ transform:translateY(1px); }
+    .intro-cta-btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:11px;
+      background:linear-gradient(135deg, rgba(255,103,31,.95), rgba(255,103,31,.55));
+      border:1px solid rgba(255,103,31,.4);
+      color:#0c0c0c; font-weight: 950; font-size:12px; letter-spacing:.04em;
+      text-transform:uppercase;
+      transition:filter 130ms ease, transform 130ms ease;
+      white-space:nowrap;
     }
-    .qp-head .ttl { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .qp-head .ttl strong {
-      font-size: 13px; letter-spacing: .10em; text-transform: uppercase;
-      color: rgba(255,130,60,.92); white-space: nowrap;
-      overflow: hidden; text-overflow: ellipsis;
+    .intro-cta-btn:hover{ filter:brightness(1.08); }
+    .intro-cta-btn:active{ transform:translateY(1px); filter:brightness(.94); }
+    .intro-cta-btn .cta-arrow{ font-size:16px; font-weight:400; }
+    @media (max-width: 360px){
+      .intro-controls{ justify-content:space-between; }
+      .intro-cta-btn{ width: 100%; justify-content:center; }
     }
-    .qp-head .ttl span {
-      font-size: 12px; color: rgba(240,240,240,.65);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .qp-body { padding: 16px 18px; min-height: 0; }
-    .qp-grid { display: grid; grid-template-columns: 1fr; gap: var(--gap); }
-
-    .mini {
-      border-radius: var(--radius2);
-      border: 1px solid rgba(255,255,255,.07);
-      background: rgba(0,0,0,.22); padding: 14px; min-height: 0;
-    }
-    .mini h4 { margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .01em; }
-    .mini p  { margin: 0; font-size: 12px; line-height: 1.5; color: rgba(240,240,240,.65); }
-
-    .mono {
-      font-family: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 12px;
-    }
-    .kv {
-      display: grid; grid-template-columns: 110px 1fr;
-      gap: 8px 10px; align-items: center;
-    }
-    .kv div {
-      padding: 6px 9px; border-radius: 9px;
-      background: rgba(0,0,0,.2);
-      border: 1px solid rgba(255,255,255,.055);
-      min-width: 0; overflow: hidden;
-      text-overflow: ellipsis; white-space: nowrap;
-    }
-    .kv .k { color: rgba(240,240,240,.58); border-color: rgba(255,255,255,.045); }
-
-    /* ═══════════════════════════════════════════════════════════
-       [UPGRADED] AUTHORITY FOOTER
-       "Structured Decision Infrastructure · Built for IndiaAI era"
-    ═══════════════════════════════════════════════════════════ */
-    .authority-line {
-      text-align: center; font-size: 11px;
-      color: rgba(240,240,240,.28); letter-spacing: .08em;
-      text-transform: uppercase; padding: 4px 0 0;
-      pointer-events: none; user-select: none;
-      /* sits inside app-nav as a full-width row via flex-wrap */
-      width: 100%; flex-basis: 100%; order: 99;
-    }
-    .authority-line span { color: rgba(255,103,31,.4); }
-
-    /* ═══════════════════════════════════════════════════════════
-       RESPONSIVE
-    ═══════════════════════════════════════════════════════════ */
-    @media (min-width: 740px) {
-      .nav-links { display: flex; }
-    }
-    @media (min-width: 900px) {
-      .intro-slide { padding: 32px; }
-      .intro-slide h1 { font-size: 36px; }
-      .intro-slide > p { font-size: 15px; }
-      .intro-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
-      .main-slide { padding: 22px; }
-      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .row2 { grid-template-columns: 1fr 1fr; }
-      .qp { align-items: center; }
-      .qp-grid { grid-template-columns: 1.2fr .8fr; }
-      .home-quick { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (min-width: 1200px) {
-      .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @media (min-width: 740px){
+      .intro-stats{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       REDUCED MOTION
-    ═══════════════════════════════════════════════════════════ */
-    @media (prefers-reduced-motion: reduce) {
-      .intro-slide, .main-slide, .btn, .nav-btn, .card { transition: none !important; }
-      .install-btn { animation: none !important; }
-      .install-btn .ib-icon { animation: none !important; }
-      .card:hover { transform: none !important; }
+    :focus-visible{
+      outline: 2px solid rgba(255,103,31,.65);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       APP SHELL
+       (Mobile fixes are inside the MOBILE FIX section below)
+    ══════════════════════════════════════════════════════════ */
+    .app{
+      position:fixed; inset:0; z-index:1; overflow:hidden;
+      padding: calc(12px + var(--safeTop)) calc(12px + var(--safeRight)) calc(12px + var(--safeBottom)) calc(12px + var(--safeLeft));
+      user-select:text; -webkit-user-select:text; touch-action:pan-y;
+    }
+    .app-shell{
+      height:100%; max-width:var(--maxw); margin:0 auto;
+      display:grid; grid-template-rows:auto 1fr auto; gap:10px;
+      min-height:0;
+    }
+
+    .app-topbar{
+      display:flex; align-items:center;
+      justify-content:space-between; gap:10px;
+      padding:10px 16px;
+      border-radius:var(--radius);
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(13,13,13,.72);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 12px 32px rgba(0,0,0,.28);
+      min-width:0;
+    }
+    .app-topbar .nav-brand{ display:flex; align-items:center; gap:10px; min-width:0; flex-shrink:0; }
+    .app-title{ display:flex; flex-direction:column; min-width:0; }
+    .app-title .k{
+      font-size:11px; color:rgba(240,240,240,.5); letter-spacing:.12em;
+      text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .app-title .t{
+      font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .nav-links{ display:none; align-items:center; gap:2px; }
+    .nav-link{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 11px; border-radius:8px;
+      font-size:12.5px; font-weight:600;
+      color:rgba(240,240,240,.68); border:1px solid transparent;
+      transition:color 140ms ease, background 140ms ease, border-color 140ms ease;
+      white-space:nowrap;
+    }
+    .nav-link:hover{ color:rgba(240,240,240,.96); background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.08); }
+    .nav-link .nl-icon{ font-size:13px; opacity:.75; }
+    .nav-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+    .kbd{
+      padding:5px 10px; border-radius:8px;
+      background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.08);
+      color:rgba(240,240,240,.72); font-size:11.5px;
+      font-family:'DM Mono', monospace; white-space:nowrap;
+    }
+
+    .slides{
+      position:relative; border-radius: calc(var(--radius) + 4px);
+      border:1px solid rgba(255,255,255,.055);
+      background:rgba(10,10,10,.3);
+      box-shadow: var(--shadow);
+      overflow:hidden; min-height:0;
+    }
+    .main-slide{
+      position:absolute; inset:0;
+      padding:20px;
+      display:flex; flex-direction:column; gap:var(--gap);
+      overflow:hidden; opacity:0; pointer-events:none;
+      transform:translateY(12px);
+      transition:opacity 360ms ease, transform 360ms ease;
+      min-height:0;
+    }
+    .main-slide.active{ opacity:1; pointer-events:auto; transform:translateY(0); }
+    .main-slide.prev{ transform:translateY(-8px); }
+    .main-slide.next{ transform:translateY(8px); }
+
+    .panel{
+      border-radius:var(--radius); background:rgba(15,15,15,.82);
+      border:1px solid rgba(255,255,255,.055);
+      box-shadow:0 10px 28px rgba(0,0,0,.28);
+      overflow:hidden; min-height:0; display:flex; flex-direction:column;
+    }
+    .panel-h{
+      padding:20px 20px 14px;
+      border-bottom:1px solid rgba(255,255,255,.055);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:var(--gap);
+      min-width:0;
+    }
+    .panel-h h2{
+      font-size:20px;
+      display:flex; align-items:flex-start; gap:10px;
+      margin:0;
+      min-width:0;
+      flex-wrap:wrap;
+      line-height:1.15;
+      word-break:break-word;
+    }
+    .panel-h h2 .tag{
+      font-size:11px; padding:4px 9px; border-radius:999px;
+      border:1px solid rgba(255,103,31,.3); background:rgba(255,103,31,.10);
+      color:rgba(255,130,60,.92); letter-spacing:.07em; text-transform:uppercase; font-weight:800;
+      white-space:nowrap;
+    }
+    .panel-h .sub{
+      margin-top:6px;
+      color:rgba(240,240,240,.58);
+      font-size:13px;
+      line-height:1.45;
+      word-break:break-word;
+    }
+    .panel-b{ padding:20px; min-height:0; }
+    .scrollable{ overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+
+    .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:var(--gap); }
+
+    .card{
+      border-radius:var(--radius2);
+      border:1px solid rgba(255,255,255,.055);
+      background:linear-gradient(180deg, rgba(16,16,16,.8), rgba(11,11,11,.88));
+      overflow:hidden; display:flex; flex-direction:column;
+      min-height:0; box-shadow: var(--shadow-card);
+      transition:transform 200ms cubic-bezier(.22,1,.36,1), border-color 200ms ease, box-shadow 200ms ease;
+    }
+    .card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(255,103,31,.20);
+      box-shadow:0 16px 40px rgba(0,0,0,.38), 0 0 0 1px rgba(255,103,31,.08);
+    }
+    .card:active{ transform:translateY(-1px); }
+    .thumb{
+      width:100%; aspect-ratio:16/10; object-fit:cover; display:block;
+      background:rgba(0,0,0,.3); border-bottom:1px solid rgba(255,255,255,.045);
+    }
+    .card-c{ padding:12px 14px 14px; display:flex; flex-direction:column; gap:7px; min-height:0; }
+    .card-title{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .card-title h3{ font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; }
+    .chip{
+      font-size:11px; padding:4px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(0,0,0,.22); color:rgba(240,240,240,.68); white-space:nowrap;
+    }
+    .chip.accent{ border-color:rgba(255,103,31,.3); background:rgba(255,103,31,.10); color:rgba(255,140,60,.88); font-weight:800; }
+    .card-c p{ color:rgba(240,240,240,.6); font-size:12px; line-height:1.4; min-height:30px; margin:0; }
+    .card-foot{ margin-top:4px; display:flex; align-items:center; justify-content:space-between; gap:10px; color:rgba(240,240,240,.55); font-size:12px; }
+    .card-foot .arrow{ color:rgba(255,103,31,.85); font-weight:900; transition:transform 150ms ease; }
+    .card:hover .card-foot .arrow{ transform:translateX(3px); }
+
+    model-viewer{
+      width:100%; height:auto; aspect-ratio:16/10;
+      background:rgba(0,0,0,.3); border-bottom:1px solid rgba(255,255,255,.045);
+    }
+
+    .home-hero{ display:flex; flex-direction:column; gap:18px; min-width:0; }
+    .home-hero-text{ min-width:0; }
+    /* FIX: headline must never overflow on mobile */
+    .home-hero-text h1{
+      font-size: clamp(22px, 7.2vw, 32px);
+      font-weight:900;
+      letter-spacing:-.02em;
+      line-height:1.08;
+      margin:0 0 8px;
+      max-width: 100%;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      hyphens:auto;
+    }
+    .home-hero-text h1 .accent{ color:var(--accent); }
+    .home-hero-text .sub{
+      font-size:14px;
+      color:rgba(240,240,240,.62);
+      line-height:1.55;
+      margin:0;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .home-ctas{ display:flex; align-items:stretch; gap:10px; flex-wrap:wrap; }
+    /* FIX: buttons wrap and never overflow */
+    .home-ctas .btn{ flex: 1 1 160px; }
+
+    .home-quick{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); min-width:0; }
+
+    .form{ display:grid; gap:14px; max-width:720px; }
+    .row2{ display:grid; grid-template-columns:1fr; gap:14px; }
+    .field label{ display:block; font-size:12px; font-weight:600; color:rgba(240,240,240,.65); margin-bottom:7px; }
+    .field input, .field textarea, .field select{
+      width:100%; padding:12px 14px; border-radius:var(--radius3);
+      border:1px solid rgba(255,255,255,.09); background:rgba(0,0,0,.22);
+      outline:none; color:rgba(240,240,240,.94); font-size:14px;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus{
+      border-color:rgba(255,103,31,.4); box-shadow:0 0 0 3px rgba(255,103,31,.12);
+    }
+    .field textarea{ min-height:96px; resize:vertical; }
+    .help{ font-size:12.5px; color:rgba(240,240,240,.55); line-height:1.45; }
+    .submitRow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:4px; }
+    .status{ font-size:12px; color:rgba(240,240,240,.65); }
+    .status.ok{ color:rgba(0,230,118,.92); }
+    .status.bad{ color:rgba(255,103,31,.92); }
+
+    .mini{
+      border-radius:var(--radius2); border:1px solid rgba(255,255,255,.07);
+      background:rgba(0,0,0,.22); padding:14px;
+      min-width:0;
+    }
+    .mini h4{ margin:0 0 10px; font-size:13px; font-weight:800; }
+    .mini p{ margin:0; font-size:12px; line-height:1.5; color:rgba(240,240,240,.62); }
+    .mono{ font-family:'DM Mono', monospace; font-size:12px; }
+    .kv{ display:grid; grid-template-columns:110px 1fr; gap:8px 10px; align-items:center; }
+    .kv div{ padding:6px 9px; border-radius:9px; background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.055); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .kv .k{ color:rgba(240,240,240,.55); border-color:rgba(255,255,255,.04); }
+
+    .app-nav{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 14px; border-radius:var(--radius);
+      border:1px solid rgba(255,255,255,.055);
+      background:rgba(13,13,13,.72);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 12px 32px rgba(0,0,0,.28);
+      flex-wrap:wrap;
+      min-width:0;
+    }
+    .nav-left{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .nav-right{ display:flex; align-items:center; gap:8px; justify-content:flex-end; flex:1; flex-wrap:wrap; min-width:0; }
+
+    .nav-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:7px; padding:9px 13px; border-radius:9px;
+      border:1px solid rgba(255,255,255,.09); background:rgba(0,0,0,.22);
+      color:rgba(240,240,240,.86); font-weight:700; font-size:12px;
+      transition:transform 130ms ease, filter 130ms ease, border-color 130ms ease;
+      user-select:none; white-space:nowrap;
+      max-width:100%;
+    }
+    .nav-btn:hover{ filter:brightness(1.06); border-color:rgba(255,255,255,.16); }
+    .nav-btn:active{ transform:translateY(1px); }
+    .nav-btn.primary{ background:rgba(255,103,31,.11); border-color:rgba(255,103,31,.3); color:rgba(255,140,60,.92); font-weight:900; }
+    .nav-btn.primary:hover{ background:rgba(255,103,31,.18); }
+    .nav-btn.muted{ color:rgba(240,240,240,.62); }
+
+    .authority-line{
+      text-align:center; font-size:10.5px; color:rgba(240,240,240,.25);
+      letter-spacing:.09em; text-transform:uppercase; padding:4px 0 0;
+      pointer-events:none; user-select:none; width:100%; flex-basis:100%; order:99;
+    }
+    .authority-line span{ color:rgba(255,103,31,.35); }
+
+    .qp{
+      position:fixed; inset:0; z-index:40;
+      background:rgba(0,0,0,.5);
+      display:none; align-items:flex-end; justify-content:center;
+      padding: calc(12px + var(--safeTop)) calc(12px + var(--safeRight)) calc(12px + var(--safeBottom)) calc(12px + var(--safeLeft));
+    }
+    .qp.open{ display:flex; }
+    .qp-card{
+      width:min(980px, 100%); max-height:min(76vh, 620px);
+      border-radius:20px; border:1px solid rgba(255,255,255,.09);
+      background:linear-gradient(180deg, rgba(16,16,16,.94), rgba(10,10,10,.96));
+      box-shadow:0 24px 60px rgba(0,0,0,.55);
+      overflow:hidden; display:flex; flex-direction:column;
+    }
+    .qp-head{
+      padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+      gap:12px; border-bottom:1px solid rgba(255,255,255,.07);
+      user-select:none;
+    }
+    .qp-head .ttl{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .qp-head .ttl strong{ font-size:13px; letter-spacing:.10em; text-transform:uppercase; color:rgba(255,130,60,.92); }
+    .qp-head .ttl span{ font-size:12px; color:rgba(240,240,240,.62); }
+    .qp-body{ padding:16px 18px; min-height:0; }
+    .qp-grid{ display:grid; grid-template-columns:1fr; gap:var(--gap); }
+
+    /* =========================
+       MOBILE FIX SECTION
+       ========================= */
+
+    /* Fix the exact issue from your screenshot:
+       - big headline / long words clipped
+       - tighter spacing
+       - bottom nav not huge empty gaps
+    */
+    @media (max-width: 520px){
+      .app{ padding: calc(10px + var(--safeTop)) calc(10px + var(--safeRight)) calc(10px + var(--safeBottom)) calc(10px + var(--safeLeft)); }
+      .app-topbar{
+        padding:10px 12px;
+        flex-wrap:wrap;
+        align-items:flex-start;
+      }
+      .nav-actions{
+        width:100%;
+        justify-content:flex-end;
+        flex-wrap:wrap;
+        gap:8px;
+      }
+      .main-slide{ padding:12px; }
+      .panel-h{ padding:16px 14px 12px; flex-direction:column; align-items:flex-start; }
+      .panel-b{ padding:14px; }
+      .home-ctas .btn{ flex: 1 1 100%; } /* stack buttons like a proper mobile hero */
+      .home-quick{ grid-template-columns:1fr; } /* stop the “half cards” */
+      .grid{ grid-template-columns:1fr; } /* products: 1 column on mobile */
+      .nav-right{ justify-content:flex-start; }
+      .authority-line{ padding-top:6px; }
+    }
+
+    @media (max-width: 380px){
+      .kbd{ padding:4px 8px; font-size:11px; }
+      .app-title .t{ font-size:14px; }
+      .nav-btn{ padding:8px 11px; }
+    }
+
+    @media (min-width: 740px){
+      .nav-links{ display:flex; }
+    }
+    @media (min-width: 900px){
+      .main-slide{ padding:22px; }
+      .grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
+      .row2{ grid-template-columns:1fr 1fr; }
+      .qp{ align-items:center; }
+      .qp-grid{ grid-template-columns:1.2fr .8fr; }
+      .home-quick{ grid-template-columns:repeat(2, 1fr); }
+    }
+    @media (min-width: 1200px){
+      .grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .install-btn{ animation:none !important; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ══════════════════════════════════════════════════════════
-       INTRO OVERLAY
-       [UPGRADED] Reduced glow, refined typography, hero slide
-       focuses on clear headline + 2 CTAs, authority signals.
-  ══════════════════════════════════════════════════════════ -->
-  <div class="intro" id="intro" aria-label="Intro cinematic">
-    <div class="intro-shell">
-
-      <!-- ── Top bar ── -->
-      <div class="intro-top">
-        <div class="brand" aria-label="ViaDecide">
-          <div class="brand-badge" aria-hidden="true"></div>
-          <div class="brand-text">
-            <div class="kicker">India's decision engine</div>
-            <div class="title">viadecide.com</div>
+  <!-- INTRO -->
+  <div class="intro" id="intro" aria-label="Intro screen">
+    <div class="intro-wrap">
+      <div class="intro-topbar">
+        <div class="intro-brand" aria-label="ViaDecide">
+          <div class="intro-logo" aria-hidden="true"></div>
+          <div class="intro-brand-text">
+            <div class="ibrand-kicker">India's decision engine</div>
+            <div class="ibrand-name">viadecide.com</div>
           </div>
-          <!-- [UPGRADED] version badge -->
-          <div class="ver-badge" aria-label="Version 1.0 Public Beta">v1.0 Beta</div>
+          <div class="intro-ver" aria-label="Version 1.0 Beta">v1.0 Beta</div>
         </div>
 
-        <div class="intro-cta">
-          <div class="pill" title="Affiliate tag for this session">
-            <span>Tag</span><strong id="affTagPill">viadecide</strong>
-          </div>
-
-          <!--
-            INSTALL BUTTON A — INTRO OVERLAY
-            [UPGRADED] Shows "App Installed ✓" when installed.
-            Hidden when already in standalone mode.
-          -->
-          <button
-            class="install-btn install-btn-intro"
-            id="installBtnIntro"
-            type="button"
-            aria-label="Install ViaDecide as an app"
-            
-            
-          >
-            <span class="ib-icon" aria-hidden="true">⬇</span>
-            INSTALL APP
+        <div class="intro-topbar-right">
+          <button class="install-btn" id="installBtnIntro" type="button"
+            style="padding:8px 13px;font-size:11px;" aria-label="Install ViaDecide as an app">
+            <span class="ib-icon" aria-hidden="true">⬇</span> INSTALL
           </button>
 
-          <button class="btn small ghost" id="introOpenQP" type="button" aria-label="Open quick panel">
+          <button class="btn small ghost" id="introOpenQP" type="button"
+            style="font-size:11px;padding:8px 12px;" aria-label="Quick panel">
             QUICK PANEL
           </button>
         </div>
       </div>
 
-      <!-- ── Slide stage ── -->
-      <div class="intro-stage" role="region" aria-label="Intro slides">
-        <div class="intro-slides" id="introSlides">
+      <div class="intro-stage" role="region" aria-label="Intro slides" aria-live="polite">
+        <div class="intro-counter" aria-hidden="true">
+          <span class="ic-current" id="introCountCurrent">01</span>
+          <span>/ 03</span>
+        </div>
 
-          <!--
-            SLIDE 0 — [UPGRADED] Reduced cognitive overload.
-            Focus: headline "Decision Infrastructure for Bharat"
-            + subheadline + 2 CTAs. Stats moved to supporting grid.
-          -->
+        <div class="intro-stage-scroll" id="introStageScroll">
           <div class="intro-slide active" data-idx="0">
-            <h1>
-              <span class="accent">Decision Infrastructure</span><br>for Bharat.
+            <div class="slide-label">Decision Infrastructure</div>
+            <h1 class="slide-headline">
+              <span class="accent">Structured</span> intelligence<br>
+              <span class="dim">for every</span> Indian.
             </h1>
-            <p>
-              Structured research → synthesis → decision.<br>
-              Policy-grade intelligence for students, founders, farmers, and officials.
+            <p class="slide-body">
+              Research → synthesis → decision. <strong>Policy-grade intelligence</strong> for students, founders, farmers &amp; officials.
             </p>
-            <div class="intro-grid" aria-label="Intro stats">
-              <div class="intro-stat">
-                <div class="num" id="statDecisions">0</div>
-                <div class="lab">Decisions / day</div>
-                <div class="hint">Across school, health, business, policy.</div>
+            <div class="intro-stats" aria-label="Key stats">
+              <div class="intro-stat-item">
+                <div class="stat-num" id="statDecisions">0</div>
+                <div class="stat-lab">Decisions / day</div>
+                <div class="stat-hint">School · health · business · policy</div>
               </div>
-              <div class="intro-stat">
-                <div class="num" id="statLang">0</div>
-                <div class="lab">Indian languages</div>
-                <div class="hint">Multilingual-first research layer.</div>
+              <div class="intro-stat-item">
+                <div class="stat-num" id="statLang">0</div>
+                <div class="stat-lab">Indian languages</div>
+                <div class="stat-hint">Multilingual-first research</div>
               </div>
-              <div class="intro-stat">
-                <div class="num" id="statDistricts">0</div>
-                <div class="lab">Districts covered</div>
-                <div class="hint">Nation-scale coverage target.</div>
+              <div class="intro-stat-item">
+                <div class="stat-num" id="statDistricts">0</div>
+                <div class="stat-lab">Districts covered</div>
+                <div class="stat-hint">Nation-scale coverage</div>
               </div>
-              <div class="intro-stat">
-                <div class="num" id="statTools">0</div>
-                <div class="lab">AI tools for Bharat</div>
-                <div class="hint">Research → brief → decide.</div>
+              <div class="intro-stat-item">
+                <div class="stat-num" id="statTools">0</div>
+                <div class="stat-lab">AI tools for Bharat</div>
+                <div class="stat-hint">Research → brief → decide</div>
               </div>
             </div>
           </div>
 
-          <!-- SLIDE 1 — Decision Research Layer -->
           <div class="intro-slide" data-idx="1">
-            <h1>The engine is a <span class="accent">Decision Research Layer</span>.</h1>
-            <p>Multi-source intelligence, synthesis, and export — designed for everyone. No fluff. Structured decisions.</p>
-            <div class="intro-grid">
-              <div class="intro-stat">
-                <div class="num">Research</div>
-                <div class="lab">Multi-source</div>
-                <div class="hint">Wikipedia · Wikivoyage · Wikibooks · Wikinews</div>
+            <div class="slide-label">Research Engine</div>
+            <h1 class="slide-headline">
+              Multi-source.<br>
+              <span class="accent">Synthesized.</span><br>
+              <span class="dim">Decision-ready.</span>
+            </h1>
+            <p class="slide-body">
+              One query. Four sources — <strong>Wikipedia, Wikivoyage, Wikibooks, Wikinews</strong>. One structured brief.
+            </p>
+            <div class="intro-stats">
+              <div class="intro-stat-item">
+                <div class="stat-num">Research</div>
+                <div class="stat-lab">Multi-source</div>
+                <div class="stat-hint">Structured query → 4 sources</div>
               </div>
-              <div class="intro-stat">
-                <div class="num">Synthesize</div>
-                <div class="lab">Thesis &amp; contradictions</div>
-                <div class="hint">Capture takeaways and implications.</div>
+              <div class="intro-stat-item">
+                <div class="stat-num">Synthesize</div>
+                <div class="stat-lab">Thesis extraction</div>
+                <div class="stat-hint">Takeaways + contradictions</div>
               </div>
-              <div class="intro-stat">
-                <div class="num">Export</div>
-                <div class="lab">Policy-grade briefs</div>
-                <div class="hint">PDF + share links (context embedded).</div>
+              <div class="intro-stat-item">
+                <div class="stat-num">Export</div>
+                <div class="stat-lab">Policy briefs</div>
+                <div class="stat-hint">PDF + sharable links</div>
               </div>
-              <div class="intro-stat">
-                <div class="num">Quiz</div>
-                <div class="lab">Alchemist</div>
-                <div class="hint">Assessments generated from research nodes.</div>
+              <div class="intro-stat-item">
+                <div class="stat-num">Quiz</div>
+                <div class="stat-lab">Alchemist</div>
+                <div class="stat-hint">From research to assessment</div>
               </div>
             </div>
           </div>
 
-          <!-- SLIDE 2 — Mission -->
           <div class="intro-slide" data-idx="2">
-            <h1>Built <span class="accent">with India</span>. Not for India.</h1>
-            <p>Open, attributed, multilingual — designed to scale from a village in Vidarbha to the corridors of Raisina Hill.</p>
-            <div class="intro-quote">
-              "To give every Indian the same structured decision intelligence that a policy advisor uses —
-              in any language, on any device, for any decision."
-              <div style="margin-top:10px;color:rgba(240,240,240,.52);font-size:12px;">
-                viadecide.com — Mission statement
+            <div class="slide-label">Our Mission</div>
+            <h1 class="slide-headline">
+              Built<br>
+              <span class="accent">with</span> India.<br>
+              <span class="dim">Not for</span> India.
+            </h1>
+            <p class="slide-body">
+              Open, attributed, multilingual — from a village in <strong>Vidarbha</strong> to the corridors of <strong>Raisina Hill</strong>.
+            </p>
+            <div class="intro-stats">
+              <div class="intro-stat-item">
+                <div class="stat-num">Sovereign</div>
+                <div class="stat-lab">IndiaAI aligned</div>
+                <div class="stat-hint">Responsible AI foundations</div>
+              </div>
+              <div class="intro-stat-item">
+                <div class="stat-num">Inclusive</div>
+                <div class="stat-lab">Universal access</div>
+                <div class="stat-hint">Designed for everyone</div>
+              </div>
+              <div class="intro-stat-item">
+                <div class="stat-num">Bharat-first</div>
+                <div class="stat-lab">Multilingual</div>
+                <div class="stat-hint">Local context matters</div>
+              </div>
+              <div class="intro-stat-item">
+                <div class="stat-num">Policy-grade</div>
+                <div class="stat-lab">Structured</div>
+                <div class="stat-hint">Intelligence, not hype</div>
               </div>
             </div>
-            <div class="intro-grid" style="margin-top:14px;">
-              <div class="intro-stat"><div class="num">Sovereign</div><div class="lab">IndiaAI aligned</div><div class="hint">Responsible AI foundations.</div></div>
-              <div class="intro-stat"><div class="num">Inclusive</div><div class="lab">Accessible</div><div class="hint">Designed for everyone.</div></div>
-              <div class="intro-stat"><div class="num">Bharat-first</div><div class="lab">Multilingual</div><div class="hint">Local context matters.</div></div>
-              <div class="intro-stat"><div class="num">Policy-grade</div><div class="lab">Structured</div><div class="hint">Decision intelligence, not hype.</div></div>
-            </div>
           </div>
-
         </div>
       </div>
 
-      <!-- ── Bottom actions ── -->
-      <div class="intro-actions">
-        <div class="dots" id="introDots" aria-label="Intro progress dots">
-          <button class="dot active" type="button" data-dot="0" aria-label="Intro slide 1"><span class="prog"></span></button>
-          <button class="dot"        type="button" data-dot="1" aria-label="Intro slide 2"><span class="prog"></span></button>
-          <button class="dot"        type="button" data-dot="2" aria-label="Intro slide 3"><span class="prog"></span></button>
+      <div class="intro-bottom">
+        <div class="intro-dots" id="introDots" aria-label="Slide progress">
+          <button class="intro-dot active" type="button" data-dot="0" aria-label="Slide 1"><span class="dot-prog"></span></button>
+          <button class="intro-dot" type="button" data-dot="1" aria-label="Slide 2"><span class="dot-prog"></span></button>
+          <button class="intro-dot" type="button" data-dot="2" aria-label="Slide 3"><span class="dot-prog"></span></button>
         </div>
-        <div class="intro-buttons">
-          <button class="btn small ghost"   type="button" id="introPrev">← PREV</button>
-          <button class="btn small ghost"   type="button" id="introPause">⏸ PAUSE</button>
-          <button class="btn small ghost"   type="button" id="introNext">NEXT →</button>
-          <!-- [UPGRADED] Primary CTA: Enter App -->
-          <button class="btn primary"       type="button" id="enterApp">Start Research →</button>
+
+        <div class="intro-controls">
+          <button class="intro-ctrl-btn" type="button" id="introPrev">← Prev</button>
+          <button class="intro-ctrl-btn" type="button" id="introPause">⏸</button>
+          <button class="intro-ctrl-btn" type="button" id="introNext">Next →</button>
+          <button class="intro-cta-btn" type="button" id="enterApp">
+            Start Research <span class="cta-arrow">→</span>
+          </button>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       QUICK PANEL (unchanged structure, refined styles)
-  ══════════════════════════════════════════════════════════ -->
+  <!-- QUICK PANEL -->
   <div class="qp" id="quickPanel" aria-hidden="true">
     <div class="qp-card" role="dialog" aria-modal="true" aria-label="Quick panel">
       <div class="qp-head">
@@ -1233,8 +966,7 @@ body{
               <div class="k">PWA</div><div id="qpPwaStatus">-</div>
             </div>
             <p style="margin-top:12px;">
-              Tip: <span class="mono">Esc</span> closes this panel.
-              <span class="mono">↑/↓</span> navigates slides.
+              <span class="mono">Esc</span> closes panel. <span class="mono">↑/↓</span> navigates slides.
             </p>
           </div>
           <div class="mini">
@@ -1242,11 +974,11 @@ body{
             <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
               <button class="nav-btn primary" type="button" id="qpGoHome">HOME</button>
               <a class="nav-btn" id="qpOpenResearch" href="student-research.html">OPEN RESEARCH TOOL</a>
-              <a class="nav-btn" id="qpOpenBrief"    href="decision-brief.html">DECISION PDF</a>
+              <a class="nav-btn" id="qpOpenBrief" href="decision-brief.html">DECISION PDF</a>
               <button class="nav-btn muted" type="button" id="qpViewIntro">VIEW INTRO</button>
             </div>
             <p style="margin-top:12px;">
-              Subpages open as real <span class="mono">.html</span> navigations (no SPA hijack).
+              Subpages open as real <span class="mono">.html</span> navigations.
             </p>
           </div>
         </div>
@@ -1254,119 +986,61 @@ body{
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       APP — MAIN LAYOUT
-       [UPGRADED] Persistent top nav with logo + nav links
-  ══════════════════════════════════════════════════════════ -->
+  <!-- APP -->
   <main class="app" id="app" aria-label="App">
     <div class="app-shell">
-
-      <!-- ── [UPGRADED] Persistent top navigation ── -->
       <header class="app-topbar" role="banner">
-
-        <!-- Brand -->
         <div class="nav-brand">
-          <div class="brand-badge" aria-hidden="true" style="width:34px;height:34px;border-radius:11px;"></div>
+          <div class="intro-logo" style="width:30px;height:30px;border-radius:9px;" aria-hidden="true"></div>
           <div class="app-title">
             <div class="k">viadecide.com</div>
             <div class="t" id="appHeader">Home</div>
           </div>
-          <div class="kbd" id="slideKbd">
-            <span id="slideIdx">1</span>/<span id="slideTotal">3</span>
-          </div>
+          <div class="kbd"><span id="slideIdx">1</span>/<span id="slideTotal">3</span></div>
         </div>
 
-        <!-- [UPGRADED] Centre nav links (visible ≥740px) -->
         <nav class="nav-links" aria-label="Section navigation">
-          <a class="nav-link" id="navLinkResearch" href="student-research.html">
-            <span class="nl-icon" aria-hidden="true">🔍</span> Research
-          </a>
-          <a class="nav-link" id="navLinkBrief" href="decision-brief.html">
-            <span class="nl-icon" aria-hidden="true">📄</span> Brief
-          </a>
-          <a class="nav-link" id="navLinkQuiz" href="alchemist.html">
-            <span class="nl-icon" aria-hidden="true">⚗️</span> Quiz
-          </a>
-          <a class="nav-link" id="navLinkONDC" href="ONDC-demo.html">
-            <span class="nl-icon" aria-hidden="true">🛒</span> ONDC
-          </a>
+          <a class="nav-link" href="student-research.html"><span class="nl-icon">🔍</span> Research</a>
+          <a class="nav-link" href="decision-brief.html"><span class="nl-icon">📄</span> Brief</a>
+          <a class="nav-link" href="alchemist.html"><span class="nl-icon">⚗️</span> Quiz</a>
+          <a class="nav-link" href="ONDC-demo.html"><span class="nl-icon">🛒</span> ONDC</a>
         </nav>
 
-        <!-- Right actions -->
         <div class="nav-actions">
-          <!--
-            INSTALL BUTTON B — APP TOPBAR
-            [UPGRADED] Shows "✓ Installed" when app is installed.
-          -->
-          <button
-            class="install-btn install-btn-topbar"
-            id="installBtnTopbar"
-            type="button"
-            aria-label="Install ViaDecide as an app"
-            <button class="install-btn" id="installBtnIntro" type="button">⬇ INSTALL APP</button>
-          >
-            <span class="ib-icon" aria-hidden="true">⬇</span>
-            INSTALL
+          <button class="install-btn" id="installBtnTopbar" type="button"
+            style="padding:8px 13px;font-size:11px;border-radius:9px;"
+            aria-label="Install ViaDecide">
+            <span class="ib-icon" aria-hidden="true">⬇</span> INSTALL
           </button>
-
           <button class="nav-btn" type="button" id="openQP">QUICK PANEL</button>
           <button class="nav-btn" type="button" id="showIntro">INTRO</button>
         </div>
       </header>
 
-      <!-- ── Slides container ── -->
       <section class="slides" id="slides" aria-label="Main slides">
-
-        <!-- ─────────────────────────────────────────────────
-             SLIDE 0 — HOME
-             [UPGRADED] Reduced cognitive overload.
-             Clear headline → subheadline → 2 CTAs → quick info.
-        ──────────────────────────────────────────────────── -->
         <section class="main-slide active" data-title="Home" id="slideHome">
           <div class="panel" style="height:100%;">
             <div class="panel-h">
               <div style="min-width:0;">
-                <h2>
-                  India's decision research engine
-                  <span class="tag">v1 Beta</span>
-                </h2>
-                <div class="sub">
-                  Structured Decision Infrastructure · Built for the IndiaAI era.
-                </div>
+                <h2>India's decision research engine <span class="tag">v1 Beta</span></h2>
+                <div class="sub">Structured Decision Infrastructure · Built for the IndiaAI era.</div>
               </div>
-              <!-- [UPGRADED] Single clear primary CTA, secondary subtle -->
-              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;">
-                <a class="btn outlined small" id="ytLink" href="https://www.youtube.com/" target="_blank" rel="noopener">
-                  ▶ YouTube
-                </a>
-              </div>
+              <a class="btn outlined small" href="https://www.youtube.com/" target="_blank" rel="noopener">▶ YouTube</a>
             </div>
-
             <div class="panel-b scrollable" style="display:grid;gap:var(--gap);">
-
-              <!-- [UPGRADED] Hero section — focused headline + 2 CTAs -->
               <div class="home-hero">
                 <div class="home-hero-text">
-                  <h1>
-                    <span class="accent">Decision Infrastructure</span><br>for Bharat.
-                  </h1>
+                  <h1><span class="accent">Decision Infrastructure</span><br>for Bharat.</h1>
                   <p class="sub" style="margin-top:10px;">
-                    Structured research → synthesis → decision.
-                    Multi-source intelligence for students, founders, farmers &amp; officials.
+                    Structured research → synthesis → decision. Multi-source intelligence for students, founders, farmers &amp; officials.
                   </p>
                 </div>
-                <!-- [UPGRADED] Primary + secondary CTA, no competing buttons -->
                 <div class="home-ctas">
-                  <a class="btn primary" id="openResearchTop" href="student-research.html">
-                    Start Research →
-                  </a>
-                  <a class="btn outlined" id="openBriefTop" href="decision-brief.html">
-                    Build Decision Brief
-                  </a>
+                  <a class="btn primary" href="student-research.html">Start Research →</a>
+                  <a class="btn outlined" href="decision-brief.html">Build Decision Brief</a>
                 </div>
               </div>
 
-              <!-- Quick reference (shortcuts + affiliate) — moved below hero -->
               <div class="home-quick">
                 <div class="mini">
                   <h4 style="margin:0 0 10px;">Navigation Shortcuts</h4>
@@ -1379,32 +1053,20 @@ body{
                 </div>
                 <div class="mini">
                   <h4 style="margin:0 0 10px;">Session</h4>
-                  <p style="margin:0 0 8px;">
-                    Affiliate tag:
-                    <span class="mono" id="affInline">viadecide</span>
-                  </p>
-                  <p>
-                    Subpages receive <span class="mono">?tag=</span>.
-                    Local assets and 3D models are never tagged.
-                  </p>
+                  <p style="margin:0 0 8px;">Affiliate tag: <span class="mono" id="affInline">viadecide</span></p>
+                  <p>Subpages receive <span class="mono">?tag=</span>. Local assets are never tagged.</p>
                 </div>
               </div>
-
-            </div><!-- /panel-b -->
+            </div>
           </div>
         </section>
 
-        <!-- ─────────────────────────────────────────────────
-             SLIDE 1 — PRODUCTS
-        ──────────────────────────────────────────────────── -->
         <section class="main-slide next" data-title="Products" id="slideProducts">
           <div class="panel" style="min-height:0;">
             <div class="panel-h">
-              <div style="min-width:0;">
+              <div>
                 <h2>Products &amp; modules <span class="tag">live</span></h2>
-                <div class="sub">
-                  Open any module below. Desktop: 3 columns (≥900px), 4 columns (≥1200px).
-                </div>
+                <div class="sub">Open any module below.</div>
               </div>
             </div>
             <div class="panel-b scrollable" style="min-height:0;">
@@ -1413,24 +1075,19 @@ body{
           </div>
         </section>
 
-        <!-- ─────────────────────────────────────────────────
-             SLIDE 2 — JOIN / UPDATES
-        ──────────────────────────────────────────────────── -->
         <section class="main-slide next" data-title="Join" id="slideJoin">
           <div class="panel">
             <div class="panel-h">
-              <div style="min-width:0;">
+              <div>
                 <h2>Join / updates <span class="tag">beta</span></h2>
-                <div class="sub">
-                  Get launch updates. Your submission includes timestamp + affiliate tag.
-                </div>
+                <div class="sub">Get launch updates. Submission includes timestamp + affiliate tag.</div>
               </div>
             </div>
             <div class="panel-b scrollable">
               <form class="form" id="joinForm" method="POST" action="https://formspree.io/f/xoqrjvkp" novalidate>
-                <input type="hidden" name="timestamp_ist"  id="joinTimestamp" value="" />
-                <input type="hidden" name="affiliate_tag"  id="joinAffiliate" value="" />
-                <input type="hidden" name="source"         value="index.html" />
+                <input type="hidden" name="timestamp_ist" id="joinTimestamp" value="" />
+                <input type="hidden" name="affiliate_tag" id="joinAffiliate" value="" />
+                <input type="hidden" name="source" value="index.html" />
 
                 <div class="row2">
                   <div class="field">
@@ -1448,24 +1105,18 @@ body{
                     <label for="joinRole">Role</label>
                     <select id="joinRole" name="role" required>
                       <option value="" selected disabled>Select role</option>
-                      <option>Student</option>
-                      <option>Founder</option>
-                      <option>Researcher</option>
-                      <option>Official / Policy</option>
-                      <option>Seller / Operator</option>
-                      <option>Other</option>
+                      <option>Student</option><option>Founder</option>
+                      <option>Researcher</option><option>Official / Policy</option>
+                      <option>Seller / Operator</option><option>Other</option>
                     </select>
                   </div>
                   <div class="field">
                     <label for="joinInterest">Interested in</label>
                     <select id="joinInterest" name="interest" required>
                       <option value="" selected disabled>Select module</option>
-                      <option>Student Research Tool</option>
-                      <option>Decision Brief (PDF)</option>
-                      <option>SwipeOS</option>
-                      <option>PromptAlchemy</option>
-                      <option>ONDC / Commerce</option>
-                      <option>Engine License</option>
+                      <option>Student Research Tool</option><option>Decision Brief (PDF)</option>
+                      <option>SwipeOS</option><option>PromptAlchemy</option>
+                      <option>ONDC / Commerce</option><option>Engine License</option>
                     </select>
                   </div>
                 </div>
@@ -1477,72 +1128,46 @@ body{
 
                 <div class="submitRow">
                   <button class="btn primary" type="submit" id="joinSubmit">SUBMIT →</button>
-                  <button class="btn ghost"   type="button" id="joinClear">CLEAR</button>
+                  <button class="btn ghost" type="button" id="joinClear">CLEAR</button>
                   <span class="status" id="joinStatus" aria-live="polite"></span>
                 </div>
 
                 <div class="help">
-                  If you don't see a reply, check spam/promotions.
-                  Your tag is included as <span class="mono">affiliate_tag</span>.
+                  If you don't see a reply, check spam/promotions. Your tag is included as <span class="mono">affiliate_tag</span>.
                 </div>
               </form>
             </div>
           </div>
         </section>
+      </section>
 
-      </section><!-- /slides -->
-
-      <!-- ── Bottom nav ── -->
       <nav class="app-nav" aria-label="Slide navigation">
         <div class="nav-left">
           <button class="nav-btn muted" type="button" id="prevSlide">← PREV</button>
           <button class="nav-btn muted" type="button" id="nextSlide">NEXT →</button>
-          <button class="nav-btn"       type="button" id="goHome">HOME</button>
+          <button class="nav-btn" type="button" id="goHome">HOME</button>
         </div>
         <div class="nav-right">
-          <a class="nav-btn"         id="openBriefNav"    href="decision-brief.html">DECISION PDF</a>
-          <a class="nav-btn primary" id="openResearchNav" href="student-research.html">RESEARCH TOOL →</a>
+          <a class="nav-btn" href="decision-brief.html" id="openBriefNav">DECISION PDF</a>
+          <a class="nav-btn primary" href="student-research.html" id="openResearchNav">RESEARCH TOOL →</a>
         </div>
-        <!-- [UPGRADED] Authority line -->
         <div class="authority-line" aria-hidden="true">
-          Structured Decision Infrastructure
-          <span>·</span>
-          Built for the IndiaAI Era
-          <span>·</span>
-          viadecide.com
+          Structured Decision Infrastructure <span>·</span> Built for the IndiaAI Era <span>·</span> viadecide.com
         </div>
       </nav>
-
-    </div><!-- /app-shell -->
+    </div>
   </main>
 
-  <!-- ── iOS install hint (dynamically injected by JS, unchanged) ── -->
-
   <script>
-    /* ═══════════════════════════════════════════════════════════
-       VIADECIDE — MAIN APP SCRIPT  [UPGRADED v1.0]
-       All logic is IIFE-isolated. No globals except intentional
-       window.VDRouter shim references.
-
-       CHANGES from original:
-       • Install buttons show "App Installed ✓" state when installed
-       • Generic toast helper (showToast) for multiple triggers
-       • "Saved to Brief", "Form Submitted" toasts
-       • Nav link affiliate injection preserved
-       • All original logic preserved exactly
-    ═══════════════════════════════════════════════════════════ */
     (function(){
       "use strict";
 
-      /* ── Constants ─────────────────────────────────────────── */
       var LOCAL_ASSET_EXT_RE = /\.(gltf|glb|bin|png|jpe?g|webp|svg|css|js|map|mp4|webm|mp3|wav|json)(?:[?#].*)?$/i;
       var HTML_PAGE_RE       = /\.html(?:[?#].*)?$/i;
       var LS_INSTALLED_KEY   = "pwaInstalled";
       var LS_IOS_HINT_KEY    = "iosHintDismissed";
 
-      /* ══════════════════════════════════════════════════════════
-         PWA — INSTALL SYSTEM
-      ══════════════════════════════════════════════════════════ */
+      /* ── PWA ─────────────────────────────────────────────── */
       var isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
       var isStandalone = (
         window.navigator.standalone === true ||
@@ -1560,24 +1185,12 @@ body{
         if (isStandalone) return true;
         try { return localStorage.getItem(LS_INSTALLED_KEY) === "1"; } catch(e){ return false; }
       }
-
-      /* [UPGRADED] markInstalled → also flips button to "installed" state */
       function markInstalled(){
         try { localStorage.setItem(LS_INSTALLED_KEY, "1"); } catch(e){}
         setInstallButtonsInstalled();
         showToast("✓ ViaDecide installed!", "ok");
         updateQPPwaStatus();
       }
-
-      /* [UPGRADED] Hide install buttons (old behaviour kept as alias) */
-      function hideInstallButtons(){
-        installButtons.forEach(function(btn){ btn.classList.add("hidden"); });
-      }
-      function showInstallButtons(){
-        installButtons.forEach(function(btn){ btn.classList.remove("hidden"); });
-      }
-
-      /* [UPGRADED] Premium "installed" state — stop pulse, show check */
       function setInstallButtonsInstalled(){
         installButtons.forEach(function(btn){
           if (!btn) return;
@@ -1587,7 +1200,6 @@ body{
           btn.disabled = true;
         });
       }
-
       function handleInstallClick(){
         if (_deferredInstallPrompt){
           _deferredInstallPrompt.prompt();
@@ -1603,23 +1215,10 @@ body{
           showIOSHint("generic");
         }
       }
+      installButtons.forEach(function(btn){ btn.addEventListener("click", handleInstallClick); });
+      window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); _deferredInstallPrompt = e; updateQPPwaStatus(); });
+      window.addEventListener("appinstalled", function(){ markInstalled(); _deferredInstallPrompt = null; });
 
-      installButtons.forEach(function(btn){
-        btn.addEventListener("click", handleInstallClick);
-      });
-
-      window.addEventListener("beforeinstallprompt", function(e){
-        e.preventDefault();
-        _deferredInstallPrompt = e;
-        updateQPPwaStatus();
-      });
-
-      window.addEventListener("appinstalled", function(){
-        markInstalled();
-        _deferredInstallPrompt = null;
-      });
-
-      /* iOS auto-show hint after delay */
       if (isIOS && !isStandalone && !isInstalled()){
         try {
           if (localStorage.getItem(LS_IOS_HINT_KEY) !== "1"){
@@ -1627,75 +1226,39 @@ body{
           }
         } catch(e){}
       }
+      if (isInstalled()) setInstallButtonsInstalled();
 
-      /* On load: set correct button state */
-      if (isInstalled()){
-        setInstallButtonsInstalled();
-      }
-
-      /* ══════════════════════════════════════════════════════════
-         iOS INSTALL HINT SHEET (unchanged logic)
-      ══════════════════════════════════════════════════════════ */
+      /* ── iOS HINT ────────────────────────────────────────── */
       var _iosHintEl = null;
-
       function showIOSHint(mode){
         if (_iosHintEl) return;
         var isGeneric = (mode === "generic");
         var hint = document.createElement("div");
         hint.className = "ios-install-hint";
-        hint.setAttribute("role", "status");
-        hint.setAttribute("aria-live", "polite");
-        hint.setAttribute("aria-label", "Install app hint");
-        var bodyHtml;
-        if (isGeneric){
-          bodyHtml = [
-            '<strong>Install ViaDecide</strong>',
-            '<p>Your browser needs a moment to verify the PWA. Make sure:</p>',
-            '<p>① <strong>manifest.json</strong> is served at <code>/manifest.json</code><br>',
-            '② <strong>service-worker.js</strong> is served at <code>/service-worker.js</code><br>',
-            '③ Site is on <strong>HTTPS</strong><br>',
-            '④ Icons exist at <strong>/icons/icon-192.png</strong> &amp; <strong>/icons/icon-512.png</strong></p>',
-            '<p>Once Chrome verifies all criteria, tap this button again to install.</p>'
-          ].join("");
-        } else {
-          bodyHtml = [
-            '<strong>Install ViaDecide on iOS</strong>',
-            '<p>Tap <span class="iih-share-icon" aria-label="Safari share button">⬆</span> <strong>Share</strong>, ',
-            'then scroll down and tap <strong>"Add to Home Screen"</strong>.</p>',
-            '<p>You\'ll get the full app experience with no browser bar.</p>'
-          ].join("");
-        }
-        hint.innerHTML = [
-          '<div class="iih-icon" aria-hidden="true">📲</div>',
-          '<div class="iih-body">' + bodyHtml + '</div>',
-          '<button class="iih-close" type="button" aria-label="Dismiss install hint">✕</button>'
-        ].join("");
+        hint.setAttribute("role","status");
+        var bodyHtml = isGeneric
+          ? '<strong>Install ViaDecide</strong><p>Make sure manifest.json, service-worker.js, HTTPS, and icons are configured. Then tap again to install.</p>'
+          : '<strong>Install on iOS</strong><p>Tap <span class="iih-share-icon">⬆</span> <strong>Share</strong>, then <strong>"Add to Home Screen"</strong>.</p>';
+        hint.innerHTML = '<div class="iih-icon">📲</div><div class="iih-body">' + bodyHtml + '</div><button class="iih-close" type="button" aria-label="Dismiss">✕</button>';
         document.body.appendChild(hint);
         _iosHintEl = hint;
         hint.querySelector(".iih-close").addEventListener("click", function(){ dismissIOSHint(false); });
         setTimeout(function(){ dismissIOSHint(false); }, isGeneric ? 14000 : 10000);
       }
-
-      function dismissIOSHint(permanent){
+      function dismissIOSHint(){
         if (!_iosHintEl) return;
-        _iosHintEl.style.animation = "iosHintSlideUp 350ms cubic-bezier(.22,1,.36,1) reverse both";
+        _iosHintEl.style.opacity = "0";
         setTimeout(function(){
           if (_iosHintEl && _iosHintEl.parentNode) _iosHintEl.parentNode.removeChild(_iosHintEl);
           _iosHintEl = null;
-        }, 360);
-        if (permanent){ try { localStorage.setItem(LS_IOS_HINT_KEY, "1"); } catch(e){} }
+        }, 300);
       }
 
-      /* ══════════════════════════════════════════════════════════
-         [UPGRADED] TOAST SYSTEM — generic + typed toasts
-         Replaces showInstallToast() with unified showToast()
-      ══════════════════════════════════════════════════════════ */
+      /* ── TOAST ───────────────────────────────────────────── */
       function showToast(msg, type){
-        /* type: "ok" (green, default) | "accent" (orange) */
         var toast = document.createElement("div");
         toast.className = "vd-toast" + (type === "accent" ? " accent" : "");
-        toast.setAttribute("role", "status");
-        toast.setAttribute("aria-live", "polite");
+        toast.setAttribute("role","status");
         toast.textContent = msg;
         document.body.appendChild(toast);
         setTimeout(function(){
@@ -1704,77 +1267,51 @@ body{
         }, 3200);
       }
 
-      /* Backwards-compatible alias used by markInstalled */
-      function showInstallToast(){ showToast("✓ ViaDecide installed!", "ok"); }
-
-      /* ══════════════════════════════════════════════════════════
-         QP PWA STATUS
-      ══════════════════════════════════════════════════════════ */
+      /* ── QP PWA STATUS ───────────────────────────────────── */
       function updateQPPwaStatus(){
         var el = document.getElementById("qpPwaStatus");
         if (!el) return;
-        if (isStandalone)           { el.textContent = "Standalone";    return; }
-        if (isInstalled())          { el.textContent = "Installed";     return; }
-        if (isIOS)                  { el.textContent = "iOS / manual";  return; }
-        if (_deferredInstallPrompt) { el.textContent = "Prompt ready";  return; }
-        el.textContent = "Browser";
+        if (isStandalone)                 el.textContent = "Standalone";
+        else if (isInstalled())           el.textContent = "Installed";
+        else if (isIOS)                   el.textContent = "iOS / manual";
+        else if (_deferredInstallPrompt)  el.textContent = "Prompt ready";
+        else                              el.textContent = "Browser";
       }
 
-      /* ══════════════════════════════════════════════════════════
-         SERVICE WORKER REGISTRATION (unchanged)
-      ══════════════════════════════════════════════════════════ */
+      /* ── SERVICE WORKER ──────────────────────────────────── */
       if ("serviceWorker" in navigator){
         window.addEventListener("load", function(){
-          navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
-            .then(function(reg){
-              reg.addEventListener("updatefound", function(){
-                var nw = reg.installing;
-                if (!nw) return;
-                nw.addEventListener("statechange", function(){
-                  if (nw.state === "installed" && navigator.serviceWorker.controller){
-                    console.info("[ViaDecide SW] Update available — reload to apply.");
-                  }
-                });
-              });
-            })
+          navigator.serviceWorker.register("/service-worker.js", { scope:"/" })
             .catch(function(err){ console.warn("[ViaDecide SW] Registration failed:", err); });
         });
       }
 
-      /* ══════════════════════════════════════════════════════════
-         UTILITY FUNCTIONS (all unchanged)
-      ══════════════════════════════════════════════════════════ */
+      /* ── UTILITY ─────────────────────────────────────────── */
       function safeNowIST(){
         try {
-          var d = new Date();
           return new Intl.DateTimeFormat("en-GB", {
-            timeZone:"Asia/Kolkata",
-            year:"numeric", month:"2-digit", day:"2-digit",
-            hour:"2-digit", minute:"2-digit", second:"2-digit",
-            hour12:false
-          }).format(d).replace(",", "");
+            timeZone:"Asia/Kolkata", year:"numeric", month:"2-digit", day:"2-digit",
+            hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false
+          }).format(new Date()).replace(",","");
         } catch(e){ return new Date().toISOString(); }
       }
-
       function getParam(key){
         try{
           var u = new URL(location.href);
           var v = u.searchParams.get(key);
           if (v) return v.trim();
           var h = location.hash || "";
-          var m = h.match(new RegExp("(?:^|[&#])" + key + "=([^&]+)", "i"));
+          var m = h.match(new RegExp("(?:^|[&#])" + key + "=([^&]+)","i"));
           if (m && m[1]) return decodeURIComponent(m[1]).trim();
         }catch(e){}
         return null;
       }
-
       function normalizeAffiliateTag(tag){
         tag = (tag || "").trim();
         if (!tag) return "viadecide";
-        tag = tag.replace(/[^\w.-]/g, "").slice(0, 64);
+        tag = tag.replace(/[^\w.-]/g,"").slice(0,64);
         return tag || "viadecide";
       }
-
       function getAffiliateTag(){
         var t = normalizeAffiliateTag(getParam("tag") || getParam("aff"));
         try{
@@ -1786,7 +1323,6 @@ body{
         }catch(e){}
         return t;
       }
-
       function isHtmlHref(href){
         if (!href) return false;
         if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
@@ -1798,7 +1334,6 @@ body{
           return HTML_PAGE_RE.test(p) || HTML_PAGE_RE.test(href);
         }catch(e){ return HTML_PAGE_RE.test(href); }
       }
-
       function appendAffiliateToHref(href, aff){
         try{
           if (!isHtmlHref(href)) return href;
@@ -1807,12 +1342,11 @@ body{
           if (!/^https?:\/\//i.test(href)){
             var rel = u.pathname.split("/").pop() || u.pathname;
             var qs  = u.searchParams.toString();
-            return rel + (qs ? ("?" + qs) : "") + (u.hash || "");
+            return rel + (qs ? "?" + qs : "") + (u.hash || "");
           }
           return u.href;
         }catch(e){ return href; }
       }
-
       function applyAffiliateToLinks(){
         var aff = getAffiliateTag();
         document.querySelectorAll("a[href]").forEach(function(a){
@@ -1821,7 +1355,8 @@ body{
           if (!isHtmlHref(href)) return;
           a.setAttribute("href", appendAffiliateToHref(href, aff));
         });
-        [document.getElementById("affTagPill"), document.getElementById("affInline")].forEach(function(el){
+        ["affInline"].forEach(function(id){
+          var el = document.getElementById(id);
           if (el) el.textContent = aff;
         });
         var joinAff = document.getElementById("joinAffiliate");
@@ -1829,26 +1364,14 @@ body{
         var qpAff = document.getElementById("qpAff");
         if (qpAff) qpAff.textContent = aff;
       }
-
       function getRouter(){
         return (window.VDRouter && typeof window.VDRouter.go === "function") ? window.VDRouter : null;
       }
-
-      function isKnownSubpage(slug){
-        try{
-          var router = getRouter();
-          if (!router || typeof router.routes !== "function") return false;
-          var routes = router.routes() || {};
-          slug = String(slug || "").trim().toLowerCase();
-          if (!slug) return false;
-          if (Object.prototype.hasOwnProperty.call(routes, slug)) return true;
-          for (var k in routes){
-            if (Object.prototype.hasOwnProperty.call(routes, k) && String(k).toLowerCase() === slug) return true;
-          }
-        }catch(e){}
-        return false;
+      function escapeHtml(s){
+        return String(s || "").replace(/[&<>"']/g, function(m){
+          return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[m];
+        });
       }
-
       function handleGoRedirect(){
         var go = getParam("go");
         if (!go) return;
@@ -1856,54 +1379,35 @@ body{
         if (!router) return;
         var slug = String(go || "").trim();
         if (!slug) return;
-        try{
-          var u = new URL(slug, location.href);
-          slug = (u.pathname || "").split("/").filter(Boolean).pop() || slug;
-        }catch(e){}
-        slug = slug.replace(/\.html?$/i, "").replace(/^\/+/, "").replace(/\/+$/, "");
+        try{ var u = new URL(slug, location.href); slug = (u.pathname||"").split("/").filter(Boolean).pop() || slug; }catch(e){}
+        slug = slug.replace(/\.html?$/i,"").replace(/^\/+/,"").replace(/\/+$/,"");
         if (!slug) return;
-        if (isKnownSubpage(slug)){
-          var aff = getAffiliateTag();
-          router.go(slug, { newTab:false, search:"?tag=" + encodeURIComponent(aff), hash:"" });
-        }
+        var aff = getAffiliateTag();
+        router.go(slug, { newTab:false, search:"?tag=" + encodeURIComponent(aff), hash:"" });
       }
 
-      function escapeHtml(s){
-        return String(s || "").replace(/[&<>"']/g, function(m){
-          return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[m];
-        });
-      }
-
-      /* ══════════════════════════════════════════════════════════
-         QUICK PANEL
-      ══════════════════════════════════════════════════════════ */
-      var qp            = document.getElementById("quickPanel");
-      var openQPBtn     = document.getElementById("openQP");
-      var introOpenQPBtn= document.getElementById("introOpenQP");
-      var closeQPBtn    = document.getElementById("closeQP");
-      var qpViewIntro   = document.getElementById("qpViewIntro");
+      /* ── QUICK PANEL ─────────────────────────────────────── */
+      var qp             = document.getElementById("quickPanel");
+      var openQPBtn      = document.getElementById("openQP");
+      var introOpenQPBtn = document.getElementById("introOpenQP");
+      var closeQPBtn     = document.getElementById("closeQP");
+      var qpViewIntro    = document.getElementById("qpViewIntro");
 
       function setQP(open){
         if (!qp) return;
         qp.classList.toggle("open", !!open);
         qp.setAttribute("aria-hidden", open ? "false" : "true");
-        if (open){
-          updateQPPwaStatus();
-          try { closeQPBtn && closeQPBtn.focus({ preventScroll:true }); }catch(e){}
-        }
+        if (open){ updateQPPwaStatus(); try { closeQPBtn && closeQPBtn.focus({preventScroll:true}); }catch(e){} }
       }
-
       if (openQPBtn)      openQPBtn.addEventListener("click",      function(){ setQP(true); });
       if (introOpenQPBtn) introOpenQPBtn.addEventListener("click", function(){ setQP(true); });
       if (closeQPBtn)     closeQPBtn.addEventListener("click",     function(){ setQP(false); });
       if (qp)             qp.addEventListener("click", function(e){ if (e.target === qp) setQP(false); });
 
-      /* ══════════════════════════════════════════════════════════
-         INTRO SHOW / HIDE
-      ══════════════════════════════════════════════════════════ */
-      var intro       = document.getElementById("intro");
-      var showIntroBtn= document.getElementById("showIntro");
-      var introHidden = false;
+      /* ── INTRO SHOW / HIDE ───────────────────────────────── */
+      var intro        = document.getElementById("intro");
+      var showIntroBtn = document.getElementById("showIntro");
+      var introHidden  = false;
 
       function showIntro(open){
         if (!intro) return;
@@ -1911,57 +1415,55 @@ body{
         introHidden = !open;
         if (open) startIntroAutoplay(); else stopIntroAutoplay();
       }
-
       if (showIntroBtn) showIntroBtn.addEventListener("click", function(){ showIntro(true); });
       if (qpViewIntro)  qpViewIntro.addEventListener("click",  function(){ setQP(false); showIntro(true); });
 
-      /* ══════════════════════════════════════════════════════════
-         INTRO SLIDES
-      ══════════════════════════════════════════════════════════ */
-      var introSlides = Array.prototype.slice.call(document.querySelectorAll(".intro-slide"));
-      var introDots   = Array.prototype.slice.call(document.querySelectorAll(".dot"));
-      var introPrev   = document.getElementById("introPrev");
-      var introNext   = document.getElementById("introNext");
-      var introPause  = document.getElementById("introPause");
-      var enterApp    = document.getElementById("enterApp");
-      var introIdx    = 0;
-      var introTimer  = null;
-      var introTick   = null;
-      var INTRO_MS    = 6500;
-      var introPaused = false;
+      /* ── INTRO SLIDES ────────────────────────────────────── */
+      var introSlides     = Array.prototype.slice.call(document.querySelectorAll(".intro-slide"));
+      var introDotBtns    = Array.prototype.slice.call(document.querySelectorAll(".intro-dot"));
+      var introPrevBtn    = document.getElementById("introPrev");
+      var introNextBtn    = document.getElementById("introNext");
+      var introPauseBtn   = document.getElementById("introPause");
+      var enterAppBtn     = document.getElementById("enterApp");
+      var introCountCurr  = document.getElementById("introCountCurrent");
+      var introIdx        = 0;
+      var introTimer      = null;
+      var introTick       = null;
+      var INTRO_MS        = 6500;
+      var introPaused     = false;
 
       function setIntroSlide(idx){
         idx = Math.max(0, Math.min(introSlides.length - 1, idx));
         introIdx = idx;
         introSlides.forEach(function(s, i){ s.classList.toggle("active", i === idx); });
-        introDots.forEach(function(d, i){
+        introDotBtns.forEach(function(d, i){
           d.classList.toggle("active", i === idx);
-          var prog = d.querySelector(".prog");
+          var prog = d.querySelector(".dot-prog");
           if (prog) prog.style.width = "0%";
         });
+        if (introCountCurr) introCountCurr.textContent = String(idx + 1).padStart(2, "0");
         if (idx === 0) animateIntroStats();
+        var sc = document.getElementById("introStageScroll");
+        if (sc) sc.scrollTop = 0;
       }
-
       function stopIntroAutoplay(){
         if (introTimer){ clearTimeout(introTimer);  introTimer = null; }
         if (introTick) { clearInterval(introTick);  introTick  = null; }
         introPaused = true;
-        if (introPause) introPause.textContent = "▶ PLAY";
+        if (introPauseBtn) introPauseBtn.textContent = "▶";
       }
-
       function startIntroAutoplay(){
         if (introHidden) return;
         introPaused = false;
-        if (introPause) introPause.textContent = "⏸ PAUSE";
+        if (introPauseBtn) introPauseBtn.textContent = "⏸";
         if (introTimer) clearTimeout(introTimer);
         if (introTick)  clearInterval(introTick);
         var start = performance.now();
-        var dot   = introDots[introIdx];
-        var prog  = dot ? dot.querySelector(".prog") : null;
+        var dot   = introDotBtns[introIdx];
+        var prog  = dot ? dot.querySelector(".dot-prog") : null;
         introTick = setInterval(function(){
           if (introPaused || introHidden) return;
-          var t = performance.now() - start;
-          var p = Math.max(0, Math.min(1, t / INTRO_MS));
+          var p = Math.min(1, (performance.now() - start) / INTRO_MS);
           if (prog) prog.style.width = (p * 100).toFixed(1) + "%";
         }, 50);
         introTimer = setTimeout(function(){
@@ -1971,25 +1473,25 @@ body{
         }, INTRO_MS);
       }
 
-      if (introPrev) introPrev.addEventListener("click", function(){
+      if (introPrevBtn) introPrevBtn.addEventListener("click", function(){
         setIntroSlide((introIdx - 1 + introSlides.length) % introSlides.length);
         startIntroAutoplay();
       });
-      if (introNext) introNext.addEventListener("click", function(){
+      if (introNextBtn) introNextBtn.addEventListener("click", function(){
         setIntroSlide((introIdx + 1) % introSlides.length);
         startIntroAutoplay();
       });
-      if (introPause) introPause.addEventListener("click", function(){
+      if (introPauseBtn) introPauseBtn.addEventListener("click", function(){
         if (introPaused) startIntroAutoplay(); else stopIntroAutoplay();
       });
-      introDots.forEach(function(d){
+      introDotBtns.forEach(function(d){
         d.addEventListener("click", function(){
-          var n = parseInt(d.getAttribute("data-dot") || "0", 10) || 0;
-          setIntroSlide(n);
+          setIntroSlide(parseInt(d.getAttribute("data-dot") || "0", 10) || 0);
           startIntroAutoplay();
         });
       });
 
+      /* Animated counters */
       function animateNumber(el, to, duration){
         if (!el) return;
         var from = 0, start = performance.now();
@@ -2001,7 +1503,6 @@ body{
         }
         requestAnimationFrame(frame);
       }
-
       var introStatsAnimated = false;
       function animateIntroStats(){
         if (introStatsAnimated) return;
@@ -2012,14 +1513,12 @@ body{
         animateNumber(document.getElementById("statTools"),     4,          900);
       }
 
-      if (enterApp) enterApp.addEventListener("click", function(){
+      if (enterAppBtn) enterAppBtn.addEventListener("click", function(){
         showIntro(false);
         try { sessionStorage.setItem("enteredApp","1"); } catch(e){}
       });
 
-      /* ══════════════════════════════════════════════════════════
-         MAIN SLIDES
-      ══════════════════════════════════════════════════════════ */
+      /* ── MAIN SLIDES ─────────────────────────────────────── */
       var mainSlides   = Array.prototype.slice.call(document.querySelectorAll(".main-slide"));
       var slideIdxEl   = document.getElementById("slideIdx");
       var slideTotalEl = document.getElementById("slideTotal");
@@ -2029,28 +1528,21 @@ body{
 
       if (slideTotalEl) slideTotalEl.textContent = String(mainSlides.length);
 
-      /* [UPGRADED] Also update nav link active state on slide change */
       function setHeaderForSlide(idx){
         var s     = mainSlides[idx];
-        var title = (s && s.getAttribute("data-title")) ? s.getAttribute("data-title") : ("Slide " + (idx + 1));
+        var title = (s && s.getAttribute("data-title")) ? s.getAttribute("data-title") : "Slide " + (idx + 1);
         if (appHeader)  appHeader.textContent  = title;
         if (slideIdxEl) slideIdxEl.textContent = String(idx + 1);
-        if (qpSlide)    qpSlide.textContent    = String(idx + 1) + "/" + String(mainSlides.length);
+        if (qpSlide)    qpSlide.textContent    = (idx + 1) + "/" + mainSlides.length;
       }
-
       function goToSlide(idx){
         idx = Math.max(0, Math.min(mainSlides.length - 1, idx));
         currentSlide = idx;
         mainSlides.forEach(function(sl, i){
-          var cls = "main-slide";
-          if (i < idx)      cls += " prev";
-          else if (i > idx) cls += " next";
-          else              cls += " active";
-          sl.className = cls;
+          sl.className = "main-slide" + (i < idx ? " prev" : i > idx ? " next" : " active");
         });
         setHeaderForSlide(idx);
       }
-
       function prevSlide(){ goToSlide(currentSlide - 1); }
       function nextSlide(){ goToSlide(currentSlide + 1); }
 
@@ -2064,90 +1556,72 @@ body{
       var qpGoHome = document.getElementById("qpGoHome");
       if (qpGoHome) qpGoHome.addEventListener("click", function(){ setQP(false); goToSlide(0); });
 
-      /* ══════════════════════════════════════════════════════════
-         PRODUCT GRID
-      ══════════════════════════════════════════════════════════ */
+      /* ── PRODUCT GRID ────────────────────────────────────── */
       var productGrid = document.getElementById("productGrid");
       var products = [
-        { kind:"page",  title:"Student Research",    href:"student-research.html",  img:"assets/product-engine-pro.jpg",    chip:"Research",  desc:"Multi-source topic research. Synthesize and export.", foot:"Open tool" },
-        { kind:"page",  title:"SwipeOS",             href:"SwipeOS.html",            img:"assets/product-ondc.jpg",          chip:"OS",        desc:"Swipe-based decision workflows and briefs.",          foot:"Open module" },
-        { kind:"page",  title:"Brief",               href:"brief.html",              img:"assets/product-promptalchemy.jpg", chip:"Synthesis", desc:"Capture thesis, takeaways, contradictions.",          foot:"Open brief" },
-        { kind:"page",  title:"Decision Brief (PDF)",href:"decision-brief.html",     img:"assets/product-alchemist.jpg",     chip:"PDF",       desc:"Policy-grade export and share links.",                foot:"Open PDF" },
-        { kind:"page",  title:"PromptAlchemy",       href:"prompt-alchemy.html",     img:"assets/product-promptalchemy.jpg", chip:"Prompts",   desc:"Prompt tools for structured decision work.",          foot:"Open" },
-        { kind:"page",  title:"Alchemist",           href:"alchemist.html",          img:"assets/product-alchemist.jpg",     chip:"Quiz",      desc:"Assessments generated from research nodes.",          foot:"Open" },
-        { kind:"page",  title:"ONDC Demo",           href:"ONDC-demo.html",          img:"assets/product-ondc.jpg",          chip:"Commerce",  desc:"Local commerce flows and demos.",                     foot:"Open demo" },
-        { kind:"model", title:"Engine (3D)",          href:"engine-license.html",     modelSrc:"assets/viadecide-3d.gltf", poster:"assets/product-3d-poster.jpg", chip:"3D", desc:"Interactive engine preview (local asset, no tag injection).", foot:"License" }
+        { kind:"page",  title:"Student Research",     href:"student-research.html",  img:"assets/product-engine-pro.jpg",    chip:"Research",  desc:"Multi-source topic research. Synthesize and export.", foot:"Open tool" },
+        { kind:"page",  title:"SwipeOS",              href:"SwipeOS.html",            img:"assets/product-ondc.jpg",          chip:"OS",        desc:"Swipe-based decision workflows and briefs.",          foot:"Open module" },
+        { kind:"page",  title:"Brief",                href:"brief.html",              img:"assets/product-promptalchemy.jpg", chip:"Synthesis", desc:"Capture thesis, takeaways, contradictions.",          foot:"Open brief" },
+        { kind:"page",  title:"Decision Brief (PDF)", href:"decision-brief.html",     img:"assets/product-alchemist.jpg",     chip:"PDF",       desc:"Policy-grade export and share links.",                foot:"Open PDF" },
+        { kind:"page",  title:"PromptAlchemy",        href:"prompt-alchemy.html",     img:"assets/product-promptalchemy.jpg", chip:"Prompts",   desc:"Prompt tools for structured decision work.",          foot:"Open" },
+        { kind:"page",  title:"Alchemist",            href:"alchemist.html",          img:"assets/product-alchemist.jpg",     chip:"Quiz",      desc:"Assessments generated from research nodes.",          foot:"Open" },
+        { kind:"page",  title:"ONDC Demo",            href:"ONDC-demo.html",          img:"assets/product-ondc.jpg",          chip:"Commerce",  desc:"Local commerce flows and demos.",                     foot:"Open demo" },
+        { kind:"model", title:"Engine (3D)",          href:"engine-license.html",     modelSrc:"assets/viadecide-3d.gltf",    poster:"assets/product-3d-poster.jpg", chip:"3D", desc:"Interactive engine preview (local asset).", foot:"License" }
       ];
 
       function makeCard(p){
         var aff = getAffiliateTag();
+        var a = document.createElement("a");
+        a.className = "card";
+        a.href = appendAffiliateToHref(p.href, aff);
+        a.setAttribute("aria-label", p.title);
+
         if (p.kind === "model"){
-          var a = document.createElement("a");
-          a.className = "card";
-          a.href = appendAffiliateToHref(p.href, aff);
-          a.setAttribute("aria-label", p.title);
           var mv = document.createElement("model-viewer");
-          mv.setAttribute("loading", "lazy");
-          mv.setAttribute("reveal", "interaction");
-          mv.setAttribute("camera-controls", "");
-          mv.setAttribute("auto-rotate", "");
-          mv.setAttribute("rotation-per-second", "20deg");
-          mv.setAttribute("shadow-intensity", "0.9");
-          mv.setAttribute("interaction-prompt", "none");
-          mv.setAttribute("touch-action", "pan-y");
-          mv.setAttribute("alt", p.title);
-          mv.setAttribute("poster", p.poster);
-          mv.setAttribute("src", p.modelSrc);
+          mv.setAttribute("loading","lazy");
+          mv.setAttribute("reveal","interaction");
+          mv.setAttribute("camera-controls","");
+          mv.setAttribute("auto-rotate","");
+          mv.setAttribute("rotation-per-second","20deg");
+          mv.setAttribute("shadow-intensity","0.9");
+          mv.setAttribute("interaction-prompt","none");
+          mv.setAttribute("touch-action","pan-y");
+          mv.setAttribute("alt",p.title);
+          mv.setAttribute("poster",p.poster);
+          mv.setAttribute("src",p.modelSrc);
           a.appendChild(mv);
-          var c = document.createElement("div");
-          c.className = "card-c";
-          c.innerHTML =
-            '<div class="card-title">' +
-              '<h3>' + escapeHtml(p.title) + '</h3>' +
-              '<span class="chip accent">' + escapeHtml(p.chip) + '</span>' +
-            '</div>' +
-            '<p>' + escapeHtml(p.desc) + '</p>' +
-            '<div class="card-foot"><span>' + escapeHtml(p.foot) + '</span><span class="arrow">→</span></div>';
-          a.appendChild(c);
-          return a;
+        } else {
+          var img = document.createElement("img");
+          img.className = "thumb";
+          img.alt = p.title;
+          img.loading = "lazy";
+          img.decoding = "async";
+          img.src = p.img;
+          a.appendChild(img);
         }
-        var a2 = document.createElement("a");
-        a2.className = "card";
-        a2.href = appendAffiliateToHref(p.href, aff);
-        a2.setAttribute("aria-label", p.title);
-        var img = document.createElement("img");
-        img.className = "thumb"; img.alt = p.title;
-        img.loading = "lazy"; img.decoding = "async"; img.src = p.img;
-        a2.appendChild(img);
-        var c2 = document.createElement("div");
-        c2.className = "card-c";
-        c2.innerHTML =
-          '<div class="card-title">' +
-            '<h3>' + escapeHtml(p.title) + '</h3>' +
-            '<span class="chip">' + escapeHtml(p.chip) + '</span>' +
-          '</div>' +
+
+        var c = document.createElement("div");
+        c.className = "card-c";
+        c.innerHTML =
+          '<div class="card-title"><h3>' + escapeHtml(p.title) + '</h3>' +
+          '<span class="chip' + (p.kind==="model"?" accent":"") + '">' + escapeHtml(p.chip) + '</span></div>' +
           '<p>' + escapeHtml(p.desc) + '</p>' +
           '<div class="card-foot"><span>' + escapeHtml(p.foot) + '</span><span class="arrow">→</span></div>';
-        a2.appendChild(c2);
-        return a2;
+        a.appendChild(c);
+        return a;
       }
-
       function renderProducts(){
         if (!productGrid) return;
         productGrid.innerHTML = "";
         products.forEach(function(p){ productGrid.appendChild(makeCard(p)); });
       }
 
-      /* ══════════════════════════════════════════════════════════
-         WHEEL + KEYBOARD NAVIGATION (unchanged)
-      ══════════════════════════════════════════════════════════ */
+      /* ── WHEEL + KEYBOARD ────────────────────────────────── */
       function isTypingContext(){
         var ae = document.activeElement;
         if (!ae) return false;
         var tag = (ae.tagName || "").toLowerCase();
-        if (tag === "input" || tag === "textarea" || tag === "select") return true;
-        if (ae.isContentEditable) return true;
-        return false;
+        return tag === "input" || tag === "textarea" || tag === "select" || ae.isContentEditable;
       }
       function closestScrollable(el){
         while (el && el !== document.body){
@@ -2164,7 +1638,6 @@ body{
         if (deltaY < 0) return sc.scrollTop > 0;
         return false;
       }
-
       var wheelLock = false;
       window.addEventListener("wheel", function(e){
         if (intro && !intro.classList.contains("hidden")) return;
@@ -2174,17 +1647,14 @@ body{
         if (Math.abs(deltaY) < 8) return;
         var sc = closestScrollable(e.target);
         if (canScrollInDirection(sc, deltaY)) return;
-        e.preventDefault();
-        wheelLock = true;
+        e.preventDefault(); wheelLock = true;
         setTimeout(function(){ wheelLock = false; }, 220);
         if (deltaY > 0) nextSlide(); else prevSlide();
       }, { passive:false });
 
       window.addEventListener("keydown", function(e){
         if (e.key === "Escape"){
-          if (qp && qp.classList.contains("open")){
-            e.preventDefault(); setQP(false); return;
-          }
+          if (qp && qp.classList.contains("open")){ e.preventDefault(); setQP(false); return; }
         }
         if (intro && !intro.classList.contains("hidden")){
           if (e.key === "Enter"){
@@ -2199,19 +1669,14 @@ body{
         else if (e.key === "Home")                               { e.preventDefault(); goToSlide(0); }
       }, { passive:false });
 
-      /* ══════════════════════════════════════════════════════════
-         QP CLOCK
-      ══════════════════════════════════════════════════════════ */
+      /* ── QP CLOCK ────────────────────────────────────────── */
       function startQPTicker(){
         var el = document.getElementById("qpTime");
         if (!el) return;
-        setInterval(function(){ el.textContent = safeNowIST().slice(11, 16); }, 1000);
+        setInterval(function(){ el.textContent = safeNowIST().slice(11,16); }, 1000);
       }
 
-      /* ══════════════════════════════════════════════════════════
-         JOIN FORM
-         [UPGRADED] Shows toast on submit
-      ══════════════════════════════════════════════════════════ */
+      /* ── JOIN FORM ───────────────────────────────────────── */
       var joinForm      = document.getElementById("joinForm");
       var joinTimestamp = document.getElementById("joinTimestamp");
       var joinAffiliate = document.getElementById("joinAffiliate");
@@ -2221,27 +1686,23 @@ body{
 
       function setJoinStatus(msg, cls){
         if (!joinStatus) return;
-        joinStatus.className = "status" + (cls ? (" " + cls) : "");
+        joinStatus.className = "status" + (cls ? " " + cls : "");
         joinStatus.textContent = msg || "";
       }
-
       function resetJoin(){
         if (!joinForm) return;
         joinForm.reset();
         if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
         if (joinTimestamp) joinTimestamp.value = safeNowIST();
-        setJoinStatus("", "");
+        setJoinStatus("","");
       }
-
       if (joinClear) joinClear.addEventListener("click", resetJoin);
-
       if (joinForm){
         joinForm.addEventListener("submit", function(){
           if (joinTimestamp) joinTimestamp.value = safeNowIST();
           if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
-          setJoinStatus("Submitting…", "");
+          setJoinStatus("Submitting…","");
           if (joinSubmit) joinSubmit.disabled = true;
-          /* [UPGRADED] Toast feedback */
           setTimeout(function(){
             if (joinSubmit) joinSubmit.disabled = false;
             showToast("✓ Form submitted — check your inbox!", "ok");
@@ -2249,9 +1710,7 @@ body{
         });
       }
 
-      /* ══════════════════════════════════════════════════════════
-         BOOT SEQUENCE
-      ══════════════════════════════════════════════════════════ */
+      /* ── BOOT ────────────────────────────────────────────── */
       handleGoRedirect();
       setIntroSlide(0);
       startIntroAutoplay();
@@ -2260,23 +1719,14 @@ body{
       applyAffiliateToLinks();
       updateQPPwaStatus();
 
-      // QP project
       var qpProject = document.getElementById("qpProject");
-      if (qpProject){
-        try { qpProject.textContent = localStorage.getItem("decideProject") || "-"; }
-        catch(e){ qpProject.textContent = "-"; }
-      }
+      if (qpProject){ try { qpProject.textContent = localStorage.getItem("decideProject") || "-"; }catch(e){ qpProject.textContent = "-"; } }
 
-      // Join prefill
       if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
       if (joinTimestamp) joinTimestamp.value  = safeNowIST();
 
-      // Restore intro-dismissed state from sessionStorage
-      try{
-        if (sessionStorage.getItem("enteredApp") === "1") showIntro(false);
-      }catch(e){}
+      try { if (sessionStorage.getItem("enteredApp") === "1") showIntro(false); }catch(e){}
 
-      // Re-apply affiliate tags on tab focus (back-navigation)
       document.addEventListener("visibilitychange", function(){
         if (document.visibilityState === "visible") applyAffiliateToLinks();
       });
@@ -2284,86 +1734,6 @@ body{
       startQPTicker();
 
     })();
-    
-    // ===== Install button wiring (non-breaking) =====
-let deferredPrompt = null;
-const installBtns = [
-  document.getElementById("installBtnIntro"),
-  document.getElementById("installBtnTopbar"),
-].filter(Boolean);
-
-function setInstalledUI(){
-  installBtns.forEach(btn => {
-    btn.classList.add("installed");
-    btn.textContent = "✓ INSTALLED";
-    btn.disabled = true;
-  });
-}
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-window.addEventListener("appinstalled", () => {
-  setInstalledUI();
-  deferredPrompt = null;
-});
-
-installBtns.forEach(btn => {
-  btn.addEventListener("click", async () => {
-    // Already installed / standalone
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-    if (standalone) return setInstalledUI();
-
-    if (!deferredPrompt) {
-      // If prompt not ready, do nothing (or you can show a small message)
-      return;
-    }
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    if (choice && choice.outcome === "accepted") setInstalledUI();
-    deferredPrompt = null;
-  });
-});
   </script>
-
 </body>
 </html>
-
-<!--
-═══════════════════════════════════════════════════════════════════
-  SUPPORTING FILES (place these at your server root)
-═══════════════════════════════════════════════════════════════════
-
-  /manifest.json
-  ─────────────
-  {
-    "name": "ViaDecide",
-    "short_name": "ViaDecide",
-    "description": "India's Decision Engine",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#0a0a0a",
-    "theme_color": "#0a0a0a",
-    "icons": [
-      { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-      { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
-    ]
-  }
-
-  /service-worker.js
-  ──────────────────
-  const CACHE = "viadecide-v1";
-  const PRECACHE = ["/", "/index.html", "/manifest.json"];
-
-  self.addEventListener("install", e =>
-    e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE))));
-
-  self.addEventListener("fetch", e =>
-    e.respondWith(
-      caches.match(e.request).then(r => r || fetch(e.request))
-    ));
-
-═══════════════════════════════════════════════════════════════════
--->
