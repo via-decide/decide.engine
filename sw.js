@@ -1,80 +1,141 @@
-/**
- * sw.js — viadecide.com Service Worker
- * Provides offline support and caching for the PWA.
- */
+// sw.js
+'use strict';
 
-var CACHE_NAME = "viadecide-v1";
+const VERSION = 'v1.0.0';
+const CACHE_NAME = `viadecide-${VERSION}`;
+const APP_SHELL = [
+  './',
+  './index.html',
+  './manifest.json',
+  './router.js',
 
-// Core files to cache on install
-var PRECACHE_URLS = [
-  "/",
-  "/index.html",
-  "/router.js",
-  "/manifest.json"
+  // Subpages (same folder as index.html)
+  './StudentResearch.html',
+  './SwipeOS.html',
+  './Brief.html',
+  './DecisionBrief.html',
+  './PromptAlchemy.html',
+  './alchemist.html',
+  './ONDC-demo.html',
+  './engine-license.html',
+
+  // Assets (DO NOT append affiliate params anywhere)
+  './assets/viadecide-3d.gltf',
+  './assets/viadecide-3d.bin',
+  './assets/product-3d-poster.jpg',
+  './assets/product-engine-pro.jpg',
+  './assets/product-ondc.jpg',
+  './assets/product-promptalchemy.jpg',
+  './assets/product-alchemist.jpg',
+
+  // External model-viewer is served from CDN; it will be runtime-cached via fetch handler if allowed
 ];
 
-// ---- Install: precache core assets ----
-self.addEventListener("install", function (event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(PRECACHE_URLS);
-    }).then(function () {
-      return self.skipWaiting();
-    })
-  );
+function isSameOrigin(url) {
+  try { return new URL(url, self.location.href).origin === self.location.origin; }
+  catch (e) { return false; }
+}
+
+function isNavigationRequest(req) {
+  return req.mode === 'navigate' || (req.method === 'GET' && (req.headers.get('accept') || '').includes('text/html'));
+}
+
+function stripAffiliate(url) {
+  try {
+    const u = new URL(url, self.location.href);
+    u.searchParams.delete('tag');
+    u.searchParams.delete('aff');
+    return u.href;
+  } catch (e) {
+    return url;
+  }
+}
+
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL);
+    self.skipWaiting();
+  })());
 });
 
-// ---- Activate: clean up old caches ----
-self.addEventListener("activate", function (event) {
-  event.waitUntil(
-    caches.keys().then(function (keys) {
-      return Promise.all(
-        keys
-          .filter(function (key) { return key !== CACHE_NAME; })
-          .map(function (key) { return caches.delete(key); })
-      );
-    }).then(function () {
-      return self.clients.claim();
-    })
-  );
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((k) => (k === CACHE_NAME ? Promise.resolve() : caches.delete(k))));
+    self.clients.claim();
+  })());
 });
 
-// ---- Fetch: network-first, fallback to cache ----
-self.addEventListener("fetch", function (event) {
-  var req = event.request;
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
 
-  // Only handle GET requests
-  if (req.method !== "GET") return;
+  if (req.method !== 'GET') return;
 
-  // Skip cross-origin requests (CDN fonts, analytics, etc.)
-  var url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  const url = new URL(req.url);
 
-  // Skip Vercel analytics / speed insights
-  if (url.pathname.startsWith("/_vercel")) return;
+  // Ignore chrome-extension and other non-http(s)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
-  event.respondWith(
-    fetch(req)
-      .then(function (networkResponse) {
-        // Cache a clone of the successful response
-        if (networkResponse && networkResponse.status === 200) {
-          var responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(req, responseClone);
-          });
-        }
-        return networkResponse;
-      })
-      .catch(function () {
-        // Network failed — try cache
-        return caches.match(req).then(function (cached) {
+  // Treat same-origin requests: cache-first for static assets, network-first for html navigations
+  if (isSameOrigin(req.url)) {
+    if (isNavigationRequest(req)) {
+      event.respondWith((async () => {
+        try {
+          // Network-first for latest HTML, but cache for offline
+          const net = await fetch(req);
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(stripAffiliate(req.url), net.clone());
+          return net;
+        } catch (e) {
+          const cache = await caches.open(CACHE_NAME);
+          const cached = await cache.match(stripAffiliate(req.url), { ignoreSearch: true });
           if (cached) return cached;
-          // For navigation requests, return index.html as fallback
-          if (req.mode === "navigate") {
-            return caches.match("/index.html");
-          }
-          return new Response("Offline", { status: 503 });
-        });
-      })
-  );
+          return cache.match('./index.html', { ignoreSearch: true });
+        }
+      })());
+      return;
+    }
+
+    // Cache-first for same-origin non-navigation (assets)
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const key = stripAffiliate(req.url);
+      const cached = await cache.match(key, { ignoreSearch: true });
+      if (cached) return cached;
+
+      try {
+        const net = await fetch(req);
+        // Only cache successful basic/cors responses
+        if (net && (net.status === 200 || net.type === 'opaque')) {
+          cache.put(key, net.clone());
+        }
+        return net;
+      } catch (e) {
+        // Best-effort fallback to cache
+        const fallback = await cache.match(key, { ignoreSearch: true });
+        if (fallback) return fallback;
+        throw e;
+      }
+    })());
+    return;
+  }
+
+  // Cross-origin: runtime cache (best effort), but don't break if opaque
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(req);
+    if (cached) return cached;
+
+    try {
+      const net = await fetch(req);
+      if (net && (net.status === 200 || net.type === 'opaque')) {
+        cache.put(req, net.clone());
+      }
+      return net;
+    } catch (e) {
+      if (cached) return cached;
+      throw e;
+    }
+  })());
 });
