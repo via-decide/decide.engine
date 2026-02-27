@@ -1,139 +1,146 @@
 (function () {
   "use strict";
 
-  /*
-    Decide Engine Router
-    - Supports real .html navigation
-    - Supports pretty URLs (/slug/)
-    - Preserves search + hash
-    - Cloudflare Pages compatible
-  */
-
   // ----------------------------
-  // ROUTE MAP (REGISTER PAGES HERE)
+  // ROUTES MAP (ALL SUBPAGES)
+  // slug -> html file (CASE-SENSITIVE filenames must match your repo)
   // ----------------------------
   var ROUTES = {
-    alchemist: "alchemist.html",
+    // Core
+    home: "index.html", // optional alias
+    index: "index.html", // optional alias
+
+    // Modules / pages (based on your site links)
+    "student-research": "student-research.html",
     swipeos: "SwipeOS.html",
     brief: "brief.html",
     "decision-brief": "decision-brief.html",
-    "brief-received": "brief-received.html", // ✅ FIX ADDED
-    "student-research": "student-research.html",
+    "brief-received": "brief-received.html",
+
+    promptalchemy: "prompt-alchemy.html",   // alias
+    "prompt-alchemy": "prompt-alchemy.html",
+
+    alchemist: "alchemist.html",
+    "ondc-demo": "ONDC-demo.html",
+
     "engine-license": "engine-license.html",
     "engine-deals": "engine-deals.html",
     "cashback-claim": "cashback-claim.html",
     "cashback-rules": "cashback-rules.html",
-    "ondc-demo": "ONDC-demo.html",
-    "prompt-alchemy": "prompt-alchemy.html",
+
     contact: "contact.html"
   };
 
   // ----------------------------
-  // HELPERS
+  // Helpers
   // ----------------------------
-
-  function cleanPath(path) {
-    if (!path) return "";
-    path = path.replace(/^\/+/, "").replace(/\/+$/, "");
-    path = path.replace(/\.html$/i, "");
-    return path.toLowerCase();
+  function stripSlashes(s) {
+    return String(s || "").replace(/^\/+/, "").replace(/\/+$/, "");
   }
 
-  function getCurrentSlug() {
-    var path = window.location.pathname;
-    if (!path || path === "/") return "";
-    return cleanPath(path.split("/")[1]);
+  function normalizeSlug(s) {
+    s = stripSlashes(s);
+    if (!s) return "";
+    // remove .html
+    s = s.replace(/\.html?$/i, "");
+    // only first segment
+    s = s.split("/")[0];
+    return s.toLowerCase();
   }
 
-  function buildUrl(slug, opts) {
-    opts = opts || {};
-    var file = ROUTES[slug];
-    if (!file) return null;
+  function isHtmlPathname(pathname) {
+    return /\.html?$/i.test(String(pathname || ""));
+  }
 
-    var url = file;
+  function getSlugFromLocation() {
+    var path = stripSlashes(window.location.pathname || "");
+    if (!path) return ""; // root
 
-    if (opts.search) url += opts.search;
-    if (opts.hash) url += opts.hash;
+    // If visiting /something.html, no slug routing needed
+    if (isHtmlPathname(path)) return "";
 
-    return url;
+    // If visiting /slug or /slug/ => slug = first segment
+    return normalizeSlug(path);
   }
 
   function showRouteError(slug) {
-    document.body.innerHTML = `
-      <div style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:#0a0a0a;color:#f2f2f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,Arial,sans-serif;padding:24px;">
-        <div style="max-width:720px;width:100%;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(16,16,16,.75);padding:20px;">
-          <h1 style="margin:0 0 10px;">Page not found</h1>
-          <p style="color:rgba(242,242,242,.7)">
-            No subpage registered for:
-            <strong>${slug}</strong>
-          </p>
-          <p style="color:rgba(242,242,242,.6);font-size:14px;margin-top:10px;">
-            Add this to ROUTES:
-          </p>
-          <pre style="background:#111;padding:10px;border-radius:10px;color:#00e676;">
-'${slug}': '${slug}.html'
-          </pre>
-          <a href="index.html" style="display:inline-block;margin-top:16px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.15);color:#f2f2f2;text-decoration:none;">
-            ← Back to Home
-          </a>
-        </div>
-      </div>
-    `;
+    var safe = String(slug || "").replace(/[<>&"'`]/g, "");
+    document.documentElement.style.background = "#0a0a0a";
+    document.body.style.margin = "0";
+    document.body.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0a0a0a;color:#f2f2f2;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Arial,sans-serif;">' +
+        '<div style="max-width:820px;width:100%;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:rgba(16,16,16,.78);box-shadow:0 18px 55px rgba(0,0,0,.55);padding:18px 18px 16px;">' +
+          '<div style="font-size:28px;font-weight:900;letter-spacing:-.02em;margin:0 0 10px;color:#ff671f;">Page not found</div>' +
+          '<div style="color:rgba(242,242,242,.72);font-size:14px;line-height:1.45;margin-bottom:12px;">No subpage registered for: <span style="color:#fff;font-weight:800;">' + safe + "</span></div>" +
+          '<div style="color:rgba(242,242,242,.55);font-size:12px;margin-bottom:8px;">Add this route to <b>router.js</b>:</div>' +
+          '<pre style="margin:0;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px;color:#00e676;overflow:auto;">' +
+"'" + safe + "': '" + safe + ".html'," +
+          "</pre>" +
+          '<a href="index.html" style="display:inline-flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#f2f2f2;text-decoration:none;font-weight:900;">← Back to Home</a>' +
+        "</div>" +
+      "</div>";
   }
 
-  // ----------------------------
-  // NAVIGATION
-  // ----------------------------
-
-  function go(slug, opts) {
-    slug = cleanPath(slug);
-    var url = buildUrl(slug, opts);
-    if (!url) {
-      showRouteError(slug);
-      return;
-    }
-
-    if (opts && opts.newTab) {
-      window.open(url, "_blank");
-    } else {
-      window.location.href = url;
-    }
-  }
-
-  // ----------------------------
-  // AUTO HANDLE DIRECT SLUG LOAD
-  // ----------------------------
-
-  document.addEventListener("DOMContentLoaded", function () {
-    var slug = getCurrentSlug();
-
-    if (!slug) return; // index
-
-    if (!ROUTES[slug]) {
-      showRouteError(slug);
-      return;
-    }
-
-    // If visiting /slug directly (pretty URL)
-    var file = ROUTES[slug];
+  function redirectToFile(file) {
     var search = window.location.search || "";
     var hash = window.location.hash || "";
+    // Preserve query/hash
+    window.location.replace(file + search + hash);
+  }
 
-    // Avoid redirect loop
-    if (!window.location.pathname.endsWith(file)) {
-      window.location.replace(file + search + hash);
-    }
+  // ----------------------------
+  // Public API
+  // ----------------------------
+  function go(slug, opts) {
+    opts = opts || {};
+    var s = normalizeSlug(slug);
+    if (!s) return redirectToFile("index.html");
+
+    var file = ROUTES[s];
+    if (!file) return showRouteError(s);
+
+    var url = file + (opts.search || "") + (opts.hash || "");
+    if (opts.newTab) window.open(url, "_blank", "noopener");
+    else window.location.href = url;
+  }
+
+  function routes() {
+    return ROUTES;
+  }
+
+  // ----------------------------
+  // Boot: recover redirect from 404 shim, then handle pretty URL slug
+  // ----------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    // 1) Recover stored redirect from 404.html (GitHub Pages / fallback)
+    try {
+      var stored = sessionStorage.getItem("__vd_redirect__");
+      if (stored) {
+        sessionStorage.removeItem("__vd_redirect__");
+        // If stored looks like /slug or /slug/?q=... => route it
+        var tmp = String(stored);
+        var tmpPath = tmp.split("?")[0].split("#")[0];
+        var storedSlug = normalizeSlug(tmpPath);
+        if (storedSlug && ROUTES[storedSlug]) {
+          // keep original query/hash
+          var q = tmp.includes("?") ? "?" + tmp.split("?")[1].split("#")[0] : "";
+          var h = tmp.includes("#") ? "#" + tmp.split("#")[1] : "";
+          go(storedSlug, { newTab: false, search: q, hash: h });
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // 2) Handle direct visit to /slug or /slug/
+    var slug = getSlugFromLocation();
+    if (!slug) return;
+
+    var file = ROUTES[slug];
+    if (!file) return showRouteError(slug);
+
+    // Redirect /slug -> file.html
+    redirectToFile(file);
   });
 
-  // ----------------------------
-  // PUBLIC API
-  // ----------------------------
-
-  window.VDRouter = {
-    go: go,
-    routes: function () {
-      return ROUTES;
-    }
-  };
-
+  window.VDRouter = { go: go, routes: routes };
 })();
