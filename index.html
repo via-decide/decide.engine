@@ -6,7 +6,79 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>viadecide.com | India's Decision Engine</title>
 
-  <script src="./router.js"></script>
+  <!-- ═══════════════════════════════════════════════════════════════
+       INLINE ROUTER  (replaces the missing / broken ./router.js)
+       All subpage links remain REAL HTML navigations — no SPA hijack.
+       window.__router.isRealSubpage(href) is used only for ?go= redirects.
+  ═══════════════════════════════════════════════════════════════ -->
+  <script>
+  (function(){
+    "use strict";
+
+    /* All real .html subpages in this project */
+    var REAL_SUBPAGES = [
+      "StudentResearch.html",
+      "SwipeOS.html",
+      "Brief.html",
+      "DecisionBrief.html",
+      "PromptAlchemy.html",
+      "alchemist.html",
+      "ONDC-demo.html",
+      "engine-license.html"
+    ];
+
+    /* Normalise any href to just the filename part */
+    function baseFile(href){
+      try {
+        var u = new URL(href, location.href);
+        var parts = u.pathname.split("/");
+        return parts[parts.length - 1] || "";
+      } catch(e) {
+        var s = String(href || "").split("?")[0].split("#")[0];
+        var p = s.split("/");
+        return p[p.length - 1] || "";
+      }
+    }
+
+    window.__router = {
+      subpages: REAL_SUBPAGES,
+
+      /** Returns true when href resolves to a known real subpage file */
+      isRealSubpage: function(href){
+        if (!href) return false;
+        var file = baseFile(href);
+        return REAL_SUBPAGES.some(function(sp){
+          return sp.toLowerCase() === file.toLowerCase();
+        });
+      },
+
+      /**
+       * Navigate to a subpage the safe way:
+       *   • appends ?tag= affiliate param
+       *   • uses location.href (real navigation, no SPA)
+       */
+      go: function(href, affiliateTag){
+        if (!href) return;
+        try {
+          var u = new URL(href, location.href);
+          if (affiliateTag && !u.searchParams.get("tag")){
+            u.searchParams.set("tag", affiliateTag);
+          }
+          location.href = u.href;
+        } catch(e) {
+          location.href = href;
+        }
+      }
+    };
+
+    /* Safety net: if any code accidentally calls the old router
+       with a navigate / push method, convert it to a real navigation */
+    window.__router.navigate = window.__router.go;
+    window.__router.push    = window.__router.go;
+  })();
+  </script>
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
@@ -920,7 +992,7 @@
             <h1>Built <span class="accent">with India</span>. Not for India.</h1>
             <p>Open, attributed, multilingual — designed to scale from a village in Vidarbha to the corridors of Raisina Hill.</p>
             <div class="intro-quote">
-              “To give every Indian the same structured decision intelligence that a policy advisor uses — in any language, on any device, for any decision.”
+              "To give every Indian the same structured decision intelligence that a policy advisor uses — in any language, on any device, for any decision."
               <div style="margin-top:8px;color:rgba(242,242,242,.62);font-size:12px;">viadecide.com — Mission statement</div>
             </div>
             <div class="intro-grid" style="margin-top:14px;">
@@ -1121,7 +1193,7 @@
                 </div>
 
                 <div class="help">
-                  If you don’t see a reply, check spam/promotions. Your tag is included as <span class="mono">affiliate_tag</span>.
+                  If you don't see a reply, check spam/promotions. Your tag is included as <span class="mono">affiliate_tag</span>.
                 </div>
               </form>
             </div>
@@ -1147,724 +1219,609 @@
     (function(){
       "use strict";
 
+      /* ── Local asset / HTML page patterns ── */
       var LOCAL_ASSET_EXT_RE = /\.(gltf|glb|bin|png|jpe?g|webp)(?:[?#].*)?$/i;
       var HTML_PAGE_RE = /\.html(?:[?#].*)?$/i;
 
+      /* ── Utilities ── */
       function safeNowIST(){
         try{
           var d = new Date();
-          return new Intl.DateTimeFormat("en-GB", {
-            timeZone: "Asia/Kolkata",
-            year:"numeric", month:"2-digit", day:"2-digit",
-            hour:"2-digit", minute:"2-digit", second:"2-digit",
+          return new Intl.DateTimeFormat("en-GB",{
+            timeZone:"Asia/Kolkata",
+            year:"numeric",month:"2-digit",day:"2-digit",
+            hour:"2-digit",minute:"2-digit",second:"2-digit",
             hour12:false
-          }).format(d).replace(",", "");
-        }catch(e){
-          return new Date().toISOString();
-        }
+          }).format(d).replace(",","");
+        }catch(e){ return new Date().toISOString(); }
       }
 
       function getParam(key){
         try{
           var u = new URL(location.href);
           var v = u.searchParams.get(key);
-          if (v) return v.trim();
-          var h = location.hash || "";
-          var m = h.match(new RegExp("(?:^|[&#])" + key + "=([^&]+)", "i"));
-          if (m && m[1]) return decodeURIComponent(m[1]).trim();
+          if(v) return v.trim();
+          var h = location.hash||"";
+          var m = h.match(new RegExp("(?:^|[&#])"+key+"=([^&]+)","i"));
+          if(m&&m[1]) return decodeURIComponent(m[1]).trim();
         }catch(e){}
         return null;
       }
 
       function normalizeAffiliateTag(tag){
-        tag = (tag || "").trim();
-        if (!tag) return "viadecide";
-        tag = tag.replace(/[^\w.-]/g, "").slice(0, 64);
-        return tag || "viadecide";
+        tag=(tag||"").trim();
+        if(!tag) return "viadecide";
+        tag=tag.replace(/[^\w.-]/g,"").slice(0,64);
+        return tag||"viadecide";
       }
 
       function getAffiliateTag(){
-        var t = normalizeAffiliateTag(getParam("tag") || getParam("aff"));
+        var t=normalizeAffiliateTag(getParam("tag")||getParam("aff"));
         try{
-          var stored = localStorage.getItem("affiliateTag");
-          if (stored) t = normalizeAffiliateTag(stored);
-          var urlTag = getParam("tag") || getParam("aff");
-          if (urlTag) t = normalizeAffiliateTag(urlTag);
-          localStorage.setItem("affiliateTag", t);
+          var stored=localStorage.getItem("affiliateTag");
+          if(stored) t=normalizeAffiliateTag(stored);
+          var urlTag=getParam("tag")||getParam("aff");
+          if(urlTag) t=normalizeAffiliateTag(urlTag);
+          localStorage.setItem("affiliateTag",t);
         }catch(e){}
         return t;
       }
 
-      function appendAffiliateToHref(href, aff){
+      function appendAffiliateToHref(href,aff){
         try{
-          if (!href) return href;
-          if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return href;
-          if (LOCAL_ASSET_EXT_RE.test(href)) return href;
-
+          if(!href) return href;
+          if(href.startsWith("#")||href.startsWith("mailto:")||href.startsWith("tel:")) return href;
+          if(LOCAL_ASSET_EXT_RE.test(href)) return href;
           var u;
-          if (/^https?:\/\//i.test(href)){
-            u = new URL(href);
+          if(/^https?:\/\//i.test(href)){
+            u=new URL(href);
           }else{
-            u = new URL(href, location.href);
+            u=new URL(href,location.href);
           }
-
-          var pathname = u.pathname || "";
-          if (LOCAL_ASSET_EXT_RE.test(pathname)) return href;
-
-          var isHtml = HTML_PAGE_RE.test(pathname) || HTML_PAGE_RE.test(href);
-          if (!isHtml) return href;
-
-          if (!u.searchParams.get("tag")) u.searchParams.set("tag", aff);
+          var pathname=u.pathname||"";
+          if(LOCAL_ASSET_EXT_RE.test(pathname)) return href;
+          var isHtml=HTML_PAGE_RE.test(pathname)||HTML_PAGE_RE.test(href);
+          if(!isHtml) return href;
+          if(!u.searchParams.get("tag")) u.searchParams.set("tag",aff);
           return u.href;
-        }catch(e){
-          return href;
-        }
+        }catch(e){ return href; }
       }
 
       function applyAffiliateToLinks(){
-        var aff = getAffiliateTag();
-        var els = document.querySelectorAll("a[href]");
+        var aff=getAffiliateTag();
+        var els=document.querySelectorAll("a[href]");
         els.forEach(function(a){
-          var href = a.getAttribute("href") || "";
-          if (!href) return;
-          if (LOCAL_ASSET_EXT_RE.test(href)) return;
-          if (a.hasAttribute("data-no-aff")) return;
-          if (!HTML_PAGE_RE.test(href) && !HTML_PAGE_RE.test((function(){
-            try { return new URL(href, location.href).pathname; } catch(e){ return ""; }
+          var href=a.getAttribute("href")||"";
+          if(!href) return;
+          if(LOCAL_ASSET_EXT_RE.test(href)) return;
+          if(a.hasAttribute("data-no-aff")) return;
+          if(!HTML_PAGE_RE.test(href)&&!HTML_PAGE_RE.test((function(){
+            try{return new URL(href,location.href).pathname;}catch(e){return "";}
           })())) return;
-          a.setAttribute("href", appendAffiliateToHref(href, aff));
+          a.setAttribute("href",appendAffiliateToHref(href,aff));
         });
-
-        var affEls = [
+        var affEls=[
           document.getElementById("affTagPill"),
           document.getElementById("affInline")
         ];
-        affEls.forEach(function(el){ if (el) el.textContent = aff; });
-
-        var joinAff = document.getElementById("joinAffiliate");
-        if (joinAff) joinAff.value = aff;
-
-        var qpAff = document.getElementById("qpAff");
-        if (qpAff) qpAff.textContent = aff;
+        affEls.forEach(function(el){if(el) el.textContent=aff;});
+        var joinAff=document.getElementById("joinAffiliate");
+        if(joinAff) joinAff.value=aff;
+        var qpAff=document.getElementById("qpAff");
+        if(qpAff) qpAff.textContent=aff;
       }
 
+      /* ── ?go= redirect handling (uses window.__router set in head) ── */
       function handleGoRedirect(){
-        var go = getParam("go");
-        if (!go) return;
-        if (!window.__router || !window.__router.isRealSubpage) return;
-
-        if (window.__router.isRealSubpage(go)){
-          var aff = getAffiliateTag();
-          var dest = go;
-          try{
-            var u = new URL(go, location.href);
-            if (!u.searchParams.get("tag")) u.searchParams.set("tag", aff);
-            dest = u.pathname.split("/").pop() + "?" + u.searchParams.toString();
-          }catch(e){
-            dest = go + (go.indexOf("?") >= 0 ? "&" : "?") + "tag=" + encodeURIComponent(aff);
-          }
-          location.replace(dest);
+        var go=getParam("go");
+        if(!go) return;
+        /* window.__router is now always defined (inlined in <head>) */
+        if(!window.__router||!window.__router.isRealSubpage) return;
+        if(window.__router.isRealSubpage(go)){
+          var aff=getAffiliateTag();
+          window.__router.go(go,aff);    /* real navigation, not SPA */
         }
       }
-
       handleGoRedirect();
 
-      var intro = document.getElementById("intro");
-      var app = document.getElementById("app");
-      var openQPBtn = document.getElementById("openQP");
-      var closeQPBtn = document.getElementById("closeQP");
+      /* ── DOM refs ── */
+      var intro       = document.getElementById("intro");
+      var app         = document.getElementById("app");
+      var openQPBtn   = document.getElementById("openQP");
+      var closeQPBtn  = document.getElementById("closeQP");
       var introOpenQPBtn = document.getElementById("introOpenQP");
-      var qp = document.getElementById("quickPanel");
-      var showIntroBtn = document.getElementById("showIntro");
+      var qp          = document.getElementById("quickPanel");
+      var showIntroBtn= document.getElementById("showIntro");
       var qpViewIntro = document.getElementById("qpViewIntro");
 
+      /* ── Quick panel ── */
       function setQP(open){
-        if (!qp) return;
-        qp.classList.toggle("open", !!open);
-        qp.setAttribute("aria-hidden", open ? "false" : "true");
-        if (open) {
-          try { closeQPBtn && closeQPBtn.focus({preventScroll:true}); } catch(e){}
-        }
+        if(!qp) return;
+        qp.classList.toggle("open",!!open);
+        qp.setAttribute("aria-hidden",open?"false":"true");
+        if(open){ try{ closeQPBtn&&closeQPBtn.focus({preventScroll:true}); }catch(e){} }
       }
+      if(openQPBtn)     openQPBtn.addEventListener("click",function(){ setQP(true); });
+      if(introOpenQPBtn)introOpenQPBtn.addEventListener("click",function(){ setQP(true); });
+      if(closeQPBtn)    closeQPBtn.addEventListener("click",function(){ setQP(false); });
+      if(qp) qp.addEventListener("click",function(e){ if(e.target===qp) setQP(false); });
 
-      if (openQPBtn) openQPBtn.addEventListener("click", function(){ setQP(true); });
-      if (introOpenQPBtn) introOpenQPBtn.addEventListener("click", function(){ setQP(true); });
-      if (closeQPBtn) closeQPBtn.addEventListener("click", function(){ setQP(false); });
-      if (qp) qp.addEventListener("click", function(e){
-        if (e.target === qp) setQP(false);
-      });
-
-      function showIntro(open){
-        if (!intro) return;
-        intro.classList.toggle("hidden", !open);
-        if (open){
-          introHidden = false;
+      /* ── Intro visibility ── */
+      var introHidden=false;
+      function showIntroFn(open){
+        if(!intro) return;
+        intro.classList.toggle("hidden",!open);
+        if(open){
+          introHidden=false;
           startIntroAutoplay();
         }else{
-          introHidden = true;
+          introHidden=true;
           stopIntroAutoplay();
         }
       }
+      if(showIntroBtn) showIntroBtn.addEventListener("click",function(){ showIntroFn(true); });
+      if(qpViewIntro)  qpViewIntro.addEventListener("click",function(){ setQP(false); showIntroFn(true); });
 
-      if (showIntroBtn) showIntroBtn.addEventListener("click", function(){ showIntro(true); });
-      if (qpViewIntro) qpViewIntro.addEventListener("click", function(){ setQP(false); showIntro(true); });
-
-      // Intro logic
-      var introSlides = Array.prototype.slice.call(document.querySelectorAll(".intro-slide"));
-      var introDots = Array.prototype.slice.call(document.querySelectorAll(".dot"));
-      var introPrev = document.getElementById("introPrev");
-      var introNext = document.getElementById("introNext");
+      /* ── Intro slides ── */
+      var introSlideEls = Array.prototype.slice.call(document.querySelectorAll(".intro-slide"));
+      var introDotEls   = Array.prototype.slice.call(document.querySelectorAll(".dot"));
+      var introPrev  = document.getElementById("introPrev");
+      var introNext  = document.getElementById("introNext");
       var introPause = document.getElementById("introPause");
-      var enterApp = document.getElementById("enterApp");
-      var introIdx = 0;
+      var enterApp   = document.getElementById("enterApp");
+      var introIdx   = 0;
       var introTimer = null;
-      var introTick = null;
-      var INTRO_MS = 6500;
-      var introPaused = false;
-      var introHidden = false;
+      var introTick  = null;
+      var INTRO_MS   = 6500;
+      var introPaused= false;
 
       function setIntroSlide(idx){
-        idx = Math.max(0, Math.min(introSlides.length - 1, idx));
-        introIdx = idx;
-        introSlides.forEach(function(s, i){
-          s.classList.toggle("active", i === idx);
+        idx=Math.max(0,Math.min(introSlideEls.length-1,idx));
+        introIdx=idx;
+        introSlideEls.forEach(function(s,i){ s.classList.toggle("active",i===idx); });
+        introDotEls.forEach(function(d,i){
+          d.classList.toggle("active",i===idx);
+          var prog=d.querySelector(".prog");
+          if(prog) prog.style.width="0%";
         });
-        introDots.forEach(function(d, i){
-          d.classList.toggle("active", i === idx);
-          var prog = d.querySelector(".prog");
-          if (prog) prog.style.width = (i === idx ? "0%" : "0%");
-        });
-        if (idx === 0){
-          animateIntroStats();
-        }
+        if(idx===0) animateIntroStats();
       }
 
       function stopIntroAutoplay(){
-        if (introTimer) { clearTimeout(introTimer); introTimer = null; }
-        if (introTick) { clearInterval(introTick); introTick = null; }
-        introPaused = true;
-        if (introPause) introPause.textContent = "▶ PLAY";
+        if(introTimer){ clearTimeout(introTimer); introTimer=null; }
+        if(introTick){  clearInterval(introTick);  introTick=null; }
+        introPaused=true;
+        if(introPause) introPause.textContent="▶ PLAY";
       }
 
       function startIntroAutoplay(){
-        if (introHidden) return;
-        introPaused = false;
-        if (introPause) introPause.textContent = "⏸ PAUSE";
-        if (introTimer) clearTimeout(introTimer);
-        if (introTick) clearInterval(introTick);
-
-        var start = performance.now();
-        var dot = introDots[introIdx];
-        var prog = dot ? dot.querySelector(".prog") : null;
-
-        introTick = setInterval(function(){
-          if (introPaused || introHidden) return;
-          var t = performance.now() - start;
-          var p = Math.max(0, Math.min(1, t / INTRO_MS));
-          if (prog) prog.style.width = (p * 100).toFixed(1) + "%";
-        }, 50);
-
-        introTimer = setTimeout(function(){
-          if (introPaused || introHidden) return;
-          var next = (introIdx + 1) % introSlides.length;
+        if(introHidden) return;
+        introPaused=false;
+        if(introPause) introPause.textContent="⏸ PAUSE";
+        if(introTimer) clearTimeout(introTimer);
+        if(introTick)  clearInterval(introTick);
+        var start=performance.now();
+        var dot=introDotEls[introIdx];
+        var prog=dot?dot.querySelector(".prog"):null;
+        introTick=setInterval(function(){
+          if(introPaused||introHidden) return;
+          var t=performance.now()-start;
+          var p=Math.max(0,Math.min(1,t/INTRO_MS));
+          if(prog) prog.style.width=(p*100).toFixed(1)+"%";
+        },50);
+        introTimer=setTimeout(function(){
+          if(introPaused||introHidden) return;
+          var next=(introIdx+1)%introSlideEls.length;
           setIntroSlide(next);
           startIntroAutoplay();
-        }, INTRO_MS);
+        },INTRO_MS);
       }
 
-      function toggleIntroPause(){
-        if (introPaused){
-          startIntroAutoplay();
-        }else{
-          stopIntroAutoplay();
-        }
-      }
-
-      if (introPrev) introPrev.addEventListener("click", function(){
-        setIntroSlide((introIdx - 1 + introSlides.length) % introSlides.length);
+      if(introPrev) introPrev.addEventListener("click",function(){
+        setIntroSlide((introIdx-1+introSlideEls.length)%introSlideEls.length);
         startIntroAutoplay();
       });
-      if (introNext) introNext.addEventListener("click", function(){
-        setIntroSlide((introIdx + 1) % introSlides.length);
+      if(introNext) introNext.addEventListener("click",function(){
+        setIntroSlide((introIdx+1)%introSlideEls.length);
         startIntroAutoplay();
       });
-      if (introPause) introPause.addEventListener("click", function(){ toggleIntroPause(); });
-
-      introDots.forEach(function(d){
-        d.addEventListener("click", function(){
-          var n = parseInt(d.getAttribute("data-dot") || "0", 10) || 0;
+      if(introPause) introPause.addEventListener("click",function(){
+        if(introPaused) startIntroAutoplay(); else stopIntroAutoplay();
+      });
+      introDotEls.forEach(function(d){
+        d.addEventListener("click",function(){
+          var n=parseInt(d.getAttribute("data-dot")||"0",10)||0;
           setIntroSlide(n);
           startIntroAutoplay();
         });
       });
 
-      function animateNumber(el, to, duration){
-        if (!el) return;
-        var from = 0;
-        var start = performance.now();
-        var fmt = function(v){
-          try { return v.toLocaleString("en-IN"); } catch(e){ return String(v); }
-        };
+      function animateNumber(el,to,duration){
+        if(!el) return;
+        var from=0, start=performance.now();
+        var fmt=function(v){ try{ return v.toLocaleString("en-IN"); }catch(e){ return String(v); } };
         function frame(now){
-          var t = Math.min(1, (now - start) / duration);
-          var v = Math.round(from + (to - from) * (1 - Math.pow(1 - t, 3)));
-          el.textContent = fmt(v);
-          if (t < 1) requestAnimationFrame(frame);
+          var t=Math.min(1,(now-start)/duration);
+          var v=Math.round(from+(to-from)*(1-Math.pow(1-t,3)));
+          el.textContent=fmt(v);
+          if(t<1) requestAnimationFrame(frame);
         }
         requestAnimationFrame(frame);
       }
-
-      var introStatsAnimated = false;
+      var introStatsAnimated=false;
       function animateIntroStats(){
-        if (introStatsAnimated) return;
-        introStatsAnimated = true;
-        animateNumber(document.getElementById("statDecisions"), 1400000000, 1100);
-        animateNumber(document.getElementById("statLang"), 22, 900);
-        animateNumber(document.getElementById("statDistricts"), 770, 1000); // consistent with label: Districts (approx.)
-        animateNumber(document.getElementById("statTools"), 4, 900);
+        if(introStatsAnimated) return;
+        introStatsAnimated=true;
+        animateNumber(document.getElementById("statDecisions"),1400000000,1100);
+        animateNumber(document.getElementById("statLang"),22,900);
+        animateNumber(document.getElementById("statDistricts"),770,1000);
+        animateNumber(document.getElementById("statTools"),4,900);
       }
 
-      if (enterApp) enterApp.addEventListener("click", function(){
-        showIntro(false);
+      if(enterApp) enterApp.addEventListener("click",function(){
+        showIntroFn(false);
+        try{ sessionStorage.setItem("enteredApp","1"); }catch(e){}
         try{
           setTimeout(function(){
-            var focusTarget = document.getElementById("nextSlide");
-            focusTarget && focusTarget.focus({preventScroll:true});
-          }, 30);
+            var focusTarget=document.getElementById("nextSlide");
+            focusTarget&&focusTarget.focus({preventScroll:true});
+          },30);
         }catch(e){}
       });
 
-      // Main slides logic
-      var slidesEl = document.getElementById("slides");
-      var mainSlides = Array.prototype.slice.call(document.querySelectorAll(".main-slide"));
-      var slideIdxEl = document.getElementById("slideIdx");
-      var slideTotalEl = document.getElementById("slideTotal");
-      var appHeader = document.getElementById("appHeader");
-      var qpSlide = document.getElementById("qpSlide");
-      var currentSlide = 0;
+      /* ── Main slides ── */
+      var slidesEl    = document.getElementById("slides");
+      var mainSlides  = Array.prototype.slice.call(document.querySelectorAll(".main-slide"));
+      var slideIdxEl  = document.getElementById("slideIdx");
+      var slideTotalEl= document.getElementById("slideTotal");
+      var appHeader   = document.getElementById("appHeader");
+      var qpSlideEl   = document.getElementById("qpSlide");
+      var currentSlide= 0;
 
-      if (slideTotalEl) slideTotalEl.textContent = String(mainSlides.length);
+      if(slideTotalEl) slideTotalEl.textContent=String(mainSlides.length);
 
       function setHeaderForSlide(idx){
-        var s = mainSlides[idx];
-        var title = (s && s.getAttribute("data-title")) ? s.getAttribute("data-title") : ("Slide " + (idx + 1));
-        if (appHeader) appHeader.textContent = title;
-        if (slideIdxEl) slideIdxEl.textContent = String(idx + 1);
-        if (qpSlide) qpSlide.textContent = String(idx + 1) + "/" + String(mainSlides.length);
+        var s=mainSlides[idx];
+        var title=(s&&s.getAttribute("data-title"))?s.getAttribute("data-title"):("Slide "+(idx+1));
+        if(appHeader)  appHeader.textContent=title;
+        if(slideIdxEl) slideIdxEl.textContent=String(idx+1);
+        if(qpSlideEl)  qpSlideEl.textContent=String(idx+1)+"/"+String(mainSlides.length);
       }
 
       function goToSlide(idx){
-        idx = Math.max(0, Math.min(mainSlides.length - 1, idx));
-        currentSlide = idx;
-        mainSlides.forEach(function(sl, i){
-          var cls = "main-slide";
-          if (i < idx) cls += " prev";
-          else if (i > idx) cls += " next";
-          else cls += " active";
-          sl.className = cls;
+        idx=Math.max(0,Math.min(mainSlides.length-1,idx));
+        currentSlide=idx;
+        mainSlides.forEach(function(sl,i){
+          var cls="main-slide";
+          if(i<idx)      cls+=" prev";
+          else if(i>idx) cls+=" next";
+          else           cls+=" active";
+          sl.className=cls;
         });
         setHeaderForSlide(idx);
       }
+      function prevSlide(){ goToSlide(currentSlide-1); }
+      function nextSlide(){ goToSlide(currentSlide+1); }
 
-      function prevSlide(){
-        goToSlide(currentSlide - 1);
-      }
-      function nextSlide(){
-        goToSlide(currentSlide + 1);
-      }
+      var prevBtn=document.getElementById("prevSlide");
+      var nextBtn=document.getElementById("nextSlide");
+      var homeBtn=document.getElementById("goHome");
+      if(prevBtn) prevBtn.addEventListener("click",prevSlide);
+      if(nextBtn) nextBtn.addEventListener("click",nextSlide);
+      if(homeBtn) homeBtn.addEventListener("click",function(){ goToSlide(0); });
 
-      var prevBtn = document.getElementById("prevSlide");
-      var nextBtn = document.getElementById("nextSlide");
-      var homeBtn = document.getElementById("goHome");
-      if (prevBtn) prevBtn.addEventListener("click", prevSlide);
-      if (nextBtn) nextBtn.addEventListener("click", nextSlide);
-      if (homeBtn) homeBtn.addEventListener("click", function(){ goToSlide(0); });
+      var qpGoHome=document.getElementById("qpGoHome");
+      if(qpGoHome) qpGoHome.addEventListener("click",function(){ setQP(false); goToSlide(0); });
 
-      var qpGoHome = document.getElementById("qpGoHome");
-      if (qpGoHome) qpGoHome.addEventListener("click", function(){ setQP(false); goToSlide(0); });
+      /* ── Products grid ── */
+      var productGrid=document.getElementById("productGrid");
 
-      // Build products grid
-      var productGrid = document.getElementById("productGrid");
-
-      var products = [
+      var products=[
         {
-          kind: "page",
-          title: "Student Research",
-          href: "StudentResearch.html",
-          img: "assets/product-engine-pro.jpg",
-          chip: "Research",
-          desc: "Multi-source topic research. Synthesize and export.",
-          foot: "Open tool"
+          kind:"page",
+          title:"Student Research",
+          href:"StudentResearch.html",
+          img:"assets/product-engine-pro.jpg",
+          chip:"Research",
+          desc:"Multi-source topic research. Synthesize and export.",
+          foot:"Open tool"
         },
         {
-          kind: "page",
-          title: "SwipeOS",
-          href: "SwipeOS.html",
-          img: "assets/product-ondc.jpg",
-          chip: "OS",
-          desc: "Swipe-based decision workflows and briefs.",
-          foot: "Open module"
+          kind:"page",
+          title:"SwipeOS",
+          href:"SwipeOS.html",
+          img:"assets/product-ondc.jpg",
+          chip:"OS",
+          desc:"Swipe-based decision workflows and briefs.",
+          foot:"Open module"
         },
         {
-          kind: "page",
-          title: "Brief",
-          href: "Brief.html",
-          img: "assets/product-promptalchemy.jpg",
-          chip: "Synthesis",
-          desc: "Capture thesis, takeaways, contradictions.",
-          foot: "Open brief"
+          kind:"page",
+          title:"Brief",
+          href:"Brief.html",
+          img:"assets/product-promptalchemy.jpg",
+          chip:"Synthesis",
+          desc:"Capture thesis, takeaways, contradictions.",
+          foot:"Open brief"
         },
         {
-          kind: "page",
-          title: "Decision Brief (PDF)",
-          href: "DecisionBrief.html",
-          img: "assets/product-alchemist.jpg",
-          chip: "PDF",
-          desc: "Policy-grade export and share links.",
-          foot: "Open PDF"
+          kind:"page",
+          title:"Decision Brief (PDF)",
+          href:"DecisionBrief.html",
+          img:"assets/product-alchemist.jpg",
+          chip:"PDF",
+          desc:"Policy-grade export and share links.",
+          foot:"Open PDF"
         },
         {
-          kind: "page",
-          title: "PromptAlchemy",
-          href: "PromptAlchemy.html",
-          img: "assets/product-promptalchemy.jpg",
-          chip: "Prompts",
-          desc: "Prompt tools for structured decision work.",
-          foot: "Open"
+          kind:"page",
+          title:"PromptAlchemy",
+          href:"PromptAlchemy.html",
+          img:"assets/product-promptalchemy.jpg",
+          chip:"Prompts",
+          desc:"Prompt tools for structured decision work.",
+          foot:"Open"
         },
         {
-          kind: "page",
-          title: "Alchemist",
-          href: "alchemist.html",
-          img: "assets/product-alchemist.jpg",
-          chip: "Quiz",
-          desc: "Assessments generated from research nodes.",
-          foot: "Open"
+          kind:"page",
+          title:"Alchemist",
+          href:"alchemist.html",
+          img:"assets/product-alchemist.jpg",
+          chip:"Quiz",
+          desc:"Assessments generated from research nodes.",
+          foot:"Open"
         },
         {
-          kind: "page",
-          title: "ONDC Demo",
-          href: "ONDC-demo.html",
-          img: "assets/product-ondc.jpg",
-          chip: "Commerce",
-          desc: "Local commerce flows and demos.",
-          foot: "Open demo"
+          kind:"page",
+          title:"ONDC Demo",
+          href:"ONDC-demo.html",
+          img:"assets/product-ondc.jpg",
+          chip:"Commerce",
+          desc:"Local commerce flows and demos.",
+          foot:"Open demo"
         },
         {
-          kind: "model",
-          title: "Engine (3D)",
-          href: "engine-license.html",
-          modelSrc: "assets/viadecide-3d.gltf",
-          poster: "assets/product-3d-poster.jpg",
-          chip: "3D",
-          desc: "Interactive engine preview (local asset, no tag injection).",
-          foot: "License"
+          kind:"model",
+          title:"Engine (3D)",
+          href:"engine-license.html",
+          modelSrc:"assets/viadecide-3d.gltf",
+          poster:"assets/product-3d-poster.jpg",
+          chip:"3D",
+          desc:"Interactive engine preview (local asset, no tag injection).",
+          foot:"License"
         }
       ];
 
+      function escapeHtml(s){
+        return String(s||"").replace(/[&<>"']/g,function(m){
+          return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[m];
+        });
+      }
+
       function makeCard(p){
-        if (p.kind === "model"){
-          var a = document.createElement("a");
-          a.className = "card";
-          a.href = appendAffiliateToHref(p.href, getAffiliateTag());
-          a.setAttribute("aria-label", p.title);
-
-          var mv = document.createElement("model-viewer");
-          mv.setAttribute("loading", "lazy");
-          mv.setAttribute("reveal", "interaction");
-          mv.setAttribute("camera-controls", "");
-          mv.setAttribute("auto-rotate", "");
-          mv.setAttribute("rotation-per-second", "20deg");
-          mv.setAttribute("shadow-intensity", "0.9");
-          mv.setAttribute("interaction-prompt", "none");
-          mv.setAttribute("touch-action", "pan-y");
-          mv.setAttribute("alt", p.title);
-          mv.setAttribute("poster", p.poster);
-          mv.setAttribute("src", p.modelSrc); // NEVER append affiliate params to model-viewer src
+        var aff=getAffiliateTag();
+        if(p.kind==="model"){
+          var a=document.createElement("a");
+          a.className="card";
+          a.href=appendAffiliateToHref(p.href,aff);
+          a.setAttribute("aria-label",p.title);
+          var mv=document.createElement("model-viewer");
+          mv.setAttribute("loading","lazy");
+          mv.setAttribute("reveal","interaction");
+          mv.setAttribute("camera-controls","");
+          mv.setAttribute("auto-rotate","");
+          mv.setAttribute("rotation-per-second","20deg");
+          mv.setAttribute("shadow-intensity","0.9");
+          mv.setAttribute("interaction-prompt","none");
+          mv.setAttribute("touch-action","pan-y");
+          mv.setAttribute("alt",p.title);
+          mv.setAttribute("poster",p.poster);
+          mv.setAttribute("src",p.modelSrc); /* never tag model src */
           a.appendChild(mv);
-
-          var c = document.createElement("div");
-          c.className = "card-c";
-          c.innerHTML =
-            '<div class="card-title">' +
-              '<h3>' + escapeHtml(p.title) + '</h3>' +
-              '<span class="chip accent">' + escapeHtml(p.chip) + '</span>' +
-            '</div>' +
-            '<p>' + escapeHtml(p.desc) + '</p>' +
-            '<div class="card-foot"><span>' + escapeHtml(p.foot) + '</span><span class="arrow">→</span></div>';
+          var c=document.createElement("div");
+          c.className="card-c";
+          c.innerHTML=
+            '<div class="card-title">'+
+              '<h3>'+escapeHtml(p.title)+'</h3>'+
+              '<span class="chip accent">'+escapeHtml(p.chip)+'</span>'+
+            '</div>'+
+            '<p>'+escapeHtml(p.desc)+'</p>'+
+            '<div class="card-foot"><span>'+escapeHtml(p.foot)+'</span><span class="arrow">→</span></div>';
           a.appendChild(c);
           return a;
-        } else {
-          var a2 = document.createElement("a");
-          a2.className = "card";
-          a2.href = appendAffiliateToHref(p.href, getAffiliateTag());
-          a2.setAttribute("aria-label", p.title);
-
-          var img = document.createElement("img");
-          img.className = "thumb";
-          img.alt = p.title;
-          img.loading = "lazy";
-          img.decoding = "async";
-          img.src = p.img; // local asset: no tagging
+        }else{
+          var a2=document.createElement("a");
+          a2.className="card";
+          a2.href=appendAffiliateToHref(p.href,aff);
+          a2.setAttribute("aria-label",p.title);
+          /* Fallback placeholder if image is missing */
+          var img=document.createElement("img");
+          img.className="thumb";
+          img.alt=p.title;
+          img.loading="lazy";
+          img.decoding="async";
+          img.src=p.img;
+          img.onerror=function(){
+            /* Show a colour block instead of broken image icon */
+            this.style.display="none";
+            var ph=document.createElement("div");
+            ph.className="thumb";
+            ph.style.cssText="display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(242,242,242,.45);letter-spacing:.08em;text-transform:uppercase;";
+            ph.textContent=p.chip;
+            a2.insertBefore(ph,a2.firstChild);
+          };
           a2.appendChild(img);
-
-          var c2 = document.createElement("div");
-          c2.className = "card-c";
-          c2.innerHTML =
-            '<div class="card-title">' +
-              '<h3>' + escapeHtml(p.title) + '</h3>' +
-              '<span class="chip">' + escapeHtml(p.chip) + '</span>' +
-            '</div>' +
-            '<p>' + escapeHtml(p.desc) + '</p>' +
-            '<div class="card-foot"><span>' + escapeHtml(p.foot) + '</span><span class="arrow">→</span></div>';
+          var c2=document.createElement("div");
+          c2.className="card-c";
+          c2.innerHTML=
+            '<div class="card-title">'+
+              '<h3>'+escapeHtml(p.title)+'</h3>'+
+              '<span class="chip">'+escapeHtml(p.chip)+'</span>'+
+            '</div>'+
+            '<p>'+escapeHtml(p.desc)+'</p>'+
+            '<div class="card-foot"><span>'+escapeHtml(p.foot)+'</span><span class="arrow">→</span></div>';
           a2.appendChild(c2);
           return a2;
         }
       }
 
-      function escapeHtml(s){
-        return String(s || "").replace(/[&<>"']/g, function(m){
-          return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[m];
-        });
-      }
-
       function renderProducts(){
-        if (!productGrid) return;
-        productGrid.innerHTML = "";
-        products.forEach(function(p){
-          productGrid.appendChild(makeCard(p));
-        });
+        if(!productGrid) return;
+        productGrid.innerHTML="";
+        products.forEach(function(p){ productGrid.appendChild(makeCard(p)); });
       }
 
-      // Desktop-friendly navigation (wheel + keys), without hijacking inputs
+      /* ── Wheel + keyboard navigation ── */
       function isTypingContext(){
-        var ae = document.activeElement;
-        if (!ae) return false;
-        var tag = (ae.tagName || "").toLowerCase();
-        if (tag === "input" || tag === "textarea" || tag === "select") return true;
-        if (ae.isContentEditable) return true;
+        var ae=document.activeElement;
+        if(!ae) return false;
+        var tag=(ae.tagName||"").toLowerCase();
+        if(tag==="input"||tag==="textarea"||tag==="select") return true;
+        if(ae.isContentEditable) return true;
         return false;
       }
-
       function closestScrollable(el){
-        while (el && el !== document.body){
-          if (el.classList && el.classList.contains("scrollable")) return el;
-          el = el.parentElement;
+        while(el&&el!==document.body){
+          if(el.classList&&el.classList.contains("scrollable")) return el;
+          el=el.parentElement;
         }
         return null;
       }
-
-      function canScrollInDirection(sc, deltaY){
-        if (!sc) return false;
-        var sh = sc.scrollHeight, ch = sc.clientHeight;
-        if (sh <= ch + 1) return false;
-        if (deltaY > 0) return sc.scrollTop + ch < sh - 1;
-        if (deltaY < 0) return sc.scrollTop > 0;
+      function canScrollInDirection(sc,deltaY){
+        if(!sc) return false;
+        var sh=sc.scrollHeight,ch=sc.clientHeight;
+        if(sh<=ch+1) return false;
+        if(deltaY>0) return sc.scrollTop+ch<sh-1;
+        if(deltaY<0) return sc.scrollTop>0;
         return false;
       }
-
-      var wheelLock = false;
+      var wheelLock=false;
       function onWheel(e){
-        if (!slidesEl) return;
-        if (intro && !intro.classList.contains("hidden")) return; // do nothing while intro visible
-        if (isTypingContext()) return;
-        if (wheelLock) return;
-
-        var deltaY = e.deltaY || 0;
-        if (Math.abs(deltaY) < 8) return;
-
-        var sc = closestScrollable(e.target);
-        if (canScrollInDirection(sc, deltaY)) return;
-
+        if(!slidesEl) return;
+        if(intro&&!intro.classList.contains("hidden")) return;
+        if(isTypingContext()) return;
+        if(wheelLock) return;
+        var deltaY=e.deltaY||0;
+        if(Math.abs(deltaY)<8) return;
+        var sc=closestScrollable(e.target);
+        if(canScrollInDirection(sc,deltaY)) return;
         e.preventDefault();
-        wheelLock = true;
-        setTimeout(function(){ wheelLock = false; }, 220);
-        if (deltaY > 0) nextSlide();
-        else prevSlide();
+        wheelLock=true;
+        setTimeout(function(){ wheelLock=false; },220);
+        if(deltaY>0) nextSlide(); else prevSlide();
       }
-
-      window.addEventListener("wheel", onWheel, { passive: false });
+      window.addEventListener("wheel",onWheel,{passive:false});
 
       function onKeyDown(e){
-        if (intro && !intro.classList.contains("hidden")) {
-          if (e.key === "Escape") { setQP(false); return; }
+        if(intro&&!intro.classList.contains("hidden")){
+          if(e.key==="Escape"){ setQP(false); return; }
           return;
         }
-
-        if (e.key === "Escape"){
-          if (qp && qp.classList.contains("open")){
-            e.preventDefault();
-            setQP(false);
-          }
+        if(e.key==="Escape"){
+          if(qp&&qp.classList.contains("open")){ e.preventDefault(); setQP(false); }
           return;
         }
-
-        if (isTypingContext()) return;
-
-        var k = e.key;
-        if (k === "ArrowDown" || k === "PageDown"){
-          e.preventDefault();
-          nextSlide();
-        } else if (k === "ArrowUp" || k === "PageUp"){
-          e.preventDefault();
-          prevSlide();
-        } else if (k === "Home"){
-          e.preventDefault();
-          goToSlide(0);
-        }
+        if(isTypingContext()) return;
+        var k=e.key;
+        if(k==="ArrowDown"||k==="PageDown"){ e.preventDefault(); nextSlide(); }
+        else if(k==="ArrowUp"||k==="PageUp"){ e.preventDefault(); prevSlide(); }
+        else if(k==="Home"){ e.preventDefault(); goToSlide(0); }
       }
+      window.addEventListener("keydown",onKeyDown,{passive:false});
 
-      window.addEventListener("keydown", onKeyDown, { passive: false });
-
-      // QP time ticker
+      /* ── QP time ticker ── */
       function startQPTicker(){
-        var el = document.getElementById("qpTime");
-        if (!el) return;
-        setInterval(function(){
-          el.textContent = safeNowIST().slice(11, 16);
-        }, 1000);
+        var el=document.getElementById("qpTime");
+        if(!el) return;
+        function tick(){ el.textContent=safeNowIST().slice(11,16); }
+        tick();
+        setInterval(tick,1000);
       }
 
-      // Join form
-      var joinForm = document.getElementById("joinForm");
+      /* ── Join form ── */
+      var joinForm      = document.getElementById("joinForm");
       var joinTimestamp = document.getElementById("joinTimestamp");
       var joinAffiliate = document.getElementById("joinAffiliate");
-      var joinStatus = document.getElementById("joinStatus");
-      var joinClear = document.getElementById("joinClear");
-      var joinSubmit = document.getElementById("joinSubmit");
+      var joinStatus    = document.getElementById("joinStatus");
+      var joinClear     = document.getElementById("joinClear");
+      var joinSubmit    = document.getElementById("joinSubmit");
 
-      function setJoinStatus(msg, cls){
-        if (!joinStatus) return;
-        joinStatus.className = "status" + (cls ? (" " + cls) : "");
-        joinStatus.textContent = msg || "";
+      function setJoinStatus(msg,cls){
+        if(!joinStatus) return;
+        joinStatus.className="status"+(cls?" "+cls:"");
+        joinStatus.textContent=msg||"";
       }
-
       function resetJoin(){
-        if (!joinForm) return;
+        if(!joinForm) return;
         joinForm.reset();
-        if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
-        if (joinTimestamp) joinTimestamp.value = safeNowIST();
-        setJoinStatus("", "");
+        if(joinAffiliate) joinAffiliate.value=getAffiliateTag();
+        if(joinTimestamp) joinTimestamp.value=safeNowIST();
+        setJoinStatus("","");
       }
-
-      if (joinClear) joinClear.addEventListener("click", function(){
-        resetJoin();
-      });
-
-      if (joinForm){
-        joinForm.addEventListener("submit", function(e){
-          if (joinTimestamp) joinTimestamp.value = safeNowIST();
-          if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
-          setJoinStatus("Submitting…", "");
-          if (joinSubmit) joinSubmit.disabled = true;
-
-          // Let the POST happen, but also provide fast UX feedback.
-          setTimeout(function(){
-            if (joinSubmit) joinSubmit.disabled = false;
-          }, 2500);
+      if(joinClear) joinClear.addEventListener("click",resetJoin);
+      if(joinForm){
+        joinForm.addEventListener("submit",function(){
+          if(joinTimestamp) joinTimestamp.value=safeNowIST();
+          if(joinAffiliate) joinAffiliate.value=getAffiliateTag();
+          setJoinStatus("Submitting…","");
+          if(joinSubmit) joinSubmit.disabled=true;
+          setTimeout(function(){ if(joinSubmit) joinSubmit.disabled=false; },2500);
         });
       }
 
-      // Close QP on Escape always (done in onKeyDown)
-      // Intro initial setup
+      /* ── Keyboard shortcut: Enter in intro closes it ── */
+      window.addEventListener("keydown",function(e){
+        if(!intro||intro.classList.contains("hidden")) return;
+        if(e.key==="Enter"){
+          if(e.target&&(e.target.tagName||"").toLowerCase()==="button") return;
+          e.preventDefault();
+          showIntroFn(false);
+        }
+      },{passive:false});
+
+      /* ── Visibility change: refresh affiliate tags ── */
+      document.addEventListener("visibilitychange",function(){
+        if(document.visibilityState==="visible") applyAffiliateToLinks();
+      });
+
+      /* ── Init ── */
       setIntroSlide(0);
       startIntroAutoplay();
-
-      // App initial setup
       goToSlide(0);
       renderProducts();
-
-      // Affiliate tagging
       applyAffiliateToLinks();
 
-      // Ensure specific links used in QP are tagged (but remain real navigations)
-      var qpOpenResearch = document.getElementById("qpOpenResearch");
-      var qpOpenBrief = document.getElementById("qpOpenBrief");
-      var openResearchTop = document.getElementById("openResearchTop");
-      var openResearchNav = document.getElementById("openResearchNav");
-      var openBriefNav = document.getElementById("openBriefNav");
-
-      [qpOpenResearch, qpOpenBrief, openResearchTop, openResearchNav, openBriefNav].forEach(function(a){
-        if (!a) return;
-        var href = a.getAttribute("href") || "";
-        if (!href) return;
-        a.setAttribute("href", appendAffiliateToHref(href, getAffiliateTag()));
+      /* Tag explicit named links after applyAffiliateToLinks (belt-and-braces) */
+      var explicitLinks=[
+        "qpOpenResearch","qpOpenBrief",
+        "openResearchTop","openResearchNav","openBriefNav"
+      ];
+      explicitLinks.forEach(function(id){
+        var a=document.getElementById(id);
+        if(!a) return;
+        var href=a.getAttribute("href")||"";
+        if(href) a.setAttribute("href",appendAffiliateToHref(href,getAffiliateTag()));
       });
 
-      // Intro "tag pill"
-      var affTagPill = document.getElementById("affTagPill");
-      if (affTagPill) affTagPill.textContent = getAffiliateTag();
+      /* Tag pill + join hidden fields */
+      var affTagPill=document.getElementById("affTagPill");
+      if(affTagPill) affTagPill.textContent=getAffiliateTag();
+      if(joinAffiliate) joinAffiliate.value=getAffiliateTag();
+      if(joinTimestamp) joinTimestamp.value=safeNowIST();
 
-      // Join prefill
-      if (joinAffiliate) joinAffiliate.value = getAffiliateTag();
-      if (joinTimestamp) joinTimestamp.value = safeNowIST();
-
-      // QP project placeholder (device-local)
-      var qpProject = document.getElementById("qpProject");
-      if (qpProject){
-        try{
-          var project = localStorage.getItem("decideProject") || "-";
-          qpProject.textContent = project;
-        }catch(e){
-          qpProject.textContent = "-";
-        }
+      /* QP project */
+      var qpProject=document.getElementById("qpProject");
+      if(qpProject){
+        try{ qpProject.textContent=localStorage.getItem("decideProject")||"-"; }
+        catch(e){ qpProject.textContent="-"; }
       }
 
-      // Intro show from QP
-      if (showIntroBtn) showIntroBtn.addEventListener("click", function(){ showIntro(true); });
-      if (intro){
-        intro.addEventListener("keydown", function(e){
-          if (e.key === "Escape"){
-            e.preventDefault();
-            setQP(false);
-          }
-        }, {passive:false});
-      }
-
-      // QP open/close shortcuts
-      if (openQPBtn) openQPBtn.addEventListener("click", function(){ setQP(true); });
-      if (introOpenQPBtn) introOpenQPBtn.addEventListener("click", function(){ setQP(true); });
-
-      // Close intro if user clicks ENTER in intro (button handles); keep keyboard safe
-      window.addEventListener("keydown", function(e){
-        if (!intro || intro.classList.contains("hidden")) return;
-        if (e.key === "Enter"){
-          if (e.target && (e.target.tagName || "").toLowerCase() === "button") return;
-          e.preventDefault();
-          showIntro(false);
-        }
-      }, {passive:false});
+      /* Restore entered state */
+      try{
+        if(sessionStorage.getItem("enteredApp")==="1") showIntroFn(false);
+      }catch(e){}
 
       startQPTicker();
-
-      // Keep quick panel links from being SPA-routed (normal navigation only)
-      // (No click handlers on anchors)
-
-      // If user loads with #go=... or ?go=... it was handled above. Make sure intro doesn't block redirects.
-      // If user navigates back to index, intro should show again only if not explicitly entered
-      try{
-        var entered = sessionStorage.getItem("enteredApp") === "1";
-        if (entered) showIntro(false);
-      }catch(e){}
-      if (enterApp){
-        enterApp.addEventListener("click", function(){
-          try{ sessionStorage.setItem("enteredApp","1"); }catch(e){}
-        });
-      }
-
-      // Keep qp links updated if affiliate tag changes (rare). Provide a soft refresh on visibility change.
-      document.addEventListener("visibilitychange", function(){
-        if (document.visibilityState === "visible"){
-          applyAffiliateToLinks();
-        }
-      });
-
-      // Clicking outside qp-card closes
-      if (qp){
-        qp.addEventListener("click", function(e){
-          if (e.target === qp) setQP(false);
-        });
-      }
 
     })();
   </script>
