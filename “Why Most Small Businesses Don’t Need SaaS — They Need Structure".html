@@ -6,6 +6,10 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>Decision Infrastructure • Secure Workspace</title>
 
+  <!-- ✅ Router compatibility -->
+  <base href="./">
+  <script src="router.js"></script>
+
   <style>
     :root {
       --bg: #050505;
@@ -74,13 +78,13 @@
 
     /* Card Layout */
     .section-wrapper {
-      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always; 
+      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       padding: calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(60px + var(--safeBottom)) calc(16px + var(--safeLeft));
       position: relative;
     }
     .card {
-      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0; 
+      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0;
       border-radius: var(--radius); border: 1px solid var(--card-border);
       background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
@@ -92,7 +96,7 @@
     .cardHeader { padding: 24px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.3); flex-shrink: 0; }
     .kicker { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
     .h1 { margin: 0; font-size: clamp(22px, 5vw, 28px); line-height: 1.3; letter-spacing: -0.01em; font-weight: 700; }
-    
+
     .cardBody { padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .cardBody::-webkit-scrollbar { width: 5px; }
     .cardBody::-webkit-scrollbar-track { background: transparent; }
@@ -119,10 +123,10 @@
     .onboard-form { display: flex; flex-direction: column; gap: 16px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
-    
+
     .input-group { display: flex; flex-direction: column; gap: 8px; }
     .input-group label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 600; }
-    
+
     .input-group input, .input-group textarea, .input-group select {
       background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
       padding: 14px 16px; color: #fff; font-family: inherit; font-size: 15px; outline: none; transition: all 0.2s; appearance: none;
@@ -130,10 +134,10 @@
     .input-group textarea { resize: vertical; min-height: 80px; }
     .input-group input::placeholder, .input-group textarea::placeholder { color: rgba(255,255,255,0.3); }
     .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: var(--accent); background: rgba(0,0,0,0.6); box-shadow: 0 0 0 3px var(--accent-glow); }
-    
+
     .select-wrapper { position: relative; }
     .select-wrapper::after { content: "▼"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 10px; color: rgba(255,255,255,0.4); pointer-events: none; }
-    
+
     /* Pills */
     .pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
     .check-pill input { display: none; }
@@ -168,7 +172,7 @@
     .hint { position: absolute; bottom: calc(16px + var(--safeBottom)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; animation: pulse 2s infinite; }
     .hint svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
     @keyframes pulse { 0%, 100% { transform: translate(-50%, 0); opacity: 0.6; } 50% { transform: translate(-50%, 5px); opacity: 1; } }
-    .section-wrapper:last-child .hint { display: none; } 
+    .section-wrapper:last-child .hint { display: none; }
 
     /* Overlays */
     .rotate-popup { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0.9); background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(255, 103, 31, 0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; cursor: pointer; }
@@ -179,7 +183,6 @@
     .translate-toast.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
     .btn-undo { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; padding: 6px 12px; background: rgba(255, 103, 31, 0.15); border-radius: 999px; }
     .btn-undo:active { background: rgba(255, 103, 31, 0.25); }
-
   </style>
 </head>
 
@@ -189,7 +192,8 @@
     <div class="bg-glow"></div>
 
     <div class="top">
-      <a class="back" href="#">← Back</a>
+      <!-- ✅ router.js will handle this (data-back) -->
+      <a class="back" href="#" data-back>← Back</a>
       <div class="top-actions">
         <button id="btnLogout" class="btn-icon" aria-label="Logout" title="End Session" style="display:none;" onclick="logoutSession()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -212,6 +216,11 @@
     (function(){
       "use strict";
 
+      // ✅ Prevent hash-route recursion if opened via #/something
+      if (location.hash && location.hash.startsWith("#/")) {
+        history.replaceState(null, "", location.pathname);
+      }
+
       // --- SESSION STATE ---
       let authState = {
         role: localStorage.getItem('VIA_ROLE') || null,   // 'reader' or 'creator'
@@ -223,7 +232,7 @@
 
       // Configuration
       const WA_NUMBER = "916351537770";
-      
+
       // Algorithm to generate expected code locally (Option B)
       function generateExpectedCode(email) {
         const raw = email.trim().toLowerCase() + "_VIACO2026";
@@ -231,13 +240,13 @@
         return "VIA-" + b64;
       }
 
-      // --- MULTILINGUAL CONTENT (9 Sections) ---
+      // --- MULTILINGUAL CONTENT ---
       const SECTIONS = [
         {
           name: "HOOK", kicker: "Decision Infrastructure",
-          title: { 
-            en: "Why Most Small Businesses Don’t Need SaaS — They Need Structure", 
-            hi: "अधिकांश छोटे व्यवसायों को SaaS की आवश्यकता नहीं है — उन्हें ढांचे की आवश्यकता है" 
+          title: {
+            en: "Why Most Small Businesses Don’t Need SaaS — They Need Structure",
+            hi: "अधिकांश छोटे व्यवसायों को SaaS की आवश्यकता नहीं है — उन्हें ढांचे की आवश्यकता है"
           },
           html: {
             en: () => `<div class="big">Most small businesses don’t fail because they lack <span class="accent">tools</span>.</div>
@@ -264,10 +273,7 @@
         },
         {
           name: "ILLUSION", kicker: "The Problem",
-          title: { 
-            en: "The Illusion of Progress", 
-            hi: "प्रगति का भ्रम" 
-          },
+          title: { en: "The Illusion of Progress", hi: "प्रगति का भ्रम" },
           html: {
             en: () => `<div class="big">There’s a pattern I’ve seen <span class="accent">repeatedly.</span></div>
                        <p class="lead">A business feels stuck. Revenue plateaus. Margins tighten. Cash flow becomes unpredictable. The owner feels overwhelmed.</p>
@@ -285,10 +291,7 @@
         },
         {
           name: "PRICING", kicker: "Core Pain Point 1",
-          title: { 
-            en: "The Real Problem: No Structured Pricing Logic", 
-            hi: "वास्तविक समस्या: कोई संरचित मूल्य निर्धारण तर्क नहीं" 
-          },
+          title: { en: "The Real Problem: No Structured Pricing Logic", hi: "वास्तविक समस्या: कोई संरचित मूल्य निर्धारण तर्क नहीं" },
           html: {
             en: () => `<div class="big">Pricing is one of the most <span class="accent">powerful levers</span> in any business.</div>
                        <p class="lead">And yet, in many small businesses, pricing decisions are made casually.</p>
@@ -312,10 +315,7 @@
         },
         {
           name: "TRACKING", kicker: "Core Pain Point 2 & 3",
-          title: { 
-            en: "Missing Memory & Clarity", 
-            hi: "गायब मेमोरी और स्पष्टता" 
-          },
+          title: { en: "Missing Memory & Clarity", hi: "गायब मेमोरी और स्पष्टता" },
           html: {
             en: () => `<div class="big">Businesses don’t fail from <span class="accent">one</span> catastrophic decision.</div>
                        <p class="lead">They fail from small, repeated, unexamined choices.</p>
@@ -335,10 +335,7 @@
         },
         {
           name: "LAYERS", kicker: "The Solution",
-          title: { 
-            en: "What “Decision Infrastructure” Actually Means", 
-            hi: "“निर्णय बुनियादी ढांचा” का वास्तव में क्या अर्थ है" 
-          },
+          title: { en: "What “Decision Infrastructure” Actually Means", hi: "“निर्णय बुनियादी ढांचा” का वास्तव में क्या अर्थ है" },
           html: {
             en: () => `<div class="big">If software is visibility, structure is <span class="accent">leverage.</span></div>
                        <p class="lead">Most SaaS tools optimize for visibility. They don't enforce decision structure. I think of the solution in three layers:</p>
@@ -360,10 +357,7 @@
         },
         {
           name: "OUTCOME", kicker: "The Outcome",
-          title: { 
-            en: "Why This Matters Now", 
-            hi: "यह अब क्यों मायने रखता है" 
-          },
+          title: { en: "Why This Matters Now", hi: "यह अब क्यों मायने रखता है" },
           html: {
             en: () => `<div class="big">Power without control creates <span class="accent">volatility.</span></div>
                        <p class="lead">Imagine two $1M businesses. Business A runs unstructured discounts and reactive pricing. Business B uses identical software but logs discount decisions and sets reorder rules.</p>
@@ -377,6 +371,7 @@
                        <div class="quote">मैं वर्तमान में ऑपरेटरों के साथ सीधे इस संरचना को एम्बेड करने का एक तरीका खोज रहा हूं। अधिक डेटा नहीं। बेहतर निर्णय। क्योंकि बेहतर निर्णय कंपाउंड होते हैं।</div>`
           }
         },
+
         // --- SECURE ONBOARDING: READER ---
         {
           name: "READER", kicker: "Join as Reader",
@@ -423,7 +418,6 @@
             hi: () => {
               if(authState.role === 'reader' || authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🔓</span><h2>फ़ीड अनलॉक</h2><p>वापसी पर स्वागत है, ${authState.email}। आपकी क्यूरेटेड स्ट्रीम सक्रिय है।</p></div>`;
               if(authState.pendingVerification && authState.pendingRole === 'reader') return `<div class="big">पहचान <span class="accent">सत्यापित करें।</span></div><div class="verify-box"><p><b>${authState.pendingEmail}</b> से जुड़े सुरक्षित कोड के लिए WhatsApp जांचें।</p><div class="input-group"><input type="text" id="verify-code-reader" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; text-transform:uppercase;" /></div><button class="btn-success" onclick="verifyAccessCode('reader')">अनलॉक करें</button><button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">रद्द करें</button></div>`;
-              
               return `<div class="big">क्यूरेटेड तर्क, <br><span class="accent">शून्य शोर।</span></div>
                       <div class="auth-protocol"><span class="step">1.</span> नीचे पैरामीटर दर्ज करें।<br><span class="step">2.</span> WhatsApp के माध्यम से एन्क्रिप्टेड कोड का अनुरोध करें।<br><span class="step">3.</span> प्रमाणित करें और अनलॉक करें।</div>
                       <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('reader');">
@@ -434,6 +428,7 @@
             }
           }
         },
+
         // --- SECURE ONBOARDING: CREATOR ---
         {
           name: "CREATOR", kicker: "Join as Blogger",
@@ -467,7 +462,6 @@
               if(authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🚀</span><h2>निर्माता प्रमाणित</h2><p>पहचान सत्यापित: ${authState.email}। कार्यक्षेत्र मॉड्यूल में आगे बढ़ें।</p></div>`;
               if(authState.role === 'reader') return `<div class="success-state"><span class="success-icon">🔒</span><h2>अपग्रेड आवश्यक है</h2><p>आप वर्तमान में एक पाठक के रूप में लॉग इन हैं। कार्यक्षेत्र तक पहुँचने के लिए लॉग आउट करें।</p></div>`;
               if(authState.pendingVerification && authState.pendingRole === 'creator') return `<div class="big">सत्यापित <span class="accent">करें।</span></div><div class="verify-box"><p><b>${authState.pendingEmail}</b> के कोड के लिए WhatsApp जांचें।</p><div class="input-group"><input type="text" id="verify-code-creator" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; text-transform:uppercase;" /></div><button class="btn-success" onclick="verifyAccessCode('creator')">अनलॉक करें</button><button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">रद्द करें</button></div>`;
-              
               return `<div class="big">अपने दर्शकों का <br><span class="accent">निर्माण करें।</span></div>
                       <div class="auth-protocol"><span class="step">1.</span> विवरण परिभाषित करें।<br><span class="step">2.</span> WhatsApp के माध्यम से क्रिएटर कोड का अनुरोध करें।<br><span class="step">3.</span> कार्यक्षेत्र प्रारंभ करें।</div>
                       <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('creator');">
@@ -478,6 +472,7 @@
             }
           }
         },
+
         // --- WORKSPACE (Requires Creator Auth) ---
         {
           name: "WORKSPACE", kicker: "Creator Workspace",
@@ -485,7 +480,6 @@
           html: {
             en: () => {
               if(authState.role !== 'creator') return `<div class="success-state" style="opacity:0.5;"><span class="success-icon">🔒</span><h2>System Locked</h2><p>This module requires active Creator Authentication. Please register above.</p></div>`;
-              
               return `<p class="lead">Configure constraints to generate a structured blog prompt.</p>
                       <form class="onboard-form" id="workspaceForm">
                         <div class="row">
@@ -543,35 +537,29 @@
 
         if(!email) return;
 
-        // Set Auth State to Verifying
         authState.pendingVerification = true;
         authState.pendingRole = role;
         authState.pendingEmail = email.trim();
         renderSections();
 
-        // Build WA Link
         const text = `✦ *DECISION LAB ACCESS REQUEST* ✦\n\n*Role:* ${role.toUpperCase()}\n*Name:* ${name}\n*Email:* ${authState.pendingEmail}\n${extras}\n\n_Please generate my secure access code._`;
         const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-        
-        // Open WA
         window.open(url, '_blank');
       };
 
       window.verifyAccessCode = function(role) {
         const inputId = role === 'reader' ? 'verify-code-reader' : 'verify-code-creator';
         const inputVal = document.getElementById(inputId).value.trim().toUpperCase();
-        
         const expected = generateExpectedCode(authState.pendingEmail);
-        
+
         if (inputVal === expected) {
-          // Success
           localStorage.setItem('VIA_USER', authState.pendingEmail);
           localStorage.setItem('VIA_ROLE', role);
-          
+
           authState.email = authState.pendingEmail;
           authState.role = role;
           authState.pendingVerification = false;
-          
+
           renderSections();
         } else {
           alert(currentLang === 'hi' ? "अमान्य कोड। कृपया पुनः प्रयास करें।" : "Invalid code. Please verify and try again.");
@@ -594,7 +582,6 @@
 
       // --- RENDER LOGIC ---
       function renderSections() {
-        // Toggle Logout Button visibility based on state
         btnLogout.style.display = authState.email ? 'inline-flex' : 'none';
 
         container.innerHTML = '';
@@ -604,7 +591,6 @@
           wrapper.setAttribute('data-index', index);
           wrapper.setAttribute('data-name', sec.name);
 
-          // Evaluate the functional HTML string based on current auth state
           const htmlContent = sec.html[currentLang]();
 
           wrapper.innerHTML = `
@@ -625,7 +611,6 @@
           container.appendChild(wrapper);
         });
 
-        // Re-attach Intersection Observer
         document.querySelectorAll('.section-wrapper').forEach(wrapper => {
           observer.observe(wrapper);
         });
@@ -656,7 +641,7 @@
       function triggerTranslation(lang) {
         currentLang = lang;
         renderSections();
-        
+
         toast.classList.add('is-visible');
         if(lang === 'hi') {
           toastMsg.textContent = "Translated to Hindi";
@@ -704,7 +689,7 @@ OUTPUT REQUIREMENTS:
 
       window.submitForReview = function() {
         alert(currentLang === 'hi' ? "आपका ड्राफ्ट समीक्षा के लिए सबमिट कर दिया गया है!" : "Draft submitted for review!");
-        renderSections(); // resets view
+        renderSections();
       };
 
       // --- AUTO-ROTATION SENSOR LOGIC ---
@@ -713,16 +698,16 @@ OUTPUT REQUIREMENTS:
       let isForcedLandscape = false; let targetRotationAngle = 0;
 
       window.addEventListener('deviceorientation', (e) => {
-        const gamma = e.gamma; 
+        const gamma = e.gamma;
         if (gamma === null || typeof gamma === 'undefined') return;
-        const rotationThreshold = 45; const deadband = 25; 
+        const rotationThreshold = 45; const deadband = 25;
 
         if (!isForcedLandscape) {
-          if (gamma > rotationThreshold) showRotatePopup(90); 
-          else if (gamma < -rotationThreshold) showRotatePopup(-90); 
+          if (gamma > rotationThreshold) showRotatePopup(90);
+          else if (gamma < -rotationThreshold) showRotatePopup(-90);
           else hideRotatePopup();
         } else {
-          if (Math.abs(gamma) < deadband) showRotatePopup(0); 
+          if (Math.abs(gamma) < deadband) showRotatePopup(0);
           else hideRotatePopup();
         }
       });
