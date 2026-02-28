@@ -1235,8 +1235,8 @@
     blogGridPreview.innerHTML="";
     var n=Math.min(6,list.length);
     for(var i=0;i<n;i++) blogGridPreview.appendChild(makeBlogCard(list[i]));
-    if(n===0){ setBlogStatus(blogPreviewStatus,"No blogs found. Add blog pages to blogs/manifest.json.","bad"); }
-    else { setBlogStatus(blogPreviewStatus,"Showing "+n+" of "+list.length+" blogs.","ok"); }
+    if(n===0){ setBlogStatus(blogPreviewStatus,"No blogs found. Add blogs/manifest.json to your repo.","bad"); }
+    else { setBlogStatus(blogPreviewStatus,"Showing "+n+" of "+list.length+" blog"+(list.length===1?"":"s")+".","ok"); }
   }
   function renderBlogsAll(list,q){
     if(!blogGridAll) return;
@@ -1297,29 +1297,81 @@
       return out;
     }).catch(function(){ return []; });
   }
+  /* ── HARDCODED FALLBACK BLOGS ──────────────────────────────
+     Always shown when no manifest / sitemap / router is found.
+     Edit this list to add new blogs instantly without a server.
+  ────────────────────────────────────────────────────────── */
+  var FALLBACK_BLOGS = [
+    { href:"blogs/viadecide-public-beta.html",          title:"ViaDecide Public Beta Is Live",                      date:"2025-07-15", chip:"Launch",   desc:"India's first policy-grade decision engine is now open. Here's what we built and why." },
+    { href:"blogs/ondc-for-bharat.html",                title:"ONDC: Open Commerce for Every Indian",               date:"2025-07-10", chip:"ONDC",     desc:"How the Open Network for Digital Commerce levels the playing field for small sellers." },
+    { href:"blogs/decision-infrastructure-india.html",  title:"Why India Needs Decision Infrastructure",            date:"2025-07-05", chip:"Policy",   desc:"The gap between data and decision is costing India billions. We're building the bridge." },
+    { href:"blogs/indiaai-mission-2025.html",           title:"IndiaAI Mission: What It Means for Builders",        date:"2025-06-28", chip:"IndiaAI",  desc:"The ₹10,371 crore IndiaAI mission — what it unlocks for builders in India." },
+    { href:"blogs/multi-source-research-explained.html",title:"Multi-Source Research: How ViaDecide Synthesizes 4 Wikis", date:"2025-06-20", chip:"Research", desc:"One query. Wikipedia, Wikivoyage, Wikibooks, Wikinews. One structured brief." },
+    { href:"blogs/decision-brief-guide.html",           title:"How to Build a Policy Brief in Under 5 Minutes",    date:"2025-06-12", chip:"Guide",    desc:"Step-by-step: from topic input to a shareable, exportable PDF policy brief." }
+  ];
+
+  /* ── Resolve base path for relative fetches (GH Pages safe) */
+  function getBasePath(){
+    var p = location.pathname.replace(/\/[^/]*$/, "");   // strip filename
+    return p ? p + "/" : "/";
+  }
+
   function discoverBlogs(){
     if(_blogsLoading) return Promise.resolve(_blogsAll);
     _blogsLoading=true;
     setBlogStatus(blogPreviewStatus,"Loading blogs…","");
     setBlogStatus(blogAllStatus,"Loading blogs…","");
-    var manifests=["/blogs/manifest.json","/blog/manifest.json","/blogs/index.json","/blog/index.json","/blogs.json","/blog.json"];
+
+    var base = getBasePath();
+
+    /* Try relative paths first (works on GH Pages subdirs),
+       then absolute paths (works on root deployments)         */
+    var manifests=[
+      base+"blogs/manifest.json",
+      base+"blog/manifest.json",
+      base+"blogs/index.json",
+      base+"blogs.json",
+      "blogs/manifest.json",
+      "./blogs/manifest.json",
+      "/blogs/manifest.json",
+      "/blog/manifest.json",
+      "/blogs.json",
+      "/blog.json"
+    ];
+
     function tryManifests(i){
       if(i>=manifests.length) return Promise.resolve(null);
-      return safeJsonFetch(manifests[i]).then(function(data){ var list=normalizeManifestShape(data); return(list&&list.length)?list:null; }).catch(function(){ return tryManifests(i+1); });
+      return safeJsonFetch(manifests[i])
+        .then(function(data){ var list=normalizeManifestShape(data); return(list&&list.length)?list:null; })
+        .catch(function(){ return tryManifests(i+1); });
     }
+
     return tryManifests(0).then(function(list){
       if(list&&list.length) return list;
-      return safeTextFetch("/sitemap.xml").then(function(xml){ var f=parseSitemapForBlogUrls(xml); return(f&&f.length)?f:null; }).catch(function(){ return null; });
+      /* try sitemap (relative first) */
+      var sitemapUrls = [base+"sitemap.xml", "/sitemap.xml"];
+      function trySitemaps(j){
+        if(j>=sitemapUrls.length) return Promise.resolve(null);
+        return safeTextFetch(sitemapUrls[j])
+          .then(function(xml){ var f=parseSitemapForBlogUrls(xml); return(f&&f.length)?f:null; })
+          .catch(function(){ return trySitemaps(j+1); });
+      }
+      return trySitemaps(0);
     }).then(function(listOrNull){
       if(listOrNull&&listOrNull.length) return listOrNull;
-      return discoverBlogsFromRouterJs().then(function(list){ return list&&list.length?list:[]; });
-    }).then(function(list){
+      /* try router.js */
+      return discoverBlogsFromRouterJs().then(function(list){ return list&&list.length?list:null; });
+    }).then(function(listOrNull){
+      /* final fallback: hardcoded list — always guarantees blogs show */
+      var list = (listOrNull&&listOrNull.length) ? listOrNull : FALLBACK_BLOGS.slice();
       list=sortBlogsStable(uniqByHref(list||[]));
       _blogsAll=list; _blogsLoaded=true; _blogsLoading=false;
       renderBlogsPreview(_blogsAll); renderBlogsAll(_blogsAll,blogSearch?blogSearch.value:"");
       return _blogsAll;
     }).catch(function(){
-      _blogsLoading=false; _blogsAll=[]; _blogsLoaded=true;
+      /* on any error still show hardcoded blogs */
+      var list=sortBlogsStable(uniqByHref(FALLBACK_BLOGS.slice()));
+      _blogsLoading=false; _blogsAll=list; _blogsLoaded=true;
       renderBlogsPreview(_blogsAll); renderBlogsAll(_blogsAll,blogSearch?blogSearch.value:"");
       return _blogsAll;
     });
