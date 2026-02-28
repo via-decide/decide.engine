@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>The Quiet Bleed • Pricing Infrastructure</title>
 
+  <!-- ✅ Universal Router (hash + path) -->
+  <script src="./router.js"></script>
+
   <style>
     :root {
       --bg: #050505;
@@ -27,7 +30,6 @@
       --maxw: 760px;
     }
 
-    /* Base Reset */
     html, body {
       height: 100%; height: 100dvh; margin: 0; background-color: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -36,14 +38,11 @@
     * { box-sizing: border-box; }
     button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 
-    /* App Wrapper for Rotation */
     #appWrapper { position: relative; width: 100vw; height: 100dvh; transform-origin: center center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }
     #appWrapper.forced-landscape { width: 100dvh; height: 100vw; position: absolute; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50dvh; }
 
-    /* Ambient Glow */
     .bg-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index: 0; }
 
-    /* Top Navigation */
     .top {
       position: absolute; top: 0; left: 0; right: 0;
       padding: calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
@@ -65,22 +64,20 @@
     .pill { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
     .pill b { color: #fff; letter-spacing: 0.1em; font-weight: 700; }
 
-    /* Scroll Container */
     .scroll-container {
       position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
       scroll-snap-type: y mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; z-index: 10;
     }
     .scroll-container::-webkit-scrollbar { display: none; }
 
-    /* Card Layout */
     .section-wrapper {
-      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always; 
+      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       padding: calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(60px + var(--safeBottom)) calc(16px + var(--safeLeft));
       position: relative;
     }
     .card {
-      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0; 
+      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0;
       border-radius: var(--radius); border: 1px solid var(--card-border);
       background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
@@ -92,13 +89,12 @@
     .cardHeader { padding: 24px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.3); flex-shrink: 0; }
     .kicker { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
     .h1 { margin: 0; font-size: clamp(22px, 5vw, 28px); line-height: 1.3; letter-spacing: -0.01em; font-weight: 700; }
-    
+
     .cardBody { padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .cardBody::-webkit-scrollbar { width: 5px; }
     .cardBody::-webkit-scrollbar-track { background: transparent; }
     .cardBody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-    /* Typography */
     .big { font-size: clamp(28px, 6vw, 42px); line-height: 1.15; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 24px; }
     .big .accent { background: linear-gradient(135deg, #ff8a4c, #ff4c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: var(--accent); }
     .lead { font-size: 17px; line-height: 1.6; color: rgba(255,255,255,0.85); margin: 0 0 16px; }
@@ -108,7 +104,6 @@
     .list b { color: #fff; }
     .quote { margin: 28px 0 20px; padding: 16px 20px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-glow), transparent); border-radius: 0 12px 12px 0; color: rgba(255,255,255,0.95); line-height: 1.6; font-size: 15px; font-style: italic; }
 
-    /* --- Forms & Onboarding UI --- */
     .auth-protocol {
       background: rgba(255,103,31,0.06); border: 1px dashed rgba(255,103,31,0.3);
       padding: 16px; border-radius: 12px; margin-bottom: 24px; font-size: 13px; line-height: 1.6; color: var(--text-muted);
@@ -119,22 +114,20 @@
     .onboard-form { display: flex; flex-direction: column; gap: 16px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
-    
+
     .input-group { display: flex; flex-direction: column; gap: 8px; }
     .input-group label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 600; }
-    
+
     .input-group input, .input-group textarea, .input-group select {
       background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
       padding: 14px 16px; color: #fff; font-family: inherit; font-size: 15px; outline: none; transition: all 0.2s; appearance: none;
     }
     .input-group textarea { resize: vertical; min-height: 80px; }
-    .input-group input::placeholder, .input-group textarea::placeholder { color: rgba(255,255,255,0.3); }
     .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: var(--accent); background: rgba(0,0,0,0.6); box-shadow: 0 0 0 3px var(--accent-glow); }
-    
+
     .select-wrapper { position: relative; }
     .select-wrapper::after { content: "▼"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 10px; color: rgba(255,255,255,0.4); pointer-events: none; }
-    
-    /* Pills */
+
     .pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
     .check-pill input { display: none; }
     .check-pill span {
@@ -143,34 +136,32 @@
     }
     .check-pill input:checked + span { background: var(--accent-glow); border-color: var(--accent); color: #fff; font-weight: 600; }
 
-    /* Buttons */
+    /* ✅ Buttons work for <a> as well */
     .btn-submit, .btn-secondary, .btn-success {
       border: none; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 15px;
-      cursor: pointer; transition: transform 0.2s, filter 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%;
+      cursor: pointer; transition: transform 0.2s, filter 0.2s;
+      display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%;
+      text-decoration: none; color: inherit;
     }
     .btn-submit { background: var(--accent); color: #fff; margin-top: 8px; }
     .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; margin-top: 8px; border: 1px solid rgba(255,255,255,0.15); }
     .btn-success { background: var(--accent2); color: #000; margin-top: 16px; }
     .btn-submit:active, .btn-secondary:active, .btn-success:active { transform: scale(0.98); filter: brightness(1.1); }
 
-    /* Mono Preview / Verification */
     .verify-box { background: rgba(0,0,0,0.6); border: 1px solid var(--accent); padding: 20px; border-radius: 12px; margin-top: 16px; text-align: center; }
     .verify-box p { font-size: 14px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.5; }
     .mono-preview { background: rgba(5, 5, 5, 0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-top: 16px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; color: #cbd5e1; white-space: pre-wrap; word-break: break-word; line-height: 1.5; display: none; }
 
-    /* Success State UI */
     .success-state { text-align: center; padding: 40px 20px; }
     .success-icon { font-size: 48px; margin-bottom: 16px; display: block; }
     .success-state h2 { margin: 0 0 10px; font-size: 24px; color: #fff; }
     .success-state p { color: var(--text-muted); line-height: 1.6; font-size: 15px; }
 
-    /* Hint Scroll Indicator */
     .hint { position: absolute; bottom: calc(16px + var(--safeBottom)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; animation: pulse 2s infinite; }
     .hint svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
     @keyframes pulse { 0%, 100% { transform: translate(-50%, 0); opacity: 0.6; } 50% { transform: translate(-50%, 5px); opacity: 1; } }
-    .section-wrapper:last-child .hint { display: none; } 
+    .section-wrapper:last-child .hint { display: none; }
 
-    /* Overlays */
     .rotate-popup { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0.9); background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(255, 103, 31, 0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; cursor: pointer; }
     .rotate-popup.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
     .rotate-popup:active { transform: translateX(-50%) scale(0.95); }
@@ -179,17 +170,17 @@
     .translate-toast.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
     .btn-undo { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; padding: 6px 12px; background: rgba(255, 103, 31, 0.15); border-radius: 999px; }
     .btn-undo:active { background: rgba(255, 103, 31, 0.25); }
-
   </style>
 </head>
 
 <body>
-
   <div id="appWrapper">
     <div class="bg-glow"></div>
 
     <div class="top">
-      <a class="back" href="#">← Back</a>
+      <!-- ✅ Router Back -->
+      <a class="back" href="#" data-back>← Back</a>
+
       <div class="top-actions">
         <button id="btnLogout" class="btn-icon" aria-label="Logout" title="End Session" style="display:none;" onclick="logoutSession()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -212,32 +203,28 @@
     (function(){
       "use strict";
 
-      // --- SESSION STATE ---
       let authState = {
-        role: localStorage.getItem('VIA_ROLE') || null,   // 'reader' or 'creator'
+        role: localStorage.getItem('VIA_ROLE') || null,
         email: localStorage.getItem('VIA_USER') || null,
         pendingVerification: false,
         pendingRole: null,
         pendingEmail: null
       };
 
-      // Configuration
       const WA_NUMBER = "916351537770";
-      
-      // Algorithm to generate expected code locally (Option B)
+
       function generateExpectedCode(email) {
         const raw = email.trim().toLowerCase() + "_VIACO2026";
         const b64 = btoa(raw).replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
         return "VIA-" + b64;
       }
 
-      // --- MULTILINGUAL CONTENT (9 Sections) ---
       const SECTIONS = [
         {
           name: "HOOK", kicker: "Pricing Infrastructure",
-          title: { 
-            en: "The Quiet Bleed: Why Reactive Pricing Destroys Margins", 
-            hi: "खामोश नुकसान: प्रतिक्रियाशील मूल्य निर्धारण मार्जिन को कैसे नष्ट करता है" 
+          title: {
+            en: "The Quiet Bleed: Why Reactive Pricing Destroys Margins",
+            hi: "खामोश नुकसान: प्रतिक्रियाशील मूल्य निर्धारण मार्जिन को कैसे नष्ट करता है"
           },
           html: {
             en: () => `<div class="big">Pricing is where most small businesses bleed <span class="accent">quietly.</span></div>
@@ -249,7 +236,13 @@
                          <li>Inventory isn’t moving.</li>
                        </ul>
                        <p class="lead">Each time, the instinct is the same: <b>"Adjust the price."</b> And slowly, margins erode.</p>
-                       <div class="quote">Most operators don’t lose because their product is bad. They lose because pricing is reactive. And reactive pricing destroys stability.</div>`,
+                       <div class="quote">Most operators don’t lose because their product is bad. They lose because pricing is reactive. And reactive pricing destroys stability.</div>
+
+                       <div style="margin-top:18px; display:grid; gap:10px;">
+                         <a class="btn-submit" href="inventory">Next: Inventory Rules →</a>
+                         <a class="btn-secondary" href="founder">Decision Stack</a>
+                         <a class="btn-secondary" href="index">Home</a>
+                       </div>`,
             hi: () => `<div class="big">मूल्य निर्धारण (Pricing) वह जगह है जहाँ छोटे व्यवसायों का <span class="accent">चुपचाप</span> नुकसान होता है।</div>
                        <p class="lead">एक विनाशकारी गलती से नहीं। बल्कि सैकड़ों छोटे, भावनात्मक समायोजनों से।</p>
                        <ul class="list">
@@ -259,15 +252,18 @@
                          <li>इन्वेंटरी नहीं बिक रही है।</li>
                        </ul>
                        <p class="lead">हर बार प्रवृत्ति एक ही होती है: <b>"कीमत समायोजित करें।"</b> और धीरे-धीरे मार्जिन खत्म हो जाता है।</p>
-                       <div class="quote">अधिकांश ऑपरेटर इसलिए नहीं हारते क्योंकि उनका उत्पाद खराब है। वे हार जाते हैं क्योंकि मूल्य निर्धारण प्रतिक्रियाशील है। और यह स्थिरता को नष्ट कर देता है।</div>`
+                       <div class="quote">अधिकांश ऑपरेटर इसलिए नहीं हारते क्योंकि उनका उत्पाद खराब है। वे हार जाते हैं क्योंकि मूल्य निर्धारण प्रतिक्रियाशील है। और यह स्थिरता को नष्ट कर देता है।</div>
+
+                       <div style="margin-top:18px; display:grid; gap:10px;">
+                         <a class="btn-submit" href="inventory">अगला: इन्वेंटरी नियम →</a>
+                         <a class="btn-secondary" href="founder">Decision Stack</a>
+                         <a class="btn-secondary" href="index">होम</a>
+                       </div>`
           }
         },
         {
           name: "EMOTION", kicker: "Context & Emotion",
-          title: { 
-            en: "Why Pricing Feels So Stressful", 
-            hi: "मूल्य निर्धारण इतना तनावपूर्ण क्यों लगता है" 
-          },
+          title: { en: "Why Pricing Feels So Stressful", hi: "मूल्य निर्धारण इतना तनावपूर्ण क्यों लगता है" },
           html: {
             en: () => `<div class="big">Pricing is emotional because it feels <span class="accent">personal.</span></div>
                        <p class="lead">When competitors undercut, it feels like an attack. When sales slow, it feels like failure. So the easiest lever to pull is price. Drop it. Discount it. Do something. Action feels better than waiting.</p>
@@ -281,10 +277,7 @@
         },
         {
           name: "MISTAKES", kicker: "Core Mistakes",
-          title: { 
-            en: "The Three Common Pricing Mistakes", 
-            hi: "मूल्य निर्धारण की तीन सामान्य गलतियाँ" 
-          },
+          title: { en: "The Three Common Pricing Mistakes", hi: "मूल्य निर्धारण की तीन सामान्य गलतियाँ" },
           html: {
             en: () => `<div class="big">You copy noise. Not <span class="accent">strategy.</span></div>
                        <ul class="list">
@@ -302,10 +295,7 @@
         },
         {
           name: "FRAMEWORK", kicker: "The Rulebook",
-          title: { 
-            en: "The Pricing Rulebook Framework", 
-            hi: "मूल्य निर्धारण नियम पुस्तिका" 
-          },
+          title: { en: "The Pricing Rulebook Framework", hi: "मूल्य निर्धारण नियम पुस्तिका" },
           html: {
             en: () => `<div class="big">You don’t need advanced analytics. You need <span class="accent">rules.</span></div>
                        <ul class="list">
@@ -325,10 +315,7 @@
         },
         {
           name: "SCENARIO", kicker: "The Math",
-          title: { 
-            en: "A Practical Scenario & The Price Myth", 
-            hi: "एक व्यावहारिक परिदृश्य और मूल्य का मिथक" 
-          },
+          title: { en: "A Practical Scenario & The Price Myth", hi: "एक व्यावहारिक परिदृश्य और मूल्य का मिथक" },
           html: {
             en: () => `<div class="big">You just funded your competitor’s <span class="accent">strategy.</span></div>
                        <p class="lead">Product sells at ₹1,000. Cost is ₹750. Margin = ₹250. Competitor drops to ₹950. You panic and match them. New margin = ₹200. You lost 20% of your profit per unit! Did volume increase enough to justify it? Probably not.</p>
@@ -342,22 +329,32 @@
         },
         {
           name: "CONCLUSION", kicker: "Final Action",
-          title: { 
-            en: "The Emotional Discipline Shift", 
-            hi: "भावनात्मक अनुशासन में बदलाव" 
-          },
+          title: { en: "The Emotional Discipline Shift", hi: "भावनात्मक अनुशासन में बदलाव" },
           html: {
             en: () => `<div class="big">Convert chaos into <span class="accent">clarity.</span></div>
                        <p class="lead">When a competitor undercuts, instead of reacting, you check: <i>Does this trigger our rule? Are we below our margin threshold? Is demand actually impacted?</i> Often, you’ll realize you don’t need to respond.</p>
                        <p class="lead">Start this week: Choose your top 10 products. Define minimum margin, discount conditions, and a review date. Stick to it for 30 days.</p>
-                       <div class="quote">Pricing is not about matching competitors. It’s about protecting your structure. Revenue is noisy. Margin is truth. When pricing follows rules, your business stops reacting and starts compounding.</div>`,
+                       <div class="quote">Pricing is not about matching competitors. It’s about protecting your structure. Revenue is noisy. Margin is truth. When pricing follows rules, your business stops reacting and starts compounding.</div>
+
+                       <div style="margin-top:18px; display:grid; gap:10px;">
+                         <a class="btn-submit" href="inventory">Build Inventory Rules Next →</a>
+                         <a class="btn-secondary" href="memory">Decision Memory</a>
+                         <a class="btn-secondary" href="weekly-decision-reviews">Weekly Reviews</a>
+                       </div>`,
             hi: () => `<div class="big">अराजकता को <span class="accent">स्पष्टता</span> में बदलें।</div>
                        <p class="lead">जब कोई प्रतिस्पर्धी कीमत कम करता है, तो प्रतिक्रिया करने के बजाय, आप जांचते हैं: <i>क्या यह हमारे नियम को ट्रिगर करता है? क्या हम मार्जिन सीमा से नीचे हैं?</i> अक्सर, आपको एहसास होगा कि आपको जवाब देने की आवश्यकता नहीं है।</p>
                        <p class="lead">इस सप्ताह शुरू करें: अपने शीर्ष 10 उत्पाद चुनें। न्यूनतम मार्जिन, छूट की शर्तें और समीक्षा तिथि निर्धारित करें। 30 दिनों तक इस पर टिके रहें।</p>
-                       <div class="quote">मूल्य निर्धारण प्रतिस्पर्धियों की बराबरी करने के बारे में नहीं है। यह आपकी संरचना की रक्षा करने के बारे में है। राजस्व शोर है। मार्जिन सत्य है। जब मूल्य निर्धारण नियमों का पालन करता है, तो व्यवसाय प्रतिक्रिया करना बंद कर देता है।</div>`
+                       <div class="quote">मूल्य निर्धारण प्रतिस्पर्धियों की बराबरी करने के बारे में नहीं है। यह आपकी संरचना की रक्षा करने के बारे में है। राजस्व शोर है। मार्जिन सत्य है। जब मूल्य निर्धारण नियमों का पालन करता है, तो व्यवसाय प्रतिक्रिया करना बंद कर देता है।</div>
+
+                       <div style="margin-top:18px; display:grid; gap:10px;">
+                         <a class="btn-submit" href="inventory">अगला: इन्वेंटरी नियम बनाएं →</a>
+                         <a class="btn-secondary" href="memory">Decision Memory</a>
+                         <a class="btn-secondary" href="weekly-decision-reviews">साप्ताहिक समीक्षा</a>
+                       </div>`
           }
         },
-        // --- SECURE ONBOARDING: READER ---
+
+        /* READER */
         {
           name: "READER", kicker: "Join as Reader",
           title: { en: "Consume Better.", hi: "बेहतर उपभोग करें।" },
@@ -367,6 +364,10 @@
                 return `<div class="success-state">
                           <span class="success-icon">🔓</span><h2>Feed Unlocked</h2>
                           <p>Welcome back, ${authState.email}. Your curated logic stream is active. Zero noise.</p>
+                          <div style="margin-top:16px; display:grid; gap:10px;">
+                            <a class="btn-submit" href="weekly-decision-reviews">Open Weekly Reviews →</a>
+                            <a class="btn-secondary" href="index">Home</a>
+                          </div>
                         </div>`;
               }
               if(authState.pendingVerification && authState.pendingRole === 'reader') {
@@ -401,9 +402,17 @@
                       </form>`;
             },
             hi: () => {
-              if(authState.role === 'reader' || authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🔓</span><h2>फ़ीड अनलॉक</h2><p>वापसी पर स्वागत है, ${authState.email}। आपकी क्यूरेटेड स्ट्रीम सक्रिय है।</p></div>`;
+              if(authState.role === 'reader' || authState.role === 'creator') {
+                return `<div class="success-state">
+                          <span class="success-icon">🔓</span><h2>फ़ीड अनलॉक</h2>
+                          <p>वापसी पर स्वागत है, ${authState.email}। आपकी क्यूरेटेड स्ट्रीम सक्रिय है।</p>
+                          <div style="margin-top:16px; display:grid; gap:10px;">
+                            <a class="btn-submit" href="weekly-decision-reviews">साप्ताहिक समीक्षा खोलें →</a>
+                            <a class="btn-secondary" href="index">होम</a>
+                          </div>
+                        </div>`;
+              }
               if(authState.pendingVerification && authState.pendingRole === 'reader') return `<div class="big">पहचान <span class="accent">सत्यापित करें।</span></div><div class="verify-box"><p><b>${authState.pendingEmail}</b> से जुड़े सुरक्षित कोड के लिए WhatsApp जांचें।</p><div class="input-group"><input type="text" id="verify-code-reader" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; text-transform:uppercase;" /></div><button class="btn-success" onclick="verifyAccessCode('reader')">अनलॉक करें</button><button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">रद्द करें</button></div>`;
-              
               return `<div class="big">क्यूरेटेड तर्क, <br><span class="accent">शून्य शोर।</span></div>
                       <div class="auth-protocol"><span class="step">1.</span> नीचे पैरामीटर दर्ज करें।<br><span class="step">2.</span> WhatsApp के माध्यम से एन्क्रिप्टेड कोड का अनुरोध करें।<br><span class="step">3.</span> प्रमाणित करें और अनलॉक करें।</div>
                       <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('reader');">
@@ -414,7 +423,8 @@
             }
           }
         },
-        // --- SECURE ONBOARDING: CREATOR ---
+
+        /* CREATOR */
         {
           name: "CREATOR", kicker: "Join as Blogger",
           title: { en: "Shape the Narrative.", hi: "कहानी को आकार दें।" },
@@ -447,7 +457,6 @@
               if(authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🚀</span><h2>निर्माता प्रमाणित</h2><p>पहचान सत्यापित: ${authState.email}। कार्यक्षेत्र मॉड्यूल में आगे बढ़ें।</p></div>`;
               if(authState.role === 'reader') return `<div class="success-state"><span class="success-icon">🔒</span><h2>अपग्रेड आवश्यक है</h2><p>आप वर्तमान में एक पाठक के रूप में लॉग इन हैं। कार्यक्षेत्र तक पहुँचने के लिए लॉग आउट करें।</p></div>`;
               if(authState.pendingVerification && authState.pendingRole === 'creator') return `<div class="big">सत्यापित <span class="accent">करें।</span></div><div class="verify-box"><p><b>${authState.pendingEmail}</b> के कोड के लिए WhatsApp जांचें।</p><div class="input-group"><input type="text" id="verify-code-creator" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; text-transform:uppercase;" /></div><button class="btn-success" onclick="verifyAccessCode('creator')">अनलॉक करें</button><button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">रद्द करें</button></div>`;
-              
               return `<div class="big">अपने दर्शकों का <br><span class="accent">निर्माण करें।</span></div>
                       <div class="auth-protocol"><span class="step">1.</span> विवरण परिभाषित करें।<br><span class="step">2.</span> WhatsApp के माध्यम से क्रिएटर कोड का अनुरोध करें।<br><span class="step">3.</span> कार्यक्षेत्र प्रारंभ करें।</div>
                       <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('creator');">
@@ -458,14 +467,14 @@
             }
           }
         },
-        // --- WORKSPACE (Requires Creator Auth) ---
+
+        /* WORKSPACE */
         {
           name: "WORKSPACE", kicker: "Creator Workspace",
           title: { en: "Prompt Engine", hi: "प्रॉम्प्ट इंजन" },
           html: {
             en: () => {
               if(authState.role !== 'creator') return `<div class="success-state" style="opacity:0.5;"><span class="success-icon">🔒</span><h2>System Locked</h2><p>This module requires active Creator Authentication. Please register above.</p></div>`;
-              
               return `<p class="lead">Configure constraints to generate a structured blog prompt.</p>
                       <form class="onboard-form" id="workspaceForm">
                         <div class="row">
@@ -507,7 +516,6 @@
       const btnLogout = document.getElementById('btnLogout');
       let currentLang = 'en';
 
-      // Global Access exposed to inline HTML handlers
       window.requestWAAccess = function(role) {
         let name = "", email = "", extras = "";
         if(role === 'reader') {
@@ -523,35 +531,29 @@
 
         if(!email) return;
 
-        // Set Auth State to Verifying
         authState.pendingVerification = true;
         authState.pendingRole = role;
         authState.pendingEmail = email.trim();
         renderSections();
 
-        // Build WA Link
         const text = `✦ *DECISION LAB ACCESS REQUEST* ✦\n\n*Role:* ${role.toUpperCase()}\n*Name:* ${name}\n*Email:* ${authState.pendingEmail}\n${extras}\n\n_Please generate my secure access code._`;
         const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-        
-        // Open WA
         window.open(url, '_blank');
       };
 
       window.verifyAccessCode = function(role) {
         const inputId = role === 'reader' ? 'verify-code-reader' : 'verify-code-creator';
         const inputVal = document.getElementById(inputId).value.trim().toUpperCase();
-        
         const expected = generateExpectedCode(authState.pendingEmail);
-        
+
         if (inputVal === expected) {
-          // Success
           localStorage.setItem('VIA_USER', authState.pendingEmail);
           localStorage.setItem('VIA_ROLE', role);
-          
+
           authState.email = authState.pendingEmail;
           authState.role = role;
           authState.pendingVerification = false;
-          
+
           renderSections();
         } else {
           alert(currentLang === 'hi' ? "अमान्य कोड। कृपया पुनः प्रयास करें।" : "Invalid code. Please verify and try again.");
@@ -572,9 +574,7 @@
         }
       }
 
-      // --- RENDER LOGIC ---
       function renderSections() {
-        // Toggle Logout Button visibility based on state
         btnLogout.style.display = authState.email ? 'inline-flex' : 'none';
 
         container.innerHTML = '';
@@ -584,7 +584,6 @@
           wrapper.setAttribute('data-index', index);
           wrapper.setAttribute('data-name', sec.name);
 
-          // Evaluate the functional HTML string based on current auth state
           const htmlContent = sec.html[currentLang]();
 
           wrapper.innerHTML = `
@@ -605,13 +604,9 @@
           container.appendChild(wrapper);
         });
 
-        // Re-attach Intersection Observer
-        document.querySelectorAll('.section-wrapper').forEach(wrapper => {
-          observer.observe(wrapper);
-        });
+        document.querySelectorAll('.section-wrapper').forEach(wrapper => observer.observe(wrapper));
       }
 
-      // Intersection Observer
       const observerOptions = { root: container, threshold: 0.6 };
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -626,7 +621,6 @@
         });
       }, observerOptions);
 
-      // Translation Handling
       const btnTranslate = document.getElementById('btnTranslate');
       const toast = document.getElementById('translationToast');
       const btnUndo = document.getElementById('btnUndoTranslate');
@@ -636,7 +630,7 @@
       function triggerTranslation(lang) {
         currentLang = lang;
         renderSections();
-        
+
         toast.classList.add('is-visible');
         if(lang === 'hi') {
           toastMsg.textContent = "Translated to Hindi";
@@ -652,10 +646,8 @@
       btnTranslate.addEventListener('click', () => { if (currentLang === 'en') triggerTranslation('hi'); });
       btnUndo.addEventListener('click', () => { triggerTranslation('en'); });
 
-      // Initial Render
       renderSections();
 
-      // --- WORKSPACE GENERATION LOGIC ---
       window.generateBlogPrompt = function() {
         const niche = document.getElementById('ws-niche').value || 'Business';
         const goal = document.getElementById('ws-goal').value;
@@ -684,25 +676,24 @@ OUTPUT REQUIREMENTS:
 
       window.submitForReview = function() {
         alert(currentLang === 'hi' ? "आपका ड्राफ्ट समीक्षा के लिए सबमिट कर दिया गया है!" : "Draft submitted for review!");
-        renderSections(); // resets view
+        renderSections();
       };
 
-      // --- AUTO-ROTATION SENSOR LOGIC ---
       const popup = document.getElementById('rotatePopup');
       const appWrapper = document.getElementById('appWrapper');
       let isForcedLandscape = false; let targetRotationAngle = 0;
 
       window.addEventListener('deviceorientation', (e) => {
-        const gamma = e.gamma; 
+        const gamma = e.gamma;
         if (gamma === null || typeof gamma === 'undefined') return;
-        const rotationThreshold = 45; const deadband = 25; 
+        const rotationThreshold = 45; const deadband = 25;
 
         if (!isForcedLandscape) {
-          if (gamma > rotationThreshold) showRotatePopup(90); 
-          else if (gamma < -rotationThreshold) showRotatePopup(-90); 
+          if (gamma > rotationThreshold) showRotatePopup(90);
+          else if (gamma < -rotationThreshold) showRotatePopup(-90);
           else hideRotatePopup();
         } else {
-          if (Math.abs(gamma) < deadband) showRotatePopup(0); 
+          if (Math.abs(gamma) < deadband) showRotatePopup(0);
           else hideRotatePopup();
         }
       });
