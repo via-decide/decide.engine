@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <title>How to Build a Policy Brief in Under 5 Minutes | viadecide.com</title>
+  <meta name="description" content="A step-by-step walkthrough of the Decision Brief tool — from topic input to a shareable, exportable PDF brief."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080808;--text:#f0f0f0;--accent:#ff671f;--accent2:rgba(255,103,31,.12);--border:rgba(255,255,255,.07);--card:rgba(14,14,14,.9);--maxw:720px;}
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(8,8,8,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,#ff671f 0%,rgba(255,103,31,.2) 100%);border:1px solid rgba(255,103,31,.3);position:relative;}
+    .logo-mark::after{content:"";position:absolute;inset:6px;border-radius:4px;border:1.5px solid rgba(255,255,255,.18);}
+    .nav-logo span{font-size:14px;font-weight:700;color:var(--text);}
+    .nav-back{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.8);font-size:12px;font-weight:700;text-decoration:none;}
+    .nav-back:hover{background:rgba(255,255,255,.09);text-decoration:none;}
+    .blog-hero{max-width:var(--maxw);margin:0 auto;padding:48px 20px 32px;}
+    .blog-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,103,31,.3);background:rgba(255,103,31,.1);color:rgba(255,140,60,.92);font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:18px;}
+    .blog-chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);}
+    .blog-title{font-size:clamp(28px,6vw,46px);font-weight:900;letter-spacing:-.03em;line-height:1.06;margin:0 0 18px;}
+    .blog-title .accent{color:var(--accent);}
+    .blog-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(240,240,240,.52);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;}
+    .blog-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(240,240,240,.25);}
+    .blog-body{max-width:var(--maxw);margin:0 auto;padding:36px 20px 80px;}
+    .blog-body p{font-size:16px;line-height:1.75;color:rgba(240,240,240,.78);margin:0 0 22px;}
+    .blog-body h2{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:40px 0 14px;}
+    .blog-body strong{color:var(--text);font-weight:700;}
+    .callout{border-radius:14px;border-left:3px solid var(--accent);background:var(--accent2);padding:18px 20px;margin:28px 0;}
+    .callout p{margin:0;font-size:15px;color:rgba(240,240,240,.85);}
+    .callout strong{color:var(--accent);}
+    .guide-steps{display:grid;gap:12px;margin:24px 0;}
+    .guide-step{display:grid;grid-template-columns:40px 1fr;gap:16px;border-radius:12px;border:1px solid var(--border);background:var(--card);padding:18px;}
+    .step-num{width:40px;height:40px;border-radius:10px;background:rgba(255,103,31,.12);border:1px solid rgba(255,103,31,.25);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--accent);flex-shrink:0;}
+    .step-content strong{display:block;font-size:15px;color:var(--text);margin-bottom:6px;}
+    .step-content p{margin:0;font-size:13.5px;color:rgba(240,240,240,.58);line-height:1.55;}
+    .tip-box{border-radius:12px;border:1px solid rgba(0,230,118,.2);background:rgba(0,230,118,.06);padding:16px 18px;margin:24px 0;}
+    .tip-box strong{color:rgba(0,230,118,.85);display:block;margin-bottom:4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+    .tip-box p{margin:0;font-size:14px;color:rgba(240,240,240,.72);line-height:1.5;}
+    .blog-footer{max-width:var(--maxw);margin:0 auto;padding:0 20px 48px;}
+    .blog-footer-card{border-radius:16px;border:1px solid var(--border);background:var(--card);padding:24px;display:flex;flex-direction:column;gap:14px;}
+    .blog-footer-card p{margin:0;font-size:14px;color:rgba(240,240,240,.62);}
+    .footer-ctas{display:flex;gap:10px;flex-wrap:wrap;}
+    .cta-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;transition:filter 130ms ease;}
+    .cta-btn:hover{filter:brightness(1.1);text-decoration:none;}
+    .cta-btn.primary{background:linear-gradient(135deg,rgba(255,103,31,.95),rgba(255,103,31,.55));border:1px solid rgba(255,103,31,.4);color:#0c0c0c;}
+    .cta-btn.ghost{background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.86);}
+    @media(max-width:480px){.guide-step{grid-template-columns:1fr;}.blog-hero,.blog-body,.blog-footer{padding-left:16px;padding-right:16px;}}
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a class="nav-logo" href="../index.html">
+      <div class="logo-mark"></div>
+      <span>viadecide.com</span>
+    </a>
+    <a class="nav-back" href="../index.html">← Back to Home</a>
+  </nav>
+
+  <div class="blog-hero">
+    <div class="blog-chip">📄 Guide</div>
+    <h1 class="blog-title">Build a <span class="accent">Policy Brief</span> in Under 5 Minutes</h1>
+    <div class="blog-meta">
+      <span>ViaDecide Team</span>
+      <span class="dot"></span>
+      <span>12 June 2025</span>
+      <span class="dot"></span>
+      <span>4 min read</span>
+    </div>
+  </div>
+
+  <div class="blog-body">
+    <p>A well-structured policy brief used to require hours of research, a team of analysts, and an expensive subscription to a think-tank database. ViaDecide compresses that workflow to under five minutes using open data, structured synthesis, and a clean export.</p>
+
+    <p>This is a complete walkthrough — from blank input to a sharable, exportable PDF brief.</p>
+
+    <div class="callout">
+      <p><strong>Who this is for:</strong> Students writing policy essays, founders evaluating a regulatory landscape, local officials drafting a recommendation, researchers needing a quick literature anchor before going deep. The output is a starting point, not a final document — but it's a very good starting point.</p>
+    </div>
+
+    <h2>Step-by-step guide</h2>
+
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Enter your research topic</strong>
+          <p>Open the Student Research Tool. Type your topic — be specific. "Water privatization in Maharashtra" will return better results than "water". The more specific your query, the more targeted the synthesis.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Review the four-source output</strong>
+          <p>The engine queries Wikipedia, Wikivoyage, Wikibooks, and Wikinews simultaneously. Review each source's contribution — you'll see what each adds. Encyclopedia context, regional data, procedural info, and recent news.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Check the synthesis panel</strong>
+          <p>The synthesis tab shows a structured summary: primary thesis, supporting evidence, contradictions between sources, and identified knowledge gaps. This is your brief skeleton.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Open Decision Brief (PDF)</strong>
+          <p>Navigate to the Decision Brief tool. Your research session's synthesis is available to import. Add your own framing, context, and recommendations in the editable fields.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>Export and share</strong>
+          <p>Download as a structured PDF or copy the shareable link. The brief includes a timestamp, source list, and your affiliate tag for tracking. It's policy-grade and citation-ready.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <strong>✦ Pro tip</strong>
+      <p>Run two searches: one broad (e.g., "ONDC network") and one specific (e.g., "ONDC agriculture small farmers 2024"). Combine the synthesis from both to get encyclopedic context plus current-state granularity in the same brief.</p>
+    </div>
+
+    <h2>What makes a good research query</h2>
+    <p>The engine works best with <strong>noun phrases, not questions</strong>. "Crop insurance scheme PM-FASAL" will outperform "how does crop insurance work in India?". Think of it like a Wikipedia search, not a Google search — you want to name the topic, not describe your curiosity about it.</p>
+
+    <p>For policy topics, include the domain and geography: "urban planning regulations Bengaluru", "healthcare privatization Tamil Nadu", "water allocation Cauvery basin". The geographic specificity unlocks Wikivoyage's regional data, which is often the most valuable source for location-dependent policy questions.</p>
+
+    <h2>Limitations to know about</h2>
+    <p>The four Wikimedia sources are excellent for established topics with significant public coverage. For highly niche, very recent, or technical regulatory subjects, coverage may be thin. In those cases, use ViaDecide's synthesis as a background anchor and layer in primary sources — government gazettes, official reports, court judgments — manually.</p>
+
+    <p>The engine does not connect to paywalled sources, internal government databases, or proprietary datasets. Everything it synthesizes is openly licensed and verifiable. That's a strength for transparency and a constraint for very specialist domains.</p>
+  </div>
+
+  <div class="blog-footer">
+    <div class="blog-footer-card">
+      <p>Ready to build your first brief? Open the Decision Brief tool — no account required.</p>
+      <div class="footer-ctas">
+        <a class="cta-btn primary" href="../decision-brief.html">Open Decision Brief →</a>
+        <a class="cta-btn ghost" href="../student-research.html">Start Research First</a>
+        <a class="cta-btn ghost" href="../index.html">← All Blogs</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
