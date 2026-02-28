@@ -1565,26 +1565,7 @@
         { kind:"page",  title:"Decision Brief (PDF)", href:"decision-brief.html",     img:"assets/product-alchemist.jpg",     chip:"PDF",       desc:"Policy-grade export and share links.",                foot:"Open PDF" },
         { kind:"page",  title:"PromptAlchemy",        href:"prompt-alchemy.html",     img:"assets/product-promptalchemy.jpg", chip:"Prompts",   desc:"Prompt tools for structured decision work.",          foot:"Open" },
         { kind:"page",  title:"Alchemist",            href:"alchemist.html",          img:"assets/product-alchemist.jpg",     chip:"Quiz",      desc:"Assessments generated from research nodes.",          foot:"Open" },
-       { 
-  kind:"page",
-  title:"ONDC Demo",
-  href:"ONDC-demo.html",
-  img:"assets/product-ondc.jpg",
-  chip:"Commerce",
-  desc:"Local commerce flows and demos.",
-  foot:"Open demo"
-},
-
-{ 
-  kind:"model",
-  title:"Founder Engine (3D)",
-  href:"founder.html",
-  modelSrc:"assets/founder.stl",   // <-- YOUR STL FILE
-  poster:"assets/product-3d-poster.jpg",
-  chip:"3D",
-  desc:"Interactive 3D preview. Blog-style product narrative.",
-  foot:"Open"
-}
+        { kind:"page",  title:"ONDC Demo",            href:"ONDC-demo.html",          img:"assets/product-ondc.jpg",          chip:"Commerce",  desc:"Local commerce flows and demos.",                     foot:"Open demo" },
         { kind:"model", title:"Engine (3D)",          href:"engine-license.html",     modelSrc:"assets/viadecide-3d.gltf",    poster:"assets/product-3d-poster.jpg", chip:"3D", desc:"Interactive engine preview (local asset).", foot:"License" }
       ];
 
@@ -1607,14 +1588,7 @@
           mv.setAttribute("touch-action","pan-y");
           mv.setAttribute("alt",p.title);
           mv.setAttribute("poster",p.poster);
-         if (p.modelSrc.endsWith(".stl")) {
-  mv.setAttribute("src", p.modelSrc);
-  mv.setAttribute("camera-controls", "");
-  mv.setAttribute("auto-rotate", "");
-  mv.setAttribute("shadow-intensity", "1");
-} else {
-  mv.setAttribute("src", p.modelSrc);
-}
+          mv.setAttribute("src",p.modelSrc);
           a.appendChild(mv);
         } else {
           var img = document.createElement("img");
