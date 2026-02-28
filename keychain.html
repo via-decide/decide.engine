@@ -28,63 +28,135 @@
     }
 
     html, body {
-      height: 100%; height: 100dvh; margin: 0; background-color: var(--bg); color: var(--text);
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
     }
     * { box-sizing: border-box; }
     button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 
-    #appWrapper { position: relative; width: 100vw; height: 100dvh; transform-origin: center center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }
-    #appWrapper.forced-landscape { width: 100dvh; height: 100vw; position: absolute; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50dvh; }
+    #appWrapper {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      transform-origin: center center;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      overflow: hidden;
+    }
+    #appWrapper.forced-landscape {
+      width: 100dvh;
+      height: 100vw;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -50vw;
+      margin-left: -50dvh;
+    }
 
-    .bg-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index: 0; }
+    .bg-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%),
+        radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%);
+      z-index: 0;
+    }
 
     .top {
-      position: absolute; top: 0; left: 0; right: 0;
+      position: absolute;
+      top: 0; left: 0; right: 0;
       padding: calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
-      z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      pointer-events: none; background: linear-gradient(180deg, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0) 100%);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0) 100%);
     }
     .top > * { pointer-events: auto; }
     .top-actions { display: flex; align-items: center; gap: 8px; }
 
     .back, .pill, .btn-icon {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(15,15,15,0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(15,15,15,0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       transition: all 0.2s ease;
+      text-decoration: none;
     }
     .btn-icon { padding: 10px; font-weight: 700; color: var(--accent); width: 38px; height: 38px; }
     .btn-icon:active, .back:active { transform: scale(0.96); }
-    .back { color: rgba(255,255,255,0.9); font-weight: 600; font-size: 14px; text-decoration: none;}
+    .back { color: rgba(255,255,255,0.9); font-weight: 600; font-size: 14px; }
     .pill { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
     .pill b { color: #fff; letter-spacing: 0.1em; font-weight: 700; }
 
     .scroll-container {
-      position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
-      scroll-snap-type: y mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; z-index: 10;
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      z-index: 10;
     }
     .scroll-container::-webkit-scrollbar { display: none; }
 
     .section-wrapper {
-      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      height: 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       padding: calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(60px + var(--safeBottom)) calc(16px + var(--safeLeft));
       position: relative;
     }
 
     .card {
-      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0;
-      border-radius: var(--radius); border: 1px solid var(--card-border);
-      background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
-      opacity: 0.3; transform: scale(0.92) translateY(30px);
-      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 100%;
+      max-width: var(--maxw);
+      flex: 1;
+      min-height: 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      opacity: 0.3;
+      transform: scale(0.92) translateY(30px);
+      transition:
+        opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .section-wrapper.is-active .card { opacity: 1; transform: scale(1) translateY(0); }
 
-    .cardHeader { padding: 24px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.3); flex-shrink: 0; }
+    .cardHeader {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
     .kicker { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
     .h1 { margin: 0; font-size: clamp(22px, 5vw, 28px); line-height: 1.3; letter-spacing: -0.01em; font-weight: 700; }
 
@@ -100,9 +172,19 @@
     .list li { position: relative; padding-left: 24px; margin: 14px 0; }
     .list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
     .list b { color: #fff; }
-    .quote { margin: 28px 0 20px; padding: 16px 20px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-glow), transparent); border-radius: 0 12px 12px 0; color: rgba(255,255,255,0.95); line-height: 1.6; font-size: 15px; font-style: italic; }
+    .quote {
+      margin: 28px 0 20px;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: linear-gradient(90deg, var(--accent-glow), transparent);
+      border-radius: 0 12px 12px 0;
+      color: rgba(255,255,255,0.95);
+      line-height: 1.6;
+      font-size: 15px;
+      font-style: italic;
+    }
 
-    /* 3D Viewer (Product Section) */
+    /* 3D Viewer */
     .viewerShell{
       border: 1px solid rgba(255,255,255,0.10);
       border-radius: 18px;
@@ -114,7 +196,7 @@
       width: 100%;
       height: min(56vh, 440px);
       position: relative;
-      touch-action: none; /* important for mobile OrbitControls */
+      touch-action: none; /* stop scroll during rotate */
     }
     .viewerHUD{
       position:absolute; inset: 0;
@@ -158,20 +240,102 @@
       word-break: break-word;
     }
 
+    /* CTA button */
+    .ctaBtn{
+      background: var(--accent);
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 18px;
+      color: #fff;
+      box-shadow: 0 14px 40px rgba(255,103,31,0.22);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .ctaBtn:active{ transform: scale(.985); filter: brightness(1.08); }
+
     /* Hint */
-    .hint { position: absolute; bottom: calc(16px + var(--safeBottom)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; animation: pulse 2s infinite; z-index: 100; }
+    .hint {
+      position: absolute;
+      bottom: calc(16px + var(--safeBottom));
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      pointer-events: none;
+      animation: pulse 2s infinite;
+      z-index: 100;
+    }
     .hint svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
     @keyframes pulse { 0%, 100% { transform: translate(-50%, 0); opacity: 0.6; } 50% { transform: translate(-50%, 5px); opacity: 1; } }
     .section-wrapper:last-child .hint { display: none; }
 
     /* Toast + Rotate Popup */
-    .rotate-popup { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0.9); background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(255, 103, 31, 0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; cursor: pointer; }
+    .rotate-popup {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 12px 30px rgba(255, 103, 31, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+      cursor: pointer;
+    }
     .rotate-popup.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
     .rotate-popup:active { transform: translateX(-50%) scale(0.95); }
 
-    .translate-toast { position: fixed; top: calc(80px + var(--safeTop)); left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(20, 20, 22, 0.95); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #fff; padding: 10px 16px 10px 20px; border-radius: 999px; font-size: 14px; display: flex; align-items: center; gap: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; }
+    .translate-toast {
+      position: fixed;
+      top: calc(80px + var(--safeTop));
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(20, 20, 22, 0.95);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff;
+      padding: 10px 16px 10px 20px;
+      border-radius: 999px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+    }
     .translate-toast.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-    .btn-undo { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; padding: 6px 12px; background: rgba(255, 103, 31, 0.15); border-radius: 999px; }
+    .btn-undo {
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      background: rgba(255, 103, 31, 0.15);
+      border-radius: 999px;
+    }
     .btn-undo:active { background: rgba(255, 103, 31, 0.25); }
   </style>
 </head>
@@ -181,7 +345,9 @@
     <div class="bg-glow"></div>
 
     <div class="top">
-      <a class="back" id="backBtn" href="#">← Back</a>
+      <!-- Router-friendly back: router.js can bind [data-back], fallback JS below also works -->
+      <a class="back" id="backBtn" href="#" data-back>← Back</a>
+
       <div class="top-actions">
         <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate to Hindi">A/अ</button>
         <div class="pill"><b id="secLabel">SEC 1/?</b> • <span id="secName">INTRO</span></div>
@@ -197,13 +363,11 @@
   </div>
   <div id="rotatePopup" class="rotate-popup"></div>
 
-  <!-- ✅ Reliable Three.js imports for mobile (module builds) -->
+  <!-- Three.js module imports -->
   <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js";
     import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/controls/OrbitControls.js";
     import { STLLoader } from "https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/STLLoader.js";
-
-    // expose to the non-module script below
     window.__THREE__ = { THREE, OrbitControls, STLLoader };
   </script>
 
@@ -211,19 +375,30 @@
     (function(){
       "use strict";
 
-      // ✅ SET THESE
-      const MAIN_SITE_URL = "https://viadecide.COM";   // back button target
-      const STL_URL = "keychain.stl";                      // your STL path (same folder = "model.stl")
+      // =========================
+      // CONFIG (edit these)
+      // =========================
+      const MAIN_SITE_URL = "https://viadecide.com"; // fallback if no history/router
+      // If you use router.js assetUrl(), this will use it automatically:
+      const STL_URL = (window.assetUrl ? assetUrl("keychain.stl") : "keychain.stl"); // put STL in same folder OR fix path
+      // Optional: your WhatsApp/ONDC links
+      const WHATSAPP_ORDER_URL = "https://wa.me/916351537770?text=" + encodeURIComponent("Hi, I want to order this product.");
+      const ONDC_ORDER_URL = "#"; // replace with ONDC deep link when ready
 
-      // Back button behavior: if history exists -> back, else main website
+      // =========================
+      // Back button fallback (router.js can override)
+      // =========================
       const backBtn = document.getElementById("backBtn");
       backBtn.addEventListener("click", (e) => {
+        // If router.js handles it, it may call preventDefault itself; this is a safe fallback
         e.preventDefault();
         if (window.history.length > 1) window.history.back();
         else window.location.href = MAIN_SITE_URL;
       });
 
-      // --- SECTIONS (blog UX + product UX) ---
+      // =========================
+      // Sections
+      // =========================
       const SECTIONS = [
         {
           name: "INTRO", kicker: "Product Story",
@@ -279,7 +454,6 @@
           }
         },
 
-        // ✅ 3D SECTION (mobile working)
         {
           name: "3D PREVIEW", kicker: "Proof",
           title: { en: "Live 3D Preview", hi: "लाइव 3D प्रीव्यू" },
@@ -335,6 +509,29 @@
             `
           }
         },
+
+        {
+          name: "CTA", kicker: "Order",
+          title: { en: "Ready to Own It?", hi: "क्या आप इसे चाहते हैं?" },
+          html: {
+            en: () => `
+              <div class="big">Built. Tested. <span class="accent">Ready.</span></div>
+              <p class="lead">Tap below to order instantly via ONDC or direct WhatsApp.</p>
+              <button class="ctaBtn" id="btnOrder">Order Now →</button>
+              <p class="lead" style="margin-top:12px; font-size:13px; color:var(--text-muted);">
+                ONDC link optional. WhatsApp works everywhere.
+              </p>
+            `,
+            hi: () => `
+              <div class="big">तैयार। <span class="accent">उपलब्ध।</span></div>
+              <p class="lead">ONDC या WhatsApp के माध्यम से तुरंत ऑर्डर करें।</p>
+              <button class="ctaBtn" id="btnOrder">अभी ऑर्डर करें →</button>
+              <p class="lead" style="margin-top:12px; font-size:13px; color:var(--text-muted);">
+                ONDC लिंक वैकल्पिक है। WhatsApp हर जगह चलता है।
+              </p>
+            `
+          }
+        }
       ];
 
       const container = document.getElementById('scrollContainer');
@@ -342,147 +539,35 @@
       const secName  = document.getElementById('secName');
       let currentLang = 'en';
 
-      // --- Render ---
-      const observerOptions = { root: container, threshold: 0.6 };
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-active');
-            const index = parseInt(entry.target.getAttribute('data-index'));
-            secLabel.textContent = `SEC ${index + 1}/${SECTIONS.length}`;
-            secName.textContent = entry.target.getAttribute('data-name');
-          } else {
-            entry.target.classList.remove('is-active');
-          }
-        });
-      }, observerOptions);
-
-      function renderSections() {
-        container.innerHTML = '';
-        SECTIONS.forEach((sec, index) => {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'section-wrapper';
-          wrapper.setAttribute('data-index', index);
-          wrapper.setAttribute('data-name', sec.name);
-          wrapper.innerHTML = `
-            <article class="card">
-              <header class="cardHeader">
-                <div class="kicker">${sec.kicker}</div>
-                <h1 class="h1">${sec.title[currentLang]}</h1>
-              </header>
-              <div class="cardBody">
-                ${sec.html[currentLang]()}
-                <div style="height: 85px;"></div>
-              </div>
-            </article>
-            <div class="hint">
-              <span>Scroll for more</span>
-              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-            </div>
-          `;
-          container.appendChild(wrapper);
-          observer.observe(wrapper);
-        });
-
-        // after DOM re-render (translate etc) -> mount 3D again safely
-        setTimeout(() => mount3DIfPresent(), 0);
-      }
-
-      // --- Translation ---
-      const btnTranslate = document.getElementById('btnTranslate');
-      const toast = document.getElementById('translationToast');
-      const btnUndo = document.getElementById('btnUndoTranslate');
-      const toastMsg = document.getElementById('toastMsg');
-      let toastTimer;
-
-      function triggerTranslation(lang) {
-        currentLang = lang;
-        renderSections();
-
-        toast.classList.add('is-visible');
-        if(lang === 'hi') {
-          toastMsg.textContent = "Translated to Hindi";
-          btnUndo.style.display = 'block';
-        } else {
-          toastMsg.textContent = "Reverted to English";
-          btnUndo.style.display = 'none';
-        }
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3500);
-      }
-
-      btnTranslate.addEventListener('click', () => { if (currentLang === 'en') triggerTranslation('hi'); });
-      btnUndo.addEventListener('click', () => { triggerTranslation('en'); });
-
-      // --- Rotate Popup (same behavior as your blog) ---
-      const popup = document.getElementById('rotatePopup');
-      const appWrapper = document.getElementById('appWrapper');
-      let isForcedLandscape = false;
-      let targetRotationAngle = 0;
-
-      window.addEventListener('deviceorientation', (e) => {
-        const gamma = e.gamma;
-        if (gamma === null || typeof gamma === 'undefined') return;
-        const rotationThreshold = 45;
-        const deadband = 25;
-
-        if (!isForcedLandscape) {
-          if (gamma > rotationThreshold) showRotatePopup(90);
-          else if (gamma < -rotationThreshold) showRotatePopup(-90);
-          else hideRotatePopup();
-        } else {
-          if (Math.abs(gamma) < deadband) showRotatePopup(0);
-          else hideRotatePopup();
-        }
-      });
-
-      function showRotatePopup(angle) {
-        targetRotationAngle = angle;
-        popup.classList.add('is-visible');
-        if (angle === 0) {
-          popup.innerHTML = `Tap for Portrait`;
-        } else {
-          popup.innerHTML = `Tap for Landscape`;
-        }
-      }
-      function hideRotatePopup() { popup.classList.remove('is-visible'); }
-
-      popup.addEventListener('click', () => {
-        if (targetRotationAngle !== 0) {
-          appWrapper.classList.add('forced-landscape');
-          appWrapper.style.transform = `rotate(${targetRotationAngle}deg)`;
-          isForcedLandscape = true;
-        } else {
-          appWrapper.classList.remove('forced-landscape');
-          appWrapper.style.transform = `none`;
-          isForcedLandscape = false;
-        }
-        hideRotatePopup();
-      });
-
-      // ✅ 3D Viewer (robust, mobile-safe, re-init after translate)
+      // =========================
+      // 3D Viewer lifecycle
+      // =========================
       let __viewerCleanup = null;
       let __viewerMountedFor = null;
+
+      function disposeViewer(){
+        if(typeof __viewerCleanup === "function"){
+          try { __viewerCleanup(); } catch(_) {}
+        }
+        __viewerCleanup = null;
+        __viewerMountedFor = null;
+      }
 
       function mount3DIfPresent(){
         const host = document.getElementById("stlViewer");
         if(!host) return;
 
-        // prevent double-mount on the same DOM node
+        // prevent double-mount on same element
         if(__viewerMountedFor === host) return;
-        __viewerMountedFor = host;
 
-        // cleanup any previous viewer (if rerendered)
-        if(typeof __viewerCleanup === "function"){
-          try { __viewerCleanup(); } catch(_) {}
-          __viewerCleanup = null;
-        }
+        // dispose any previous viewer
+        disposeViewer();
+        __viewerMountedFor = host;
 
         const hud = document.getElementById("viewerHUD");
         const libs = window.__THREE__;
         if(!libs){
           if(hud) hud.textContent = "Loading 3D engine…";
-          // wait a bit for module script to load
           setTimeout(mount3DIfPresent, 120);
           return;
         }
@@ -492,10 +577,15 @@
         // Clear host
         host.querySelectorAll("canvas,.viewerErr").forEach(n => n.remove());
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        const renderer = new THREE.WebGLRenderer({
+          antialias: (window.devicePixelRatio || 1) < 2,
+          alpha: true,
+          powerPreference: "high-performance"
+        });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
         renderer.setSize(host.clientWidth, host.clientHeight, false);
         renderer.setClearColor(0x000000, 0.0);
+        renderer.domElement.style.touchAction = "none";
         host.appendChild(renderer.domElement);
 
         const scene = new THREE.Scene();
@@ -513,17 +603,17 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.08;
         controls.enablePan = false;
+        controls.enableZoom = true;
+        controls.enableRotate = true;
         controls.minDistance = 30;
         controls.maxDistance = 500;
         controls.target.set(0, 0, 0);
 
-        // double-tap reset
+        // double-tap reset (mobile)
         let lastTap = 0;
         host.addEventListener("touchend", () => {
           const now = Date.now();
-          if(now - lastTap < 280){
-            controls.reset();
-          }
+          if(now - lastTap < 280) controls.reset();
           lastTap = now;
         }, { passive: true });
 
@@ -539,7 +629,6 @@
 
         // load STL
         const loader = new STLLoader();
-
         const material = new THREE.MeshStandardMaterial({
           color: new THREE.Color(0xff671f),
           roughness: 0.55,
@@ -612,15 +701,156 @@
           controls.dispose();
           renderer.dispose();
           if(mesh){
-            mesh.geometry && mesh.geometry.dispose();
-            mesh.material && mesh.material.dispose();
+            if(mesh.geometry) mesh.geometry.dispose();
+            if(mesh.material) mesh.material.dispose();
           }
           host.querySelectorAll("canvas,.viewerErr").forEach(n => n.remove());
-          __viewerMountedFor = null;
         };
       }
 
-      // Initial render
+      // =========================
+      // Render + Observer (also mounts/unmounts 3D)
+      // =========================
+      const observerOptions = { root: container, threshold: 0.6 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const name = entry.target.getAttribute('data-name');
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-active');
+            const index = parseInt(entry.target.getAttribute('data-index'), 10);
+            secLabel.textContent = `SEC ${index + 1}/${SECTIONS.length}`;
+            secName.textContent = name;
+
+            // mount 3D only when visible
+            if(name === "3D PREVIEW") mount3DIfPresent();
+          } else {
+            entry.target.classList.remove('is-active');
+
+            // dispose 3D when section leaves view (saves GPU/battery)
+            if(name === "3D PREVIEW") disposeViewer();
+          }
+        });
+      }, observerOptions);
+
+      function renderSections() {
+        // ensure any running viewer is stopped before rerender
+        disposeViewer();
+
+        container.innerHTML = '';
+        SECTIONS.forEach((sec, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'section-wrapper';
+          wrapper.setAttribute('data-index', String(index));
+          wrapper.setAttribute('data-name', sec.name);
+
+          wrapper.innerHTML = `
+            <article class="card">
+              <header class="cardHeader">
+                <div class="kicker">${sec.kicker}</div>
+                <h1 class="h1">${sec.title[currentLang]}</h1>
+              </header>
+              <div class="cardBody">
+                ${sec.html[currentLang]()}
+                <div style="height: 85px;"></div>
+              </div>
+            </article>
+            <div class="hint">
+              <span>Scroll for more</span>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          `;
+
+          container.appendChild(wrapper);
+          observer.observe(wrapper);
+        });
+
+        // Wire CTA button after render
+        const btnOrder = document.getElementById("btnOrder");
+        if(btnOrder){
+          btnOrder.addEventListener("click", () => {
+            // Prefer ONDC when you have it; else WhatsApp
+            const target = (ONDC_ORDER_URL && ONDC_ORDER_URL !== "#") ? ONDC_ORDER_URL : WHATSAPP_ORDER_URL;
+            window.open(target, "_blank");
+          });
+        }
+      }
+
+      // =========================
+      // Translation UI
+      // =========================
+      const btnTranslate = document.getElementById('btnTranslate');
+      const toast = document.getElementById('translationToast');
+      const btnUndo = document.getElementById('btnUndoTranslate');
+      const toastMsg = document.getElementById('toastMsg');
+      let toastTimer;
+
+      function triggerTranslation(lang) {
+        currentLang = lang;
+        renderSections();
+
+        toast.classList.add('is-visible');
+        if(lang === 'hi') {
+          toastMsg.textContent = "Translated to Hindi";
+          btnUndo.style.display = 'block';
+        } else {
+          toastMsg.textContent = "Reverted to English";
+          btnUndo.style.display = 'none';
+        }
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3500);
+      }
+
+      btnTranslate.addEventListener('click', () => { if (currentLang === 'en') triggerTranslation('hi'); });
+      btnUndo.addEventListener('click', () => { triggerTranslation('en'); });
+
+      // =========================
+      // Rotate Popup (optional)
+      // =========================
+      const popup = document.getElementById('rotatePopup');
+      const appWrapper = document.getElementById('appWrapper');
+      let isForcedLandscape = false;
+      let targetRotationAngle = 0;
+
+      window.addEventListener('deviceorientation', (e) => {
+        const gamma = e.gamma;
+        if (gamma === null || typeof gamma === 'undefined') return;
+
+        const rotationThreshold = 45;
+        const deadband = 25;
+
+        if (!isForcedLandscape) {
+          if (gamma > rotationThreshold) showRotatePopup(90);
+          else if (gamma < -rotationThreshold) showRotatePopup(-90);
+          else hideRotatePopup();
+        } else {
+          if (Math.abs(gamma) < deadband) showRotatePopup(0);
+          else hideRotatePopup();
+        }
+      });
+
+      function showRotatePopup(angle) {
+        targetRotationAngle = angle;
+        popup.classList.add('is-visible');
+        popup.textContent = (angle === 0) ? "Tap for Portrait" : "Tap for Landscape";
+      }
+      function hideRotatePopup() { popup.classList.remove('is-visible'); }
+
+      popup.addEventListener('click', () => {
+        if (targetRotationAngle !== 0) {
+          appWrapper.classList.add('forced-landscape');
+          appWrapper.style.transform = `rotate(${targetRotationAngle}deg)`;
+          isForcedLandscape = true;
+        } else {
+          appWrapper.classList.remove('forced-landscape');
+          appWrapper.style.transform = `none`;
+          isForcedLandscape = false;
+        }
+        hideRotatePopup();
+      });
+
+      // =========================
+      // Start
+      // =========================
       renderSections();
 
     })();
