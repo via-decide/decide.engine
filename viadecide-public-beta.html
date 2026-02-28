@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <title>ViaDecide Public Beta Is Live | viadecide.com</title>
+  <meta name="description" content="India's first policy-grade decision engine is now open to students, founders, farmers, and officials."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#080808; --text:#f0f0f0; --muted:#7a7a7a;
+      --accent:#ff671f; --accent2:rgba(255,103,31,.12);
+      --border:rgba(255,255,255,.07);
+      --card:rgba(14,14,14,.9);
+      --maxw:720px;
+    }
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+    a{color:var(--accent);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+
+    /* ─── TOP NAV ──────────────────────────────────── */
+    .site-nav{
+      position:sticky;top:0;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 20px;
+      background:rgba(8,8,8,.88);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{
+      width:28px;height:28px;border-radius:8px;flex-shrink:0;
+      background:linear-gradient(135deg,#ff671f 0%,rgba(255,103,31,.2) 100%);
+      border:1px solid rgba(255,103,31,.3);
+      position:relative;
+    }
+    .logo-mark::after{content:"";position:absolute;inset:6px;border-radius:4px;border:1.5px solid rgba(255,255,255,.18);}
+    .nav-logo span{font-size:14px;font-weight:700;color:var(--text);}
+    .nav-back{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:7px 13px;border-radius:8px;
+      background:rgba(255,255,255,.05);border:1px solid var(--border);
+      color:rgba(240,240,240,.8);font-size:12px;font-weight:700;
+      text-decoration:none;transition:background 140ms ease;
+    }
+    .nav-back:hover{background:rgba(255,255,255,.09);text-decoration:none;}
+
+    /* ─── HERO ─────────────────────────────────────── */
+    .blog-hero{
+      max-width:var(--maxw);margin:0 auto;
+      padding:48px 20px 32px;
+    }
+    .blog-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:5px 12px;border-radius:999px;
+      border:1px solid rgba(255,103,31,.3);background:rgba(255,103,31,.1);
+      color:rgba(255,140,60,.92);font-size:11px;font-weight:800;
+      letter-spacing:.09em;text-transform:uppercase;margin-bottom:18px;
+    }
+    .blog-chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px rgba(255,103,31,.5);}
+    .blog-title{
+      font-size:clamp(28px,6vw,46px);font-weight:900;
+      letter-spacing:-.03em;line-height:1.06;margin:0 0 18px;
+    }
+    .blog-title .accent{color:var(--accent);}
+    .blog-meta{
+      display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+      font-size:13px;color:rgba(240,240,240,.52);
+      border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+      padding:14px 0;margin-bottom:0;
+    }
+    .blog-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(240,240,240,.25);}
+
+    /* ─── CONTENT ──────────────────────────────────── */
+    .blog-body{
+      max-width:var(--maxw);margin:0 auto;
+      padding:36px 20px 80px;
+    }
+    .blog-body p{font-size:16px;line-height:1.75;color:rgba(240,240,240,.78);margin:0 0 22px;}
+    .blog-body h2{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:40px 0 14px;color:var(--text);}
+    .blog-body h3{font-size:17px;font-weight:700;margin:28px 0 10px;color:rgba(240,240,240,.9);}
+    .blog-body strong{color:var(--text);font-weight:700;}
+    .blog-body em{color:rgba(240,240,240,.7);}
+
+    .callout{
+      border-radius:14px;border-left:3px solid var(--accent);
+      background:var(--accent2);padding:18px 20px;margin:28px 0;
+    }
+    .callout p{margin:0;font-size:15px;color:rgba(240,240,240,.85);}
+    .callout strong{color:var(--accent);}
+
+    .stat-row{
+      display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+      margin:28px 0;
+    }
+    .stat-card{
+      border-radius:14px;border:1px solid var(--border);
+      background:var(--card);padding:18px;
+    }
+    .stat-card .num{font-size:28px;font-weight:900;letter-spacing:-.03em;color:var(--accent);}
+    .stat-card .lab{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:rgba(240,240,240,.48);margin-top:4px;}
+    .stat-card .hint{font-size:12px;color:rgba(240,240,240,.38);margin-top:6px;line-height:1.4;}
+
+    @media(max-width:480px){
+      .stat-row{grid-template-columns:1fr;}
+      .blog-hero,.blog-body{padding-left:16px;padding-right:16px;}
+    }
+
+    /* ─── FOOTER ───────────────────────────────────── */
+    .blog-footer{
+      max-width:var(--maxw);margin:0 auto;padding:0 20px 48px;
+    }
+    .blog-footer-card{
+      border-radius:16px;border:1px solid var(--border);
+      background:var(--card);padding:24px;
+      display:flex;flex-direction:column;gap:14px;
+    }
+    .blog-footer-card p{margin:0;font-size:14px;color:rgba(240,240,240,.62);}
+    .footer-ctas{display:flex;gap:10px;flex-wrap:wrap;}
+    .cta-btn{
+      display:inline-flex;align-items:center;gap:7px;
+      padding:10px 16px;border-radius:10px;font-size:13px;font-weight:800;
+      text-decoration:none;transition:filter 130ms ease;
+    }
+    .cta-btn:hover{filter:brightness(1.1);text-decoration:none;}
+    .cta-btn.primary{
+      background:linear-gradient(135deg,rgba(255,103,31,.95),rgba(255,103,31,.55));
+      border:1px solid rgba(255,103,31,.4);color:#0c0c0c;
+    }
+    .cta-btn.ghost{
+      background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.86);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a class="nav-logo" href="../index.html">
+      <div class="logo-mark"></div>
+      <span>viadecide.com</span>
+    </a>
+    <a class="nav-back" href="../index.html">← Back to Home</a>
+  </nav>
+
+  <div class="blog-hero">
+    <div class="blog-chip">🚀 Launch</div>
+    <h1 class="blog-title">ViaDecide <span class="accent">Public Beta</span> Is Live</h1>
+    <div class="blog-meta">
+      <span>ViaDecide Team</span>
+      <span class="dot"></span>
+      <span>15 July 2025</span>
+      <span class="dot"></span>
+      <span>4 min read</span>
+    </div>
+  </div>
+
+  <div class="blog-body">
+    <p>After months of building in stealth, <strong>ViaDecide is now open to the public.</strong> India's first structured decision engine — built for students, founders, farmers, officials, and anyone in Bharat who needs to make a consequential decision and wants intelligence, not just information.</p>
+
+    <div class="callout">
+      <p><strong>The core insight:</strong> India has a data abundance problem disguised as a data scarcity problem. The information exists — across Wikipedia, government portals, Wikinews, academic sources. What's missing is the synthesis layer that turns raw data into a decision.</p>
+    </div>
+
+    <h2>What we built</h2>
+    <p>ViaDecide v1 Beta ships with four core modules — each designed for a distinct part of the decision workflow:</p>
+
+    <p><strong>Student Research Tool</strong> — Multi-source query engine that pulls from Wikipedia, Wikivoyage, Wikibooks, and Wikinews simultaneously, synthesizes the results, and produces a structured research brief. No hallucinations; every claim is source-attributed.</p>
+
+    <p><strong>Decision Brief (PDF)</strong> — Takes a research session and exports a policy-grade brief: thesis statement, key takeaways, source contradictions, and recommended next steps. Sharable and downloadable.</p>
+
+    <p><strong>Alchemist (Quiz Engine)</strong> — Converts any research brief into an assessment. Useful for educators, trainers, and anyone who wants to verify understanding rather than just consumption.</p>
+
+    <p><strong>ONDC Demo</strong> — A live walkthrough of how Open Network for Digital Commerce flows work — built for sellers, operators, and policy evaluators exploring Bharat's open commerce stack.</p>
+
+    <div class="stat-row">
+      <div class="stat-card"><div class="num">1.4B+</div><div class="lab">Decisions / Day</div><div class="hint">Decisions made daily across Bharat — school, health, business, policy</div></div>
+      <div class="stat-card"><div class="num">22</div><div class="lab">Indian Languages</div><div class="hint">Multilingual-first research engine — local context matters</div></div>
+      <div class="stat-card"><div class="num">770</div><div class="lab">Districts</div><div class="hint">Nation-scale coverage, from Vidarbha to Raisina Hill</div></div>
+      <div class="stat-card"><div class="num">4</div><div class="lab">AI Modules</div><div class="hint">Research → Brief → Quiz → Commerce — one engine</div></div>
+    </div>
+
+    <h2>Why now</h2>
+    <p>The IndiaAI Mission announced a ₹10,371 crore investment in sovereign AI infrastructure. The National Data Governance Policy is taking shape. ONDC has crossed 10 million monthly transactions. The underlying rails are being laid — <strong>but the application layer for everyday decision-making remains largely empty.</strong></p>
+
+    <p>ViaDecide is our answer to that gap. We're building the structured intelligence layer — not for Silicon Valley's problems, but for the specific, messy, multilingual, multi-context decisions that 1.4 billion Indians make every day.</p>
+
+    <h2>What's next</h2>
+    <p>The v1 Beta is a starting point. We're working on: multilingual input (Hindi, Marathi, Tamil first), offline-capable PWA support for low-connectivity regions, deeper ONDC integration, and an API for institutional partners who want to embed decision intelligence into their own systems.</p>
+
+    <p>If you're a student who needs better research tools, a founder evaluating a market, a farmer deciding on a crop, or an official drafting a brief — <strong>ViaDecide is built for you.</strong></p>
+  </div>
+
+  <div class="blog-footer">
+    <div class="blog-footer-card">
+      <p>Try ViaDecide free during the public beta. No account required for the research tool.</p>
+      <div class="footer-ctas">
+        <a class="cta-btn primary" href="../student-research.html">Start Research →</a>
+        <a class="cta-btn ghost" href="../decision-brief.html">Build a Brief</a>
+        <a class="cta-btn ghost" href="../index.html">← All Blogs</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
