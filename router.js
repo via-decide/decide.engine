@@ -1,207 +1,229 @@
+
+/* router.js — Universal static router (hash + path support)
+   Works on:
+   - Root domains
+   - Subfolder deployments
+   - GitHub Pages repo sites
+   - Direct file navigation
+*/
+
 (function () {
   "use strict";
 
-  const ROUTES_URL = "/routes.json";
-  const appRoot = () => document.getElementById("app");
-  const homeView = () => document.getElementById("homeView");
-  const pageView = () => document.getElementById("pageView");
+  // ========= CONFIG =========
+  // If you want the back button to ALWAYS go to your main site:
+  // set MAIN_WEBSITE to your real home URL (recommended).
+  // Example: "https://viadecide.com/"
+  const MAIN_WEBSITE = window.__MAIN_WEBSITE__ || "/";
 
-  let routesCache = null;
+  // Default route if nothing matches
+  const DEFAULT_ROUTE = "index";
 
-  async function loadRoutes() {
-    if (routesCache) return routesCache;
-    try {
-      const res = await fetch(ROUTES_URL, { cache: "no-cache" });
-      routesCache = await res.json();
-      return routesCache;
-    } catch (e) {
-      // fallback if routes.json missing
-      routesCache = {
-        "/": "/index.html",
-        "/discounts": "/pages/discounts.html",
-        "/calibration-cube-20mm": "/pages/calibration-cube-20mm.html"
-      };
-      return routesCache;
+  // If you use GitHub Pages repo site (username.github.io/repo/),
+  // this detects base path automatically.
+  const BASE_PATH = detectBasePath();
+
+  // ========= PUBLIC HELPERS =========
+  // Build a URL to assets that works everywhere (subfolders, hash routes, etc.)
+  // Usage: assetUrl("assets/stl/file.stl")
+  window.assetUrl = function assetUrl(relPath) {
+    // relPath should NOT start with "/" for best portability
+    const clean = String(relPath || "").replace(/^\/+/, "");
+    // Use <base> URL if present, else BASE_PATH
+    const base = document.querySelector("base")?.href || (location.origin + BASE_PATH);
+    return new URL(clean, base).href;
+  };
+
+  // Programmatic navigation
+  window.go = function go(route) {
+    // route: "discounts", "pricing", "products/123", etc.
+    const clean = normalizeRoute(route);
+    // Use hash routing for static hosting reliability
+    location.hash = "#/" + clean;
+  };
+
+  // Back button handler you can attach to: <a class="back" href="#" data-back>
+  window.backToMain = function backToMain() {
+    // If we have history inside site, go back.
+    if (history.length > 1 && document.referrer && sameOrigin(document.referrer)) {
+      history.back();
+      return;
     }
+    // Otherwise go to main website/home
+    location.href = MAIN_WEBSITE;
+  };
+
+  // ========= ROUTE MAP =========
+  // Map "route" -> html file in your repo.
+  // Add your 7 blogs here.
+  const ROUTES = {
+    index: "index.html",
+    discounts: "discounts.html",
+    pricing: "pricing.html",
+    inventory: "inventory.html",
+    memory: "memory.html",
+    founder: "founder.html",
+    weekly-decision-reviews: "weekly-decision-reviews.html",
+    // example: product UI pages
+    product: "product.html",
+  };
+
+  // ========= INIT =========
+  // Intercept clicks on internal links so they work as routes
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (!a) return;
+
+    // Back button behaviour
+    if (a.matches("[data-back], .back")) {
+      // only intercept if it is "#" or empty href
+      const href = (a.getAttribute("href") || "").trim();
+      if (href === "" || href === "#") {
+        e.preventDefault();
+        window.backToMain();
+        return;
+      }
+    }
+
+    // Ignore external links / new tabs
+    if (a.target === "_blank") return;
+    const href = (a.getAttribute("href") || "").trim();
+    if (!href) return;
+
+    // Allow normal navigation for absolute external URLs
+    if (/^https?:\/\//i.test(href)) return;
+    if (/^mailto:/i.test(href) || /^tel:/i.test(href)) return;
+
+    // If user links directly to an html file like "pricing.html", route it
+    if (href.endsWith(".html")) {
+      e.preventDefault();
+      const route = hrefToRoute(href);
+      window.go(route);
+      return;
+    }
+
+    // If link is like "/pricing" or "pricing" treat as route
+    if (!href.startsWith("#") && !href.startsWith("javascript:")) {
+      e.preventDefault();
+      window.go(href);
+      return;
+    }
+  });
+
+  // When hash changes, load page
+  window.addEventListener("hashchange", render);
+  window.addEventListener("load", () => {
+    wireBackButton();
+    render();
+  });
+
+  // ========= RENDER =========
+  function render() {
+    const route = getCurrentRoute();
+    const file = resolveRouteToFile(route);
+
+    // If this site is multi-page (each blog is its own html),
+    // we simply redirect to the correct file.
+    // This is the most reliable for static hosting.
+    if (!isSamePage(file)) {
+      location.href = BASE_PATH + file + location.hashSuffixForRoute(route);
+      return;
+    }
+
+    // If you want SPA-style injection later, you can add it here.
+    // For now, keeping it simple and bulletproof.
   }
 
-  function normalizePath(pathname) {
-    if (!pathname) return "/";
-    // remove trailing slash except root
-    if (pathname.length > 1 && pathname.endsWith("/")) return pathname.slice(0, -1);
-    return pathname;
-  }
-
-  function isModifiedClick(e) {
-    return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0;
+  // ========= HELPERS =========
+  function detectBasePath() {
+    // If deployed in subfolder, grab it from current path up to last "/"
+    // Example: /repo/discounts.html -> /repo/
+    const path = location.pathname;
+    // if visiting /repo/discounts.html return /repo/
+    if (path.endsWith(".html")) return path.replace(/[^/]+\.html$/, "");
+    // if visiting /repo/ or / return itself
+    return path.endsWith("/") ? path : path + "/";
   }
 
   function sameOrigin(url) {
     try {
-      const u = new URL(url, window.location.origin);
-      return u.origin === window.location.origin;
+      return new URL(url).origin === location.origin;
     } catch {
       return false;
     }
   }
 
-  function shouldHandleLink(a) {
-    if (!a) return false;
-    if (!a.hasAttribute("data-link")) return false;
-
-    const href = a.getAttribute("href") || "";
-    if (!href) return false;
-    if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
-
-    // external links should not be SPA-handled
-    if (/^https?:\/\//i.test(href) && !sameOrigin(href)) return false;
-
-    return true;
-  }
-
-  function setHomeVisible(isHome) {
-    const hv = homeView();
-    const pv = pageView();
-    if (!hv || !pv) return;
-
-    hv.classList.toggle("hidden", !isHome);
-    pv.classList.toggle("hidden", isHome);
-  }
-
-  function hardScrollTop() {
-    // If pageView contains its own scroll container, it should manage itself.
-    // But we still reset the pageView scroll position to avoid carrying scroll between routes.
-    const pv = pageView();
-    if (pv) pv.scrollTop = 0;
-    window.scrollTo(0, 0);
-  }
-
-  function clearPageView() {
-    const pv = pageView();
-    if (pv) pv.innerHTML = "";
-  }
-
-  // Execute scripts from injected HTML (including module scripts)
-  function runInjectedScripts(container) {
-    if (!container) return;
-
-    const scripts = Array.from(container.querySelectorAll("script"));
-    scripts.forEach((old) => {
-      const s = document.createElement("script");
-
-      // copy attributes
-      for (const attr of old.attributes) {
-        s.setAttribute(attr.name, attr.value);
-      }
-
-      // inline code
-      if (!old.src) {
-        s.textContent = old.textContent || "";
-      }
-
-      // replace old with new to execute
-      old.parentNode.replaceChild(s, old);
+  function wireBackButton() {
+    // If you have: <a class="back" href="#">← Back</a>
+    // this makes it reliably go to main site if no history.
+    document.querySelectorAll(".back").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const href = (btn.getAttribute("href") || "").trim();
+        if (href === "" || href === "#") {
+          e.preventDefault();
+          window.backToMain();
+        }
+      });
     });
   }
 
-  async function renderRoute(pathname) {
-    pathname = normalizePath(pathname);
+  function normalizeRoute(route) {
+    let r = String(route || "").trim();
 
-    const routes = await loadRoutes();
-    const pv = pageView();
+    // Convert "pricing.html" -> "pricing"
+    r = r.replace(/\.html$/i, "");
 
-    // Home route => show home view (no DOM replacement, so your home JS remains alive)
-    if (pathname === "/") {
-      setHomeVisible(true);
-      clearPageView();
-      hardScrollTop();
-      document.title = "viadecide.com | India's Decision Engine";
-      return;
-    }
+    // Remove leading base path if someone passed "/repo/pricing"
+    r = r.replace(BASE_PATH, "");
 
-    // resolve route
-    const file = routes[pathname];
-    if (!file) {
-      // unknown => go home
-      navigate("/", { replace: true });
-      return;
-    }
+    // Remove leading slashes and hashes
+    r = r.replace(/^#\/?/, "");
+    r = r.replace(/^\/+/, "");
 
-    // show page view
-    setHomeVisible(false);
-    if (!pv) return;
-
-    try {
-      const res = await fetch(file, { cache: "no-cache" });
-      if (!res.ok) throw new Error("Failed to load " + file);
-      const html = await res.text();
-
-      pv.innerHTML = html;
-
-      // Execute scripts inside the partial (needed for calibration cube page)
-      runInjectedScripts(pv);
-
-      // Update title if partial contains <title data-title> or data-page-title
-      const titleEl = pv.querySelector("[data-page-title]");
-      if (titleEl) document.title = titleEl.getAttribute("data-page-title") || document.title;
-
-      hardScrollTop();
-      // notify
-      document.dispatchEvent(new CustomEvent("vd:route", { detail: { pathname } }));
-    } catch (e) {
-      pv.innerHTML = `
-        <div style="height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;">
-          <div style="max-width:720px;width:100%;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(15,15,15,.8);padding:18px;">
-            <div style="font-family:system-ui, -apple-system, Segoe UI, Roboto; font-weight:800; font-size:18px; margin-bottom:6px;">Page failed to load</div>
-            <div style="color:rgba(240,240,240,.65);line-height:1.5;margin-bottom:14px;">${String(e.message || e)}</div>
-            <a href="/" data-link style="display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.2);color:#fff;text-decoration:none;font-weight:700;">← Back to Home</a>
-          </div>
-        </div>
-      `;
-      runInjectedScripts(pv);
-    }
+    return r || DEFAULT_ROUTE;
   }
 
-  function navigate(to, opts = {}) {
-    const url = new URL(to, window.location.origin);
+  function getCurrentRoute() {
+    // Prefer hash route: #/pricing
+    const h = location.hash || "";
+    if (h.startsWith("#/")) return normalizeRoute(h.slice(2));
+    if (h.startsWith("#")) return normalizeRoute(h.slice(1));
 
-    // keep any existing ?tag= or query if you want; here we preserve current query if missing
-    // but do NOT force it, to keep router generic.
-    const nextPath = normalizePath(url.pathname);
-
-    if (opts.replace) history.replaceState({}, "", nextPath + url.search + url.hash);
-    else history.pushState({}, "", nextPath + url.search + url.hash);
-
-    renderRoute(nextPath);
+    // Else fall back to pathname: /pricing or /pricing.html
+    const p = location.pathname || "";
+    const last = p.split("/").filter(Boolean).pop() || "";
+    if (last.endsWith(".html")) return normalizeRoute(last);
+    return normalizeRoute(last || DEFAULT_ROUTE);
   }
 
-  // Intercept SPA links
-  document.addEventListener("click", (e) => {
-    const a = e.target && e.target.closest ? e.target.closest("a") : null;
-    if (!a) return;
-    if (!shouldHandleLink(a)) return;
-    if (isModifiedClick(e)) return;
+  function resolveRouteToFile(route) {
+    const r = normalizeRoute(route);
+    // Direct match
+    if (ROUTES[r]) return ROUTES[r];
 
-    e.preventDefault();
-    const href = a.getAttribute("href");
-    if (!href) return;
+    // Support nested like "product/123" -> product.html
+    const head = r.split("/")[0];
+    if (ROUTES[head]) return ROUTES[head];
 
-    navigate(href);
-  });
+    return ROUTES[DEFAULT_ROUTE] || "index.html";
+  }
 
-  // popstate (browser back/forward)
-  window.addEventListener("popstate", () => {
-    renderRoute(window.location.pathname);
-  });
+  function hrefToRoute(href) {
+    // "pricing.html" -> "pricing"
+    const clean = href.split("?")[0].split("#")[0];
+    return normalizeRoute(clean.replace(/\.html$/i, ""));
+  }
 
-  // expose minimal API
-  window.VDRouter = {
-    go: (path, options = {}) => navigate(path, options),
-    render: () => renderRoute(window.location.pathname)
+  function isSamePage(file) {
+    const current = (location.pathname.split("/").pop() || "").toLowerCase();
+    return current === file.toLowerCase();
+  }
+
+  // Keep route in hash even after redirect (optional)
+  location.hashSuffixForRoute = function (route) {
+    // preserve deeper route if needed (e.g., product/123)
+    const r = normalizeRoute(route);
+    if (!r || r === DEFAULT_ROUTE) return "";
+    return "#/" + r;
   };
-
-  // Initial load
-  document.addEventListener("DOMContentLoaded", () => {
-    renderRoute(window.location.pathname);
-  });
 })();
