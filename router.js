@@ -1,175 +1,229 @@
-/**
- * router.js — Universal Router (Hash + Path)
- * Supports: hash mode (#/page), path mode (/page), bare slugs (page)
- * Features: back/forward history, data-back attribute, link interception
- */
+
+/* router.js — Universal static router (hash + path support)
+   Works on:
+   - Root domains
+   - Subfolder deployments
+   - GitHub Pages repo sites
+   - Direct file navigation
+*/
+
 (function () {
   "use strict";
 
-  /* ─── Config ─────────────────────────────────────────── */
-  const HASH_MODE = true;          // true = use #/slug; false = push path
-  const DEFAULT_PAGE = "index";
-  const PAGE_EXT = ".html";        // extension for path mode fetches
+  // ========= CONFIG =========
+  // If you want the back button to ALWAYS go to your main site:
+  // set MAIN_WEBSITE to your real home URL (recommended).
+  // Example: "https://viadecide.com/"
+  const MAIN_WEBSITE = window.__MAIN_WEBSITE__ || "/";
 
-  /* ─── State ──────────────────────────────────────────── */
-  const history_stack = [];
-  let current_page = null;
+  // Default route if nothing matches
+  const DEFAULT_ROUTE = "index";
 
-  /* ─── Helpers ────────────────────────────────────────── */
-  function normalise(raw) {
-    if (!raw || raw === "#" || raw === "/") return DEFAULT_PAGE;
+  // If you use GitHub Pages repo site (username.github.io/repo/),
+  // this detects base path automatically.
+  const BASE_PATH = detectBasePath();
 
-    // Strip leading #, #/, /
-    let slug = raw.replace(/^[#\/]+/, "").replace(/\.html$/, "").trim();
+  // ========= PUBLIC HELPERS =========
+  // Build a URL to assets that works everywhere (subfolders, hash routes, etc.)
+  // Usage: assetUrl("assets/stl/file.stl")
+  window.assetUrl = function assetUrl(relPath) {
+    // relPath should NOT start with "/" for best portability
+    const clean = String(relPath || "").replace(/^\/+/, "");
+    // Use <base> URL if present, else BASE_PATH
+    const base = document.querySelector("base")?.href || (location.origin + BASE_PATH);
+    return new URL(clean, base).href;
+  };
 
-    // Handle hash-mode URLs like #/memory → memory
-    slug = slug.replace(/^\//, "");
+  // Programmatic navigation
+  window.go = function go(route) {
+    // route: "discounts", "pricing", "products/123", etc.
+    const clean = normalizeRoute(route);
+    // Use hash routing for static hosting reliability
+    location.hash = "#/" + clean;
+  };
 
-    return slug || DEFAULT_PAGE;
-  }
-
-  function currentSlug() {
-    if (HASH_MODE) {
-      return normalise(window.location.hash);
-    } else {
-      return normalise(window.location.pathname);
+  // Back button handler you can attach to: <a class="back" href="#" data-back>
+  window.backToMain = function backToMain() {
+    // If we have history inside site, go back.
+    if (history.length > 1 && document.referrer && sameOrigin(document.referrer)) {
+      history.back();
+      return;
     }
-  }
+    // Otherwise go to main website/home
+    location.href = MAIN_WEBSITE;
+  };
 
-  function buildHref(slug) {
-    if (HASH_MODE) return "#/" + slug;
-    return "/" + slug;
-  }
+  // ========= ROUTE MAP =========
+  // Map "route" -> html file in your repo.
+  // Add your 7 blogs here.
+  const ROUTES = {
+    index: "index.html",
+    discounts: "discounts.html",
+    pricing: "pricing.html",
+    inventory: "inventory.html",
+    memory: "memory.html",
+    founder: "founder.html",
+    weekly-decision-reviews: "weekly-decision-reviews.html",
+    // example: product UI pages
+    product: "product.html",
+  };
 
-  /* ─── Navigation ─────────────────────────────────────── */
-  function navigate(target, pushState) {
-    const slug = normalise(target);
+  // ========= INIT =========
+  // Intercept clicks on internal links so they work as routes
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (!a) return;
 
-    if (slug === current_page && pushState) return; // no-op
-
-    if (pushState !== false) {
-      history_stack.push(current_page);
-    }
-
-    current_page = slug;
-
-    if (HASH_MODE) {
-      if (window.location.hash !== "#/" + slug) {
-        window.location.hash = "/" + slug;
+    // Back button behaviour
+    if (a.matches("[data-back], .back")) {
+      // only intercept if it is "#" or empty href
+      const href = (a.getAttribute("href") || "").trim();
+      if (href === "" || href === "#") {
+        e.preventDefault();
+        window.backToMain();
+        return;
       }
-    } else {
-      if (window.location.pathname !== "/" + slug) {
-        window.history.pushState({ slug }, "", "/" + slug);
-      }
     }
 
-    dispatch(slug);
-  }
+    // Ignore external links / new tabs
+    if (a.target === "_blank") return;
+    const href = (a.getAttribute("href") || "").trim();
+    if (!href) return;
 
-  function goBack() {
-    if (history_stack.length > 0) {
-      const prev = history_stack.pop();
-      navigate(prev, false);
-      if (HASH_MODE) {
-        window.location.hash = "/" + normalise(prev);
-      } else {
-        window.history.back();
-      }
-    } else {
-      navigate(DEFAULT_PAGE, false);
-    }
-  }
+    // Allow normal navigation for absolute external URLs
+    if (/^https?:\/\//i.test(href)) return;
+    if (/^mailto:/i.test(href) || /^tel:/i.test(href)) return;
 
-  /* ─── Event dispatching ──────────────────────────────── */
-  function dispatch(slug) {
-    const event = new CustomEvent("router:navigate", {
-      detail: { slug, page: slug, href: buildHref(slug) },
-      bubbles: true
-    });
-    document.dispatchEvent(event);
-
-    // Update all [data-router-page] visibility if used
-    document.querySelectorAll("[data-router-page]").forEach(el => {
-      const match = el.getAttribute("data-router-page");
-      el.style.display = (match === slug) ? "" : "none";
-    });
-
-    // Update active link states
-    document.querySelectorAll("a[data-nav]").forEach(a => {
-      const s = normalise(a.getAttribute("href") || "");
-      a.classList.toggle("is-active", s === slug);
-    });
-  }
-
-  /* ─── Link interception ──────────────────────────────── */
-  function isInternalHref(href) {
-    if (!href) return false;
-    if (href.startsWith("http://") || href.startsWith("https://")) return false;
-    if (href.startsWith("mailto:") || href.startsWith("tel:")) return false;
-    if (href.startsWith("javascript:")) return false;
-    return true;
-  }
-
-  document.addEventListener("click", function (e) {
-    const anchor = e.target.closest("a");
-    if (!anchor) return;
-
-    // data-back → go back
-    if (anchor.hasAttribute("data-back")) {
+    // If user links directly to an html file like "pricing.html", route it
+    if (href.endsWith(".html")) {
       e.preventDefault();
-      goBack();
+      const route = hrefToRoute(href);
+      window.go(route);
       return;
     }
 
-    // data-nav or internal links
-    const href = anchor.getAttribute("href");
-    if (!isInternalHref(href)) return;
-
-    const slug = normalise(href);
-
-    // Blank / hash-only links that map to default
-    if (!slug || slug === "#") return;
-
-    e.preventDefault();
-    navigate(slug, true);
-  }, true); // capture phase so it fires before any child handler
-
-  /* ─── Hash change (browser back/forward) ────────────── */
-  window.addEventListener("hashchange", function () {
-    const slug = currentSlug();
-    if (slug !== current_page) {
-      current_page = slug;
-      dispatch(slug);
+    // If link is like "/pricing" or "pricing" treat as route
+    if (!href.startsWith("#") && !href.startsWith("javascript:")) {
+      e.preventDefault();
+      window.go(href);
+      return;
     }
   });
 
-  /* ─── popstate (path mode) ───────────────────────────── */
-  window.addEventListener("popstate", function (e) {
-    const slug = e.state && e.state.slug ? e.state.slug : currentSlug();
-    if (slug !== current_page) {
-      current_page = slug;
-      dispatch(slug);
-    }
+  // When hash changes, load page
+  window.addEventListener("hashchange", render);
+  window.addEventListener("load", () => {
+    wireBackButton();
+    render();
   });
 
-  /* ─── Public API ─────────────────────────────────────── */
-  window.Router = {
-    navigate: function (target) { navigate(target, true); },
-    back: goBack,
-    current: function () { return current_page; },
-    href: buildHref,
-    on: function (slug, callback) {
-      document.addEventListener("router:navigate", function (e) {
-        if (!slug || e.detail.slug === slug) callback(e.detail);
+  // ========= RENDER =========
+  function render() {
+    const route = getCurrentRoute();
+    const file = resolveRouteToFile(route);
+
+    // If this site is multi-page (each blog is its own html),
+    // we simply redirect to the correct file.
+    // This is the most reliable for static hosting.
+    if (!isSamePage(file)) {
+      location.href = BASE_PATH + file + location.hashSuffixForRoute(route);
+      return;
+    }
+
+    // If you want SPA-style injection later, you can add it here.
+    // For now, keeping it simple and bulletproof.
+  }
+
+  // ========= HELPERS =========
+  function detectBasePath() {
+    // If deployed in subfolder, grab it from current path up to last "/"
+    // Example: /repo/discounts.html -> /repo/
+    const path = location.pathname;
+    // if visiting /repo/discounts.html return /repo/
+    if (path.endsWith(".html")) return path.replace(/[^/]+\.html$/, "");
+    // if visiting /repo/ or / return itself
+    return path.endsWith("/") ? path : path + "/";
+  }
+
+  function sameOrigin(url) {
+    try {
+      return new URL(url).origin === location.origin;
+    } catch {
+      return false;
+    }
+  }
+
+  function wireBackButton() {
+    // If you have: <a class="back" href="#">← Back</a>
+    // this makes it reliably go to main site if no history.
+    document.querySelectorAll(".back").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const href = (btn.getAttribute("href") || "").trim();
+        if (href === "" || href === "#") {
+          e.preventDefault();
+          window.backToMain();
+        }
       });
-    }
+    });
+  }
+
+  function normalizeRoute(route) {
+    let r = String(route || "").trim();
+
+    // Convert "pricing.html" -> "pricing"
+    r = r.replace(/\.html$/i, "");
+
+    // Remove leading base path if someone passed "/repo/pricing"
+    r = r.replace(BASE_PATH, "");
+
+    // Remove leading slashes and hashes
+    r = r.replace(/^#\/?/, "");
+    r = r.replace(/^\/+/, "");
+
+    return r || DEFAULT_ROUTE;
+  }
+
+  function getCurrentRoute() {
+    // Prefer hash route: #/pricing
+    const h = location.hash || "";
+    if (h.startsWith("#/")) return normalizeRoute(h.slice(2));
+    if (h.startsWith("#")) return normalizeRoute(h.slice(1));
+
+    // Else fall back to pathname: /pricing or /pricing.html
+    const p = location.pathname || "";
+    const last = p.split("/").filter(Boolean).pop() || "";
+    if (last.endsWith(".html")) return normalizeRoute(last);
+    return normalizeRoute(last || DEFAULT_ROUTE);
+  }
+
+  function resolveRouteToFile(route) {
+    const r = normalizeRoute(route);
+    // Direct match
+    if (ROUTES[r]) return ROUTES[r];
+
+    // Support nested like "product/123" -> product.html
+    const head = r.split("/")[0];
+    if (ROUTES[head]) return ROUTES[head];
+
+    return ROUTES[DEFAULT_ROUTE] || "index.html";
+  }
+
+  function hrefToRoute(href) {
+    // "pricing.html" -> "pricing"
+    const clean = href.split("?")[0].split("#")[0];
+    return normalizeRoute(clean.replace(/\.html$/i, ""));
+  }
+
+  function isSamePage(file) {
+    const current = (location.pathname.split("/").pop() || "").toLowerCase();
+    return current === file.toLowerCase();
+  }
+
+  // Keep route in hash even after redirect (optional)
+  location.hashSuffixForRoute = function (route) {
+    // preserve deeper route if needed (e.g., product/123)
+    const r = normalizeRoute(route);
+    if (!r || r === DEFAULT_ROUTE) return "";
+    return "#/" + r;
   };
-
-  /* ─── Boot ───────────────────────────────────────────── */
-  document.addEventListener("DOMContentLoaded", function () {
-    const initial = currentSlug();
-    current_page = initial;
-    dispatch(initial);
-  });
-
 })();
