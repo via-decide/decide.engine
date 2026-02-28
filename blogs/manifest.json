@@ -1,0 +1,46 @@
+{
+  "blogs": [
+    {
+      "href": "blogs/viadecide-public-beta.html",
+      "title": "ViaDecide Public Beta Is Live",
+      "date": "2025-07-15",
+      "chip": "Launch",
+      "desc": "India's first policy-grade decision engine is now open to students, founders, farmers, and officials. Here's what we built and why."
+    },
+    {
+      "href": "blogs/ondc-for-bharat.html",
+      "title": "ONDC: Open Commerce for Every Indian",
+      "date": "2025-07-10",
+      "chip": "ONDC",
+      "desc": "How the Open Network for Digital Commerce levels the playing field for small sellers and what it means for Bharat's digital economy."
+    },
+    {
+      "href": "blogs/decision-infrastructure-india.html",
+      "title": "Why India Needs Decision Infrastructure",
+      "date": "2025-07-05",
+      "chip": "Policy",
+      "desc": "From Raisina Hill to a village in Vidarbha — the gap between data and decision is costing India billions. We're building the bridge."
+    },
+    {
+      "href": "blogs/indiaai-mission-2025.html",
+      "title": "IndiaAI Mission: What It Means for Builders",
+      "date": "2025-06-28",
+      "chip": "IndiaAI",
+      "desc": "The ₹10,371 crore IndiaAI mission is the largest sovereign AI investment in Indian history. Here's what it unlocks for builders like us."
+    },
+    {
+      "href": "blogs/multi-source-research-explained.html",
+      "title": "Multi-Source Research: How ViaDecide Synthesizes 4 Wikis",
+      "date": "2025-06-20",
+      "chip": "Research",
+      "desc": "One query. Wikipedia, Wikivoyage, Wikibooks, Wikinews. One structured brief. Here's the engine under the hood."
+    },
+    {
+      "href": "blogs/decision-brief-guide.html",
+      "title": "How to Build a Policy Brief in Under 5 Minutes",
+      "date": "2025-06-12",
+      "chip": "Guide",
+      "desc": "A step-by-step walkthrough of the Decision Brief tool — from topic input to a shareable, exportable PDF brief."
+    }
+  ]
+}
