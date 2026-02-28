@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0a0a0a" />
-  <title>Product Story • Live 3D Preview</title>
+  <title>Founder • Weekly Decision Reviews</title>
 
   <style>
     :root {
@@ -14,7 +14,7 @@
       --text: #fdfdfd;
       --text-muted: rgba(242, 242, 242, 0.65);
       --accent: #ff671f;
-      --accent-glow: rgba(255, 103, 31, 0.15);
+      --accent-glow: rgba(255, 103, 31, 0.16);
       --accent2: #22c55e;
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
       --radius: 24px;
@@ -24,609 +24,696 @@
       --safeLeft: env(safe-area-inset-left, 0px);
       --safeRight: env(safe-area-inset-right, 0px);
 
-      --maxw: 760px;
+      --maxw: 860px;
     }
 
     html, body {
-      height: 100%; height: 100dvh; margin: 0; background-color: var(--bg); color: var(--text);
+      height: 100%; height: 100dvh; margin: 0;
+      background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased;
+      overflow: hidden; overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
     }
     * { box-sizing: border-box; }
+    a { color: inherit; text-decoration: none; }
     button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 
-    #appWrapper { position: relative; width: 100vw; height: 100dvh; transform-origin: center center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }
-    #appWrapper.forced-landscape { width: 100dvh; height: 100vw; position: absolute; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50dvh; }
-
-    .bg-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index: 0; }
-
-    .top {
-      position: absolute; top: 0; left: 0; right: 0;
-      padding: calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
-      z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      pointer-events: none; background: linear-gradient(180deg, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0) 100%);
+    /* Ambient glow */
+    .bg-glow {
+      position:absolute; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%),
+        radial-gradient(circle at 90% 100%, rgba(255,255,255,0.04), transparent 60%);
     }
-    .top > * { pointer-events: auto; }
-    .top-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* Top */
+    .top {
+      position:absolute; top:0; left:0; right:0; z-index:50;
+      padding: calc(14px + var(--safeTop)) calc(14px + var(--safeRight)) 12px calc(14px + var(--safeLeft));
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      pointer-events:none;
+      background: linear-gradient(180deg, rgba(5,5,5,0.96) 0%, rgba(5,5,5,0) 100%);
+    }
+    .top > * { pointer-events:auto; }
 
     .back, .pill, .btn-icon {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(15,15,15,0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      transition: all 0.2s ease;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding: 10px 14px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(15,15,15,0.66);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      user-select:none;
     }
-    .btn-icon { padding: 10px; font-weight: 700; color: var(--accent); width: 38px; height: 38px; }
-    .btn-icon:active, .back:active { transform: scale(0.96); }
-    .back { color: rgba(255,255,255,0.9); font-weight: 600; font-size: 14px; text-decoration: none;}
-    .pill { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
-    .pill b { color: #fff; letter-spacing: 0.1em; font-weight: 700; }
+    .back { font-weight:700; font-size:13px; color:rgba(255,255,255,0.92); }
+    .back:active { transform: scale(0.97); }
+    .btn-icon { width:40px; height:40px; padding:10px; color:var(--accent); font-weight:900; }
+    .btn-icon:active { transform: scale(0.97); }
+    .pill { font-size:11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+    .pill b { color:#fff; font-weight:900; letter-spacing: .1em; }
 
-    .scroll-container {
-      position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
-      scroll-snap-type: y mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; z-index: 10;
+    /* Scroll */
+    .scroll-container{
+      position:absolute; inset:0;
+      overflow-y:auto; overflow-x:hidden;
+      scroll-snap-type:y mandatory;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+      z-index:10;
     }
-    .scroll-container::-webkit-scrollbar { display: none; }
+    .scroll-container::-webkit-scrollbar{ display:none; }
 
-    .section-wrapper {
-      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(60px + var(--safeBottom)) calc(16px + var(--safeLeft));
-      position: relative;
+    /* Section / Card */
+    .section-wrapper{
+      height:100%; width:100%;
+      scroll-snap-align:start;
+      scroll-snap-stop: always;
+      display:flex; align-items:center; justify-content:center;
+      padding: calc(88px + var(--safeTop)) calc(14px + var(--safeRight)) calc(96px + var(--safeBottom)) calc(14px + var(--safeLeft));
+      position:relative;
+    }
+    .card{
+      width:100%; max-width: var(--maxw);
+      height:100%;
+      border-radius: var(--radius);
+      border:1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      opacity:.35; transform: scale(.94) translateY(26px);
+      transition: opacity .7s cubic-bezier(0.16,1,0.3,1), transform .7s cubic-bezier(0.16,1,0.3,1);
+      min-height:0;
+    }
+    .section-wrapper.is-active .card{ opacity:1; transform: scale(1) translateY(0); }
+
+    .cardHeader{
+      padding: 22px 22px 18px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.28);
+      flex-shrink:0;
+    }
+    .kicker{
+      font-size:11px; letter-spacing:.15em; text-transform:uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight:900;
+    }
+    .h1{
+      margin:0;
+      font-size: clamp(22px, 4.8vw, 30px);
+      line-height:1.25;
+      letter-spacing:-0.01em;
+      font-weight:900;
     }
 
-    .card {
-      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0;
-      border-radius: var(--radius); border: 1px solid var(--card-border);
-      background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
-      opacity: 0.3; transform: scale(0.92) translateY(30px);
-      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    .cardBody{
+      padding: 22px;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      flex:1; min-height:0;
     }
-    .section-wrapper.is-active .card { opacity: 1; transform: scale(1) translateY(0); }
-
-    .cardHeader { padding: 24px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.3); flex-shrink: 0; }
-    .kicker { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
-    .h1 { margin: 0; font-size: clamp(22px, 5vw, 28px); line-height: 1.3; letter-spacing: -0.01em; font-weight: 700; }
-
-    .cardBody { padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .cardBody::-webkit-scrollbar { width: 5px; }
-    .cardBody::-webkit-scrollbar-track { background: transparent; }
     .cardBody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-    .big { font-size: clamp(28px, 6vw, 42px); line-height: 1.15; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 24px; }
-    .big .accent { background: linear-gradient(135deg, #ff8a4c, #ff4c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: var(--accent); }
-    .lead { font-size: 17px; line-height: 1.6; color: rgba(255,255,255,0.85); margin: 0 0 16px; }
-    .list { margin: 20px 0; padding: 0; list-style: none; color: rgba(255,255,255,0.75); font-size: 16px; line-height: 1.6; }
-    .list li { position: relative; padding-left: 24px; margin: 14px 0; }
-    .list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
-    .list b { color: #fff; }
-    .quote { margin: 28px 0 20px; padding: 16px 20px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-glow), transparent); border-radius: 0 12px 12px 0; color: rgba(255,255,255,0.95); line-height: 1.6; font-size: 15px; font-style: italic; }
+    /* Typography */
+    .big{
+      font-size: clamp(28px, 6vw, 46px);
+      line-height: 1.08;
+      font-weight: 950;
+      letter-spacing:-0.03em;
+      margin: 0 0 18px;
+    }
+    .accentText{
+      background: linear-gradient(135deg, #ff8a4c, #ff4c00);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      color: var(--accent);
+    }
+    .lead{ font-size:17px; line-height:1.65; color: rgba(255,255,255,0.86); margin: 0 0 14px; }
+    .muted{ color: var(--text-muted); }
+    .list{ margin:18px 0; padding:0; list-style:none; color: rgba(255,255,255,0.78); font-size:16px; line-height:1.6; }
+    .list li{ position:relative; padding-left:24px; margin: 12px 0; }
+    .list li::before{ content:"→"; position:absolute; left:0; color: var(--accent); font-weight:900; }
+    .quote{
+      margin: 22px 0 16px;
+      padding: 14px 18px;
+      border-left: 3px solid var(--accent);
+      background: linear-gradient(90deg, var(--accent-glow), transparent);
+      border-radius: 0 12px 12px 0;
+      color: rgba(255,255,255,0.95);
+      line-height:1.6;
+      font-size:15px;
+      font-style: italic;
+    }
 
-    /* 3D Viewer (Product Section) */
-    .viewerShell{
-      border: 1px solid rgba(255,255,255,0.10);
+    /* Strong CTA blocks */
+    .ctaBox{
+      margin: 18px 0;
       border-radius: 18px;
-      overflow: hidden;
-      background: rgba(0,0,0,0.55);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,103,31,0.24);
+      background: linear-gradient(180deg, rgba(255,103,31,0.10), rgba(0,0,0,0.10));
+      padding: 16px;
     }
-    #stlViewer{
-      width: 100%;
-      height: min(56vh, 440px);
-      position: relative;
-      touch-action: none; /* important for mobile OrbitControls */
+    .ctaHead{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
     }
-    .viewerHUD{
-      position:absolute; inset: 0;
-      display:flex; align-items:center; justify-content:center;
-      background: radial-gradient(circle at 50% 30%, rgba(255,103,31,0.12), rgba(0,0,0,0.65));
-      color: rgba(255,255,255,0.9);
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      font-size: 12px;
-      pointer-events:none;
+    .ctaHead strong{
+      display:block;
+      font-size: 15px;
+      letter-spacing: .02em;
     }
-    .viewerHint{
-      position:absolute; left: 12px; bottom: 12px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 8px 10px;
+    .ctaHead span{
+      display:block;
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .ctaRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top: 14px;
+    }
+    @media (max-width:520px){ .ctaRow{ grid-template-columns: 1fr; } }
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      width:100%;
+      padding: 14px 14px;
       border-radius: 12px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.75);
-      pointer-events:none;
-      backdrop-filter: blur(10px);
-    }
-    .viewerErr{
-      position:absolute; inset: 0;
-      display:flex; flex-direction:column; gap: 10px;
-      align-items:center; justify-content:center;
-      padding: 18px;
-      text-align:center;
-      background: rgba(0,0,0,0.7);
-      color: rgba(255,255,255,0.9);
-    }
-    .viewerErr code{
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 12px;
-      color: #cbd5e1;
-      background: rgba(255,255,255,0.06);
-      padding: 8px 10px;
-      border-radius: 10px;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: .02em;
       border: 1px solid rgba(255,255,255,0.10);
-      word-break: break-word;
+      background: rgba(0,0,0,0.28);
+      transition: transform .18s ease, filter .18s ease, border-color .18s ease;
+      user-select:none;
+    }
+    .btn:active{ transform: scale(0.985); filter: brightness(1.08); }
+    .btnPrimary{
+      background: linear-gradient(135deg, rgba(255,103,31,0.98), rgba(255,103,31,0.60));
+      border-color: rgba(255,103,31,0.34);
+      color:#0b0b0b;
+    }
+    .btnGhost{
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.14);
+      color:#fff;
+    }
+    .btnOk{
+      background: rgba(34,197,94,0.92);
+      border-color: rgba(34,197,94,0.35);
+      color:#08130c;
+      font-weight:950;
     }
 
-    /* Hint */
-    .hint { position: absolute; bottom: calc(16px + var(--safeBottom)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; animation: pulse 2s infinite; z-index: 100; }
-    .hint svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-    @keyframes pulse { 0%, 100% { transform: translate(-50%, 0); opacity: 0.6; } 50% { transform: translate(-50%, 5px); opacity: 1; } }
-    .section-wrapper:last-child .hint { display: none; }
+    .field{
+      display:flex; flex-direction:column; gap:8px; margin-top: 12px;
+    }
+    .field label{
+      font-size: 12px; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--text-muted); font-weight: 800;
+    }
+    .field input{
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 14px 14px;
+      color:#fff;
+      font-size: 15px;
+      outline:none;
+    }
+    .field input:focus{
+      border-color: rgba(255,103,31,0.55);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
 
-    /* Toast + Rotate Popup */
-    .rotate-popup { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0.9); background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(255, 103, 31, 0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; cursor: pointer; }
-    .rotate-popup.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
-    .rotate-popup:active { transform: translateX(-50%) scale(0.95); }
+    /* Sticky bottom mega CTA */
+    .stickyCTA{
+      position: fixed;
+      left: calc(12px + var(--safeLeft));
+      right: calc(12px + var(--safeRight));
+      bottom: calc(12px + var(--safeBottom));
+      z-index: 60;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      display:flex;
+      gap:10px;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(10,10,10,0.72);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+    }
+    .stickyCTA .left{
+      flex:1;
+      min-width:0;
+      display:flex; flex-direction:column; gap:2px;
+      padding: 4px 6px 4px 8px;
+    }
+    .stickyCTA .left b{
+      font-size: 13px; letter-spacing: .01em;
+    }
+    .stickyCTA .left span{
+      font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .stickyCTA .right{ width: 220px; }
+    @media (max-width:520px){
+      .stickyCTA{ flex-direction:column; }
+      .stickyCTA .right{ width:100%; }
+      .stickyCTA .left span{ white-space:normal; }
+    }
 
-    .translate-toast { position: fixed; top: calc(80px + var(--safeTop)); left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(20, 20, 22, 0.95); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #fff; padding: 10px 16px 10px 20px; border-radius: 999px; font-size: 14px; display: flex; align-items: center; gap: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; }
-    .translate-toast.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-    .btn-undo { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; padding: 6px 12px; background: rgba(255, 103, 31, 0.15); border-radius: 999px; }
-    .btn-undo:active { background: rgba(255, 103, 31, 0.25); }
+    /* Small hint */
+    .hint{
+      position:absolute;
+      bottom: calc(14px + var(--safeBottom));
+      left: 50%;
+      transform: translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      color: rgba(255,255,255,0.35);
+      font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+      pointer-events:none;
+      animation: pulse 2s infinite;
+      z-index: 100;
+    }
+    .hint svg{ width:14px; height:14px; stroke: currentColor; fill:none; stroke-width: 2.5; }
+    @keyframes pulse{
+      0%,100%{ transform: translateX(-50%) translateY(0); opacity:.55; }
+      50%{ transform: translateX(-50%) translateY(6px); opacity:1; }
+    }
+    .section-wrapper:last-child .hint{ display:none; }
   </style>
 </head>
 
 <body>
-  <div id="appWrapper">
-    <div class="bg-glow"></div>
+  <div class="bg-glow"></div>
 
-    <div class="top">
-      <a class="back" id="backBtn" href="#">← Back</a>
-      <div class="top-actions">
-        <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate to Hindi">A/अ</button>
-        <div class="pill"><b id="secLabel">SEC 1/?</b> • <span id="secName">INTRO</span></div>
-      </div>
+  <div class="top">
+    <a class="back" href="index.html" id="btnBack">← Back</a>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-icon" id="btnTranslate" title="Translate">A/अ</button>
+      <div class="pill"><b id="secLabel">SEC 1/7</b> • <span id="secName">INTRO</span></div>
     </div>
-
-    <main class="scroll-container" id="scrollContainer"></main>
   </div>
 
-  <div id="translationToast" class="translate-toast">
-    <span id="toastMsg">Translated to Hindi</span>
-    <button id="btnUndoTranslate" class="btn-undo">Undo</button>
+  <main class="scroll-container" id="scrollContainer"></main>
+
+  <!-- Sticky mega CTA -->
+  <div class="stickyCTA" role="region" aria-label="Primary call to action">
+    <div class="left">
+      <b>Run your first Weekly Decision Review this Friday.</b>
+      <span>30 minutes → better judgment → compounding advantage.</span>
+    </div>
+    <div class="right">
+      <button class="btn btnPrimary" id="ctaStart">Start the 30-Minute Review →</button>
+    </div>
   </div>
-  <div id="rotatePopup" class="rotate-popup"></div>
-
-  <!-- ✅ Reliable Three.js imports for mobile (module builds) -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-   <model-viewer
-  src="assets/founder.stl"
-  camera-controls
-  auto-rotate
-  shadow-intensity="1"
-  style="width:100%;height:400px;background:#111;">
-</model-viewer>
-
-    // expose to the non-module script below
-    window.__THREE__ = { THREE, OrbitControls, STLLoader };
-  </script>
 
   <script>
     (function(){
       "use strict";
 
-      // ✅ SET THESE
-      const MAIN_SITE_URL = "https://viadecide.COM";   // back button target
-      const STL_URL = assetUrl("assets/stl/founder-badge-relief.stl");                 // your STL path (same folder = "model.stl")
-
-      // Back button behavior: if history exists -> back, else main website
-      const backBtn = document.getElementById("backBtn");
-      backBtn.addEventListener("click", (e) => {
+      // Back button: prefer history.back, fallback to index.html
+      document.getElementById("btnBack").addEventListener("click", function(e){
         e.preventDefault();
-        if (window.history.length > 1) window.history.back();
-        else window.location.href = MAIN_SITE_URL;
+        if (history.length > 1) history.back();
+        else location.href = "index.html";
       });
 
-      // --- SECTIONS (blog UX + product UX) ---
-      const SECTIONS = [
-        {
-          name: "INTRO", kicker: "Product Story",
-          title: { en: "Your Product — Built Like a Scroll Blog", hi: "आपका उत्पाद — ब्लॉग जैसे स्क्रॉल में" },
-          html: {
-            en: () => `
-              <div class="big">Turn products into <span class="accent">stories.</span></div>
-              <p class="lead">Each section explains one thing clearly — like a founder memo, not a catalog.</p>
-              <div class="quote">This format increases trust because the buyer feels guided, not sold to.</div>
-              <ul class="list">
-                <li><b>Scroll = narrative.</b> Sections reduce bounce.</li>
-                <li><b>3D = belief.</b> People trust what they can inspect.</li>
-                <li><b>Rules = scale.</b> Works for every ONDC seller.</li>
-              </ul>
-            `,
-            hi: () => `
-              <div class="big">प्रोडक्ट को <span class="accent">कहानी</span> बनाइए।</div>
-              <p class="lead">हर सेक्शन एक बात साफ़ करता है — कैटलॉग नहीं, फाउंडर मेमो जैसा।</p>
-              <div class="quote">यह फॉर्मेट भरोसा बढ़ाता है क्योंकि ग्राहक को गाइड किया जाता है।</div>
-              <ul class="list">
-                <li><b>स्क्रॉल = नैरेटिव।</b> बाउंस कम।</li>
-                <li><b>3D = विश्वास।</b> जो देख-परख सकें उस पर भरोसा।</li>
-                <li><b>रूल्स = स्केल।</b> हर ONDC seller पर लागू।</li>
-              </ul>
-            `
-          }
-        },
+      const WA_NUMBER = "916351537770";
+      const container = document.getElementById("scrollContainer");
+      const secLabel = document.getElementById("secLabel");
+      const secName = document.getElementById("secName");
+      const btnTranslate = document.getElementById("btnTranslate");
+      const ctaStart = document.getElementById("ctaStart");
 
-        {
-          name: "DETAILS", kicker: "What You Get",
-          title: { en: "Key Details (Fast)", hi: "मुख्य विवरण (तेज़)" },
-          html: {
-            en: () => `
-              <div class="big">Simple details, <span class="accent">no noise.</span></div>
-              <ul class="list">
-                <li><b>Price:</b> ₹349</li>
-                <li><b>Material:</b> PLA / PETG</li>
-                <li><b>Finish:</b> 0.2mm layer precision</li>
-                <li><b>Use:</b> Desk / Utility / Storage</li>
-              </ul>
-              <div class="quote">Tip: keep the first 2 sections ultra fast. Then show proof (3D).</div>
-            `,
-            hi: () => `
-              <div class="big">साफ़ विवरण, <span class="accent">शून्य शोर।</span></div>
-              <ul class="list">
-                <li><b>कीमत:</b> ₹349</li>
-                <li><b>मैटेरियल:</b> PLA / PETG</li>
-                <li><b>फिनिश:</b> 0.2mm लेयर</li>
-                <li><b>उपयोग:</b> डेस्क / यूटिलिटी / स्टोरेज</li>
-              </ul>
-              <div class="quote">पहले 2 सेक्शन तेज़ रखें, फिर प्रूफ दिखाएँ (3D).</div>
-            `
-          }
-        },
+      let lang = "en";
 
-        // ✅ 3D SECTION (mobile working)
-        {
-          name: "3D PREVIEW", kicker: "Proof",
-          title: { en: "Live 3D Preview", hi: "लाइव 3D प्रीव्यू" },
-          html: {
-            en: () => `
-              <p class="lead">Drag to rotate. Pinch to zoom. Works on phone.</p>
-              <div class="viewerShell">
-                <div id="stlViewer">
-                  <div id="viewerHUD" class="viewerHUD">Loading 3D Model…</div>
-                  <div class="viewerHint">↻ Drag • ⇱ Pinch • ✦ Double tap reset</div>
+      const BLOG = {
+        title: {
+          en: "How To Run Weekly Decision Reviews (Like a Founder)",
+          hi: "साप्ताहिक निर्णय समीक्षा कैसे करें (संस्थापक की तरह)"
+        },
+        sections: [
+          {
+            name:"INTRO",
+            kicker:{en:"Founder Ritual", hi:"संस्थापक रिवाज"},
+            title:{en:"A 30-minute ritual that upgrades judgment", hi:"30 मिनट का रिवाज जो निर्णय क्षमता बढ़ाता है"},
+            html:{
+              en: () => `
+                <div class="big">Most teams review <span class="accentText">results.</span><br>Founders review <span class="accentText">decisions.</span></div>
+                <p class="lead">Outcomes fluctuate. Decision quality compounds. This weekly ritual makes your business <b>learn faster than competitors</b>.</p>
+                <div class="ctaBox">
+                  <div class="ctaHead">
+                    <div>
+                      <strong>⚡ Your mission:</strong>
+                      <span>Pick 3–5 decisions from last week and audit the reasoning—before the next week starts.</span>
+                    </div>
+                  </div>
+                  <div class="ctaRow">
+                    <button class="btn btnPrimary" onclick="jumpTo('FORMAT')">See the 30-minute format →</button>
+                    <button class="btn btnGhost" onclick="openTemplate()">Download template</button>
+                  </div>
                 </div>
-              </div>
-              <p class="lead" style="margin-top:16px; font-size:14px; color:var(--text-muted);">
-                If it shows blank: your <b>STL path</b> is wrong or the file is not being served.
-              </p>
-            `,
-            hi: () => `
-              <p class="lead">घुमाने के लिए ड्रैग करें। ज़ूम के लिए पिंच करें।</p>
-              <div class="viewerShell">
-                <div id="stlViewer">
-                  <div id="viewerHUD" class="viewerHUD">3D मॉडल लोड हो रहा है…</div>
-                  <div class="viewerHint">↻ Drag • ⇱ Pinch • ✦ Double tap reset</div>
+                <div class="quote">If you only review what happened, your judgment never improves. Review why you chose it.</div>
+              `,
+              hi: () => `
+                <div class="big">अधिकांश टीमें <span class="accentText">परिणाम</span> देखती हैं।<br>संस्थापक <span class="accentText">निर्णय</span> देखते हैं।</div>
+                <p class="lead">परिणाम बदलते रहते हैं। निर्णय गुणवत्ता बढ़ती रहती है। यह साप्ताहिक रिवाज आपके व्यवसाय को <b>तेज़ सीखने</b> वाला बनाता है।</p>
+                <div class="ctaBox">
+                  <div class="ctaHead">
+                    <div>
+                      <strong>⚡ आपका मिशन:</strong>
+                      <span>पिछले सप्ताह के 3–5 निर्णय चुनें और तर्क की समीक्षा करें—अगला सप्ताह शुरू होने से पहले।</span>
+                    </div>
+                  </div>
+                  <div class="ctaRow">
+                    <button class="btn btnPrimary" onclick="jumpTo('FORMAT')">30-मिनट फॉर्मेट देखें →</button>
+                    <button class="btn btnGhost" onclick="openTemplate()">टेम्पलेट डाउनलोड करें</button>
+                  </div>
                 </div>
-              </div>
-              <p class="lead" style="margin-top:16px; font-size:14px; color:var(--text-muted);">
-                अगर ब्लैंक है: <b>STL path</b> गलत है या फाइल serve नहीं हो रही।
-              </p>
-            `
+                <div class="quote">अगर आप सिर्फ “क्या हुआ” देखते हैं, तो निर्णय क्षमता नहीं बढ़ती। “क्यों चुना” देखें।</div>
+              `
+            }
+          },
+          {
+            name:"WHY",
+            kicker:{en:"The Problem", hi:"समस्या"},
+            title:{en:"Why most reviews don’t improve judgment", hi:"अधिकांश रिव्यू निर्णय क्षमता क्यों नहीं बढ़ाते"},
+            html:{
+              en: () => `
+                <div class="big">Outcome reviews create <span class="accentText">reaction</span>, not learning.</div>
+                <p class="lead">Most weekly meetings are dashboards + updates. Then someone says: “Let’s try this.”</p>
+                <ul class="list">
+                  <li><b>No reasoning audit</b> → same mistakes repeat.</li>
+                  <li><b>No assumptions named</b> → emotions drive choices.</li>
+                  <li><b>No decision log</b> → the team forgets what it learned.</li>
+                </ul>
+                <div class="quote">A decision can be good even if the outcome is bad. Without reviewing reasoning, you can’t tell the difference.</div>
+              `,
+              hi: () => `
+                <div class="big">परिणाम-रिव्यू <span class="accentText">सीख</span> नहीं, प्रतिक्रिया बनाते हैं।</div>
+                <p class="lead">अधिकांश मीटिंग्स डैशबोर्ड + अपडेट होती हैं। फिर कोई कहता है: “चलो ये ट्राई करें।”</p>
+                <ul class="list">
+                  <li><b>तर्क की समीक्षा नहीं</b> → वही गलतियाँ दोहरती हैं।</li>
+                  <li><b>अनुमान स्पष्ट नहीं</b> → भावनाएँ निर्णय चलाती हैं।</li>
+                  <li><b>लॉग नहीं</b> → टीम सीख भूल जाती है।</li>
+                </ul>
+                <div class="quote">कभी-कभी अच्छा निर्णय भी खराब परिणाम दे सकता है। तर्क देखे बिना फर्क नहीं समझ आएगा।</div>
+              `
+            }
+          },
+          {
+            name:"MINDSET",
+            kicker:{en:"Founder Shift", hi:"संस्थापक बदलाव"},
+            title:{en:"Operators manage tasks. Founders design decisions.", hi:"ऑपरेटर कार्य संभालते हैं। संस्थापक निर्णय डिज़ाइन करते हैं।"},
+            html:{
+              en: () => `
+                <div class="big">Change the weekly question:</div>
+                <ul class="list">
+                  <li><b>Operator:</b> “What should we do now?”</li>
+                  <li><b>Founder:</b> “How do we improve how we decide?”</li>
+                </ul>
+                <p class="lead">This ritual upgrades clarity, reduces ego, and speeds decisions—because the team knows decisions will be reviewed.</p>
+                <div class="ctaBox">
+                  <strong>✅ Rule:</strong>
+                  <span>We review the <b>decision</b>, not the person. No blame. Only learning.</span>
+                </div>
+              `,
+              hi: () => `
+                <div class="big">साप्ताहिक सवाल बदलिए:</div>
+                <ul class="list">
+                  <li><b>ऑपरेटर:</b> “अब क्या करें?”</li>
+                  <li><b>संस्थापक:</b> “निर्णय कैसे बेहतर करें?”</li>
+                </ul>
+                <p class="lead">यह रिवाज स्पष्टता बढ़ाता है, अहं कम करता है, और निर्णय गति बढ़ाता है—क्योंकि टीम जानती है कि निर्णय रिव्यू होंगे।</p>
+                <div class="ctaBox">
+                  <strong>✅ नियम:</strong>
+                  <span>हम <b>निर्णय</b> की समीक्षा करते हैं, व्यक्ति की नहीं। दोष नहीं—सिर्फ सीख।</span>
+                </div>
+              `
+            }
+          },
+          {
+            name:"FORMAT",
+            kicker:{en:"30 Minutes", hi:"30 मिनट"},
+            title:{en:"The exact 4-step structure", hi:"सटीक 4-स्टेप संरचना"},
+            html:{
+              en: () => `
+                <div class="big">Keep it tight. <span class="accentText">No noise.</span></div>
+                <ul class="list">
+                  <li><b>Step 1 (10m):</b> Identify 3–5 key decisions (not tasks).</li>
+                  <li><b>Step 2 (10m):</b> Revisit reasoning: why, expected outcome, assumptions.</li>
+                  <li><b>Step 3 (5m):</b> Compare early signals vs expectation (direction, not verdict).</li>
+                  <li><b>Step 4 (5m):</b> Extract 1 lesson and update your rulebook.</li>
+                </ul>
+                <div class="ctaBox">
+                  <strong>🎯 Founder standard:</strong>
+                  <span>If a decision is <b>irreversible</b> (hire, contract, pricing structure), it gets deeper scrutiny.</span>
+                  <div class="ctaRow">
+                    <button class="btn btnPrimary" onclick="openTemplate()">Open the Decision Log template →</button>
+                    <button class="btn btnGhost" onclick="sendWA('I want the weekly decision review template.')">Get it on WhatsApp</button>
+                  </div>
+                </div>
+              `,
+              hi: () => `
+                <div class="big">सख्त रखें। <span class="accentText">कोई शोर नहीं।</span></div>
+                <ul class="list">
+                  <li><b>स्टेप 1 (10m):</b> 3–5 प्रमुख निर्णय चुनें (टास्क नहीं)।</li>
+                  <li><b>स्टेप 2 (10m):</b> तर्क: क्यों, अपेक्षित परिणाम, कौन से अनुमान।</li>
+                  <li><b>स्टेप 3 (5m):</b> शुरुआती संकेत देखें (दिशा, अंतिम निर्णय नहीं)।</li>
+                  <li><b>स्टेप 4 (5m):</b> 1 सीख निकालें और नियम अपडेट करें।</li>
+                </ul>
+                <div class="ctaBox">
+                  <strong>🎯 मानक:</strong>
+                  <span>अगर निर्णय <b>अपरिवर्तनीय</b> है (हायरिंग, कॉन्ट्रैक्ट, प्राइसिंग स्ट्रक्चर) तो अधिक गहराई से देखें।</span>
+                  <div class="ctaRow">
+                    <button class="btn btnPrimary" onclick="openTemplate()">निर्णय लॉग टेम्पलेट खोलें →</button>
+                    <button class="btn btnGhost" onclick="sendWA('मुझे साप्ताहिक निर्णय समीक्षा टेम्पलेट चाहिए।')">WhatsApp पर लें</button>
+                  </div>
+                </div>
+              `
+            }
+          },
+          {
+            name:"EXAMPLES",
+            kicker:{en:"Examples", hi:"उदाहरण"},
+            title:{en:"What good review sounds like", hi:"एक अच्छा रिव्यू कैसा लगता है"},
+            html:{
+              en: () => `
+                <div class="big">You’re reviewing <span class="accentText">logic</span>, not luck.</div>
+                <p class="lead"><b>Pricing change:</b> “We assumed loyalty protects demand.” → volume dropped 10% → lesson: smaller increments + value comms.</p>
+                <p class="lead"><b>Hiring:</b> “We optimized for availability.” → execution strong, communication weak → lesson: add comms check to scorecard.</p>
+                <div class="quote">When you log decisions weekly, you stop paying the same tuition twice.</div>
+              `,
+              hi: () => `
+                <div class="big">आप <span class="accentText">तर्क</span> की समीक्षा कर रहे हैं, भाग्य की नहीं।</div>
+                <p class="lead"><b>प्राइसिंग:</b> “हमने मान लिया था कि लॉयल्टी डिमांड बचाएगी।” → वॉल्यूम 10% गिरा → सीख: छोटे इन्क्रीमेंट + वैल्यू कम्युनिकेशन।</p>
+                <p class="lead"><b>हायरिंग:</b> “हमने उपलब्धता को प्राथमिकता दी।” → एक्ज़ीक्यूशन अच्छा, कम्युनिकेशन कमजोर → सीख: कम्युनिकेशन असेसमेंट जोड़ें।</p>
+                <div class="quote">हर सप्ताह निर्णय लॉग करने से आप एक ही फीस दो बार नहीं भरते।</div>
+              `
+            }
+          },
+          {
+            name:"TEMPLATE",
+            kicker:{en:"Decision Memory", hi:"निर्णय मेमोरी"},
+            title:{en:"The simple log that builds institutional intelligence", hi:"साधारण लॉग जो संस्थागत बुद्धिमत्ता बनाता है"},
+            html:{
+              en: () => `
+                <div class="big">Write it down. <span class="accentText">Or lose it.</span></div>
+                <p class="lead">Use this 5-line format. Keep it brutally simple.</p>
+                <div class="ctaBox" style="border-color:rgba(34,197,94,0.25); background:linear-gradient(180deg, rgba(34,197,94,0.10), rgba(0,0,0,0.10));">
+                  <strong>Decision Log (copy/paste)</strong>
+                  <div style="margin-top:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#cbd5e1; white-space:pre-wrap; line-height:1.55;">
+Decision:
+Reason:
+Expected outcome:
+Actual (so far):
+Lesson / rule update:
+                  </div>
+                  <div class="ctaRow">
+                    <button class="btn btnOk" onclick="copyTemplate()">Copy template</button>
+                    <button class="btn btnGhost" onclick="sendWA('Share the decision log format and examples.')">Send to WhatsApp</button>
+                  </div>
+                </div>
+              `,
+              hi: () => `
+                <div class="big">लिखिए। <span class="accentText">नहीं तो भूल जाएगा।</span></div>
+                <p class="lead">यह 5-लाइन फॉर्मेट इस्तेमाल करें। बेहद सरल रखें।</p>
+                <div class="ctaBox" style="border-color:rgba(34,197,94,0.25); background:linear-gradient(180deg, rgba(34,197,94,0.10), rgba(0,0,0,0.10));">
+                  <strong>निर्णय लॉग (कॉपी/पेस्ट)</strong>
+                  <div style="margin-top:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#cbd5e1; white-space:pre-wrap; line-height:1.55;">
+Decision:
+Reason:
+Expected outcome:
+Actual (so far):
+Lesson / rule update:
+                  </div>
+                  <div class="ctaRow">
+                    <button class="btn btnOk" onclick="copyTemplate()">टेम्पलेट कॉपी करें</button>
+                    <button class="btn btnGhost" onclick="sendWA('निर्णय लॉग फॉर्मेट और उदाहरण भेजें।')">WhatsApp पर भेजें</button>
+                  </div>
+                </div>
+              `
+            }
+          },
+          {
+            name:"FINAL",
+            kicker:{en:"Final Action", hi:"अंतिम कदम"},
+            title:{en:"Start this week. Don’t overthink.", hi:"इस हफ्ते शुरू करें। ओवरथिंक मत करें।"},
+            html:{
+              en: () => `
+                <div class="big">Your advantage is <span class="accentText">judgment.</span></div>
+                <p class="lead">Block 30 minutes on Friday. Review 3 decisions. Extract 3 lessons. Update rules.</p>
+                <div class="ctaBox">
+                  <div class="ctaHead">
+                    <div>
+                      <strong>📌 Want the next founder module?</strong>
+                      <span>Say: <b>“Next: #9 The 5-Question Framework.”</b></span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Email (optional)</label>
+                    <input id="email" type="email" placeholder="you@company.com" />
+                  </div>
+                  <div class="ctaRow">
+                    <button class="btn btnPrimary" onclick="joinFounder()">Get Founder Kit →</button>
+                    <button class="btn btnGhost" onclick="sendWA('Next: #9 The 5-Question Framework.')">Ask on WhatsApp</button>
+                  </div>
+                </div>
+                <div class="quote">Businesses that think clearly outlast businesses that react quickly.</div>
+              `,
+              hi: () => `
+                <div class="big">आपकी बढ़त है <span class="accentText">निर्णय क्षमता</span>.</div>
+                <p class="lead">शुक्रवार को 30 मिनट ब्लॉक करें। 3 निर्णय रिव्यू करें। 3 सीख निकालें। नियम अपडेट करें।</p>
+                <div class="ctaBox">
+                  <div class="ctaHead">
+                    <div>
+                      <strong>📌 अगला मॉड्यूल चाहिए?</strong>
+                      <span>कहें: <b>“Next: #9 The 5-Question Framework.”</b></span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>ईमेल (वैकल्पिक)</label>
+                    <input id="email" type="email" placeholder="you@company.com" />
+                  </div>
+                  <div class="ctaRow">
+                    <button class="btn btnPrimary" onclick="joinFounder()">Founder Kit लें →</button>
+                    <button class="btn btnGhost" onclick="sendWA('Next: #9 The 5-Question Framework.')">WhatsApp पर पूछें</button>
+                  </div>
+                </div>
+                <div class="quote">जो व्यवसाय स्पष्ट सोचता है, वह जल्दी प्रतिक्रिया देने वाले व्यवसाय से लंबा चलता है।</div>
+              `
+            }
           }
-        },
+        ]
+      };
 
-        {
-          name: "SPECS", kicker: "Specs",
-          title: { en: "Specifications", hi: "विशेषताएँ" },
-          html: {
-            en: () => `
-              <div class="big">Specs that <span class="accent">matter.</span></div>
-              <ul class="list">
-                <li><b>Strength:</b> Daily-use durable</li>
-                <li><b>Tolerance:</b> Tight fit, clean edges</li>
-                <li><b>Cleaning:</b> Wipe clean</li>
-                <li><b>Shipping:</b> 48 hours dispatch</li>
-              </ul>
-            `,
-            hi: () => `
-              <div class="big">जो Specs <span class="accent">काम के</span> हैं।</div>
-              <ul class="list">
-                <li><b>मज़बूती:</b> डेली-यूज़</li>
-                <li><b>टॉलरेंस:</b> क्लीन फिट</li>
-                <li><b>क्लीनिंग:</b> वाइप</li>
-                <li><b>शिपिंग:</b> 48 घंटे</li>
-              </ul>
-            `
-          }
-        },
-      ];
+      function render(){
+        container.innerHTML = "";
+        BLOG.sections.forEach((s, i) => {
+          const wrap = document.createElement("div");
+          wrap.className = "section-wrapper";
+          wrap.dataset.index = i;
+          wrap.dataset.name = s.name;
 
-      const container = document.getElementById('scrollContainer');
-      const secLabel = document.getElementById('secLabel');
-      const secName  = document.getElementById('secName');
-      let currentLang = 'en';
-
-      // --- Render ---
-      const observerOptions = { root: container, threshold: 0.6 };
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-active');
-            const index = parseInt(entry.target.getAttribute('data-index'));
-            secLabel.textContent = `SEC ${index + 1}/${SECTIONS.length}`;
-            secName.textContent = entry.target.getAttribute('data-name');
-          } else {
-            entry.target.classList.remove('is-active');
-          }
-        });
-      }, observerOptions);
-
-      function renderSections() {
-        container.innerHTML = '';
-        SECTIONS.forEach((sec, index) => {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'section-wrapper';
-          wrapper.setAttribute('data-index', index);
-          wrapper.setAttribute('data-name', sec.name);
-          wrapper.innerHTML = `
+          wrap.innerHTML = `
             <article class="card">
               <header class="cardHeader">
-                <div class="kicker">${sec.kicker}</div>
-                <h1 class="h1">${sec.title[currentLang]}</h1>
+                <div class="kicker">${s.kicker[lang]}</div>
+                <h1 class="h1">${s.title[lang]}</h1>
               </header>
               <div class="cardBody">
-                ${sec.html[currentLang]()}
-                <div style="height: 85px;"></div>
+                ${s.html[lang]()}
+                <div style="height:80px;"></div>
               </div>
             </article>
             <div class="hint">
-              <span>Scroll for more</span>
+              <span>Scroll</span>
               <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </div>
           `;
-          container.appendChild(wrapper);
-          observer.observe(wrapper);
+          container.appendChild(wrap);
         });
 
-        // after DOM re-render (translate etc) -> mount 3D again safely
-        setTimeout(() => mount3DIfPresent(), 0);
+        document.querySelectorAll(".section-wrapper").forEach(el => observer.observe(el));
       }
 
-      // --- Translation ---
-      const btnTranslate = document.getElementById('btnTranslate');
-      const toast = document.getElementById('translationToast');
-      const btnUndo = document.getElementById('btnUndoTranslate');
-      const toastMsg = document.getElementById('toastMsg');
-      let toastTimer;
+      // Intersection observer for pill
+      const observer = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{
+          if(e.isIntersecting){
+            e.target.classList.add("is-active");
+            const idx = parseInt(e.target.dataset.index, 10) || 0;
+            secLabel.textContent = `SEC ${idx+1}/${BLOG.sections.length}`;
+            secName.textContent = e.target.dataset.name || "—";
+          } else {
+            e.target.classList.remove("is-active");
+          }
+        });
+      }, { root: container, threshold: 0.62 });
 
-      function triggerTranslation(lang) {
-        currentLang = lang;
-        renderSections();
-
-        toast.classList.add('is-visible');
-        if(lang === 'hi') {
-          toastMsg.textContent = "Translated to Hindi";
-          btnUndo.style.display = 'block';
-        } else {
-          toastMsg.textContent = "Reverted to English";
-          btnUndo.style.display = 'none';
-        }
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3500);
-      }
-
-      btnTranslate.addEventListener('click', () => { if (currentLang === 'en') triggerTranslation('hi'); });
-      btnUndo.addEventListener('click', () => { triggerTranslation('en'); });
-
-      // --- Rotate Popup (same behavior as your blog) ---
-      const popup = document.getElementById('rotatePopup');
-      const appWrapper = document.getElementById('appWrapper');
-      let isForcedLandscape = false;
-      let targetRotationAngle = 0;
-
-      window.addEventListener('deviceorientation', (e) => {
-        const gamma = e.gamma;
-        if (gamma === null || typeof gamma === 'undefined') return;
-        const rotationThreshold = 45;
-        const deadband = 25;
-
-        if (!isForcedLandscape) {
-          if (gamma > rotationThreshold) showRotatePopup(90);
-          else if (gamma < -rotationThreshold) showRotatePopup(-90);
-          else hideRotatePopup();
-        } else {
-          if (Math.abs(gamma) < deadband) showRotatePopup(0);
-          else hideRotatePopup();
-        }
+      // Translate toggle
+      btnTranslate.addEventListener("click", ()=>{
+        lang = (lang === "en") ? "hi" : "en";
+        render();
       });
 
-      function showRotatePopup(angle) {
-        targetRotationAngle = angle;
-        popup.classList.add('is-visible');
-        if (angle === 0) {
-          popup.innerHTML = `Tap for Portrait`;
-        } else {
-          popup.innerHTML = `Tap for Landscape`;
+      // Strong CTA actions
+      window.jumpTo = function(sectionName){
+        const el = Array.from(document.querySelectorAll(".section-wrapper"))
+          .find(x => x.dataset.name === sectionName);
+        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      };
+
+      window.openTemplate = function(){
+        // Option A: open a real file if you add one:
+        // location.href = "assets/decision-log-template.txt";
+        // Option B: just copy template right now:
+        copyTemplate();
+        alert(lang === "hi" ? "टेम्पलेट कॉपी हो गया।" : "Template copied.");
+      };
+
+      window.copyTemplate = async function(){
+        const txt =
+`Decision:
+Reason:
+Expected outcome:
+Actual (so far):
+Lesson / rule update:`;
+        try {
+          await navigator.clipboard.writeText(txt);
+        } catch(e){
+          // fallback
+          const ta = document.createElement("textarea");
+          ta.value = txt; document.body.appendChild(ta);
+          ta.select(); document.execCommand("copy");
+          document.body.removeChild(ta);
         }
-      }
-      function hideRotatePopup() { popup.classList.remove('is-visible'); }
+      };
 
-      popup.addEventListener('click', () => {
-        if (targetRotationAngle !== 0) {
-          appWrapper.classList.add('forced-landscape');
-          appWrapper.style.transform = `rotate(${targetRotationAngle}deg)`;
-          isForcedLandscape = true;
-        } else {
-          appWrapper.classList.remove('forced-landscape');
-          appWrapper.style.transform = `none`;
-          isForcedLandscape = false;
-        }
-        hideRotatePopup();
-      });
+      window.sendWA = function(message){
+        const text = message || "I want the Weekly Decision Review template.";
+        const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+        window.open(url, "_blank");
+      };
 
-      // ✅ 3D Viewer (robust, mobile-safe, re-init after translate)
-      let __viewerCleanup = null;
-      let __viewerMountedFor = null;
+      window.joinFounder = function(){
+        const email = (document.getElementById("email")?.value || "").trim();
+        const msg = email
+          ? `Founder Kit request.\nEmail: ${email}\nPlease send templates + next modules.`
+          : `Founder Kit request.\nPlease send templates + next modules.`;
+        sendWA(msg);
+      };
 
-      function mount3DIfPresent(){
-        const host = document.getElementById("stlViewer");
-        if(!host) return;
+      // Sticky CTA goes to FORMAT section
+      ctaStart.addEventListener("click", ()=> jumpTo("FORMAT"));
 
-        // prevent double-mount on the same DOM node
-        if(__viewerMountedFor === host) return;
-        __viewerMountedFor = host;
-
-        // cleanup any previous viewer (if rerendered)
-        if(typeof __viewerCleanup === "function"){
-          try { __viewerCleanup(); } catch(_) {}
-          __viewerCleanup = null;
-        }
-
-        const hud = document.getElementById("viewerHUD");
-        const libs = window.__THREE__;
-        if(!libs){
-          if(hud) hud.textContent = "Loading 3D engine…";
-          // wait a bit for module script to load
-          setTimeout(mount3DIfPresent, 120);
-          return;
-        }
-
-        const { THREE, OrbitControls, STLLoader } = libs;
-
-        // Clear host
-        host.querySelectorAll("canvas,.viewerErr").forEach(n => n.remove());
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.setSize(host.clientWidth, host.clientHeight, false);
-        renderer.setClearColor(0x000000, 0.0);
-        host.appendChild(renderer.domElement);
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, host.clientWidth / host.clientHeight, 0.1, 5000);
-        camera.position.set(0, 0, 120);
-
-        // lights
-        const hemi = new THREE.HemisphereLight(0xffffff, 0x111111, 1.15);
-        scene.add(hemi);
-        const dir = new THREE.DirectionalLight(0xffffff, 1.0);
-        dir.position.set(2, 4, 3);
-        scene.add(dir);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.08;
-        controls.enablePan = false;
-        controls.minDistance = 30;
-        controls.maxDistance = 500;
-        controls.target.set(0, 0, 0);
-
-        // double-tap reset
-        let lastTap = 0;
-        host.addEventListener("touchend", () => {
-          const now = Date.now();
-          if(now - lastTap < 280){
-            controls.reset();
-          }
-          lastTap = now;
-        }, { passive: true });
-
-        // resize handling
-        const ro = new ResizeObserver(() => {
-          const w = host.clientWidth || 1;
-          const h = host.clientHeight || 1;
-          camera.aspect = w / h;
-          camera.updateProjectionMatrix();
-          renderer.setSize(w, h, false);
-        });
-        ro.observe(host);
-
-        // load STL
-        const loader = new STLLoader();
-
-        const material = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(0xff671f),
-          roughness: 0.55,
-          metalness: 0.18
-        });
-
-        let mesh = null;
-
-        function showErr(msg){
-          const err = document.createElement("div");
-          err.className = "viewerErr";
-          err.innerHTML = `
-            <div style="font-weight:800;">3D Preview Failed</div>
-            <div style="color:rgba(255,255,255,0.75); font-size:13px; line-height:1.5;">
-              ${msg}
-            </div>
-            <code>${STL_URL}</code>
-          `;
-          host.appendChild(err);
-        }
-
-        loader.load(
-          STL_URL,
-          (geometry) => {
-            if(hud) hud.style.display = "none";
-
-            geometry.computeVertexNormals();
-            geometry.center();
-
-            mesh = new THREE.Mesh(geometry, material);
-            scene.add(mesh);
-
-            // fit camera to model
-            const box = new THREE.Box3().setFromObject(mesh);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-
-            const dist = maxDim * 1.7;
-            camera.position.set(0, maxDim * 0.35, dist);
-            controls.minDistance = maxDim * 0.6;
-            controls.maxDistance = maxDim * 6;
-            controls.target.set(0, 0, 0);
-            controls.update();
-          },
-          (xhr) => {
-            if(hud){
-              const pct = xhr.total ? Math.round((xhr.loaded / xhr.total) * 100) : null;
-              hud.textContent = pct ? `Loading 3D Model… ${pct}%` : "Loading 3D Model…";
-            }
-          },
-          (err) => {
-            if(hud) hud.style.display = "none";
-            showErr("Your STL file is not reachable. Put the STL in the same folder OR fix the path.");
-            console.error("STL load error:", err);
-          }
-        );
-
-        let raf = 0;
-        function animate(){
-          raf = requestAnimationFrame(animate);
-          controls.update();
-          renderer.render(scene, camera);
-        }
-        animate();
-
-        __viewerCleanup = () => {
-          cancelAnimationFrame(raf);
-          ro.disconnect();
-          controls.dispose();
-          renderer.dispose();
-          if(mesh){
-            mesh.geometry && mesh.geometry.dispose();
-            mesh.material && mesh.material.dispose();
-          }
-          host.querySelectorAll("canvas,.viewerErr").forEach(n => n.remove());
-          __viewerMountedFor = null;
-        };
-      }
-
-      // Initial render
-      renderSections();
-
+      render();
     })();
   </script>
 </body>
