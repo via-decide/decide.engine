@@ -198,10 +198,14 @@
   <div id="rotatePopup" class="rotate-popup"></div>
 
   <!-- ✅ Reliable Three.js imports for mobile (module builds) -->
-  <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js";
-    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/controls/OrbitControls.js";
-    import { STLLoader } from "https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/STLLoader.js";
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+   <model-viewer
+  src="assets/founder.stl"
+  camera-controls
+  auto-rotate
+  shadow-intensity="1"
+  style="width:100%;height:400px;background:#111;">
+</model-viewer>
 
     // expose to the non-module script below
     window.__THREE__ = { THREE, OrbitControls, STLLoader };
