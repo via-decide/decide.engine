@@ -10,6 +10,12 @@
   ✅ Home “Navigation Shortcuts / Session” becomes 1-column on mobile
   ✅ Product grid becomes 1-column on small screens
   ✅ Topbar + bottom nav wrap cleanly on mobile (no squish)
+
+  ADD (Blogs section):
+  ✅ Blogs preview embedded on 2nd page (Products slide)
+  ✅ Dedicated Blogs slide with search + full listing
+  ✅ Nav buttons to reach Blogs from topbar + bottom nav + Products header
+  ✅ Auto-discovery: tries blog manifests; falls back to sitemap.xml
 -->
 
 <html lang="en">
@@ -729,15 +735,103 @@
     .qp-body{ padding:16px 18px; min-height:0; }
     .qp-grid{ display:grid; grid-template-columns:1fr; gap:var(--gap); }
 
+    /* ─── BLOGS UI ─────────────────────────────────────────── */
+    .divider{
+      height:1px;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+      margin: 14px 0;
+    }
+    .section-head{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      margin: 0 0 10px;
+      flex-wrap:wrap;
+    }
+    .section-head h3{
+      margin:0;
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      color:rgba(240,240,240,.86);
+      display:flex; align-items:center; gap:8px;
+    }
+    .section-head h3 .dot{
+      width:6px;height:6px;border-radius:50%;
+      background:rgba(255,103,31,.9);
+      box-shadow:0 0 10px rgba(255,103,31,.28);
+      flex:0 0 auto;
+    }
+    .section-head .hint{
+      font-size:12px;
+      color:rgba(240,240,240,.52);
+      line-height:1.4;
+      margin-top:2px;
+      max-width: 66ch;
+    }
+    .blog-thumb{
+      width:100%;
+      aspect-ratio:16/10;
+      border-bottom:1px solid rgba(255,255,255,.045);
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      padding:12px;
+      background:
+        radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,103,31,.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 90% 10%, rgba(255,255,255,.06) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.55));
+    }
+    .blog-thumb .b-emoji{
+      font-size:18px;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
+      opacity:.95;
+    }
+    .blog-thumb .b-meta{
+      font-family:'DM Mono', monospace;
+      font-size:11px;
+      color:rgba(240,240,240,.66);
+      padding:5px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      white-space:nowrap;
+      max-width: 70%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .blog-search{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .blog-search input{
+      flex: 1 1 260px;
+      padding:11px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(0,0,0,.22);
+      outline:none;
+      color:rgba(240,240,240,.92);
+      font-size:13px;
+      min-width: 220px;
+    }
+    .blog-search input:focus{
+      border-color:rgba(255,103,31,.4);
+      box-shadow:0 0 0 3px rgba(255,103,31,.12);
+    }
+    .blog-status{
+      font-size:12px;
+      color:rgba(240,240,240,.58);
+      line-height:1.4;
+    }
+    .blog-status.bad{ color:rgba(255,140,60,.88); }
+    .blog-status.ok{ color:rgba(0,230,118,.82); }
+
     /* =========================
        MOBILE FIX SECTION
        ========================= */
 
-    /* Fix the exact issue from your screenshot:
-       - big headline / long words clipped
-       - tighter spacing
-       - bottom nav not huge empty gaps
-    */
     @media (max-width: 520px){
       .app{ padding: calc(10px + var(--safeTop)) calc(10px + var(--safeRight)) calc(10px + var(--safeBottom)) calc(10px + var(--safeLeft)); }
       .app-topbar{
@@ -754,11 +848,12 @@
       .main-slide{ padding:12px; }
       .panel-h{ padding:16px 14px 12px; flex-direction:column; align-items:flex-start; }
       .panel-b{ padding:14px; }
-      .home-ctas .btn{ flex: 1 1 100%; } /* stack buttons like a proper mobile hero */
-      .home-quick{ grid-template-columns:1fr; } /* stop the “half cards” */
-      .grid{ grid-template-columns:1fr; } /* products: 1 column on mobile */
+      .home-ctas .btn{ flex: 1 1 100%; }
+      .home-quick{ grid-template-columns:1fr; }
+      .grid{ grid-template-columns:1fr; }
       .nav-right{ justify-content:flex-start; }
       .authority-line{ padding-top:6px; }
+      .blog-search input{ flex: 1 1 100%; min-width: 0; }
     }
 
     @media (max-width: 380px){
@@ -1004,6 +1099,7 @@
           <a class="nav-link" href="decision-brief.html"><span class="nl-icon">📄</span> Brief</a>
           <a class="nav-link" href="alchemist.html"><span class="nl-icon">⚗️</span> Quiz</a>
           <a class="nav-link" href="ONDC-demo.html"><span class="nl-icon">🛒</span> ONDC</a>
+          <button class="nav-link" type="button" data-go="blogs" aria-label="Open Blogs slide"><span class="nl-icon">📰</span> Blogs</button>
         </nav>
 
         <div class="nav-actions">
@@ -1061,16 +1157,60 @@
           </div>
         </section>
 
+        <!-- 2nd page: Products + embedded Blogs preview -->
         <section class="main-slide next" data-title="Products" id="slideProducts">
           <div class="panel" style="min-height:0;">
             <div class="panel-h">
               <div>
                 <h2>Products &amp; modules <span class="tag">live</span></h2>
-                <div class="sub">Open any module below.</div>
+                <div class="sub">Open any module below. Blogs live here too — published notes, updates, and explainers.</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                <button class="btn outlined small" type="button" id="openBlogsSlide" aria-label="View all blogs">📰 View Blogs</button>
+              </div>
+            </div>
+            <div class="panel-b scrollable" style="min-height:0; display:grid; gap: var(--gap);">
+              <div>
+                <div class="grid" id="productGrid" aria-label="Products grid"></div>
+              </div>
+
+              <div class="divider" aria-hidden="true"></div>
+
+              <div aria-label="Blogs preview section">
+                <div class="section-head">
+                  <div style="min-width:0;">
+                    <h3><span class="dot" aria-hidden="true"></span> Blogs</h3>
+                    <div class="hint">Auto-loaded from your repo/site. If you add a blog manifest or sitemap entries, they will appear here.</div>
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn small ghost" type="button" id="refreshBlogsPreview" aria-label="Refresh blog list">REFRESH</button>
+                    <button class="btn small outlined" type="button" id="openBlogsSlide2" aria-label="Open Blogs slide">OPEN ALL →</button>
+                  </div>
+                </div>
+                <div class="blog-status" id="blogPreviewStatus" aria-live="polite">Loading blogs…</div>
+                <div class="grid" id="blogGridPreview" aria-label="Blogs preview grid" style="margin-top:12px;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dedicated Blogs slide -->
+        <section class="main-slide next" data-title="Blogs" id="slideBlogs">
+          <div class="panel" style="min-height:0;">
+            <div class="panel-h">
+              <div style="min-width:0;">
+                <h2>Blogs <span class="tag">notes</span></h2>
+                <div class="sub">All posts discovered from your site. Search and open any article.</div>
+              </div>
+              <div class="blog-search" aria-label="Blog search">
+                <input id="blogSearch" type="search" placeholder="Search blogs (title / path)…" autocomplete="off" />
+                <button class="btn small ghost" type="button" id="refreshBlogsAll" aria-label="Refresh blog list">REFRESH</button>
+                <button class="btn small outlined" type="button" id="goProductsFromBlogs" aria-label="Back to products">← PRODUCTS</button>
               </div>
             </div>
             <div class="panel-b scrollable" style="min-height:0;">
-              <div class="grid" id="productGrid" aria-label="Products grid"></div>
+              <div class="blog-status" id="blogAllStatus" aria-live="polite">Loading blogs…</div>
+              <div class="grid" id="blogGridAll" aria-label="All blogs grid" style="margin-top:12px;"></div>
             </div>
           </div>
         </section>
@@ -1146,6 +1286,7 @@
           <button class="nav-btn muted" type="button" id="prevSlide">← PREV</button>
           <button class="nav-btn muted" type="button" id="nextSlide">NEXT →</button>
           <button class="nav-btn" type="button" id="goHome">HOME</button>
+          <button class="nav-btn" type="button" id="goBlogs">BLOGS</button>
         </div>
         <div class="nav-right">
           <a class="nav-btn" href="decision-brief.html" id="openBriefNav">DECISION PDF</a>
@@ -1543,6 +1684,16 @@
         });
         setHeaderForSlide(idx);
       }
+      function findSlideIndexById(id){
+        for (var i=0;i<mainSlides.length;i++){
+          if (mainSlides[i] && mainSlides[i].id === id) return i;
+        }
+        return -1;
+      }
+      function goToSlideId(id){
+        var idx = findSlideIndexById(id);
+        if (idx >= 0) goToSlide(idx);
+      }
       function prevSlide(){ goToSlide(currentSlide - 1); }
       function nextSlide(){ goToSlide(currentSlide + 1); }
 
@@ -1555,6 +1706,21 @@
 
       var qpGoHome = document.getElementById("qpGoHome");
       if (qpGoHome) qpGoHome.addEventListener("click", function(){ setQP(false); goToSlide(0); });
+
+      /* ── NAV: BLOGS ──────────────────────────────────────── */
+      var goBlogsBtn = document.getElementById("goBlogs");
+      var openBlogsSlideBtn = document.getElementById("openBlogsSlide");
+      var openBlogsSlideBtn2 = document.getElementById("openBlogsSlide2");
+      var goProductsFromBlogsBtn = document.getElementById("goProductsFromBlogs");
+
+      if (goBlogsBtn) goBlogsBtn.addEventListener("click", function(){ goToSlideId("slideBlogs"); });
+      if (openBlogsSlideBtn) openBlogsSlideBtn.addEventListener("click", function(){ goToSlideId("slideBlogs"); });
+      if (openBlogsSlideBtn2) openBlogsSlideBtn2.addEventListener("click", function(){ goToSlideId("slideBlogs"); });
+      if (goProductsFromBlogsBtn) goProductsFromBlogsBtn.addEventListener("click", function(){ goToSlideId("slideProducts"); });
+
+      document.querySelectorAll('[data-go="blogs"]').forEach(function(el){
+        el.addEventListener("click", function(){ goToSlideId("slideBlogs"); });
+      });
 
       /* ── PRODUCT GRID ────────────────────────────────────── */
       var productGrid = document.getElementById("productGrid");
@@ -1614,6 +1780,351 @@
         if (!productGrid) return;
         productGrid.innerHTML = "";
         products.forEach(function(p){ productGrid.appendChild(makeCard(p)); });
+      }
+
+      /* ── BLOGS DISCOVERY + RENDER ─────────────────────────── */
+      var blogGridPreview = document.getElementById("blogGridPreview");
+      var blogGridAll = document.getElementById("blogGridAll");
+      var blogPreviewStatus = document.getElementById("blogPreviewStatus");
+      var blogAllStatus = document.getElementById("blogAllStatus");
+      var blogSearch = document.getElementById("blogSearch");
+      var refreshBlogsPreviewBtn = document.getElementById("refreshBlogsPreview");
+      var refreshBlogsAllBtn = document.getElementById("refreshBlogsAll");
+
+      var _blogsAll = [];
+      var _blogsLoaded = false;
+      var _blogsLoading = false;
+
+      function setBlogStatus(el, msg, cls){
+        if (!el) return;
+        el.className = "blog-status" + (cls ? " " + cls : "");
+        el.textContent = msg || "";
+      }
+
+      function normalizePathToRel(href){
+        try{
+          var u = /^https?:\/\//i.test(href) ? new URL(href) : new URL(href, location.origin);
+          var p = (u.pathname || "/").replace(/\/+/g,"/");
+          if (!p.startsWith("/")) p = "/" + p;
+          return p;
+        }catch(e){
+          href = String(href || "").trim();
+          if (!href) return "/";
+          if (!href.startsWith("/")) href = "/" + href;
+          return href;
+        }
+      }
+
+      function titleFromPath(p){
+        p = String(p || "").replace(/[#?].*$/,"");
+        var base = p.split("/").filter(Boolean).pop() || "Blog";
+        base = base.replace(/\.html?$/i,"");
+        base = base.replace(/[-_]+/g," ").trim();
+        if (!base) return "Blog";
+        return base.split(" ").map(function(w){
+          if (!w) return w;
+          return w.charAt(0).toUpperCase() + w.slice(1);
+        }).join(" ");
+      }
+
+      function chipFromPath(p){
+        var s = String(p || "").toLowerCase();
+        if (s.indexOf("/news") >= 0 || s.indexOf("news") >= 0) return "News";
+        if (s.indexOf("/update") >= 0 || s.indexOf("update") >= 0) return "Update";
+        if (s.indexOf("/policy") >= 0 || s.indexOf("policy") >= 0) return "Policy";
+        if (s.indexOf("/note") >= 0 || s.indexOf("note") >= 0) return "Notes";
+        if (s.indexOf("/blog") >= 0 || s.indexOf("/blogs") >= 0) return "Blog";
+        return "Post";
+      }
+
+      function emojiFromPath(p){
+        var s = String(p || "").toLowerCase();
+        if (s.indexOf("ondc") >= 0) return "🛒";
+        if (s.indexOf("policy") >= 0) return "🏛️";
+        if (s.indexOf("research") >= 0) return "🔍";
+        if (s.indexOf("ai") >= 0 || s.indexOf("model") >= 0) return "🤖";
+        if (s.indexOf("launch") >= 0 || s.indexOf("release") >= 0 || s.indexOf("update") >= 0) return "🚀";
+        return "📰";
+      }
+
+      function makeBlogCard(b){
+        var aff = getAffiliateTag();
+        var href = b && b.href ? String(b.href) : "#";
+        var relPath = normalizePathToRel(href);
+        var title = b.title ? String(b.title) : titleFromPath(relPath);
+        var chip = b.chip ? String(b.chip) : chipFromPath(relPath);
+        var desc = b.desc ? String(b.desc) : ("Open " + relPath.replace(/^\//,""));
+        var dateLabel = b.date ? String(b.date) : relPath.replace(/^\//,"").slice(0, 28);
+
+        var a = document.createElement("a");
+        a.className = "card";
+        a.href = appendAffiliateToHref(href, aff);
+        a.setAttribute("aria-label", title);
+
+        var th = document.createElement("div");
+        th.className = "blog-thumb";
+        th.innerHTML =
+          '<div class="b-emoji" aria-hidden="true">' + escapeHtml(emojiFromPath(relPath)) + '</div>' +
+          '<div class="b-meta" title="' + escapeHtml(relPath) + '">' + escapeHtml(dateLabel) + '</div>';
+        a.appendChild(th);
+
+        var c = document.createElement("div");
+        c.className = "card-c";
+        c.innerHTML =
+          '<div class="card-title"><h3>' + escapeHtml(title) + '</h3>' +
+          '<span class="chip accent">' + escapeHtml(chip) + '</span></div>' +
+          '<p>' + escapeHtml(desc) + '</p>' +
+          '<div class="card-foot"><span>Read</span><span class="arrow">→</span></div>';
+        a.appendChild(c);
+
+        return a;
+      }
+
+      function renderBlogsPreview(list){
+        if (!blogGridPreview) return;
+        blogGridPreview.innerHTML = "";
+        var n = Math.min(6, list.length);
+        for (var i=0;i<n;i++){
+          blogGridPreview.appendChild(makeBlogCard(list[i]));
+        }
+        if (n === 0){
+          setBlogStatus(blogPreviewStatus,
+            "No blogs found yet. Add /blogs/manifest.json (or a sitemap.xml with blog URLs) to auto-populate this section.",
+            "bad"
+          );
+        } else {
+          setBlogStatus(blogPreviewStatus, "Showing " + n + " of " + list.length + " blogs.", "ok");
+        }
+      }
+
+      function renderBlogsAll(list, q){
+        if (!blogGridAll) return;
+        blogGridAll.innerHTML = "";
+        var qq = String(q || "").trim().toLowerCase();
+        var filtered = !qq ? list : list.filter(function(b){
+          var h = (b && b.href) ? String(b.href).toLowerCase() : "";
+          var t = (b && b.title) ? String(b.title).toLowerCase() : "";
+          var d = (b && b.desc) ? String(b.desc).toLowerCase() : "";
+          return h.indexOf(qq) >= 0 || t.indexOf(qq) >= 0 || d.indexOf(qq) >= 0;
+        });
+
+        filtered.forEach(function(b){ blogGridAll.appendChild(makeBlogCard(b)); });
+
+        if (filtered.length === 0){
+          if (list.length === 0){
+            setBlogStatus(blogAllStatus,
+              "No blogs found. Add a blog manifest (recommended) at /blogs/manifest.json, or ensure sitemap.xml includes blog pages.",
+              "bad"
+            );
+          } else {
+            setBlogStatus(blogAllStatus, "No matches for: " + qq, "bad");
+          }
+        } else {
+          var msg = "Showing " + filtered.length + " blog" + (filtered.length === 1 ? "" : "s");
+          if (qq) msg += " (filtered)";
+          msg += ".";
+          setBlogStatus(blogAllStatus, msg, "ok");
+        }
+      }
+
+      function uniqByHref(list){
+        var seen = Object.create(null);
+        var out = [];
+        list.forEach(function(b){
+          var href = (b && b.href) ? String(b.href) : "";
+          if (!href) return;
+          if (seen[href]) return;
+          seen[href] = 1;
+          out.push(b);
+        });
+        return out;
+      }
+
+      function sortBlogsStable(list){
+        // Prefer explicit date (desc), else keep stable-ish by href.
+        return list.slice().sort(function(a,b){
+          var ad = a && a.date ? String(a.date) : "";
+          var bd = b && b.date ? String(b.date) : "";
+          if (ad && bd){
+            if (ad === bd) return 0;
+            return ad < bd ? 1 : -1;
+          }
+          var ah = a && a.href ? String(a.href) : "";
+          var bh = b && b.href ? String(b.href) : "";
+          return ah < bh ? -1 : (ah > bh ? 1 : 0);
+        });
+      }
+
+      function safeJsonFetch(url){
+        return fetch(url, { cache:"no-store" })
+          .then(function(r){
+            if (!r || !r.ok) throw new Error("HTTP " + (r ? r.status : 0));
+            return r.json();
+          });
+      }
+
+      function safeTextFetch(url){
+        return fetch(url, { cache:"no-store" })
+          .then(function(r){
+            if (!r || !r.ok) throw new Error("HTTP " + (r ? r.status : 0));
+            return r.text();
+          });
+      }
+
+      function normalizeManifestShape(x){
+        // Accept:
+        // - array of {title, href, date, desc, chip}
+        // - {blogs:[...]} or {posts:[...]} or {items:[...]}
+        if (!x) return [];
+        var arr = null;
+        if (Array.isArray(x)) arr = x;
+        else if (x.blogs && Array.isArray(x.blogs)) arr = x.blogs;
+        else if (x.posts && Array.isArray(x.posts)) arr = x.posts;
+        else if (x.items && Array.isArray(x.items)) arr = x.items;
+        else arr = null;
+
+        if (!arr) return [];
+        return arr.map(function(it){
+          if (!it) return null;
+          if (typeof it === "string"){
+            return { href: it, title: titleFromPath(normalizePathToRel(it)) };
+          }
+          var href = it.href || it.url || it.path;
+          if (!href) return null;
+          return {
+            href: String(href),
+            title: it.title ? String(it.title) : titleFromPath(normalizePathToRel(href)),
+            date: it.date ? String(it.date) : "",
+            desc: it.desc ? String(it.desc) : (it.description ? String(it.description) : ""),
+            chip: it.chip ? String(it.chip) : (it.category ? String(it.category) : "")
+          };
+        }).filter(Boolean);
+      }
+
+      function parseSitemapForBlogUrls(xmlText){
+        var urls = [];
+        try{
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(xmlText, "application/xml");
+          var locs = Array.prototype.slice.call(doc.getElementsByTagName("loc") || []);
+          locs.forEach(function(n){
+            var t = (n && n.textContent) ? n.textContent.trim() : "";
+            if (!t) return;
+            urls.push(t);
+          });
+        }catch(e){
+          // Fallback: regex loc tags
+          var re = /<loc>\s*([^<]+)\s*<\/loc>/gi;
+          var m;
+          while ((m = re.exec(String(xmlText || ""))) !== null){
+            if (m[1]) urls.push(String(m[1]).trim());
+          }
+        }
+        // Filter likely blog pages (and exclude obvious app/tool pages)
+        var out = urls.filter(function(u){
+          var s = String(u || "").toLowerCase();
+          if (s.indexOf(".html") < 0) return false;
+          if (s.indexOf("student-research.html") >= 0) return false;
+          if (s.indexOf("decision-brief.html") >= 0) return false;
+          if (s.indexOf("alchemist.html") >= 0) return false;
+          if (s.indexOf("ondc-demo.html") >= 0) return false;
+          if (s.indexOf("engine-license.html") >= 0) return false;
+          if (s.indexOf("swipeos.html") >= 0) return false;
+          if (s.indexOf("index.html") >= 0) return false;
+          // heuristics: blog-ish paths or known content buckets
+          if (s.indexOf("/blog") >= 0 || s.indexOf("/blogs") >= 0) return true;
+          if (s.indexOf("/posts") >= 0 || s.indexOf("/articles") >= 0) return true;
+          if (s.indexOf("/notes") >= 0 || s.indexOf("/updates") >= 0 || s.indexOf("/news") >= 0) return true;
+          // if site uses root pages as posts, allow those with "post" or "article" in name
+          if (s.indexOf("post") >= 0 || s.indexOf("article") >= 0) return true;
+          return false;
+        });
+
+        return out.map(function(u){
+          var rel = normalizePathToRel(u);
+          return {
+            href: rel.replace(/^\//,""),
+            title: titleFromPath(rel),
+            chip: chipFromPath(rel),
+            desc: ""
+          };
+        });
+      }
+
+      function discoverBlogs(){
+        if (_blogsLoading) return Promise.resolve(_blogsAll);
+        _blogsLoading = true;
+
+        setBlogStatus(blogPreviewStatus, "Loading blogs…", "");
+        setBlogStatus(blogAllStatus, "Loading blogs…", "");
+
+        var manifestCandidates = [
+          "/blogs/manifest.json",
+          "/blog/manifest.json",
+          "/blogs/index.json",
+          "/blog/index.json",
+          "/blogs.json",
+          "/blog.json"
+        ];
+
+        function tryManifests(i){
+          if (i >= manifestCandidates.length) return Promise.resolve(null);
+          var url = manifestCandidates[i];
+          return safeJsonFetch(url).then(function(data){
+            var list = normalizeManifestShape(data);
+            if (list && list.length) return list;
+            return null;
+          }).catch(function(){
+            return tryManifests(i + 1);
+          });
+        }
+
+        return tryManifests(0).then(function(list){
+          if (list && list.length){
+            return list;
+          }
+          // fallback: sitemap.xml
+          return safeTextFetch("/sitemap.xml").then(function(xml){
+            var fromSitemap = parseSitemapForBlogUrls(xml);
+            return (fromSitemap && fromSitemap.length) ? fromSitemap : [];
+          }).catch(function(){
+            return [];
+          });
+        }).then(function(list){
+          list = uniqByHref(list || []);
+          list = sortBlogsStable(list);
+          _blogsAll = list;
+          _blogsLoaded = true;
+          _blogsLoading = false;
+
+          renderBlogsPreview(_blogsAll);
+          renderBlogsAll(_blogsAll, blogSearch ? blogSearch.value : "");
+
+          return _blogsAll;
+        }).catch(function(){
+          _blogsLoading = false;
+          _blogsAll = [];
+          _blogsLoaded = true;
+
+          renderBlogsPreview(_blogsAll);
+          renderBlogsAll(_blogsAll, blogSearch ? blogSearch.value : "");
+          return _blogsAll;
+        });
+      }
+
+      if (refreshBlogsPreviewBtn) refreshBlogsPreviewBtn.addEventListener("click", function(){
+        _blogsLoaded = false;
+        discoverBlogs();
+      });
+      if (refreshBlogsAllBtn) refreshBlogsAllBtn.addEventListener("click", function(){
+        _blogsLoaded = false;
+        discoverBlogs();
+      });
+
+      if (blogSearch){
+        blogSearch.addEventListener("input", function(){
+          renderBlogsAll(_blogsAll, blogSearch.value);
+        });
       }
 
       /* ── WHEEL + KEYBOARD ────────────────────────────────── */
@@ -1718,6 +2229,9 @@
       renderProducts();
       applyAffiliateToLinks();
       updateQPPwaStatus();
+
+      // initial blog load
+      discoverBlogs();
 
       var qpProject = document.getElementById("qpProject");
       if (qpProject){ try { qpProject.textContent = localStorage.getItem("decideProject") || "-"; }catch(e){ qpProject.textContent = "-"; } }
