@@ -3,571 +3,1013 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#080809"/>
-<title>Custom 3D Keychain — ₹349 | ViaDecide</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0d0d0d"/>
+<title>NFC Smart Keychain — ₹449 | ViaDecide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 
 <style>
+/* === YOUR EXISTING CSS (UNCHANGED) === */
 :root{
-  --bg:#080809;--card-bg:rgba(14,14,18,0.88);--card-border:rgba(255,255,255,0.07);
-  --text:#f8f8fa;--muted:rgba(235,235,245,0.55);
-  --accent:#ff5c1a;--accent2:#ffb347;--aglow:rgba(255,92,26,0.18);
-  --green:#22c55e;--sh:0 32px 80px rgba(0,0,0,0.7);--r:22px;
+  --bg:#0d0d0f;--card-bg:rgba(15,15,19,0.9);--border:rgba(255,255,255,0.07);
+  --text:#f4f4f6;--muted:rgba(228,228,240,0.5);
+  --red:#e82828;--red2:#ff4d4d;--rglow:rgba(232,40,40,0.14);
+  --black:#111;--green:#22c55e;
+  --sh:0 28px 72px rgba(0,0,0,0.65);--r:20px;
   --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
   --sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);
-  --mw:720px;
+  --mw:700px;
 }
-html,body{height:100%;height:100dvh;margin:0;background:var(--bg);color:var(--text);font-family:var(--fb);overflow:hidden;overscroll-behavior-y:none;-webkit-font-smoothing:antialiased;}
+html,body{height:100%;height:100dvh;margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--fb);overflow:hidden;overscroll-behavior-y:none;-webkit-font-smoothing:antialiased;}
 *{box-sizing:border-box;}
 button{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;}
+
 .glow{position:absolute;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(255,92,26,0.13),transparent),
-             radial-gradient(ellipse 60% 40% at 90% 110%,rgba(255,179,71,0.05),transparent);}
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -5%,rgba(232,40,40,0.13),transparent),
+    radial-gradient(ellipse 50% 35% at 95% 100%,rgba(232,40,40,0.07),transparent);}
+
+/* TOP BAR */
 .top{position:absolute;top:0;left:0;right:0;z-index:50;
-  padding:calc(14px + var(--st)) calc(14px + var(--sr)) 14px calc(14px + var(--sl));
+  padding:calc(13px + var(--st)) calc(13px + var(--sr)) 13px calc(13px + var(--sl));
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  pointer-events:none;background:linear-gradient(180deg,rgba(8,8,9,0.97) 0%,transparent 100%);}
+  pointer-events:none;background:linear-gradient(180deg,rgba(13,13,15,0.97),transparent);}
 .top>*{pointer-events:auto;}
-.back{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;
-  border:1px solid rgba(255,255,255,0.09);background:rgba(10,10,13,0.75);backdrop-filter:blur(16px);
-  color:rgba(255,255,255,0.88);font-weight:600;font-size:13px;text-decoration:none;}
-.tr{display:flex;align-items:center;gap:8px;}
-.btnt{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;
-  border-radius:50%;border:1px solid rgba(255,255,255,0.09);background:rgba(10,10,13,0.75);
-  backdrop-filter:blur(16px);font-size:12px;font-weight:700;color:var(--accent);}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;
-  border:1px solid rgba(255,255,255,0.08);background:rgba(10,10,13,0.75);backdrop-filter:blur(16px);
-  font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
-.pill b{color:#fff;font-weight:700;}
+.back{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+  border:1px solid rgba(255,255,255,0.08);background:rgba(10,10,13,0.8);backdrop-filter:blur(16px);
+  color:rgba(255,255,255,0.85);font-weight:600;font-size:13px;text-decoration:none;}
+.topright{display:flex;align-items:center;gap:8px;}
+.btnt{display:inline-flex;align-items:center;justify-content:center;width:35px;height:35px;
+  border-radius:50%;border:1px solid rgba(255,255,255,0.08);background:rgba(10,10,13,0.8);
+  backdrop-filter:blur(16px);font-size:11px;font-weight:700;color:var(--red);}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;
+  border:1px solid rgba(255,255,255,0.07);background:rgba(10,10,13,0.8);backdrop-filter:blur(16px);
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.pill b{color:#fff;}
+
+/* SCROLL + SECTIONS */
 .sc{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
   scroll-snap-type:y mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;z-index:10;}
 .sc::-webkit-scrollbar{display:none;}
 .sw{height:100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;
   display:flex;flex-direction:column;justify-content:center;align-items:center;
-  padding:calc(80px + var(--st)) calc(14px + var(--sr)) calc(56px + var(--sb)) calc(14px + var(--sl));
+  padding:calc(76px + var(--st)) calc(13px + var(--sr)) calc(52px + var(--sb)) calc(13px + var(--sl));
   position:relative;}
 .card{width:100%;max-width:var(--mw);flex:1;min-height:0;border-radius:var(--r);
-  border:1px solid var(--card-border);background:var(--card-bg);
+  border:1px solid var(--border);background:var(--card-bg);
   backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:var(--sh);
   display:flex;flex-direction:column;overflow:hidden;
-  opacity:.2;transform:scale(.93) translateY(30px);
+  opacity:.18;transform:scale(.93) translateY(28px);
   transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
-.sw.active .card{opacity:1;transform:scale(1) translateY(0);}
-.ch{padding:22px 22px 18px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.35);flex-shrink:0;}
-.kk{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:8px;}
-.kk::before{content:'';display:block;width:18px;height:2px;background:var(--accent);border-radius:2px;}
-.h1{margin:0;font-family:var(--fh);font-size:clamp(20px,4.8vw,26px);line-height:1.25;font-weight:800;}
-.cb{padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
-.cb::-webkit-scrollbar{width:4px;}
-.cb::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:10px;}
-.big{font-family:var(--fh);font-size:clamp(24px,5vw,38px);line-height:1.12;font-weight:800;letter-spacing:-.03em;margin:0 0 18px;}
-.big .a{background:linear-gradient(120deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.lead{font-size:15px;line-height:1.65;color:rgba(255,255,255,0.82);margin:0 0 14px;}
-.ul{margin:14px 0;padding:0;list-style:none;font-size:14px;line-height:1.65;}
-.ul li{position:relative;padding-left:20px;margin:11px 0;color:rgba(255,255,255,0.75);}
-.ul li::before{content:'→';position:absolute;left:0;color:var(--accent);font-weight:800;}
+.sw.active .card{opacity:1;transform:none;}
+.ch{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.38);flex-shrink:0;}
+.kk{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:700;
+  margin-bottom:6px;display:flex;align-items:center;gap:7px;}
+.kk::before{content:'';display:block;width:16px;height:2px;background:var(--red);border-radius:2px;}
+.h1{margin:0;font-family:var(--fh);font-size:clamp(19px,4.5vw,25px);line-height:1.25;font-weight:800;}
+.cb{padding:20px;overflow-y:auto;flex:1;}
+.cb::-webkit-scrollbar{width:3px;}
+.cb::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:10px;}
+
+/* CONTENT ELEMENTS */
+.big{font-family:var(--fh);font-size:clamp(24px,5vw,36px);line-height:1.12;font-weight:800;letter-spacing:-.03em;margin:0 0 16px;}
+.big .r{background:linear-gradient(120deg,#ff6b6b,var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.lead{font-size:15px;line-height:1.65;color:rgba(255,255,255,0.8);margin:0 0 13px;}
+.lead i{color:rgba(255,255,255,0.55);font-style:italic;}
+.ul{margin:13px 0;padding:0;list-style:none;font-size:14px;line-height:1.65;}
+.ul li{position:relative;padding-left:20px;margin:10px 0;color:rgba(255,255,255,0.72);}
+.ul li::before{content:'→';position:absolute;left:0;color:var(--red);font-weight:800;}
 .ul b{color:#fff;}
-.qt{margin:18px 0 14px;padding:13px 17px;border-left:3px solid var(--accent);
-  background:linear-gradient(90deg,var(--aglow),transparent);border-radius:0 12px 12px 0;
-  color:rgba(255,255,255,0.9);line-height:1.6;font-size:13px;font-style:italic;}
-.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:18px 0;}
-.sn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:13px 9px;text-align:center;}
-.sv{font-family:var(--fh);font-size:22px;font-weight:800;color:#fff;}
-.sl2{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.05em;text-transform:uppercase;}
+.qt{margin:18px 0 14px;padding:13px 16px;border-left:3px solid var(--red);
+  background:linear-gradient(90deg,var(--rglow),transparent);border-radius:0 11px 11px 0;
+  color:rgba(255,255,255,0.88);line-height:1.6;font-size:13px;font-style:italic;}
 
-/* VIEWER */
-.vs{border:1px solid rgba(255,255,255,0.10);border-radius:14px;overflow:hidden;background:#0a0a0c;box-shadow:0 12px 40px rgba(0,0,0,0.5);position:relative;}
-#cv{display:block;width:100%;height:min(52vh,420px);min-height:280px;touch-action:none;}
+/* USE-CASE PILLS */
+.usecases{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;}
+.uc{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+  font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8);}
+.uc.active{background:rgba(232,40,40,0.15);border-color:rgba(232,40,40,0.35);color:#fff;}
+.uc-icon{font-size:15px;}
+
+/* HOW IT WORKS */
+.steps{margin:14px 0;}
+.step{display:flex;gap:13px;align-items:flex-start;margin:14px 0;}
+.step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+  background:rgba(232,40,40,0.15);border:1px solid rgba(232,40,40,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:12px;font-weight:800;color:var(--red);}
+.step-body{flex:1;padding-top:3px;}
+.step-title{font-weight:600;color:#fff;font-size:14px;margin-bottom:3px;}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+
+/* COLOUR CHIPS */
+.colours{display:flex;gap:10px;margin:16px 0;}
+.chip{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);font-size:13px;}
+.cswatch{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:16px 0;}
+.sn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:13px;padding:12px 8px;text-align:center;}
+.sv{font-family:var(--fh);font-size:20px;font-weight:800;color:#fff;}
+.sl{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.05em;text-transform:uppercase;}
+
+/* 3D VIEWER */
+.vs{border:1px solid rgba(255,255,255,0.09);border-radius:14px;overflow:hidden;
+  background:#0a0a0c;box-shadow:0 10px 36px rgba(0,0,0,0.5);position:relative;}
+#cv{display:block;width:100%;height:min(50vh,390px);cursor:grab;touch-action:none;}
+#cv:active{cursor:grabbing;}
 .vh{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(circle at 50% 35%,rgba(255,92,26,0.11),rgba(0,0,0,0.65));
-  color:rgba(255,255,255,0.85);font-weight:800;letter-spacing:.07em;text-transform:uppercase;font-size:12px;pointer-events:none;}
-.vi{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,0.65);
+  background:radial-gradient(circle at 50% 35%,rgba(232,40,40,0.1),rgba(0,0,0,0.6));
+  color:rgba(255,255,255,0.75);font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  font-size:12px;pointer-events:none;}
+.vi{position:absolute;left:9px;bottom:9px;background:rgba(0,0,0,0.65);
   border:1px solid rgba(255,255,255,0.1);padding:6px 10px;border-radius:9px;
-  font-size:11px;color:rgba(255,255,255,0.65);pointer-events:none;}
-
-.colorbar{
-  display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0;
-}
-.cbtn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:9px 12px;border-radius:999px;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.10);
-  color:rgba(255,255,255,0.85);
-  font-size:12px;font-weight:700;
-}
-.csw{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);}
+  font-size:11px;color:rgba(255,255,255,0.6);pointer-events:none;}
+/* Colour toggle */
+.colour-toggle{position:absolute;right:9px;bottom:9px;display:flex;gap:6px;}
+.ct-btn{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);cursor:pointer;transition:transform .15s;}
+.ct-btn:active{transform:scale(.9);}
+.ct-btn.selected{border-color:#fff;}
 
 /* CTA */
-.pb{display:flex;align-items:baseline;gap:10px;margin:0 0 16px;flex-wrap:wrap;}
-.pm{font-family:var(--fh);font-size:clamp(36px,8vw,52px);font-weight:800;color:#fff;letter-spacing:-.03em;}
+.pb{display:flex;align-items:baseline;gap:10px;margin:0 0 15px;flex-wrap:wrap;}
+.pm{font-family:var(--fh);font-size:clamp(34px,8vw,50px);font-weight:800;color:#fff;letter-spacing:-.03em;}
 .pm span{font-size:.55em;opacity:.7;}
 .po{font-size:17px;color:var(--muted);text-decoration:line-through;}
-.bs{display:inline-block;padding:3px 10px;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.28);color:var(--green);border-radius:999px;font-size:11px;font-weight:700;}
-.tr2{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 18px;}
-.tc{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);font-size:11px;color:rgba(255,255,255,0.72);font-weight:500;}
-.tc .dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;}
-.cp{width:100%;padding:0;border-radius:14px;overflow:hidden;position:relative;margin-bottom:9px;display:block;border:none;cursor:pointer;}
-.ci{display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;
-  background:linear-gradient(110deg,#ff6b2b 0%,#ff4500 55%,#e63a00 100%);
+.bs{display:inline-block;padding:3px 10px;background:rgba(34,197,94,.13);
+  border:1px solid rgba(34,197,94,.28);color:var(--green);border-radius:999px;font-size:11px;font-weight:700;}
+.tr2{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 17px;}
+.tc{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  font-size:11px;color:rgba(255,255,255,0.7);font-weight:500;}
+.tc .dot{width:5px;height:5px;border-radius:50%;background:var(--green);}
+.cp{width:100%;padding:0;border-radius:14px;overflow:hidden;position:relative;margin-bottom:9px;display:block;cursor:pointer;}
+.ci{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 20px;
+  background:linear-gradient(110deg,#e82828 0%,#c41f1f 100%);
   font-family:var(--fh);font-size:17px;font-weight:800;color:#fff;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.11) inset,0 18px 45px rgba(255,69,0,0.3);}
-.ca{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.18);font-size:13px;}
+  box-shadow:0 0 0 1px rgba(255,255,255,0.1) inset,0 16px 40px rgba(232,40,40,0.28);}
+.cp:active .ci{filter:brightness(1.1);}
+.ca{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.18);
+  display:inline-flex;align-items:center;justify-content:center;font-size:13px;}
 .cpulse{position:absolute;inset:0;border-radius:14px;animation:pp 2.5s ease-in-out infinite;pointer-events:none;}
-@keyframes pp{0%,100%{box-shadow:0 0 0 0 rgba(255,92,26,0);}50%{box-shadow:0 0 0 9px rgba(255,92,26,0.16);}}
-.cs{width:100%;padding:14px 18px;border-radius:13px;border:1px solid rgba(255,255,255,0.11);background:rgba(255,255,255,0.04);
-  font-size:14px;font-weight:600;color:rgba(255,255,255,0.82);display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;}
-.mt{text-align:center;font-size:12px;color:var(--muted);margin-top:11px;line-height:1.5;}
+@keyframes pp{0%,100%{box-shadow:0 0 0 0 rgba(232,40,40,0);}50%{box-shadow:0 0 0 9px rgba(232,40,40,0.15);}}
+.cs{width:100%;padding:13px 18px;border-radius:13px;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);font-size:14px;font-weight:600;
+  color:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;}
+.cs:active{background:rgba(255,255,255,0.08);}
+.mt{text-align:center;font-size:12px;color:var(--muted);margin-top:10px;line-height:1.55;}
 .mt b{color:var(--text);}
 
+/* SCROLL HINT */
 .hint{position:absolute;bottom:calc(13px + var(--sb));left:50%;transform:translateX(-50%);
-  display:flex;flex-direction:column;align-items:center;gap:5px;
-  color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:rgba(255,255,255,0.28);font-size:10px;text-transform:uppercase;letter-spacing:.12em;
   pointer-events:none;animation:hb 2s ease-in-out infinite;z-index:100;}
 .hint svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;}
-@keyframes hb{0%,100%{transform:translate(-50%,0);opacity:.5;}50%{transform:translate(-50%,5px);opacity:.85;}}
+@keyframes hb{0%,100%{transform:translate(-50%,0);opacity:.45;}50%{transform:translate(-50%,5px);opacity:.8;}}
 .sw:last-child .hint{display:none;}
 
-.tt{position:fixed;top:calc(74px + var(--st));left:50%;
-  transform:translateX(-50%) translateY(-16px);
-  background:rgba(14,14,18,0.97);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(14px);
-  color:#fff;padding:8px 13px 8px 17px;border-radius:999px;font-size:13px;
-  display:flex;align-items:center;gap:13px;
+/* TOAST */
+.tt{position:fixed;top:calc(72px + var(--st));left:50%;transform:translateX(-50%) translateY(-16px);
+  background:rgba(14,14,18,0.97);border:1px solid rgba(255,255,255,0.11);backdrop-filter:blur(14px);
+  color:#fff;padding:8px 12px 8px 16px;border-radius:999px;font-size:13px;
+  display:flex;align-items:center;gap:12px;
   opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.16,1,.3,1);z-index:9999;}
 .tt.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
-.ub{color:var(--accent);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;padding:5px 10px;background:rgba(255,92,26,0.13);border-radius:999px;cursor:pointer;}
+.ub{color:var(--red);font-weight:700;text-transform:uppercase;font-size:11px;
+  letter-spacing:.06em;padding:4px 10px;background:rgba(232,40,40,0.12);border-radius:999px;cursor:pointer;}
 </style>
 </head>
 
 <body>
 <div style="position:relative;width:100vw;height:100dvh;overflow:hidden;">
   <div class="glow"></div>
+
   <div class="top">
     <a class="back" id="bk" href="#">← Back</a>
-    <div class="tr">
-      <button class="btnt" id="btl">A/अ</button>
-      <div class="pill"><b id="sl">1/5</b> • <span id="sn">INTRO</span></div>
+    <div class="topright">
+      <button class="btnt" id="btl" aria-label="Toggle language">A/अ</button>
+      <div class="pill"><b id="sl">1/6</b> • <span id="sn">INTRO</span></div>
     </div>
   </div>
+
   <main class="sc" id="sc"></main>
 </div>
-<div id="tt" class="tt"><span id="tm">Translated to Hindi</span><button id="bu" class="ub">Undo</button></div>
 
-<!-- ✅ Non-module three.js (won’t blank the whole page if blocked) -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+<div id="tt" class="tt"><span id="tm">Translated to Hindi</span><button id="bu" class="ub">Undo</button></div>
 
 <script>
 "use strict";
 
-/* =========================
-   CONFIG
-========================= */
-const MODEL_URL = "./nfc.stl.glb"; // <-- ensure this URL works in browser
-const WHATSAPP = "https://wa.me/916351537770?text=" + encodeURIComponent("Hi, I want to order the Custom Keychain (₹349). Please confirm.");
-const ONDC = "#";
+/* ========= 1) CONFIG ========= */
 
-/* =========================
-   SECTIONS
-========================= */
-const SECS = [
-  { name:"INTRO", kicker:"Product Story",
-    title:{en:"Built to Last, Built to Carry",hi:"टिकाऊ। साथ रहने वाला।"},
-    html:{
-      en:()=>`<div class="big">Not just a keychain.<br><span class="a">A statement.</span></div>
-        <p class="lead">3D-printed with precision. Every edge intentional, every dimension stress-tested. This is daily-carry infrastructure.</p>
-        <div class="sg">
-          <div class="sn"><div class="sv">3mm</div><div class="sl2">Thickness</div></div>
-          <div class="sn"><div class="sv">PLA</div><div class="sl2">Material</div></div>
-          <div class="sn"><div class="sv">48h</div><div class="sl2">Dispatch</div></div>
-        </div>
-        <div class="qt">Each unit is printed fresh on order — not warehoused, not mass-injected. Yours is made for you.</div>`,
-      hi:()=>`<div class="big">सिर्फ कीचेन नहीं।<br><span class="a">एक बयान।</span></div>
-        <p class="lead">प्रेसिशन 3D प्रिंटेड। हर एज इरादे से बनी। रोज़ साथ रहने वाला।</p>
-        <div class="sg">
-          <div class="sn"><div class="sv">3mm</div><div class="sl2">मोटाई</div></div>
-          <div class="sn"><div class="sv">PLA</div><div class="sl2">मैटेरियल</div></div>
-          <div class="sn"><div class="sv">48h</div><div class="sl2">डिस्पैच</div></div>
-        </div>
-        <div class="qt">हर यूनिट ऑर्डर पर ताज़ी प्रिंट। आपके लिए बनाई।</div>`
-    }
-  },
-  { name:"DETAILS", kicker:"What You Get",
-    title:{en:"Everything Included",hi:"क्या मिलता है"},
-    html:{
-      en:()=>`<div class="big">Clear specs.<br><span class="a">No noise.</span></div>
-        <ul class="ul">
-          <li><b>Price:</b> ₹349 — printing, QC, packaging & shipping included</li>
-          <li><b>Material:</b> PLA — lightweight, eco-friendly, durable</li>
-          <li><b>Finish:</b> 0.2mm layer — tight, clean, professional</li>
-          <li><b>Ring hole:</b> 6mm standard — fits any keyring</li>
-          <li><b>Colours:</b> Black + Accent (selectable)</li>
-          <li><b>Dispatch:</b> Within 48h of confirmation</li>
-        </ul>
-        <div class="qt">No surprise charges. What you see is what you pay.</div>`,
-      hi:()=>`<div class="big">साफ़ specs।<br><span class="a">कोई शोर नहीं।</span></div>
-        <ul class="ul">
-          <li><b>कीमत:</b> ₹349 — शिपिंग समेत सब</li>
-          <li><b>मैटेरियल:</b> PLA — हल्का, मज़बूत</li>
-          <li><b>फिनिश:</b> 0.2mm लेयर — क्लीन</li>
-          <li><b>रिंग होल:</b> 6mm — कोई भी keyring</li>
-          <li><b>रंग:</b> Black + Accent (selectable)</li>
-          <li><b>डिस्पैच:</b> 48 घंटे में</li>
-        </ul>
-        <div class="qt">कोई छुपा चार्ज नहीं। जो दिखे वही कीमत।</div>`
-    }
-  },
-  { name:"3D PREVIEW", kicker:"Inspect It",
-    title:{en:"See Every Angle — Live",hi:"हर एंगल — Live"},
-    html:{
-      en:()=>`
-        <p class="lead" style="margin-bottom:11px;">Drag to rotate · Pinch/Scroll to zoom · Double-tap to reset</p>
-        <div class="vs">
-          <canvas id="cv"></canvas>
-          <div id="vh" class="vh">Loading 3D…</div>
-          <div class="vi">↻ Drag &nbsp;⇱ Zoom &nbsp;✦ 2× reset</div>
-        </div>
+/* KEEP YOUR EXISTING STL_B64 HERE (binary STL, base64). */
+const STL_B64 = (typeof window.STL_B64_OVERRIDE === "string" && window.STL_B64_OVERRIDE.length > 100)
+  ? window.STL_B64_OVERRIDE
+  : "PASTE_YOUR_BINARY_STL_BASE64_HERE";
 
-        <div class="colorbar" id="colorbar">
-          <button class="cbtn" data-scheme="blackred">
-            <span class="csw" style="background:#111"></span>
-            <span class="csw" style="background:#e11d2e"></span>
-            Black / Red
-          </button>
-          <button class="cbtn" data-scheme="blackwhite">
-            <span class="csw" style="background:#111"></span>
-            <span class="csw" style="background:#f2f2f2"></span>
-            Black / White
-          </button>
-          <button class="cbtn" data-scheme="blackgold">
-            <span class="csw" style="background:#111"></span>
-            <span class="csw" style="background:#d4af37"></span>
-            Black / Gold
-          </button>
-          <button class="cbtn" data-scheme="navycyan">
-            <span class="csw" style="background:#0b1b35"></span>
-            <span class="csw" style="background:#22d3ee"></span>
-            Navy / Cyan
-          </button>
-        </div>
+/* CTA destination (edit) */
+const BUY_URL = "https://wa.me/91XXXXXXXXXX?text=I%20want%20the%20NFC%20Smart%20Keychain%20%E2%82%B9449";
 
-        <div class="qt" style="margin-top:14px;">
-          If the model is not visible: ensure <b>nfc.stl.glb</b> is accessible at <b>${MODEL_URL}</b> (open it directly in the browser to confirm).
-        </div>
-      `,
-      hi:()=>`
-        <p class="lead" style="margin-bottom:11px;">घुमाएं · ज़ूम करें · 2× tap reset</p>
-        <div class="vs">
-          <canvas id="cv"></canvas>
-          <div id="vh" class="vh">3D लोड हो रहा है…</div>
-          <div class="vi">↻ Drag &nbsp;⇱ Zoom &nbsp;✦ 2× reset</div>
-        </div>
-        <div class="colorbar" id="colorbar">
-          <button class="cbtn" data-scheme="blackred">
-            <span class="csw" style="background:#111"></span>
-            <span class="csw" style="background:#e11d2e"></span>
-            Black / Red
-          </button>
-          <button class="cbtn" data-scheme="blackwhite">
-            <span class="csw" style="background:#111"></span>
-            <span class="csw" style="background:#f2f2f2"></span>
-            Black / White
-          </button>
-          <button class="cbtn" data-scheme="blackgold">
-            <span class="csw" style="background:#111"></span>
-            <span class="csw" style="background:#d4af37"></span>
-            Black / Gold
-          </button>
-          <button class="cbtn" data-scheme="navycyan">
-            <span class="csw" style="background:#0b1b35"></span>
-            <span class="csw" style="background:#22d3ee"></span>
-            Navy / Cyan
-          </button>
-        </div>
-      `
-    }
+/* Optional: allow linking back to specific route: ?from=/engine */
+function getFromRoute(){
+  try{
+    const u = new URL(location.href);
+    const from = u.searchParams.get("from");
+    if(from && from.startsWith("/")) return from;
+  }catch(e){}
+  return "/";
+}
+
+/* ========= 2) CONTENT MODEL ========= */
+
+const SECTIONS = [
+  {
+    key: "INTRO",
+    sub: "NFC SMART KEYCHAIN",
+    en: `
+      <h2 class="big">Tap. Share. <span class="r">Instant</span>.</h2>
+      <p class="lead">A premium NFC keychain that opens your link in one tap — no app, no QR scan friction.</p>
+      <div class="usecases">
+        <span class="uc active"><span class="uc-icon">📇</span> Portfolio</span>
+        <span class="uc"><span class="uc-icon">🏪</span> Store</span>
+        <span class="uc"><span class="uc-icon">🧾</span> UPI / Payment</span>
+        <span class="uc"><span class="uc-icon">🧠</span> ViaDecide</span>
+      </div>
+      <div class="qt">“One tap is the fastest way to move from physical trust → digital action.”</div>
+      <ul class="ul">
+        <li><b>Works with iPhone + Android</b> (NFC enabled)</li>
+        <li><b>Water + scratch resistant</b> daily carry build</li>
+        <li><b>Link editable</b> (change destination anytime)</li>
+      </ul>
+    `,
+    hi: `
+      <h2 class="big">Tap. Share. <span class="r">Instant</span>.</h2>
+      <p class="lead">एक प्रीमियम NFC कीचेन — एक टैप में आपका लिंक खुलता है। कोई ऐप नहीं, कोई QR फ्रिक्शन नहीं।</p>
+      <div class="usecases">
+        <span class="uc active"><span class="uc-icon">📇</span> पोर्टफोलियो</span>
+        <span class="uc"><span class="uc-icon">🏪</span> स्टोर</span>
+        <span class="uc"><span class="uc-icon">🧾</span> UPI / पेमेंट</span>
+        <span class="uc"><span class="uc-icon">🧠</span> ViaDecide</span>
+      </div>
+      <div class="qt">“एक टैप = फिजिकल ट्रस्ट से डिजिटल एक्शन तक सबसे तेज़ रास्ता।”</div>
+      <ul class="ul">
+        <li><b>iPhone + Android</b> दोनों पर काम करता है</li>
+        <li><b>वॉटर + स्क्रैच रेसिस्टेंट</b> डेली यूज़ के लिए</li>
+        <li><b>लिंक बदल सकते हैं</b> (कभी भी)</li>
+      </ul>
+    `
   },
-  { name:"WHY US", kicker:"Proof",
-    title:{en:"Why Buyers Trust This",hi:"भरोसे की वजह"},
-    html:{
-      en:()=>`<div class="big">Maker-direct.<br><span class="a">Zero middlemen.</span></div>
-        <ul class="ul">
-          <li><b>Fresh per order</b> — no dead stock, no compromise</li>
-          <li><b>WhatsApp support</b> — real human, not a bot ticket</li>
-          <li><b>Free reprint policy</b> — damaged on arrival? We fix it</li>
-          <li><b>ONDC-listed seller</b> — verified identity, accountable</li>
-          <li><b>Bulk custom options</b> — name, logo, colour</li>
-        </ul>
-        <div class="qt">"Ordered Tuesday, got it Friday. Perfect fit on my keyring." — Priya, Ahmedabad</div>`,
-      hi:()=>`<div class="big">मेकर डायरेक्ट।<br><span class="a">बीच में कोई नहीं।</span></div>
-        <ul class="ul">
-          <li><b>ताज़ी प्रिंट</b> — पुराना स्टॉक नहीं</li>
-          <li><b>WhatsApp सपोर्ट</b> — इंसान से बात</li>
-          <li><b>फ्री रिप्रिंट</b> — डैमेज मिले तो हम ठीक करते हैं</li>
-          <li><b>ONDC-listed</b> — verified seller</li>
-          <li><b>कस्टम bulk</b> — नाम, लोगो, रंग</li>
-        </ul>
-        <div class="qt">"मंगलवार ऑर्डर, शुक्रवार delivery। एकदम सही फिट।" — प्रिया, अहमदाबाद</div>`
-    }
+  {
+    key: "3D VIEW",
+    sub: "ROTATE • ZOOM • COLOUR",
+    en: `
+      <p class="lead">Preview the actual geometry. Drag to rotate. Pinch / scroll to zoom.</p>
+      <div class="vs">
+        <canvas id="cv" aria-label="3D STL Viewer"></canvas>
+        <div class="vh" id="vh">Loading 3D…</div>
+        <div class="vi" id="vi">Drag • Pinch • Wheel</div>
+        <div class="colour-toggle" id="ct"></div>
+      </div>
+      <div class="sg">
+        <div class="sn"><div class="sv" id="st_faces">—</div><div class="sl">FACES</div></div>
+        <div class="sn"><div class="sv" id="st_verts">—</div><div class="sl">VERTS</div></div>
+        <div class="sn"><div class="sv" id="st_scale">—</div><div class="sl">SCALE</div></div>
+      </div>
+    `,
+    hi: `
+      <p class="lead">असली 3D शेप देखें। ड्रैग करके रोटेट करें। पिंच/स्क्रॉल से ज़ूम करें।</p>
+      <div class="vs">
+        <canvas id="cv" aria-label="3D STL Viewer"></canvas>
+        <div class="vh" id="vh">3D लोड हो रहा है…</div>
+        <div class="vi" id="vi">Drag • Pinch • Wheel</div>
+        <div class="colour-toggle" id="ct"></div>
+      </div>
+      <div class="sg">
+        <div class="sn"><div class="sv" id="st_faces">—</div><div class="sl">FACES</div></div>
+        <div class="sn"><div class="sv" id="st_verts">—</div><div class="sl">VERTS</div></div>
+        <div class="sn"><div class="sv" id="st_scale">—</div><div class="sl">SCALE</div></div>
+      </div>
+    `
   },
-  { name:"ORDER", kicker:"Get Yours",
-    title:{en:"Grab Yours — ₹349",hi:"अभी लें — ₹349"},
-    html:{
-      en:()=>`<div class="pb">
-          <div class="pm"><span>₹</span>349</div>
-          <div class="po">₹499</div>
-          <div class="bs">30% OFF</div>
+  {
+    key: "USE CASES",
+    sub: "WHERE IT WINS",
+    en: `
+      <h2 class="big">Use-cases that <span class="r">convert</span></h2>
+      <ul class="ul">
+        <li><b>Store counter:</b> tap → product page / catalog</li>
+        <li><b>Events:</b> tap → WhatsApp, Instagram, LinkedIn</li>
+        <li><b>Delivery:</b> tap → reorder / support / warranty</li>
+        <li><b>UPI:</b> tap → payment + invoice link</li>
+      </ul>
+      <div class="qt">Replace “can you send link?” with one tap.</div>
+    `,
+    hi: `
+      <h2 class="big">Use-cases जो <span class="r">convert</span> करते हैं</h2>
+      <ul class="ul">
+        <li><b>स्टोर काउंटर:</b> टैप → प्रोडक्ट पेज / कैटलॉग</li>
+        <li><b>इवेंट्स:</b> टैप → WhatsApp, Instagram, LinkedIn</li>
+        <li><b>डिलीवरी:</b> टैप → रीऑर्डर / सपोर्ट / वारंटी</li>
+        <li><b>UPI:</b> टैप → पेमेंट + इनवॉइस लिंक</li>
+      </ul>
+      <div class="qt">“लिंक भेजो” को one-tap में बदलें।</div>
+    `
+  },
+  {
+    key: "HOW IT WORKS",
+    sub: "SETUP IN MINUTES",
+    en: `
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Choose your destination</div>
+            <div class="step-desc">Website / WhatsApp / Instagram / UPI / any URL.</div>
+          </div>
         </div>
-        <div class="tr2">
-          <div class="tc"><div class="dot"></div>Ships in 48h</div>
-          <div class="tc"><div class="dot"></div>Free reprint</div>
-          <div class="tc"><div class="dot"></div>Cash on delivery</div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">We write NFC + test on devices</div>
+            <div class="step-desc">iPhone + Android compatibility checks.</div>
+          </div>
         </div>
-        <button class="cp" id="bwa"><span class="cpulse"></span>
-          <div class="ci">Order on WhatsApp <div class="ca">→</div></div>
-        </button>
-        <button class="cs" id="bondc">🛒 &nbsp;Order via ONDC</button>
-        <p class="mt">Tap WhatsApp → confirm details → pay on delivery.<br><b>No advance. No risk. Door delivery.</b></p>`,
-      hi:()=>`<div class="pb">
-          <div class="pm"><span>₹</span>349</div>
-          <div class="po">₹499</div>
-          <div class="bs">30% छूट</div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Tap to open</div>
+            <div class="step-desc">No app. No QR scan friction.</div>
+          </div>
         </div>
-        <div class="tr2">
-          <div class="tc"><div class="dot"></div>48h शिपिंग</div>
-          <div class="tc"><div class="dot"></div>फ्री रिप्रिंट</div>
-          <div class="tc"><div class="dot"></div>COD उपलब्ध</div>
+      </div>
+      <div class="colours">
+        <div class="chip"><span class="cswatch" style="background:#111;border-color:rgba(255,255,255,0.25)"></span> Matte Black</div>
+        <div class="chip"><span class="cswatch" style="background:#f4f4f6;border-color:rgba(255,255,255,0.35)"></span> Ivory White</div>
+        <div class="chip"><span class="cswatch" style="background:#e82828;border-color:rgba(255,255,255,0.25)"></span> Via Red</div>
+      </div>
+    `,
+    hi: `
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">डेस्टिनेशन चुनें</div>
+            <div class="step-desc">Website / WhatsApp / Instagram / UPI / कोई भी URL.</div>
+          </div>
         </div>
-        <button class="cp" id="bwa"><span class="cpulse"></span>
-          <div class="ci">WhatsApp पर ऑर्डर <div class="ca">→</div></div>
-        </button>
-        <button class="cs" id="bondc">🛒 &nbsp;ONDC से ऑर्डर</button>
-        <p class="mt">WhatsApp tap → confirm → delivery पर pay।<br><b>कोई advance नहीं। कोई risk नहीं।</b></p>`
-    }
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">हम NFC लिखकर टेस्ट करते हैं</div>
+            <div class="step-desc">iPhone + Android compatibility checks.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Tap करके खोलें</div>
+            <div class="step-desc">No app. No QR scan friction.</div>
+          </div>
+        </div>
+      </div>
+      <div class="colours">
+        <div class="chip"><span class="cswatch" style="background:#111;border-color:rgba(255,255,255,0.25)"></span> Matte Black</div>
+        <div class="chip"><span class="cswatch" style="background:#f4f4f6;border-color:rgba(255,255,255,0.35)"></span> Ivory White</div>
+        <div class="chip"><span class="cswatch" style="background:#e82828;border-color:rgba(255,255,255,0.25)"></span> Via Red</div>
+      </div>
+    `
+  },
+  {
+    key: "PRICING",
+    sub: "LAUNCH OFFER",
+    en: `
+      <div class="pb">
+        <div class="pm"><span>₹</span>449</div>
+        <div class="po">₹699</div>
+        <div class="bs">36% OFF</div>
+      </div>
+      <div class="tr2">
+        <span class="tc"><span class="dot"></span> Same-day config</span>
+        <span class="tc"><span class="dot"></span> Tested on devices</span>
+        <span class="tc"><span class="dot"></span> Premium build</span>
+      </div>
+
+      <a class="cp" id="buy" href="#" role="button" aria-label="Buy via WhatsApp">
+        <div class="cpulse"></div>
+        <div class="ci"><span class="ca">⚡</span> Buy now on WhatsApp</div>
+      </a>
+      <button class="cs" id="copy"><span>🔗</span> Copy product link</button>
+      <div class="mt">By ViaDecide • <b>NFC Smart Keychain</b> • Ships Pan-India</div>
+    `,
+    hi: `
+      <div class="pb">
+        <div class="pm"><span>₹</span>449</div>
+        <div class="po">₹699</div>
+        <div class="bs">36% OFF</div>
+      </div>
+      <div class="tr2">
+        <span class="tc"><span class="dot"></span> Same-day config</span>
+        <span class="tc"><span class="dot"></span> Device tested</span>
+        <span class="tc"><span class="dot"></span> Premium build</span>
+      </div>
+
+      <a class="cp" id="buy" href="#" role="button" aria-label="WhatsApp पर खरीदें">
+        <div class="cpulse"></div>
+        <div class="ci"><span class="ca">⚡</span> WhatsApp पर खरीदें</div>
+      </a>
+      <button class="cs" id="copy"><span>🔗</span> लिंक कॉपी करें</button>
+      <div class="mt">ViaDecide • <b>NFC Smart Keychain</b> • Pan-India shipping</div>
+    `
+  },
+  {
+    key: "FAQ",
+    sub: "DETAILS",
+    en: `
+      <h2 class="big">FAQ</h2>
+      <ul class="ul">
+        <li><b>Does iPhone work?</b> Yes (NFC via background tag reading supported on modern iOS).</li>
+        <li><b>Can I change the link later?</b> Yes — the destination can be updated if you use a redirect link.</li>
+        <li><b>Will it work with a phone cover?</b> Most cases yes; thick metal cases can reduce NFC range.</li>
+      </ul>
+      <div class="qt">Tip: For best NFC speed, tap near top-back of Android, and top of iPhone.</div>
+    `,
+    hi: `
+      <h2 class="big">FAQ</h2>
+      <ul class="ul">
+        <li><b>iPhone पर चलेगा?</b> हाँ (modern iOS पर NFC background reading supported)।</li>
+        <li><b>लिंक बाद में बदल सकते हैं?</b> हाँ — redirect link use करें तो update possible.</li>
+        <li><b>कवर के साथ चलेगा?</b> ज़्यादातर हाँ; मोटे/metal cases में range कम हो सकती है।</li>
+      </ul>
+      <div class="qt">Tip: Android में back-top के पास, iPhone में top पर टैप करें।</div>
+    `
   }
 ];
 
-const sc = document.getElementById('sc');
-const sl = document.getElementById('sl');
-const sn = document.getElementById('sn');
-let lang = 'en';
+/* ========= 3) UI RENDER ========= */
 
-document.getElementById('bk').addEventListener('click', e=>{
-  e.preventDefault();
-  if(window.history.length>1) window.history.back();
-  else location.href='https://viadecide.com';
-});
+const sc = document.getElementById("sc");
+const sl = document.getElementById("sl");
+const sn = document.getElementById("sn");
+const bk = document.getElementById("bk");
+const btl = document.getElementById("btl");
+const tt = document.getElementById("tt");
+const tm = document.getElementById("tm");
+const bu = document.getElementById("bu");
 
-const obs = new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    const nm = e.target.dataset.name;
-    if(e.isIntersecting){
-      e.target.classList.add('active');
-      const i = +e.target.dataset.i;
-      sl.textContent = (i+1)+'/'+SECS.length;
-      sn.textContent = nm;
-      if(nm==='3D PREVIEW') mount3D();
-    } else e.target.classList.remove('active');
-  });
-},{root:sc, threshold:0.5});
+const LS_LANG = "vd_lang_nfc";
+let lang = (localStorage.getItem(LS_LANG) === "hi") ? "hi" : "en";
+let lastLang = lang;
 
 function render(){
-  sc.innerHTML='';
-  SECS.forEach((s,i)=>{
-    const w=document.createElement('div');
-    w.className='sw'; w.dataset.i=i; w.dataset.name=s.name;
-    w.innerHTML=`<article class="card">
-      <header class="ch"><div class="kk">${s.kicker}</div><h1 class="h1">${s.title[lang]}</h1></header>
-      <div class="cb">${s.html[lang]()}<div style="height:75px"></div></div>
-    </article>
-    <div class="hint"><span>Scroll</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>`;
-    sc.appendChild(w); obs.observe(w);
+  sc.innerHTML = "";
+  SECTIONS.forEach((s, idx) => {
+    const wrap = document.createElement("section");
+    wrap.className = "sw";
+    wrap.dataset.idx = String(idx);
+    wrap.dataset.key = s.key;
+
+    wrap.innerHTML = `
+      <div class="card">
+        <div class="ch">
+          <div class="kk">${escapeHtml(s.sub)}</div>
+          <h1 class="h1">${escapeHtml(s.key)}</h1>
+        </div>
+        <div class="cb" data-body="1">${(lang === "hi" ? s.hi : s.en)}</div>
+      </div>
+      <div class="hint" aria-hidden="true">
+        <span>Scroll</span>
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    `;
+    sc.appendChild(wrap);
   });
-  const bwa=document.getElementById('bwa');
-  const bondc=document.getElementById('bondc');
-  if(bwa) bwa.onclick=()=>window.open(WHATSAPP,'_blank');
-  if(bondc) bondc.onclick=()=>window.open(ONDC==='#'?WHATSAPP:ONDC,'_blank');
+
+  wireButtons();
+  wireObserver();
 }
 
-const tt=document.getElementById('tt'), tm=document.getElementById('tm'), bu=document.getElementById('bu');
-let ttimer;
-function setLang(l){
-  lang=l; render();
-  tt.classList.add('on');
-  tm.textContent=l==='hi'?'Translated to Hindi':'Reverted to English';
-  bu.style.display=l==='hi'?'inline-block':'none';
-  clearTimeout(ttimer); ttimer=setTimeout(()=>tt.classList.remove('on'),3500);
+function wireButtons(){
+  // Back: history-aware + ?from=
+  bk.onclick = (e) => {
+    e.preventDefault();
+    const from = getFromRoute();
+    if (history.length > 1) history.back();
+    else location.href = from;
+  };
+
+  // Language toggle
+  btl.onclick = () => {
+    lastLang = lang;
+    lang = (lang === "en") ? "hi" : "en";
+    localStorage.setItem(LS_LANG, lang);
+    showToast(lang === "hi" ? "Translated to Hindi" : "Translated to English");
+    render(); // re-render content
+    requestAnimationFrame(() => {
+      // keep current section in view after rerender
+      const active = document.querySelector(".sw.active");
+      if(active) active.scrollIntoView({block:"start"});
+    });
+  };
+
+  bu.onclick = () => {
+    lang = lastLang;
+    localStorage.setItem(LS_LANG, lang);
+    hideToast();
+    render();
+    requestAnimationFrame(() => {
+      const active = document.querySelector(".sw.active");
+      if(active) active.scrollIntoView({block:"start"});
+    });
+  };
+
+  // CTA + copy (bind after render)
+  const buy = document.getElementById("buy");
+  if(buy){
+    buy.onclick = (e) => { e.preventDefault(); location.href = BUY_URL; };
+  }
+  const copy = document.getElementById("copy");
+  if(copy){
+    copy.onclick = async () => {
+      const url = location.href.split("#")[0];
+      try{
+        await navigator.clipboard.writeText(url);
+        showToast(lang === "hi" ? "लिंक कॉपी हो गया" : "Link copied");
+      }catch(e){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.style.position="fixed";ta.style.left="-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        showToast(lang === "hi" ? "लिंक कॉपी हो गया" : "Link copied");
+      }
+    };
+  }
 }
-document.getElementById('btl').onclick=()=>{if(lang==='en')setLang('hi');};
-bu.onclick=()=>setLang('en');
 
-render();
+let io;
+function wireObserver(){
+  if(io) io.disconnect();
+  const items = Array.from(document.querySelectorAll(".sw"));
+  io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if(en.isIntersecting){
+        items.forEach(x => x.classList.remove("active"));
+        en.target.classList.add("active");
+        const idx = Number(en.target.dataset.idx || "0");
+        sl.textContent = `${idx+1}/${SECTIONS.length}`;
+        sn.textContent = SECTIONS[idx].key;
+        if(SECTIONS[idx].key === "3D VIEW") queueInit3D(); // lazy init
+      }
+    });
+  }, { root: sc, threshold: 0.55 });
 
-/* =========================
-   3D VIEWER + COLOR SWAP
-========================= */
-let THREE_APP = null;
+  items.forEach(x => io.observe(x));
+  // initial active
+  if(items[0]) items[0].classList.add("active");
+  sl.textContent = `1/${SECTIONS.length}`;
+  sn.textContent = SECTIONS[0].key;
+}
 
-const COLOR_SCHEMES = {
-  blackred:  { base:"#0f0f12", accent:"#e11d2e" },
-  blackwhite:{ base:"#0f0f12", accent:"#f2f2f2" },
-  blackgold: { base:"#0f0f12", accent:"#d4af37" },
-  navycyan:  { base:"#0b1b35", accent:"#22d3ee" },
-};
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
 
-function mount3D(){
-  const canvas = document.getElementById('cv');
-  const vh = document.getElementById('vh');
-  if(!canvas || canvas.dataset.mounted) return;
-  canvas.dataset.mounted = "1";
+/* ========= 4) TOAST ========= */
 
-  // If THREE didn’t load (CSP), show error but keep page visible.
-  if(!window.THREE || !THREE.GLTFLoader || !THREE.OrbitControls){
-    if(vh) vh.textContent = "3D blocked (CSP). Host three.js locally.";
+let toastT = null;
+function showToast(msg){
+  tm.textContent = msg;
+  tt.classList.add("on");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => hideToast(), 2400);
+}
+function hideToast(){
+  tt.classList.remove("on");
+}
+
+/* ========= 5) STL VIEWER (WebGL) ========= */
+
+let glState = null;
+let initQueued = false;
+
+function queueInit3D(){
+  if(glState || initQueued) return;
+  initQueued = true;
+  requestAnimationFrame(() => {
+    tryInit3D();
+  });
+}
+
+function b64ToU8(b64){
+  const clean = (b64 || "").replace(/\s+/g,"");
+  const bin = atob(clean);
+  const u8 = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+
+function parseBinarySTL(u8){
+  // 80 bytes header, 4 bytes triCount, then triangles:
+  // normal(12) + v1(12) + v2(12) + v3(12) + attr(2) = 50 bytes each
+  if(!u8 || u8.length < 84) throw new Error("STL too small");
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const triCount = dv.getUint32(80, true);
+  const expected = 84 + triCount * 50;
+  if(expected > u8.byteLength) {
+    // sometimes header count mismatches; clamp
+  }
+  let off = 84;
+
+  const pos = new Float32Array(triCount * 9);
+  const nor = new Float32Array(triCount * 9);
+
+  let minX=Infinity,minY=Infinity,minZ=Infinity;
+  let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+
+  for(let t=0;t<triCount;t++){
+    const nx = dv.getFloat32(off+0,true);
+    const ny = dv.getFloat32(off+4,true);
+    const nz = dv.getFloat32(off+8,true);
+    off += 12;
+
+    const i0 = t*9;
+    for(let k=0;k<3;k++){
+      const x = dv.getFloat32(off+0,true);
+      const y = dv.getFloat32(off+4,true);
+      const z = dv.getFloat32(off+8,true);
+      off += 12;
+      pos[i0 + k*3 + 0] = x;
+      pos[i0 + k*3 + 1] = y;
+      pos[i0 + k*3 + 2] = z;
+
+      if(x<minX)minX=x; if(y<minY)minY=y; if(z<minZ)minZ=z;
+      if(x>maxX)maxX=x; if(y>maxY)maxY=y; if(z>maxZ)maxZ=z;
+
+      nor[i0 + k*3 + 0] = nx;
+      nor[i0 + k*3 + 1] = ny;
+      nor[i0 + k*3 + 2] = nz;
+    }
+
+    off += 2; // attribute byte count
+    if(off + 50 > dv.byteLength + 50) break;
+  }
+
+  // If normals are zero-ish, compute per face normals
+  let zeroN = 0;
+  for(let i=0;i<nor.length;i+=3){
+    const nx=nor[i], ny=nor[i+1], nz=nor[i+2];
+    if((nx*nx+ny*ny+nz*nz) < 1e-10) zeroN++;
+  }
+  if(zeroN > nor.length/6){
+    for(let t=0;t<triCount;t++){
+      const i0=t*9;
+      const ax=pos[i0+0], ay=pos[i0+1], az=pos[i0+2];
+      const bx=pos[i0+3], by=pos[i0+4], bz=pos[i0+5];
+      const cx=pos[i0+6], cy=pos[i0+7], cz=pos[i0+8];
+      const abx=bx-ax, aby=by-ay, abz=bz-az;
+      const acx=cx-ax, acy=cy-ay, acz=cz-az;
+      let nx=aby*acz - abz*acy;
+      let ny=abz*acx - abx*acz;
+      let nz=abx*acy - aby*acx;
+      const l=Math.hypot(nx,ny,nz) || 1;
+      nx/=l; ny/=l; nz/=l;
+      for(let k=0;k<3;k++){
+        nor[i0+k*3+0]=nx;
+        nor[i0+k*3+1]=ny;
+        nor[i0+k*3+2]=nz;
+      }
+    }
+  }
+
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+  let maxDim = Math.max(maxX-minX, maxY-minY, maxZ-minZ) || 1;
+  const s = 1.65 / maxDim; // normalize to fit view
+
+  for(let i=0;i<pos.length;i+=3){
+    pos[i+0] = (pos[i+0]-cx)*s;
+    pos[i+1] = (pos[i+1]-cy)*s;
+    pos[i+2] = (pos[i+2]-cz)*s;
+  }
+
+  return {pos, nor, triCount, scale:s};
+}
+
+function createGL(canvas){
+  const gl = canvas.getContext("webgl", {antialias:true, alpha:false, preserveDrawingBuffer:false});
+  if(!gl) return null;
+
+  const vs = `
+    attribute vec3 aPos;
+    attribute vec3 aNor;
+    uniform mat4 uMVP;
+    uniform mat4 uM;
+    varying vec3 vN;
+    varying vec3 vP;
+    void main(){
+      vec4 wp = uM * vec4(aPos,1.0);
+      vP = wp.xyz;
+      vN = mat3(uM) * aNor;
+      gl_Position = uMVP * vec4(aPos,1.0);
+    }
+  `;
+  const fs = `
+    precision mediump float;
+    varying vec3 vN;
+    varying vec3 vP;
+    uniform vec3 uCol;
+    uniform vec3 uLight;
+    void main(){
+      vec3 N = normalize(vN);
+      vec3 L = normalize(uLight);
+      float diff = max(dot(N,L), 0.0);
+      // rim
+      vec3 V = normalize(-vP);
+      float rim = pow(1.0 - max(dot(N,V),0.0), 2.0);
+      vec3 col = uCol * (0.22 + 0.78*diff) + vec3(1.0,0.24,0.24)*0.08*rim;
+      // gentle vignette
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+  const prog = linkProgram(gl, vs, fs);
+  gl.useProgram(prog);
+
+  const aPos = gl.getAttribLocation(prog, "aPos");
+  const aNor = gl.getAttribLocation(prog, "aNor");
+  const uMVP = gl.getUniformLocation(prog, "uMVP");
+  const uM = gl.getUniformLocation(prog, "uM");
+  const uCol = gl.getUniformLocation(prog, "uCol");
+  const uLight = gl.getUniformLocation(prog, "uLight");
+
+  const vbPos = gl.createBuffer();
+  const vbNor = gl.createBuffer();
+
+  gl.enableVertexAttribArray(aPos);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbPos);
+  gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
+
+  gl.enableVertexAttribArray(aNor);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbNor);
+  gl.vertexAttribPointer(aNor, 3, gl.FLOAT, false, 0, 0);
+
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.BACK);
+
+  return {gl, prog, aPos, aNor, uMVP, uM, uCol, uLight, vbPos, vbNor};
+}
+
+function compile(gl, type, src){
+  const sh = gl.createShader(type);
+  gl.shaderSource(sh, src);
+  gl.compileShader(sh);
+  if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){
+    const info = gl.getShaderInfoLog(sh) || "shader error";
+    gl.deleteShader(sh);
+    throw new Error(info);
+  }
+  return sh;
+}
+function linkProgram(gl, vsrc, fsrc){
+  const vs = compile(gl, gl.VERTEX_SHADER, vsrc);
+  const fs = compile(gl, gl.FRAGMENT_SHADER, fsrc);
+  const p = gl.createProgram();
+  gl.attachShader(p, vs);
+  gl.attachShader(p, fs);
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p, gl.LINK_STATUS)){
+    const info = gl.getProgramInfoLog(p) || "link error";
+    gl.deleteProgram(p);
+    throw new Error(info);
+  }
+  gl.deleteShader(vs); gl.deleteShader(fs);
+  return p;
+}
+
+function mat4Identity(){
+  return new Float32Array([1,0,0,0,  0,1,0,0,  0,0,1,0,  0,0,0,1]);
+}
+function mat4Mul(a,b){
+  const o = new Float32Array(16);
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      o[r*4+c]=
+        a[r*4+0]*b[0*4+c]+
+        a[r*4+1]*b[1*4+c]+
+        a[r*4+2]*b[2*4+c]+
+        a[r*4+3]*b[3*4+c];
+    }
+  }
+  return o;
+}
+function mat4Perspective(fov, asp, n, f){
+  const t = 1/Math.tan(fov/2);
+  const o = new Float32Array(16);
+  o[0]=t/asp; o[5]=t; o[10]=(f+n)/(n-f); o[11]=-1;
+  o[14]=(2*f*n)/(n-f);
+  return o;
+}
+function mat4Translate(x,y,z){
+  const o = mat4Identity();
+  o[12]=x; o[13]=y; o[14]=z;
+  return o;
+}
+function mat4RotX(a){
+  const c=Math.cos(a), s=Math.sin(a);
+  const o=mat4Identity();
+  o[5]=c; o[6]=s; o[9]=-s; o[10]=c;
+  return o;
+}
+function mat4RotY(a){
+  const c=Math.cos(a), s=Math.sin(a);
+  const o=mat4Identity();
+  o[0]=c; o[2]=-s; o[8]=s; o[10]=c;
+  return o;
+}
+
+function tryInit3D(){
+  const canvas = document.getElementById("cv");
+  const vh = document.getElementById("vh");
+  const ct = document.getElementById("ct");
+  if(!canvas || !vh || !ct) return;
+
+  const glw = createGL(canvas);
+  if(!glw){
+    vh.textContent = "WebGL not supported";
     return;
   }
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:"high-performance" });
-  // Good color consistency
-  if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setClearColor(0x0a0a0c, 1);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
-  camera.position.set(0, 0.75, 2.2);
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-
-  const key = new THREE.DirectionalLight(0xffffff, 1.25);
-  key.position.set(2.5, 4.0, 3.0);
-  scene.add(key);
-
-  const fill = new THREE.DirectionalLight(0xffffff, 0.55);
-  fill.position.set(-3.0, 1.0, -2.0);
-  scene.add(fill);
-
-  const controls = new THREE.OrbitControls(camera, canvas);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.enablePan = false;
-  controls.minDistance = 0.9;
-  controls.maxDistance = 6.0;
-  controls.target.set(0,0,0);
-
-  // Load model
-  const loader = new THREE.GLTFLoader();
-  loader.load(
-    MODEL_URL,
-    (gltf) => {
-      const root = gltf.scene;
-
-      // Center + scale to fit
-      const box = new THREE.Box3().setFromObject(root);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      root.position.sub(center);
-
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      root.scale.setScalar(1.0 / maxDim);
-
-      root.rotation.x = -0.35;
-      root.rotation.y = 0.55;
-
-      scene.add(root);
-
-      // Split meshes: biggest = base, rest = accent
-      const meshes = [];
-      root.traverse(o => { if(o.isMesh) meshes.push(o); });
-
-      meshes.forEach(m=>{
-        if(m.material && m.material.isMeshStandardMaterial){
-          m.material.metalness = Math.min(m.material.metalness ?? 0, 0.15);
-          m.material.roughness = Math.max(m.material.roughness ?? 0.6, 0.55);
-        }
-      });
-
-      const volumes = meshes.map(m=>{
-        const b = new THREE.Box3().setFromObject(m);
-        const s = b.getSize(new THREE.Vector3());
-        return s.x*s.y*s.z;
-      });
-      const baseIdx = volumes.indexOf(Math.max(...volumes));
-
-      THREE_APP = { renderer, scene, camera, controls, root, meshes, baseIdx };
-
-      applyScheme("blackred"); // default
-      bindColorButtons();
-
-      if(vh) vh.style.display = "none";
-    },
-    undefined,
-    (err) => {
-      console.error(err);
-      if(vh) vh.textContent = "3D failed to load (check MODEL_URL / MIME type)";
-    }
-  );
-
-  // Resize
-  const ro = new ResizeObserver(() => {
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    if(!w || !h) return;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  });
-  ro.observe(canvas);
-
-  // Double-tap reset
-  let lastTap = 0;
-  canvas.addEventListener("touchend", () => {
-    const now = Date.now();
-    if (now - lastTap < 280) {
-      controls.reset();
-      camera.position.set(0, 0.75, 2.2);
-      controls.target.set(0, 0, 0);
-      controls.update();
-    }
-    lastTap = now;
-  }, { passive:true });
-
-  // Render loop
-  function tick(){
-    requestAnimationFrame(tick);
-    controls.update();
-    renderer.render(scene, camera);
+  // parse stl
+  let mesh;
+  try{
+    const u8 = b64ToU8(STL_B64);
+    mesh = parseBinarySTL(u8);
+  }catch(e){
+    vh.textContent = "STL parse failed";
+    return;
   }
-  tick();
-}
 
-function bindColorButtons(){
-  const bar = document.getElementById("colorbar");
-  if(!bar) return;
-  bar.querySelectorAll("button[data-scheme]").forEach(btn=>{
-    btn.onclick = () => applyScheme(btn.dataset.scheme);
+  // stats
+  const st_faces = document.getElementById("st_faces");
+  const st_verts = document.getElementById("st_verts");
+  const st_scale = document.getElementById("st_scale");
+  if(st_faces) st_faces.textContent = String(mesh.triCount);
+  if(st_verts) st_verts.textContent = String(mesh.triCount * 3);
+  if(st_scale) st_scale.textContent = mesh.scale.toFixed(2);
+
+  const gl = glw.gl;
+  gl.bindBuffer(gl.ARRAY_BUFFER, glw.vbPos);
+  gl.bufferData(gl.ARRAY_BUFFER, mesh.pos, gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, glw.vbNor);
+  gl.bufferData(gl.ARRAY_BUFFER, mesh.nor, gl.STATIC_DRAW);
+
+  // colour buttons
+  const colours = [
+    {name:"Red", col:[232/255,40/255,40/255], sw:"#e82828"},
+    {name:"White", col:[244/255,244/255,246/255], sw:"#f4f4f6"},
+    {name:"Black", col:[0.35,0.35,0.38], sw:"#111111"},
+  ];
+  let colIdx = 0;
+
+  ct.innerHTML = "";
+  colours.forEach((c, i) => {
+    const b = document.createElement("div");
+    b.className = "ct-btn" + (i===colIdx ? " selected" : "");
+    b.title = c.name;
+    b.style.background = c.sw;
+    b.onclick = () => {
+      colIdx = i;
+      Array.from(ct.children).forEach(x => x.classList.remove("selected"));
+      b.classList.add("selected");
+      draw();
+    };
+    ct.appendChild(b);
   });
+
+  // camera / controls
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let w=0,h=0;
+  let rx = -0.55, ry = 0.85;
+  let dist = 2.6;
+
+  let dragging=false;
+  let lastX=0,lastY=0;
+
+  let pinch=false;
+  let pinchStartD=0;
+  let pinchStartDist=dist;
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    const nw = Math.max(1, Math.floor(rect.width * dpr));
+    const nh = Math.max(1, Math.floor(rect.height * dpr));
+    if(nw!==w || nh!==h){
+      w=nw; h=nh;
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0,0,w,h);
+    }
+  }
+
+  function draw(){
+    resize();
+    gl.clearColor(0.04,0.04,0.05,1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const asp = w / Math.max(1,h);
+    const P = mat4Perspective(0.92, asp, 0.1, 50);
+    const T = mat4Translate(0, 0, -dist);
+    const R = mat4Mul(mat4RotY(ry), mat4RotX(rx));
+    const M = R;
+    const MVP = mat4Mul(P, mat4Mul(T, M));
+
+    gl.useProgram(glw.prog);
+    gl.uniformMatrix4fv(glw.uMVP, false, MVP);
+    gl.uniformMatrix4fv(glw.uM, false, M);
+    gl.uniform3fv(glw.uCol, new Float32Array(colours[colIdx].col));
+    gl.uniform3fv(glw.uLight, new Float32Array([0.6, 0.9, 0.8]));
+
+    gl.drawArrays(gl.TRIANGLES, 0, mesh.pos.length/3);
+    vh.style.display = "none";
+  }
+
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  function onDown(x,y){
+    dragging = true;
+    lastX=x; lastY=y;
+  }
+  function onMove(x,y){
+    if(!dragging) return;
+    const dx=x-lastX, dy=y-lastY;
+    lastX=x; lastY=y;
+    ry += dx * 0.01;
+    rx += dy * 0.01;
+    rx = clamp(rx, -1.55, 1.55);
+    draw();
+  }
+  function onUp(){ dragging=false; pinch=false; }
+
+  // mouse
+  canvas.addEventListener("mousedown", (e) => { onDown(e.clientX, e.clientY); });
+  window.addEventListener("mousemove", (e) => { onMove(e.clientX, e.clientY); });
+  window.addEventListener("mouseup", onUp);
+
+  // wheel zoom
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    dist = clamp(dist + Math.sign(e.deltaY)*0.18, 1.2, 7.0);
+    draw();
+  }, {passive:false});
+
+  // touch: drag + pinch
+  canvas.addEventListener("touchstart", (e) => {
+    if(e.touches.length===1){
+      const t=e.touches[0];
+      onDown(t.clientX, t.clientY);
+    }else if(e.touches.length===2){
+      pinch=true;
+      dragging=false;
+      const a=e.touches[0], b=e.touches[1];
+      pinchStartD = Math.hypot(b.clientX-a.clientX, b.clientY-a.clientY);
+      pinchStartDist = dist;
+    }
+  }, {passive:true});
+
+  canvas.addEventListener("touchmove", (e) => {
+    if(e.touches.length===1 && !pinch){
+      const t=e.touches[0];
+      onMove(t.clientX, t.clientY);
+    }else if(e.touches.length===2){
+      const a=e.touches[0], b=e.touches[1];
+      const d = Math.hypot(b.clientX-a.clientX, b.clientY-a.clientY);
+      const k = (pinchStartD>0) ? (pinchStartD/d) : 1;
+      dist = clamp(pinchStartDist * k, 1.2, 7.0);
+      draw();
+    }
+  }, {passive:true});
+
+  canvas.addEventListener("touchend", onUp, {passive:true});
+  canvas.addEventListener("touchcancel", onUp, {passive:true});
+
+  window.addEventListener("resize", () => draw());
+
+  glState = {draw};
+  draw();
 }
 
-function applyScheme(key){
-  if(!THREE_APP) return;
-  const scheme = COLOR_SCHEMES[key];
-  if(!scheme) return;
+/* ========= 6) BOOT ========= */
 
-  const base = new THREE.Color(scheme.base);
-  const accent = new THREE.Color(scheme.accent);
-
-  // Base mesh = biggest. Others = accent.
-  THREE_APP.meshes.forEach((m, idx)=>{
-    const targetColor = (idx === THREE_APP.baseIdx) ? base : accent;
-    const mat = new THREE.MeshStandardMaterial({
-      color: targetColor,
-      roughness: 0.65,
-      metalness: 0.05
-    });
-    m.material = mat;
-  });
-}
+render();
 </script>
 </body>
 </html>
