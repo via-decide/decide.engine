@@ -9,8 +9,6 @@
   <style>
     :root{
       --bg:#0a0a0a;
-      --card:#101114;
-      --card2:#0d0e10;
       --line:rgba(255,255,255,.10);
       --line2:rgba(255,255,255,.07);
       --text:#f2f2f2;
@@ -54,6 +52,7 @@
       letter-spacing:.2px;
       box-shadow: 0 10px 30px rgba(0,0,0,.35);
       user-select:none;
+      cursor:pointer;
     }
     .btn:active{transform:translateY(1px)}
     .pill{
@@ -113,7 +112,7 @@
       font-size:14px;
       line-height:1.45;
     }
-    .panelBody{padding:18px 18px 18px 18px;}
+    .panelBody{padding:18px;}
     .viewer{
       border:1px solid var(--line2);
       background:
@@ -154,7 +153,7 @@
       text-align:center;
     }
     .centerMsg .box{
-      max-width: 520px;
+      max-width: 620px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.40);
       backdrop-filter: blur(10px);
@@ -175,6 +174,7 @@
       color: rgba(255,255,255,.70);
       line-height:1.45;
       white-space:pre-wrap;
+      text-align:left;
     }
     .grid{
       margin-top:14px;
@@ -229,6 +229,7 @@
       font-size:12px;
       color: rgba(255,255,255,.65);
       line-height:1.35;
+      word-break:break-word;
     }
     @media (max-width:640px){
       h1{font-size:28px}
@@ -310,8 +311,6 @@
     (function(){
       const backBtn = document.getElementById("backBtn");
       backBtn.addEventListener("click", (e) => {
-        // If there is meaningful history, go back; otherwise go home.
-        // Works for SPA pushState and direct loads.
         try{
           if (history.length > 1) { e.preventDefault(); history.back(); }
         }catch(_){}
@@ -451,7 +450,6 @@
 
         off += 2; // attribute byte count
 
-        // If normal is zero, compute
         if(!isFinite(nx) || !isFinite(ny) || !isFinite(nz) || (nx===0 && ny===0 && nz===0)){
           const abx=bx-ax, aby=by-ay, abz=bz-az;
           const acx=cx-ax, acy=cy-ay, acz=cz-az;
@@ -486,7 +484,8 @@
     }
 
     async function fetchAsU8(url){
-      const res = await fetch(url, {cache:"no-store"});
+      // url can be string or URL
+      const res = await fetch(url, { cache:"no-store" });
       if(!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
       const ab = await res.arrayBuffer();
       return new Uint8Array(ab);
@@ -509,9 +508,6 @@
       centerMsg.style.display = "none";
     }
 
-    function mat4Identity(){
-      return new Float32Array([1,0,0,0,  0,1,0,0,  0,0,1,0,  0,0,0,1]);
-    }
     function mat4Mul(a,b){
       const out = new Float32Array(16);
       for(let r=0;r<4;r++){
@@ -563,10 +559,7 @@
         uniform mat4 uMVP;
         uniform mat4 uModel;
         varying vec3 vN;
-        varying vec3 vP;
         void main(){
-          vec4 wp = uModel * vec4(aPos,1.0);
-          vP = wp.xyz;
           vN = mat3(uModel) * aNor;
           gl_Position = uMVP * vec4(aPos,1.0);
         }
@@ -574,7 +567,6 @@
       const fs = `
         precision mediump float;
         varying vec3 vN;
-        varying vec3 vP;
         uniform vec3 uColor;
         uniform float uLight;
         void main(){
@@ -585,7 +577,6 @@
           float dif = ndl * (0.85 * uLight);
           float rim = pow(1.0 - max(dot(N, normalize(vec3(0.0,0.0,1.0))), 0.0), 2.0) * 0.22;
           vec3 col = uColor * (amb + dif) + vec3(rim);
-          // slight filmic
           col = col / (col + vec3(0.9));
           gl_FragColor = vec4(col, 1.0);
         }
@@ -626,7 +617,7 @@
       gl.cullFace(gl.BACK);
       gl.clearColor(0,0,0,0);
 
-      return {gl, prog, loc};
+      return {gl, loc};
     }
 
     function bindMesh(gl, loc, pos, nor){
@@ -649,7 +640,7 @@
       if(vaoExt && vao) vaoExt.bindVertexArrayOES(null);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-      return {vaoExt, vao, vboPos, vboNor};
+      return {vaoExt, vao};
     }
 
     // ----------------------------
@@ -688,12 +679,8 @@
         state.rx = Math.max(-1.35, Math.min(1.35, state.rx));
         onChange();
       });
-      viewerEl.addEventListener("pointerup", ()=>{
-        state.dragging = false;
-      });
-      viewerEl.addEventListener("pointercancel", ()=>{
-        state.dragging = false;
-      });
+      viewerEl.addEventListener("pointerup", ()=>{ state.dragging = false; });
+      viewerEl.addEventListener("pointercancel", ()=>{ state.dragging = false; });
 
       viewerEl.addEventListener("wheel", (e)=>{
         e.preventDefault();
@@ -703,7 +690,6 @@
         onChange();
       }, {passive:false});
 
-      // Touch pinch (fallback)
       viewerEl.addEventListener("touchstart", (e)=>{
         const t = getTouches(e);
         if(t.length === 2){
@@ -725,35 +711,77 @@
     }
 
     // ----------------------------
-    // Boot
+    // Robust STL URL resolution + fallback probing
     // ----------------------------
     function getParam(name){
       const u = new URL(location.href);
       return u.searchParams.get(name);
     }
 
-    // You can set:
-    // 1) ?stl=/path/model.stl  (recommended)
-    // 2) or embed base64 in window.__STL_B64__
-    const DEFAULT_STL_URL = "./keychain.stl"; // place your STL at /keychain.stl or update this path
-
-    async function loadSTLBytes(){
-      // Priority: query param ?stl=... (URL)
-      const url = getParam("stl");
-      if(url){
-        el("sourceNote").textContent = `Source: ${url}`;
-        return await fetchAsU8(url);
-      }
-      // Next: embedded base64
-      if(window.__STL_B64__){
-        el("sourceNote").textContent = "Source: embedded base64";
-        return b64ToU8(window.__STL_B64__);
-      }
-      // Default URL
-      el("sourceNote").textContent = `Source: ${DEFAULT_STL_URL} (edit DEFAULT_STL_URL or pass ?stl=...)`;
-      return await fetchAsU8(DEFAULT_STL_URL);
+    function toAbsUrl(maybeRelative){
+      // Always return a fully-qualified URL (helps debugging)
+      return new URL(maybeRelative, location.href).toString();
     }
 
+    function currentDir(){
+      // If pathname ends with '/', it's already a directory.
+      // Otherwise treat it like a file-ish route and use its parent directory.
+      const p = location.pathname;
+      if(p.endsWith("/")) return p;
+      const idx = p.lastIndexOf("/");
+      return (idx >= 0 ? p.slice(0, idx+1) : "/");
+    }
+
+    async function tryFetchFirst(urls){
+      const errors = [];
+      for(const u of urls){
+        try{
+          const u8 = await fetchAsU8(u);
+          return { u8, used: u };
+        }catch(e){
+          errors.push(`- ${u}\n  → ${String(e && e.message ? e.message : e)}`);
+        }
+      }
+      const msg = `Tried these STL locations:\n${errors.join("\n")}\n\nFix: upload the STL to one of the above paths, or pass ?stl=/absolute/or/relative/path.stl`;
+      throw new Error(msg);
+    }
+
+    async function loadSTLBytes(){
+      const sourceNote = el("sourceNote");
+
+      // 1) Query param ?stl=...
+      const stlParam = getParam("stl");
+      if(stlParam){
+        const abs = toAbsUrl(stlParam);
+        sourceNote.textContent = `Source: ${abs}`;
+        const u8 = await fetchAsU8(abs);
+        return { u8, used: abs };
+      }
+
+      // 2) Embedded base64
+      if(window.__STL_B64__){
+        sourceNote.textContent = "Source: embedded base64";
+        return { u8: b64ToU8(window.__STL_B64__), used: "embedded base64" };
+      }
+
+      // 3) Fallback probing (this is the main fix)
+      const dir = currentDir(); // e.g. "/keychain/" even if route is "/keychain"
+      const candidates = [
+        "./keychain.stl",
+        "keychain.stl",
+        "/keychain.stl",
+        "/keychain/keychain.stl",
+        dir + "keychain.stl",
+      ].map(toAbsUrl);
+
+      const {u8, used} = await tryFetchFirst(candidates);
+      sourceNote.textContent = `Source: ${used}`;
+      return {u8, used};
+    }
+
+    // ----------------------------
+    // Boot
+    // ----------------------------
     async function main(){
       const viewer = el("viewer");
       const canvas = el("gl");
@@ -791,10 +819,8 @@
 
       let mesh;
       try{
-        const u8 = await loadSTLBytes();
+        const {u8} = await loadSTLBytes();
 
-        // Decide format robustly:
-        // If it looks ASCII, try ASCII first; else binary first; fallback both ways.
         if(looksLikeASCIISTL(u8)){
           try{ mesh = parseASCIISTL(u8); }
           catch(_){ mesh = parseBinarySTL(u8); }
@@ -814,12 +840,10 @@
       vertsEl.textContent = String(mesh.triCount * 3);
       scaleEl.textContent = (mesh.scale || 0).toFixed(4);
 
-      // Bind buffers
       const bind = bindMesh(gl, loc, mesh.pos, mesh.nor);
 
-      // Draw loop
       let needRedraw = true;
-      function request(){ needRedraw = true; }
+      const request = ()=>{ needRedraw = true; };
 
       attachControls(viewer, request);
 
@@ -830,11 +854,8 @@
         request();
       });
 
-      // Keep nice damping
       function tick(){
         resize();
-
-        // Damping zoom
         state.dist += (state.targetDist - state.dist) * 0.12;
 
         if(needRedraw){
@@ -845,37 +866,26 @@
           const aspect = canvas.width / canvas.height;
           const proj = mat4Perspective(55 * Math.PI/180, aspect, 0.06, 60);
 
-          // Model transform: translate back, rotate
           const t = mat4Translate(0, 0, -state.dist);
           const rx = mat4RotateX(state.rx);
           const ry = mat4RotateY(state.ry);
           const model = mat4Mul(t, mat4Mul(ry, rx));
           const mvp = mat4Mul(proj, model);
 
-          // uniforms
           const rgb = hexToRgb01(colorEl.value);
           gl.uniformMatrix4fv(loc.uModel, false, model);
           gl.uniformMatrix4fv(loc.uMVP, false, mvp);
           gl.uniform3f(loc.uColor, rgb[0], rgb[1], rgb[2]);
           gl.uniform1f(loc.uLight, parseFloat(lightEl.value || "1.2"));
 
-          // draw
-          const vaoExt = bind.vaoExt;
-          if(vaoExt && bind.vao){
-            vaoExt.bindVertexArrayOES(bind.vao);
-          }
-
+          if(bind.vaoExt && bind.vao) bind.vaoExt.bindVertexArrayOES(bind.vao);
           gl.drawArrays(gl.TRIANGLES, 0, mesh.triCount * 3);
-
-          if(vaoExt && bind.vao){
-            vaoExt.bindVertexArrayOES(null);
-          }
+          if(bind.vaoExt && bind.vao) bind.vaoExt.bindVertexArrayOES(null);
         }
 
         requestAnimationFrame(tick);
       }
 
-      // Trigger redraw on UI
       lightEl.addEventListener("input", request, {passive:true});
       colorEl.addEventListener("input", request, {passive:true});
 
@@ -890,10 +900,18 @@
   </script>
 
   <!--
-    HOW TO USE (no code changes required)
-    1) Put your STL at: /keychain.stl (same folder as this file), OR change DEFAULT_STL_URL in script.
-    2) Or call: /keychain?stl=/assets/keychain.stl
-    3) Or embed base64: window.__STL_B64__ = "...." before main() runs.
+    QUICK SETUP OPTIONS
+
+    Option A (recommended):
+      Place STL at: /keychain/keychain.stl
+      (then open /keychain)
+
+    Option B:
+      Pass a URL: /keychain?stl=/assets/keychain.stl
+
+    Option C:
+      Embed base64 before main runs:
+        <script>window.__STL_B64__="...";</script>
   -->
 </body>
 </html>
