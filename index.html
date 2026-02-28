@@ -15,7 +15,7 @@
   ✅ Blogs preview embedded on 2nd page (Products slide)
   ✅ Dedicated Blogs slide with search + full listing
   ✅ Nav buttons to reach Blogs from topbar + bottom nav + Products header
-  ✅ Auto-discovery: tries blog manifests; falls back to sitemap.xml
+  ✅ Auto-discovery: tries blog manifests; falls back to sitemap.xml; then router.js ROUTES parsing (GH Pages friendly)
 -->
 
 <html lang="en">
@@ -467,7 +467,6 @@
 
     /* ══════════════════════════════════════════════════════════
        APP SHELL
-       (Mobile fixes are inside the MOBILE FIX section below)
     ══════════════════════════════════════════════════════════ */
     .app{
       position:fixed; inset:0; z-index:1; overflow:hidden;
@@ -618,7 +617,6 @@
 
     .home-hero{ display:flex; flex-direction:column; gap:18px; min-width:0; }
     .home-hero-text{ min-width:0; }
-    /* FIX: headline must never overflow on mobile */
     .home-hero-text h1{
       font-size: clamp(22px, 7.2vw, 32px);
       font-weight:900;
@@ -640,7 +638,6 @@
       word-break:break-word;
     }
     .home-ctas{ display:flex; align-items:stretch; gap:10px; flex-wrap:wrap; }
-    /* FIX: buttons wrap and never overflow */
     .home-ctas .btn{ flex: 1 1 160px; }
 
     .home-quick{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); min-width:0; }
@@ -828,10 +825,6 @@
     .blog-status.bad{ color:rgba(255,140,60,.88); }
     .blog-status.ok{ color:rgba(0,230,118,.82); }
 
-    /* =========================
-       MOBILE FIX SECTION
-       ========================= */
-
     @media (max-width: 520px){
       .app{ padding: calc(10px + var(--safeTop)) calc(10px + var(--safeRight)) calc(10px + var(--safeBottom)) calc(10px + var(--safeLeft)); }
       .app-topbar{
@@ -855,13 +848,11 @@
       .authority-line{ padding-top:6px; }
       .blog-search input{ flex: 1 1 100%; min-width: 0; }
     }
-
     @media (max-width: 380px){
       .kbd{ padding:4px 8px; font-size:11px; }
       .app-title .t{ font-size:14px; }
       .nav-btn{ padding:8px 11px; }
     }
-
     @media (min-width: 740px){
       .nav-links{ display:flex; }
     }
@@ -1180,7 +1171,7 @@
                 <div class="section-head">
                   <div style="min-width:0;">
                     <h3><span class="dot" aria-hidden="true"></span> Blogs</h3>
-                    <div class="hint">Auto-loaded from your repo/site. If you add a blog manifest or sitemap entries, they will appear here.</div>
+                    <div class="hint">Auto-loaded from your site. If you add new blog pages to router.js ROUTES, they’ll show here.</div>
                   </div>
                   <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button class="btn small ghost" type="button" id="refreshBlogsPreview" aria-label="Refresh blog list">REFRESH</button>
@@ -1632,7 +1623,6 @@
         });
       });
 
-      /* Animated counters */
       function animateNumber(el, to, duration){
         if (!el) return;
         var from = 0, start = performance.now();
@@ -1888,8 +1878,9 @@
           blogGridPreview.appendChild(makeBlogCard(list[i]));
         }
         if (n === 0){
-          setBlogStatus(blogPreviewStatus,
-            "No blogs found yet. Add /blogs/manifest.json (or a sitemap.xml with blog URLs) to auto-populate this section.",
+          setBlogStatus(
+            blogPreviewStatus,
+            "No blogs discovered yet. Add blog pages to router.js ROUTES (or add /blogs/manifest.json).",
             "bad"
           );
         } else {
@@ -1912,8 +1903,9 @@
 
         if (filtered.length === 0){
           if (list.length === 0){
-            setBlogStatus(blogAllStatus,
-              "No blogs found. Add a blog manifest (recommended) at /blogs/manifest.json, or ensure sitemap.xml includes blog pages.",
+            setBlogStatus(
+              blogAllStatus,
+              "No blogs discovered. Ensure your blog pages are listed in router.js ROUTES (best), or add /blogs/manifest.json.",
               "bad"
             );
           } else {
@@ -1941,7 +1933,6 @@
       }
 
       function sortBlogsStable(list){
-        // Prefer explicit date (desc), else keep stable-ish by href.
         return list.slice().sort(function(a,b){
           var ad = a && a.date ? String(a.date) : "";
           var bd = b && b.date ? String(b.date) : "";
@@ -1972,9 +1963,6 @@
       }
 
       function normalizeManifestShape(x){
-        // Accept:
-        // - array of {title, href, date, desc, chip}
-        // - {blogs:[...]} or {posts:[...]} or {items:[...]}
         if (!x) return [];
         var arr = null;
         if (Array.isArray(x)) arr = x;
@@ -2013,29 +2001,20 @@
             urls.push(t);
           });
         }catch(e){
-          // Fallback: regex loc tags
           var re = /<loc>\s*([^<]+)\s*<\/loc>/gi;
           var m;
           while ((m = re.exec(String(xmlText || ""))) !== null){
             if (m[1]) urls.push(String(m[1]).trim());
           }
         }
-        // Filter likely blog pages (and exclude obvious app/tool pages)
         var out = urls.filter(function(u){
           var s = String(u || "").toLowerCase();
           if (s.indexOf(".html") < 0) return false;
-          if (s.indexOf("student-research.html") >= 0) return false;
-          if (s.indexOf("decision-brief.html") >= 0) return false;
-          if (s.indexOf("alchemist.html") >= 0) return false;
-          if (s.indexOf("ondc-demo.html") >= 0) return false;
-          if (s.indexOf("engine-license.html") >= 0) return false;
-          if (s.indexOf("swipeos.html") >= 0) return false;
           if (s.indexOf("index.html") >= 0) return false;
-          // heuristics: blog-ish paths or known content buckets
+          // heuristics
           if (s.indexOf("/blog") >= 0 || s.indexOf("/blogs") >= 0) return true;
           if (s.indexOf("/posts") >= 0 || s.indexOf("/articles") >= 0) return true;
           if (s.indexOf("/notes") >= 0 || s.indexOf("/updates") >= 0 || s.indexOf("/news") >= 0) return true;
-          // if site uses root pages as posts, allow those with "post" or "article" in name
           if (s.indexOf("post") >= 0 || s.indexOf("article") >= 0) return true;
           return false;
         });
@@ -2048,6 +2027,54 @@
             chip: chipFromPath(rel),
             desc: ""
           };
+        });
+      }
+
+      function looksLikeToolPage(fileLower){
+        // Exclude known tools/modules from blog list
+        var toolPages = {
+          "index.html": 1,
+          "student-research.html": 1,
+          "decision-brief.html": 1,
+          "alchemist.html": 1,
+          "ondc-demo.html": 1,
+          "swipeos.html": 1,
+          "brief.html": 1,
+          "prompt-alchemy.html": 1,
+          "engine-license.html": 1,
+          "404.html": 1
+        };
+        return !!toolPages[fileLower];
+      }
+
+      function discoverBlogsFromRouterJs(){
+        return safeTextFetch("./router.js").then(function(src){
+          // Try to capture "const ROUTES = { ... }" or "var ROUTES = { ... }"
+          var m = src.match(/ROUTES\s*=\s*\{([\s\S]*?)\}\s*;/i);
+          if (!m || !m[1]) return [];
+          var body = m[1];
+
+          // Extract "key: 'file.html'" or "key: \"file.html\""
+          var re = /([A-Za-z0-9_-]+)\s*:\s*["']([^"']+?\.html)["']/g;
+          var out = [];
+          var mm;
+          while ((mm = re.exec(body)) !== null){
+            var file = String(mm[2] || "").trim();
+            if (!file) continue;
+            var fileLower = file.toLowerCase();
+            if (looksLikeToolPage(fileLower)) continue;
+
+            // treat anything else as blog
+            out.push({
+              href: file,
+              title: titleFromPath("/" + file),
+              chip: "Blog",
+              desc: ""
+            });
+          }
+          return out;
+        }).catch(function(){
+          return [];
         });
       }
 
@@ -2080,32 +2107,37 @@
         }
 
         return tryManifests(0).then(function(list){
-          if (list && list.length){
-            return list;
-          }
+          if (list && list.length) return list;
+
           // fallback: sitemap.xml
           return safeTextFetch("/sitemap.xml").then(function(xml){
             var fromSitemap = parseSitemapForBlogUrls(xml);
-            return (fromSitemap && fromSitemap.length) ? fromSitemap : [];
+            return (fromSitemap && fromSitemap.length) ? fromSitemap : null;
           }).catch(function(){
-            return [];
+            return null;
+          });
+        }).then(function(listOrNull){
+          if (listOrNull && listOrNull.length) return listOrNull;
+
+          // final fallback: parse router.js ROUTES (GH Pages friendly)
+          return discoverBlogsFromRouterJs().then(function(list){
+            return list && list.length ? list : [];
           });
         }).then(function(list){
           list = uniqByHref(list || []);
           list = sortBlogsStable(list);
+
           _blogsAll = list;
           _blogsLoaded = true;
           _blogsLoading = false;
 
           renderBlogsPreview(_blogsAll);
           renderBlogsAll(_blogsAll, blogSearch ? blogSearch.value : "");
-
           return _blogsAll;
         }).catch(function(){
           _blogsLoading = false;
           _blogsAll = [];
           _blogsLoaded = true;
-
           renderBlogsPreview(_blogsAll);
           renderBlogsAll(_blogsAll, blogSearch ? blogSearch.value : "");
           return _blogsAll;
@@ -2250,4 +2282,4 @@
     })();
   </script>
 </body>
-</html>
+              </html>
