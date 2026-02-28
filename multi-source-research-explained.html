@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <title>Multi-Source Research: How ViaDecide Synthesizes 4 Wikis | viadecide.com</title>
+  <meta name="description" content="One query. Wikipedia, Wikivoyage, Wikibooks, Wikinews. One structured brief. Here's the engine under the hood."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080808;--text:#f0f0f0;--accent:#ff671f;--accent2:rgba(255,103,31,.12);--border:rgba(255,255,255,.07);--card:rgba(14,14,14,.9);--maxw:720px;}
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(8,8,8,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,#ff671f 0%,rgba(255,103,31,.2) 100%);border:1px solid rgba(255,103,31,.3);position:relative;}
+    .logo-mark::after{content:"";position:absolute;inset:6px;border-radius:4px;border:1.5px solid rgba(255,255,255,.18);}
+    .nav-logo span{font-size:14px;font-weight:700;color:var(--text);}
+    .nav-back{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.8);font-size:12px;font-weight:700;text-decoration:none;}
+    .nav-back:hover{background:rgba(255,255,255,.09);text-decoration:none;}
+    .blog-hero{max-width:var(--maxw);margin:0 auto;padding:48px 20px 32px;}
+    .blog-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,103,31,.3);background:rgba(255,103,31,.1);color:rgba(255,140,60,.92);font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:18px;}
+    .blog-chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);}
+    .blog-title{font-size:clamp(28px,6vw,46px);font-weight:900;letter-spacing:-.03em;line-height:1.06;margin:0 0 18px;}
+    .blog-title .accent{color:var(--accent);}
+    .blog-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(240,240,240,.52);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;}
+    .blog-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(240,240,240,.25);}
+    .blog-body{max-width:var(--maxw);margin:0 auto;padding:36px 20px 80px;}
+    .blog-body p{font-size:16px;line-height:1.75;color:rgba(240,240,240,.78);margin:0 0 22px;}
+    .blog-body h2{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:40px 0 14px;}
+    .blog-body strong{color:var(--text);font-weight:700;}
+    .callout{border-radius:14px;border-left:3px solid var(--accent);background:var(--accent2);padding:18px 20px;margin:28px 0;}
+    .callout p{margin:0;font-size:15px;color:rgba(240,240,240,.85);}
+    .callout strong{color:var(--accent);}
+    .source-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0;}
+    .source-card{border-radius:12px;border:1px solid var(--border);background:var(--card);padding:16px;}
+    .source-card .s-icon{font-size:22px;margin-bottom:10px;}
+    .source-card strong{display:block;font-size:14px;color:var(--text);margin-bottom:6px;}
+    .source-card p{margin:0;font-size:13px;color:rgba(240,240,240,.55);line-height:1.45;}
+    .code-block{border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.3);padding:16px 18px;margin:24px 0;font-family:'DM Mono',monospace;font-size:13px;color:rgba(240,240,240,.75);line-height:1.6;overflow-x:auto;}
+    .code-block .comment{color:rgba(255,103,31,.65);}
+    .blog-footer{max-width:var(--maxw);margin:0 auto;padding:0 20px 48px;}
+    .blog-footer-card{border-radius:16px;border:1px solid var(--border);background:var(--card);padding:24px;display:flex;flex-direction:column;gap:14px;}
+    .blog-footer-card p{margin:0;font-size:14px;color:rgba(240,240,240,.62);}
+    .footer-ctas{display:flex;gap:10px;flex-wrap:wrap;}
+    .cta-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;transition:filter 130ms ease;}
+    .cta-btn:hover{filter:brightness(1.1);text-decoration:none;}
+    .cta-btn.primary{background:linear-gradient(135deg,rgba(255,103,31,.95),rgba(255,103,31,.55));border:1px solid rgba(255,103,31,.4);color:#0c0c0c;}
+    .cta-btn.ghost{background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.86);}
+    @media(max-width:480px){.source-cards{grid-template-columns:1fr;}.blog-hero,.blog-body,.blog-footer{padding-left:16px;padding-right:16px;}}
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a class="nav-logo" href="../index.html">
+      <div class="logo-mark"></div>
+      <span>viadecide.com</span>
+    </a>
+    <a class="nav-back" href="../index.html">← Back to Home</a>
+  </nav>
+
+  <div class="blog-hero">
+    <div class="blog-chip">🔍 Research</div>
+    <h1 class="blog-title">Multi-Source Research: <span class="accent">4 Wikis,</span> One Brief</h1>
+    <div class="blog-meta">
+      <span>ViaDecide Engineering</span>
+      <span class="dot"></span>
+      <span>20 June 2025</span>
+      <span class="dot"></span>
+      <span>5 min read</span>
+    </div>
+  </div>
+
+  <div class="blog-body">
+    <p>Most research tools give you a single source's perspective. Google gives you ten blue links. Wikipedia gives you one article. A language model gives you a confident paragraph that may or may not be grounded in anything real.</p>
+
+    <p><strong>ViaDecide's research engine is built differently.</strong> One query fans out to four authoritative, openly licensed knowledge bases simultaneously — and returns a structured, source-attributed synthesis. Here's how.</p>
+
+    <div class="callout">
+      <p><strong>Design principle:</strong> No hallucination. Every claim in a ViaDecide brief is attributed to a source the user can verify. Synthesis is clearly marked as synthesis. Contradiction between sources is surfaced, not hidden.</p>
+    </div>
+
+    <h2>The four sources</h2>
+
+    <div class="source-cards">
+      <div class="source-card">
+        <div class="s-icon">📖</div>
+        <strong>Wikipedia</strong>
+        <p>Encyclopedic background, historical context, definitions, and general overview. The anchor source for most topics.</p>
+      </div>
+      <div class="source-card">
+        <div class="s-icon">🗺️</div>
+        <strong>Wikivoyage</strong>
+        <p>Geographic and regional context. Essential for topics with a location dimension — agriculture, infrastructure, tourism, development.</p>
+      </div>
+      <div class="source-card">
+        <div class="s-icon">📚</div>
+        <strong>Wikibooks</strong>
+        <p>Structured instructional content. Useful for how-to questions, process documentation, and technical procedures.</p>
+      </div>
+      <div class="source-card">
+        <div class="s-icon">📰</div>
+        <strong>Wikinews</strong>
+        <p>Recent events and developments. Adds temporal context — what changed recently, current developments, breaking updates.</p>
+      </div>
+    </div>
+
+    <h2>The query flow</h2>
+    <p>When a user submits a research topic, the engine executes four parallel API calls — one to each Wikimedia endpoint — using the MediaWiki search API. Results are returned asynchronously and assembled into a unified response object.</p>
+
+    <div class="code-block">
+<span class="comment">// Simplified query fan-out</span>
+const sources = [
+  { name: "Wikipedia",  api: "en.wikipedia.org/w/api.php"  },
+  { name: "Wikivoyage", api: "en.wikivoyage.org/w/api.php" },
+  { name: "Wikibooks",  api: "en.wikibooks.org/w/api.php"  },
+  { name: "Wikinews",   api: "en.wikinews.org/w/api.php"   }
+];
+
+const results = await Promise.allSettled(
+  sources.map(s =&gt; fetchWikiArticle(s.api, topic))
+);
+    </div>
+
+    <p>Using <strong>Promise.allSettled</strong> (not Promise.all) is a deliberate choice. If one source is unavailable or returns no results for a topic, the other three still complete. The brief is built from whatever sources respond — with clear indication of which sources contributed.</p>
+
+    <h2>Synthesis, not aggregation</h2>
+    <p>The raw output from four sources is not a brief — it's four articles. The synthesis step extracts the key thesis from each source, identifies where sources agree, surfaces where they contradict or provide different angles, and assembles these into a structured brief with clear attribution.</p>
+
+    <p>Contradictions are not resolved — they're surfaced. A user researching water privatization policy will see that Wikipedia's encyclopedic overview and Wikinews's recent coverage may present different framings. That tension is <em>valuable decision-relevant information</em>, not noise to be averaged away.</p>
+
+    <h2>Why open data matters</h2>
+    <p>All four Wikimedia projects are licensed under Creative Commons — free to query, use, and build on. This keeps ViaDecide accessible at scale without licensing costs that would gate access for users in lower-income segments.</p>
+
+    <p>It also means the data is verifiable. Every cited source in a ViaDecide brief links back to a publicly accessible URL. A student can check our work. An official can verify a claim. A farmer can see where the information came from. <strong>Transparency is a feature, not an afterthought.</strong></p>
+  </div>
+
+  <div class="blog-footer">
+    <div class="blog-footer-card">
+      <p>Try the multi-source research engine — enter any topic and see synthesis from four knowledge bases in real time.</p>
+      <div class="footer-ctas">
+        <a class="cta-btn primary" href="../student-research.html">Try Research Tool →</a>
+        <a class="cta-btn ghost" href="../decision-brief.html">Build a Brief</a>
+        <a class="cta-btn ghost" href="../index.html">← All Blogs</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
+ 
