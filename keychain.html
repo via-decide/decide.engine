@@ -1647,11 +1647,12 @@ function initWebGL(canvas, geo) {
     uniform vec3 uColor;
     void main(){
       vec3 n = normalize(vNorm);
+      if (!gl_FrontFacing) n = -n;
       float d1 = max(dot(n, normalize(uLight1)), 0.0);
       float d2 = max(dot(n, normalize(uLight2)), 0.0);
-      float rim = pow(1.0 - max(dot(n, vec3(0,0,1)), 0.0), 2.5) * 0.3;
-      float amb = 0.22;
-      float light = amb + d1*0.65 + d2*0.25 + rim;
+      float rim = pow(1.0 - abs(dot(n, vec3(0,0,1))), 2.5) * 0.28;
+      float amb = 0.25;
+      float light = amb + d1*0.62 + d2*0.22 + rim;
       gl_FragColor = vec4(uColor * light, 1.0);
     }`;
 
@@ -1682,8 +1683,8 @@ function initWebGL(canvas, geo) {
   gl.uniform3f(uL1, 2,4,3);
   gl.uniform3f(uL2, -3,-1,-2);
   gl.uniform3f(uCol, 1.0, 0.36, 0.10);
-  gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);
-  gl.clearColor(0.039,0.039,0.047,1);
+  gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0.047,0.047,0.058,0.0);
 
   // Matrix helpers
   function mat4(){return new Float32Array(16);}
@@ -1698,7 +1699,7 @@ function initWebGL(canvas, geo) {
   }
   function mul(a,b){
     const c=mat4();
-    for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[i*4+k]*b[k*4+j];c[i*4+j]=s;}
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];c[i*4+j]=s;}
     return c;
   }
   function rotX(a){const m=identity(mat4()),c=Math.cos(a),s=Math.sin(a);m[5]=c;m[6]=s;m[9]=-s;m[10]=c;return m;}
