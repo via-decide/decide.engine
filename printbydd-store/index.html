@@ -132,11 +132,11 @@
 <body>
 
   <header class="site-header">
-    <a href="/printbydd" class="logo" data-link>PrintByDD</a>
+    <a href="/printbydd" class="logo" data-vd-route>PrintByDD</a>
     <nav>
-      <a href="/printbydd" class="active" data-link>Home</a>
-      <a href="/keychain-blog" data-link>Products</a> 
-      <a href="/gifts-blog" data-link>Blog</a> 
+      <a href="/printbydd" class="active" data-vd-route>Home</a>
+      <a href="/keychain" data-vd-route>Products</a> 
+      <a href="/gifts" data-vd-route>Blog</a> 
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
     </nav>
   </header>
@@ -154,7 +154,7 @@
 
       <div class="grid">
         
-        <a href="/keychain-blog" class="card" data-link>
+        <a href="/keychain" class="card" data-vd-route>
           <img src="/printbydd-store/1000217293.jpg" alt="Marketing vs Physical Keychain" class="card-image-placeholder">
           <div class="kicker">Smart Accessories</div>
           <h3>The Hardcore NFC Keychain</h3>
@@ -162,7 +162,7 @@
           <span class="card-link">View Product</span>
         </a>
 
-        <a href="/gifts-blog" class="card" data-link>
+        <a href="/gifts" class="card" data-vd-route>
           <div class="carousel-container">
             <div class="carousel-track">
               <img src="/printbydd-store/1000217292.png" alt="Geometric Organizer">
@@ -202,18 +202,6 @@
       btnTheme.addEventListener("click", () => {
         const on = !document.body.classList.contains("invert-mode");
         setInvert(on);
-      });
-
-      // Optional: Fallback navigation handler if your router requires standard clicks to be intercepted manually.
-      // This forces a location change if the data-link attribute isn't picked up by the parent router.
-      document.querySelectorAll('a[data-link]').forEach(link => {
-        link.addEventListener('click', function(e) {
-          // Only force the hard refresh if your SPA router is failing to catch the click
-          if (!window.history.pushState) {
-              e.preventDefault();
-              window.location.href = this.href;
-          }
-        });
       });
     })();
   </script>
