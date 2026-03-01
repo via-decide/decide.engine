@@ -1,12 +1,11 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#ffffff" />
-  <title>PrintByDD • Architectural 3D Manufacturing</title>
-
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<meta content="#fafafa" name="theme-color"/>
+<title>PrintByDD • Architectural 3D Manufacturing</title>
+<style>
     :root {
       /* PrintByDD "Gallery White" Theme */
       --bg: #fafafa;
@@ -55,7 +54,7 @@
       color: var(--text-main);
     }
 
-    .site-header nav { display: flex; gap: 32px; }
+    .site-header nav { display: flex; gap: 32px; align-items:center; }
     
     .site-header nav a { 
       font-size: 13px; 
@@ -254,54 +253,157 @@
       .site-header nav { gap: 16px; }
       .site-header .logo { font-size: 18px; }
     }
-  </style>
+  
+
+    /* ===== Dark Mode ===== */
+    body[data-theme="dark"]{
+      --bg: #050505;
+      --surface: rgba(18, 18, 20, 0.78);
+      --text-main: #f7f7f7;
+      --text-muted: rgba(245,245,245,0.65);
+      --accent: #ff2a2a;
+      --border: rgba(255,255,255,0.10);
+    }
+
+    body[data-theme="dark"] .site-header{
+      background: rgba(5,5,5,0.78);
+      border-bottom: 1px solid var(--border);
+    }
+
+    body[data-theme="dark"] .card-image-placeholder,
+    body[data-theme="dark"] .carousel-container{
+      box-shadow: 0 16px 46px rgba(0,0,0,0.55);
+    }
+
+    /* Theme toggle button */
+    .theme-toggle{
+      margin-left: 8px;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform .2s, background .2s, border-color .2s, opacity .2s;
+      color: var(--text-main);
+      flex-shrink: 0;
+    }
+    body[data-theme="dark"] .theme-toggle{
+      background: rgba(255,255,255,0.06);
+    }
+    .theme-toggle:active{ transform: scale(0.96); }
+
+</style>
 </head>
 <body>
+<header class="site-header">
+<a class="logo" href="./index.html">PrintByDD</a>
+<nav>
+<a class="active" href="./index.html">Home</a>
+<a href="./nfc-keychain-blog.html">Products</a>
+<a href="./Viadecide-blogs.html">Blog</a>
+<button aria-label="Toggle dark mode" class="theme-toggle" id="themeToggle" title="Toggle dark mode" type="button">🌙</button></nav>
+</header>
+<main>
+<div class="hero">
+<h1>Physical concepts,<br/>built in <span>3D.</span></h1>
+<p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
+</div>
+<div class="section-header">
+<h2>Featured Perspectives</h2>
+</div>
+<div class="grid">
+<a class="card" href="./nfc-keychain-blog.html">
+<img alt="Marketing vs ViaDecide Physical Keychain" class="card-image-placeholder" src="./1000217293.jpg"/>
+<div class="kicker">Smart Accessories</div>
+<h3>The Hardcore NFC Keychain</h3>
+<p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
+<span class="card-link">View Product</span>
+</a>
+<a class="card" href="./Viadecide-blogs.html">
+<div class="carousel-container">
+<div class="carousel-track">
+<img alt="Memories 2024 Geometric Organizer" src="./1000217292.png"/>
+<img alt="Muscle Keychain Model" src="./1000217276.jpg"/>
+</div>
+<div class="swipe-hint">Swipe Gallery ↔</div>
+</div>
+<div class="kicker">Gifting Psychology</div>
+<h3>Gifts That Mean More</h3>
+<p>The gifts people remember aren't always the costly ones. Learn why personalized objects become everyday memory triggers.</p>
+<span class="card-link">Read Story</span>
+</a>
+</div>
+</main>
+<script>
+    (function(){
+      "use strict";
 
-  <header class="site-header">
-    <a href="./index.html" class="logo">PrintByDD</a>
-    <nav>
-      <a href="./index.html" class="active">Home</a>
-      <a href="./nfc-keychain-blog.html">Products</a> 
-      <a href="./gifts-that-mean-more.html">Blog</a> 
-    </nav>
-  </header>
+      const THEME_KEY = "PBD_THEME";
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      const toggle = document.getElementById("themeToggle");
 
-  <main>
-    <div class="hero">
-      <h1>Physical concepts,<br>built in <span>3D.</span></h1>
-      <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
-    </div>
+      function applyTheme(theme){
+        document.body.setAttribute("data-theme", theme);
+        if (toggle) toggle.textContent = (theme === "dark") ? "☀️" : "🌙";
+        if (metaTheme) metaTheme.setAttribute("content", theme === "dark" ? "#050505" : "#fafafa");
+        try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
+      }
 
-    <div class="section-header">
-      <h2>Featured Perspectives</h2>
-    </div>
+      function getInitialTheme(){
+        let saved = null;
+        try{ saved = localStorage.getItem(THEME_KEY); }catch(e){}
+        if (saved === "dark" || saved === "light") return saved;
+        return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+      }
 
-    <div class="grid">
-      
-      <a href="./nfc-keychain-blog.html" class="card">
-        <img src="./images/1000217293.png" alt="Marketing vs ViaDecide Physical Keychain" class="card-image-placeholder">
-        <div class="kicker">Smart Accessories</div>
-        <h3>The Hardcore NFC Keychain</h3>
-        <p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
-        <span class="card-link">View Product</span>
-      </a>
+      applyTheme(getInitialTheme());
 
-      <a href="./gifts-that-mean-more.html" class="card">
-        <div class="carousel-container">
-          <div class="carousel-track">
-            <img src="./images/1000217292.png" alt="Memories 2024 Geometric Organizer">
-            <img src="./images/1000217276.jpg" alt="Muscle Keychain Model">
-          </div>
-          <div class="swipe-hint">Swipe Gallery ↔</div>
-        </div>
-        <div class="kicker">Gifting Psychology</div>
-        <h3>Gifts That Mean More</h3>
-        <p>The gifts people remember aren't always the costly ones. Learn why personalized objects become everyday memory triggers.</p>
-        <span class="card-link">Read Story</span>
-      </a>
+      if (toggle){
+        toggle.addEventListener("click", () => {
+          const now = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          applyTheme(now);
+        });
+      }
 
-    </div>
-  </main>
+      // Robust image path fixer for GitHub Pages / repo structure changes.
+      function proposeFixes(src){
+        const fixes = [];
+        if (!src) return fixes;
+
+        // 1) if includes /images/, try without it
+        if (src.includes("/images/")) fixes.push(src.replace("/images/","/"));
+
+        // 2) toggle extension
+        if (src.endsWith(".png")) fixes.push(src.slice(0,-4)+".jpg");
+        if (src.endsWith(".jpg") || src.endsWith(".jpeg")) fixes.push(src.replace(/\.jpe?g$/i,".png"));
+
+        // 3) combine: remove images + toggle extension
+        if (src.includes("/images/") && src.endsWith(".png")) fixes.push(src.replace("/images/","/").slice(0,-4)+".jpg");
+        if (src.includes("/images/") && (src.endsWith(".jpg") || src.endsWith(".jpeg"))) fixes.push(src.replace("/images/","/").replace(/\.jpe?g$/i,".png"));
+
+        // 4) normalize ./images/ -> ./
+        if (src.startsWith("./images/")) fixes.push("./" + src.slice("./images/".length));
+
+        return [...new Set(fixes)];
+      }
+
+      document.querySelectorAll("img").forEach(img => {
+        img.addEventListener("error", () => {
+          if (img.dataset.fixTried === "1") return;
+          img.dataset.fixTried = "1";
+          const src = img.getAttribute("src") || "";
+          const fixes = proposeFixes(src);
+          if (fixes.length) img.src = fixes[0];
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
