@@ -475,7 +475,7 @@
     <div class="bg-glow"></div>
 
     <div class="top">
-      <a class="back" href="#" id="backBtn">← Back</a>
+      <a class="back" href="./index.html" id="backBtn">← Back</a>
       <div class="top-actions">
         <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate to Hindi">A/अ</button>
@@ -499,8 +499,7 @@
     // ── Back ──
     document.getElementById("backBtn").addEventListener("click", e => {
       e.preventDefault();
-      if(window.history.length > 1) window.history.back();
-      else window.location.href = "/";
+      window.location.href = "./index.html";
     });
 
     // ── Theme ──
