@@ -87,7 +87,7 @@
     .back, .pill, .btn-icon{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,15,15,0.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); transition:all 0.2s ease; user-select:none; }
     .btn-icon{ padding:10px; font-weight:900; color:var(--accent); width:38px; height:38px; }
     .btn-icon:active, .back:active{ transform:scale(0.96); }
-    .back{ color:rgba(255,255,255,0.92); font-weight:700; font-size:14px; }
+    .back{ color:rgba(255,255,255,0.92); font-weight:700; font-size:14px; cursor: pointer;}
     .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
     .pill b{ color:#fff; letter-spacing:0.1em; font-weight:900; }
 
@@ -248,10 +248,10 @@
     <div class="bg-glow"></div>
 
     <header class="site-header">
-      <a href="/printbydd" class="logo" data-vd-route>PrintByDD</a>
+      <a href="/printbydd-store" class="logo" data-vd-route>PrintByDD</a>
       <div class="nav-container">
         <nav>
-          <a href="/printbydd" data-vd-route>Home</a>
+          <a href="/printbydd-store" data-vd-route>Home</a>
           <a href="/keychain" class="active" data-vd-route>Products</a>
           <a href="/gifts-that-mean-more" data-vd-route>Blog</a>
         </nav>
@@ -275,9 +275,9 @@
     </header>
 
     <div class="top">
-      <a class="back" href="/printbydd" id="backBtn" data-vd-route>← Back</a>
+      <a class="back" href="/printbydd-store" id="backBtn" data-vd-route>← Back</a>
       <div class="top-actions">
-        <button id="btnTheme" class="btn-icon" aria-label="Toggle theme">☾</button>
+        <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
         <div class="pill"><b id="secLabel">SEC 1/6</b> • <span id="secName">INTRO</span></div>
       </div>
@@ -707,6 +707,14 @@
       else entry.target.classList.remove('is-active');
     });
   },{root:container,threshold:0.6});
+
+  // Attach event listener directly to the back button script to bypass standard routing if needed
+  document.getElementById("backBtn").addEventListener("click", function(e) {
+    if(!this.hasAttribute('data-vd-route')) {
+       e.preventDefault();
+       window.location.href = this.href;
+    }
+  });
 
   window.scrollToSectionByName=function(name){ const idx=SECTIONS.findIndex(s=>s.name===name); if(idx<0) return; const el=container.querySelector(`.section-wrapper[data-index="${idx}"]`); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); };
 
