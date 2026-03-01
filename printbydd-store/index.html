@@ -30,20 +30,14 @@
       min-height: 100vh;
     }
 
-    a { text-decoration: none; color: inherit; }
+    a { text-decoration: none; color: inherit; cursor: pointer; }
     button { background: none; border: none; cursor: pointer; font: inherit; }
 
     /* Dark Mode Logic */
     body.invert-mode #appWrapper,
-    body.invert-mode .site-header {
-      filter: invert(1) hue-rotate(180deg);
-    }
-    body.invert-mode img {
-      filter: invert(1) hue-rotate(180deg);
-    }
-    body.invert-mode {
-      background-color: #050505; 
-    }
+    body.invert-mode .site-header { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode { background-color: #050505; }
 
     #appWrapper {
       min-height: 100vh;
@@ -69,36 +63,19 @@
     }
 
     .site-header .logo { 
-      font-size: 20px; 
-      font-weight: 900; 
-      letter-spacing: -0.03em;
-      color: var(--text-main);
+      font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: var(--text-main);
     }
 
     .site-header nav { display: flex; align-items: center; gap: 24px; }
     
     .site-header nav a { 
-      font-size: 13px; 
-      font-weight: 700; 
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: color 0.2s;
+      font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.2s;
     }
     
-    .site-header nav a:hover,
-    .site-header nav a.active { 
-      color: var(--accent); 
-    }
+    .site-header nav a:hover, .site-header nav a.active { color: var(--accent); }
 
     .btn-icon {
-      font-weight: 900;
-      color: var(--accent);
-      font-size: 18px;
-      padding: 4px 8px;
-      border: 1px solid var(--border);
-      border-radius: 50px;
-      transition: transform 0.2s;
+      font-weight: 900; color: var(--accent); font-size: 18px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 50px; transition: transform 0.2s;
     }
     .btn-icon:active { transform: scale(0.9); }
 
@@ -112,174 +89,39 @@
       padding-bottom: 100px;
     }
 
-    .hero {
-      max-width: 800px;
-      margin-bottom: 80px;
-    }
-
-    .hero h1 {
-      font-size: clamp(40px, 6vw, 72px);
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.04em;
-      margin-bottom: 24px;
-      color: var(--text-main);
-    }
-
+    .hero { max-width: 800px; margin-bottom: 80px; }
+    .hero h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 900; line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 24px; color: var(--text-main); }
     .hero h1 span { color: var(--accent); }
-
-    .hero p {
-      font-size: clamp(18px, 2vw, 22px);
-      color: var(--text-muted);
-      line-height: 1.5;
-      max-width: 600px;
-    }
+    .hero p { font-size: clamp(18px, 2vw, 22px); color: var(--text-muted); line-height: 1.5; max-width: 600px; }
 
     /* Grid Layout */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 30px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 16px;
-    }
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .section-header h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; color: var(--text-muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 40px; }
 
-    .section-header h2 {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-weight: 800;
-      color: var(--text-muted);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 40px;
-    }
-
-    /* Minimalist Cards */
-    .card {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      cursor: pointer;
-    }
-
+    /* Cards */
+    .card { display: flex; flex-direction: column; position: relative; cursor: pointer; }
     .card-image-placeholder {
-      width: 100%;
-      aspect-ratio: 4/3;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-      overflow: hidden;
-      object-fit: cover;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-      background: #eee;
+      width: 100%; aspect-ratio: 4/3; border-radius: 12px; margin-bottom: 20px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: #eee;
     }
-
-    .card:hover .card-image-placeholder,
-    .card:hover .carousel-container {
-      transform: translateY(-4px);
-    }
+    .card:hover .card-image-placeholder, .card:hover .carousel-container { transform: translateY(-4px); }
 
     /* Carousel */
     .carousel-container {
-      width: 100%;
-      aspect-ratio: 4/3;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-      background: #eee;
+      width: 100%; aspect-ratio: 4/3; border-radius: 12px; margin-bottom: 20px; overflow: hidden; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); background: #eee;
     }
-    
-    .carousel-track {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    
+    .carousel-track { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; }
     .carousel-track::-webkit-scrollbar { display: none; }
-    
-    .carousel-track img {
-      flex: 0 0 100%;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      scroll-snap-align: center;
-    }
+    .carousel-track img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: center; }
 
-    .swipe-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 50px;
-      pointer-events: none;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
+    .swipe-hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); color: #fff; font-size: 10px; font-weight: 700; padding: 6px 14px; border-radius: 50px; pointer-events: none; letter-spacing: 0.1em; text-transform: uppercase; }
 
-    .card .kicker {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .card h3 {
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-      color: var(--text-main);
-    }
-
-    .card p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 24px;
-      flex-grow: 1;
-    }
-
-    .card-link {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text-main);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .card-link::after {
-      content: '→';
-      transition: transform 0.2s;
-      color: var(--accent);
-    }
-
-    .card:hover .card-link::after {
-      transform: translateX(4px);
-    }
+    .card .kicker { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+    .card h3 { font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 12px; color: var(--text-main); }
+    .card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; flex-grow: 1; }
+    .card-link { font-size: 13px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 6px; }
+    .card-link::after { content: '→'; transition: transform 0.2s; color: var(--accent); }
+    .card:hover .card-link::after { transform: translateX(4px); }
     
     @media (max-width: 600px) {
       .site-header nav { gap: 14px; }
@@ -290,11 +132,11 @@
 <body>
 
   <header class="site-header">
-    <a href="/printbydd-store" class="logo" data-link>PrintByDD</a>
+    <a href="/printbydd" class="logo" data-link>PrintByDD</a>
     <nav>
-      <a href="/printbydd-store" class="active" data-link>Home</a>
-      <a href="/nfc-keychain-blog" data-link>Products</a> 
-      <a href="/gifting-psychology" data-link>Blog</a> 
+      <a href="/printbydd" class="active" data-link>Home</a>
+      <a href="/keychain-blog" data-link>Products</a> 
+      <a href="/gifts-blog" data-link>Blog</a> 
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
     </nav>
   </header>
@@ -312,19 +154,19 @@
 
       <div class="grid">
         
-        <a href="/nfc-keychain-blog" class="card" data-link>
-          <img src="/printbydd/1000217293.png" alt="Marketing vs ViaDecide Physical Keychain" class="card-image-placeholder">
+        <a href="/keychain-blog" class="card" data-link>
+          <img src="/printbydd-store/1000217293.jpg" alt="Marketing vs Physical Keychain" class="card-image-placeholder">
           <div class="kicker">Smart Accessories</div>
           <h3>The Hardcore NFC Keychain</h3>
           <p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
           <span class="card-link">View Product</span>
         </a>
 
-        <a href="/gifting-psychology" class="card" data-link>
+        <a href="/gifts-blog" class="card" data-link>
           <div class="carousel-container">
             <div class="carousel-track">
-              <img src="/printbydd/1000217292.png" alt="Geometric Organizer">
-              <img src="/printbydd/1000217276.jpg" alt="Muscle Keychain Model">
+              <img src="/printbydd-store/1000217292.png" alt="Geometric Organizer">
+              <img src="/printbydd-store/1000217276.jpg" alt="Muscle Keychain Model">
             </div>
             <div class="swipe-hint">Swipe Gallery ↔</div>
           </div>
@@ -360,6 +202,18 @@
       btnTheme.addEventListener("click", () => {
         const on = !document.body.classList.contains("invert-mode");
         setInvert(on);
+      });
+
+      // Optional: Fallback navigation handler if your router requires standard clicks to be intercepted manually.
+      // This forces a location change if the data-link attribute isn't picked up by the parent router.
+      document.querySelectorAll('a[data-link]').forEach(link => {
+        link.addEventListener('click', function(e) {
+          // Only force the hard refresh if your SPA router is failing to catch the click
+          if (!window.history.pushState) {
+              e.preventDefault();
+              window.location.href = this.href;
+          }
+        });
       });
     })();
   </script>
