@@ -2,26 +2,6 @@
  * ═══════════════════════════════════════════════════════════
  * viadecide.com — UNIVERSAL ROUTER v2.2 (Nav-safe everywhere)
  * File: router.js
- *
- * ✅ Works on:
- * - Custom domains (viadecide.com)
- * - GitHub Pages repo subpaths (username.github.io/repo/)
- * - Nested subpages (e.g., /swipeos/index.html)
- * - Instagram / Facebook in-app browsers (no dead clicks)
- *
- * DROP-IN:
- * - Include BEFORE anything else on every page (including subpages).
- *
- * HOW TO ADD A NEW SUBPAGE:
- * 1) Add file (my-tool.html OR my-tool/index.html)
- * 2) Add one line to ROUTES:
- * 'my-tool': 'my-tool.html',
- *
- * URL PATTERNS SUPPORTED:
- * /my-tool/ → loads my-tool.html (or my-tool/index.html)
- * /my-tool → same (trailing slash optional)
- * /my-tool?foo=bar → preserves query
- * /my-tool#section → preserves hash
  * ═══════════════════════════════════════════════════════════
  */
 (function ViaDecideRouter() {
@@ -47,10 +27,12 @@
     brief: "brief.html",
     "decision-brief": "decision-brief.html",
 
-    // ── PRINTBYDD STORE ROUTES ────────────────────────────
-    "printbydd": "printbydd-store/index.html",
+    // ── PRINTBYDD STORE ROUTES (Fixed with exact names) ──
+    "printbydd-store": "printbydd-store/index.html",
+    "printbydd": "printbydd-store/index.html", // Alias just in case
     "keychain": "printbydd-store/keychain.html",
-    "gifts": "printbydd-store/gifts-that-mean-more.html",
+    "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more.html",
+    "gifts": "printbydd-store/gifts-that-mean-more.html" // Alias just in case
   };
 
   // ─────────────────────────────────────────────────────────
@@ -62,10 +44,7 @@
     PromptAlchemy: "promptalchemy",
     StudentResearch: "student-research",
     "ONDC-demo": "ondc-demo",
-    ondc: "ondc-demo",
-    // Catch old blog names if someone bookmarked them
-    "keychain-blog": "keychain", 
-    "gifts-blog": "gifts"
+    ondc: "ondc-demo"
   };
 
   // ─────────────────────────────────────────────────────────
@@ -93,14 +72,11 @@
   function resolveRoute(slug) {
     if (!slug) return null;
 
-    // 1) Direct match
     if (ROUTES[slug]) return ROUTES[slug];
 
-    // 2) Alias match
     var aliasTarget = ALIASES[slug] || ALIASES[String(slug).toLowerCase()];
     if (aliasTarget && ROUTES[aliasTarget]) return ROUTES[aliasTarget];
 
-    // 3) Case-insensitive match
     var lower = String(slug).toLowerCase();
     for (var key in ROUTES) {
       if (Object.prototype.hasOwnProperty.call(ROUTES, key)) {
@@ -111,7 +87,6 @@
     return null;
   }
 
-  // ✅ Detect base path automatically (important for GitHub Pages repo sites)
   function getBasePath() {
     var host = window.location.host || "";
     var path = window.location.pathname || "/";
