@@ -26,14 +26,14 @@
       font-family: var(--font-stack);
       -webkit-font-smoothing: antialiased;
       line-height: 1.5;
+      margin: 0;
       min-height: 100vh;
-      overflow-x: hidden;
     }
 
     a { text-decoration: none; color: inherit; cursor: pointer; }
     button { background: none; border: none; cursor: pointer; font: inherit; }
 
-    /* Dark Mode Logic (invert) */
+    /* Dark Mode Logic */
     body.invert-mode #appWrapper,
     body.invert-mode .site-header { filter: invert(1) hue-rotate(180deg); }
     body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
@@ -81,6 +81,7 @@
       transition: color 0.2s;
       white-space: nowrap;
     }
+
     .site-header nav a:hover, .site-header nav a.active { color: var(--accent); }
 
     .btn-icon {
@@ -91,21 +92,21 @@
       border: 1px solid var(--border);
       border-radius: 999px;
       transition: transform 0.2s;
-      white-space: nowrap;
+      line-height: 1;
     }
-    .btn-icon:active { transform: scale(0.9); }
+    .btn-icon:active { transform: scale(0.92); }
 
     /* Layout & Hero */
     main {
-      padding-top: calc(var(--header-height) + 64px);
+      padding-top: calc(var(--header-height) + 56px);
       max-width: 1200px;
       margin: 0 auto;
       padding-left: 5vw;
       padding-right: 5vw;
-      padding-bottom: 90px;
+      padding-bottom: 100px;
     }
 
-    .hero { max-width: 820px; margin-bottom: 64px; }
+    .hero { max-width: 840px; margin-bottom: 64px; }
     .hero h1 {
       font-size: clamp(40px, 6vw, 72px);
       font-weight: 900;
@@ -123,74 +124,82 @@
     }
 
     /* Grid Layout */
-    .section-header{
-      display:flex;
+    .section-header {
+      display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 24px;
+      margin-bottom: 26px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 14px;
     }
-    .section-header h2{
+    .section-header h2 {
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       font-weight: 800;
       color: var(--text-muted);
     }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 36px;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 40px;
     }
 
     /* Cards */
-    .card { display:flex; flex-direction: column; position: relative; cursor: pointer; }
-    .card-image-placeholder,
+    .card { display: flex; flex-direction: column; position: relative; cursor: pointer; }
+    .card:hover .card-image,
+    .card:hover .carousel-container { transform: translateY(-4px); }
+
+    /* ✅ Image FIX: no cropping (contain) + clean letterbox background */
+    .card-image{
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      object-fit: contain;          /* ✅ was cover */
+      object-position: center;
+      background: #f2f2f2;          /* ✅ letterbox */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: block;
+    }
+
+    /* Carousel */
     .carousel-container{
       width: 100%;
       aspect-ratio: 4/3;
       border-radius: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       overflow: hidden;
+      position: relative;
       box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-      background: #eee;
       transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      background: #f2f2f2;          /* ✅ letterbox */
     }
-
-    /* IMPORTANT: make images render reliably */
-    img{ display:block; max-width:100%; height:auto; }
-
-    .card-image-placeholder{
-      object-fit: cover;
-    }
-
-    .card:hover .card-image-placeholder,
-    .card:hover .carousel-container { transform: translateY(-4px); }
-
-    /* Carousel */
-    .carousel-container{ position: relative; }
     .carousel-track{
-      display:flex;
-      width:100%;
-      height:100%;
-      overflow-x:auto;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow-x: auto;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
       -ms-overflow-style: none;
-      -webkit-overflow-scrolling: touch;
     }
-    .carousel-track::-webkit-scrollbar{ display:none; }
+    .carousel-track::-webkit-scrollbar { display: none; }
     .carousel-track img{
       flex: 0 0 100%;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;          /* ✅ was cover */
+      object-position: center;
+      background: #f2f2f2;          /* ✅ letterbox */
       scroll-snap-align: center;
+      display: block;
     }
 
     .swipe-hint{
-      position:absolute;
+      position: absolute;
       bottom: 12px;
       left: 50%;
       transform: translateX(-50%);
@@ -201,12 +210,12 @@
       font-weight: 700;
       padding: 6px 14px;
       border-radius: 999px;
-      pointer-events:none;
+      pointer-events: none;
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
-    .card .kicker{
+    .card .kicker {
       font-size: 11px;
       font-weight: 800;
       color: var(--accent);
@@ -214,19 +223,19 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
-    .card h3{
+    .card h3 {
       font-size: 24px;
       font-weight: 800;
       line-height: 1.2;
       letter-spacing: -0.02em;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: var(--text-main);
     }
-    .card p{
+    .card p {
       font-size: 15px;
       color: var(--text-muted);
       line-height: 1.6;
-      margin-bottom: 22px;
+      margin-bottom: 24px;
       flex-grow: 1;
     }
     .card-link{
@@ -235,37 +244,33 @@
       color: var(--text-main);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      display:inline-flex;
-      align-items:center;
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
     }
-    .card-link::after{ content:'→'; transition: transform 0.2s; color: var(--accent); }
-    .card:hover .card-link::after{ transform: translateX(4px); }
+    .card-link::after { content: '→'; transition: transform 0.2s; color: var(--accent); }
+    .card:hover .card-link::after { transform: translateX(4px); }
 
+    /* ✅ Mobile fit fixes */
     @media (max-width: 720px) {
-      .site-header{ padding: 0 4vw; }
-      .site-header nav{ gap: 14px; }
-      .site-header nav a{ font-size: 12px; }
-      .grid{ grid-template-columns: 1fr; gap: 28px; }
-      main{ padding-top: calc(var(--header-height) + 44px); }
-      .hero{ margin-bottom: 44px; }
-    }
-
-    @media (max-width: 420px){
-      .site-header .logo{ font-size: 18px; }
-      .btn-icon{ padding: 4px 8px; }
+      .site-header { padding: 0 4vw; }
+      .site-header nav { gap: 12px; }
+      .site-header nav a { font-size: 12px; }
+      .btn-icon { padding: 4px 9px; }
+      .grid { grid-template-columns: 1fr; gap: 28px; }
+      main { padding-left: 4vw; padding-right: 4vw; }
     }
   </style>
 </head>
-
 <body>
+
   <header class="site-header">
-    <!-- ✅ Universal nav ids (same style as keychain logic) -->
-    <a id="navLogo" href="#" class="logo">PrintByDD</a>
+    <!-- ✅ Use RELATIVE paths so it works in folders and local hosting -->
+    <a href="./index.html" class="logo">PrintByDD</a>
     <nav>
-      <a id="navHome" href="#" class="active">Home</a>
-      <a id="navProducts" href="#">Products</a>
-      <a id="navBlog" href="#">Blog</a>
+      <a href="./index.html" class="active">Home</a>
+      <a href="./keychain.html">Products</a>
+      <a href="./gifts-that-mean-more.html">Blog</a>
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
     </nav>
   </header>
@@ -282,21 +287,21 @@
       </div>
 
       <div class="grid">
-        <!-- ✅ Use ids so JS can enforce correct /printbydd-store/ routes everywhere -->
-        <a id="cardKeychain" href="#" class="card">
-          <!-- ✅ Use relative asset path via JS to work on file:// and /printbydd-store/ hosting -->
-          <img id="imgKeychain" alt="Marketing vs Physical Keychain" class="card-image-placeholder">
+
+        <a href="./keychain.html" class="card">
+          <!-- ✅ Use ./printbydd-store/... not /printbydd-store/... -->
+          <img src="./printbydd-store/1000217293.jpg" alt="Marketing vs Physical Keychain" class="card-image">
           <div class="kicker">Smart Accessories</div>
           <h3>The Hardcore NFC Keychain</h3>
           <p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
           <span class="card-link">View Product</span>
         </a>
 
-        <a id="cardGifts" href="#" class="card">
-          <div class="carousel-container">
+        <a href="./gifts-that-mean-more.html" class="card">
+          <div class="carousel-container" aria-label="Image gallery">
             <div class="carousel-track">
-              <img id="imgGift1" alt="Geometric Organizer">
-              <img id="imgGift2" alt="Muscle Keychain Model">
+              <img src="./printbydd-store/1000217292.png" alt="Geometric Organizer">
+              <img src="./printbydd-store/1000217276.jpg" alt="Muscle Keychain Model">
             </div>
             <div class="swipe-hint">Swipe Gallery ↔</div>
           </div>
@@ -305,6 +310,7 @@
           <p>The gifts people remember aren't always the costly ones. Learn why personalized objects become everyday memory triggers.</p>
           <span class="card-link">Read Story</span>
         </a>
+
       </div>
     </main>
   </div>
@@ -313,60 +319,6 @@
     (function(){
       "use strict";
 
-      /* ============================================================
-         ✅ SAME NAV LOGIC AS KEYCHAIN
-         - Works on:
-           /printbydd-store/index.html
-           file:///.../printbydd-store/index.html
-         ============================================================ */
-      function storeBasePath(){
-        const p = (location.pathname || "").replace(/\\/g, "/");
-        const i = p.toLowerCase().lastIndexOf("/printbydd-store/");
-        if(i !== -1) return p.slice(0, i + "/printbydd-store/".length);
-        // fallback: assume current file is inside printbydd-store/
-        const lastSlash = p.lastIndexOf("/");
-        return lastSlash !== -1 ? p.slice(0, lastSlash + 1) : "./";
-      }
-
-      // base for links (works for both web + file)
-      const STORE_BASE = storeBasePath();
-
-      // if file://, STORE_BASE is a path; we can still use relative URLs safely
-      // but we’ll set absolute-ish paths based on detected folder
-      const URL_HOME = STORE_BASE + "index.html";
-      const URL_PRODUCTS = STORE_BASE + "keychain.html";
-      const URL_BLOG = STORE_BASE + "gifts-that-mean-more.html";
-
-      // ✅ images are inside /printbydd-store/
-      const IMG_1 = STORE_BASE + "1000217293.jpg";
-      const IMG_2 = STORE_BASE + "1000217292.png";
-      const IMG_3 = STORE_BASE + "1000217276.jpg";
-
-      // apply nav links
-      const navLogo = document.getElementById("navLogo");
-      const navHome = document.getElementById("navHome");
-      const navProducts = document.getElementById("navProducts");
-      const navBlog = document.getElementById("navBlog");
-      if(navLogo) navLogo.href = URL_HOME;
-      if(navHome) navHome.href = URL_HOME;
-      if(navProducts) navProducts.href = URL_PRODUCTS;
-      if(navBlog) navBlog.href = URL_BLOG;
-
-      // apply card links
-      const cardKeychain = document.getElementById("cardKeychain");
-      const cardGifts = document.getElementById("cardGifts");
-      if(cardKeychain) cardKeychain.href = URL_PRODUCTS;
-      if(cardGifts) cardGifts.href = URL_BLOG;
-
-      // apply image sources (fixes your “images not loading” issue from leading / paths)
-      const imgKeychain = document.getElementById("imgKeychain");
-      const imgGift1 = document.getElementById("imgGift1");
-      const imgGift2 = document.getElementById("imgGift2");
-      if(imgKeychain) imgKeychain.src = IMG_1;
-      if(imgGift1) imgGift1.src = IMG_2;
-      if(imgGift2) imgGift2.src = IMG_3;
-
-      // Theme toggle (kept from your code)
       const THEME_KEY = "VD_INVERT_THEME";
       const btnTheme = document.getElementById("btnTheme");
 
@@ -385,7 +337,6 @@
       btnTheme.addEventListener("click", () => {
         setInvert(!document.body.classList.contains("invert-mode"));
       });
-
     })();
   </script>
 </body>
