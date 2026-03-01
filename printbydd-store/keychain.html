@@ -1,38 +1,4 @@
-SOURCE
-↓
-Uploaded file: /mnt/data/keychain (4).html  ￼
-↓
-ACCESS / ENTRY
-↓
-Parsed full HTML/CSS/JS, located STL color scheme map + 3D color swatch UI + scroll section observer.
-↓
-INTENT CAPTURE
-↓
-	1.	Refine keychain color mapping so Red = arm muscle and Black = body, and for the other two schemes swap (vice versa) so body becomes White/Blue and arms become Black.
-	2.	Add a navigation button UI to improve CTA engagement (sticky bottom nav with Prev/Next + Order CTA).
-↓
-STATE / LOGIC ENGINE
-↓
-
-	•	Updated COLOR_SCHEMES so white-black and blue-black are swapped (base/body vs accent/arms).
-	•	Updated the BUYER section color swatch visuals to match new base/accent pairing.
-	•	Added fixed bottom navigation with section dots + Prev/Next + prominent CTA that jumps to BUYER order section and highlights the primary order button.
-	•	Increased section bottom padding so content doesn’t hide behind the new nav.
-↓
-ACTIONS
-↓
-	•	Modified STL color mapping + swatches.
-	•	Inserted bottom nav HTML + CSS + JS wiring (sync via IntersectionObserver).
-	•	Saved updated file as decision_research_engine.html.
-↓
-OUTPUT / METRICS
-↓
-	•	File written: sandbox:/mnt/data/decision_research_engine.html
-	•	Color schemes updated: 3
-	•	New UI component: Bottom navigation (Prev/Next/Dots/Order CTA)
-	•	Validation: COLOR_SCHEMES updated, swatches reflect swaps, bottom nav exists and updates with section index, CTA scroll targets BUYER and focuses primary CTA.
-
-<!doctype html>
+!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
