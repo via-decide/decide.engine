@@ -1,1162 +1,861 @@
-```html
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Psychology of Personalized Gifts – ViaDecide</title>
-<meta name="description" content="How memory, identity, and daily interaction turn ordinary objects into emotional anchors.">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>Gifts That Mean More • ViaDecide</title>
+  <meta name="description" content="Why a ₹200 personalized keychain can feel more meaningful than a ₹5,000 generic gift — psychology, memory, and everyday meaning." />
 
-  :root {
-    --bg: #050505;
-    --card: rgba(255,255,255,0.04);
-    --card-border: rgba(255,255,255,0.08);
-    --orange: #ff671f;
-    --orange-dim: rgba(255,103,31,0.15);
-    --orange-glow: rgba(255,103,31,0.25);
-    --text: #f0f0f0;
-    --muted: #888;
-    --radius: 20px;
-    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
+  <!-- Router (your universal router.js) -->
+  <script>window.__MAIN_WEBSITE__ = "https://viadecide.com/";</script>
+  <script src="./router.js"></script>
 
-  html { font-size: 16px; }
+  <style>
+    :root{
+      --bg:#050505;
+      --card-bg: rgba(18, 18, 20, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text:#fdfdfd;
+      --text-muted: rgba(242,242,242,0.65);
+      --text-dim: rgba(242,242,242,0.45);
+      --accent:#ff671f;
+      --accent-glow: rgba(255,103,31,0.15);
+      --shadow: 0 24px 80px rgba(0,0,0,0.6);
+      --radius: 24px;
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    overflow: hidden;
-    height: 100dvh;
-  }
-
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, transparent 100%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-
-  .nav-back {
-    display: flex; align-items: center; gap: 6px;
-    color: var(--text); text-decoration: none;
-    font-size: 13px; font-weight: 500;
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    padding: 6px 12px; border-radius: 50px;
-    transition: background 0.2s;
-  }
-  .nav-back:hover { background: rgba(255,255,255,0.08); }
-  .nav-back svg { width: 14px; height: 14px; }
-
-  .nav-pill {
-    position: absolute; left: 50%; transform: translateX(-50%);
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: 50px;
-    padding: 5px 14px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-    white-space: nowrap;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .nav-pill span { color: var(--orange); }
-
-  .nav-lang {
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    color: var(--text);
-    font-size: 12px; font-weight: 700;
-    padding: 6px 14px; border-radius: 50px;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-    letter-spacing: 0.04em;
-  }
-  .nav-lang:hover { background: var(--orange-dim); border-color: var(--orange); }
-
-  /* SCROLL CONTAINER */
-  .scroll-root {
-    height: 100dvh;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .section {
-    height: 100dvh;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 70px 16px 80px;
-    position: relative;
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 28px 24px;
-    max-width: 560px;
-    width: 100%;
-    max-height: calc(100dvh - 130px);
-    overflow-y: auto;
-    scrollbar-width: none;
-    position: relative;
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    box-shadow: 0 0 40px rgba(0,0,0,0.6), 0 0 0 1px var(--card-border);
-  }
-  .card::-webkit-scrollbar { display: none; }
-
-  .card.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .card { opacity: 1; transform: none; transition: none; }
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--orange), transparent);
-    border-radius: var(--radius) var(--radius) 0 0;
-    opacity: 0.6;
-  }
-
-  .kicker {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--orange);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .kicker::before {
-    content: '';
-    display: block;
-    width: 20px; height: 2px;
-    background: var(--orange);
-    border-radius: 2px;
-  }
-
-  h1 {
-    font-size: clamp(22px, 5vw, 30px);
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, #fff 60%, #aaa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  h2 {
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.015em;
-    margin-bottom: 10px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-
-  p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: #ccc;
-    margin-bottom: 12px;
-  }
-
-  ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 4px;
-  }
-
-  ul li {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 13.5px;
-    color: #bbb;
-    line-height: 1.55;
-  }
-
-  ul li::before {
-    content: '▸';
-    color: var(--orange);
-    flex-shrink: 0;
-    margin-top: 1px;
-    font-size: 12px;
-  }
-
-  strong { color: #fff; }
-
-  .tag {
-    display: inline-block;
-    background: var(--orange-dim);
-    border: 1px solid rgba(255,103,31,0.3);
-    color: var(--orange);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
-    margin-bottom: 14px;
-  }
-
-  /* INFOGRAPHIC STYLES */
-
-  /* A: Price vs Meaning */
-  .infograph-price {
-    margin-top: 18px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .price-card {
-    border-radius: 14px;
-    padding: 16px 14px;
-    position: relative;
-    overflow: hidden;
-  }
-  .price-card.personalized {
-    background: linear-gradient(135deg, rgba(255,103,31,0.15), rgba(255,103,31,0.05));
-    border: 1px solid rgba(255,103,31,0.35);
-  }
-  .price-card.generic {
-    background: rgba(255,255,255,0.03);
-    border: 1px dashed rgba(255,255,255,0.12);
-  }
-  .price-amount {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin-bottom: 2px;
-  }
-  .price-card.personalized .price-amount { color: var(--orange); }
-  .price-card.generic .price-amount { color: #666; }
-  .price-label { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
-  .price-item { font-size: 11px; display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
-  .price-item .dot {
-    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-  }
-  .price-card.personalized .dot { background: var(--orange); }
-  .price-card.generic .dot { background: #444; }
-  .price-winner {
-    position: absolute; top: 8px; right: 8px;
-    background: var(--orange);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.06em;
-  }
-
-  /* B: Emotion Loop */
-  .infograph-loop {
-    margin-top: 18px;
-    position: relative;
-  }
-  .loop-track {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 16px;
-    background: rgba(255,255,255,0.02);
-    border: 1px dashed rgba(255,103,31,0.25);
-    border-radius: 14px;
-  }
-  .loop-node {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-    min-width: 50px;
-  }
-  .loop-icon {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: var(--orange-dim);
-    border: 1px solid rgba(255,103,31,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .loop-icon svg { width: 18px; height: 18px; color: var(--orange); }
-  .loop-icon svg path, .loop-icon svg circle, .loop-icon svg rect { fill: var(--orange); }
-  .loop-word { font-size: 9px; font-weight: 700; color: #aaa; letter-spacing: 0.06em; text-align: center; }
-  .loop-arrow { color: rgba(255,103,31,0.5); font-size: 14px; flex-shrink: 0; }
-  .loop-label {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 11px;
-    color: var(--muted);
-    font-style: italic;
-  }
-
-  /* C: 5 Drivers */
-  .infograph-drivers {
-    margin-top: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .driver-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 12px;
-    padding: 12px 11px;
-    transition: border-color 0.2s;
-  }
-  .driver-card:hover { border-color: rgba(255,103,31,0.3); }
-  .driver-icon-wrap {
-    width: 30px; height: 30px;
-    border-radius: 8px;
-    background: var(--orange-dim);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 7px;
-  }
-  .driver-icon-wrap svg { width: 16px; height: 16px; }
-  .driver-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: #eee;
-    margin-bottom: 3px;
-    line-height: 1.2;
-  }
-  .driver-desc { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
-  .driver-card.full { grid-column: 1 / -1; }
-
-  /* D: Seller Blueprint */
-  .infograph-blueprint {
-    margin-top: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .blueprint-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    position: relative;
-  }
-  .blueprint-step:last-child { border-bottom: none; }
-  .blueprint-num {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: var(--orange-dim);
-    border: 1.5px solid rgba(255,103,31,0.4);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--orange);
-    flex-shrink: 0;
-  }
-  .blueprint-content { flex: 1; }
-  .blueprint-title { font-size: 13px; font-weight: 700; color: #eee; margin-bottom: 2px; }
-  .blueprint-sub { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
-  .blueprint-badge {
-    align-self: center;
-    background: rgba(255,103,31,0.1);
-    border: 1px solid rgba(255,103,31,0.25);
-    color: var(--orange);
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 7px;
-    border-radius: 4px;
-    flex-shrink: 0;
-  }
-
-  /* FLOATING BUTTON */
-  .fab {
-    position: fixed;
-    bottom: 24px; right: 16px;
-    z-index: 100;
-    background: var(--orange);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 10px 16px;
-    border-radius: 50px;
-    text-decoration: none;
-    box-shadow: 0 4px 20px rgba(255,103,31,0.4);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    letter-spacing: 0.02em;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .fab:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(255,103,31,0.55); }
-  .fab svg { width: 14px; height: 14px; }
-
-  /* CTA CARD */
-  .cta-inner {
-    text-align: center;
-  }
-  .cta-glow {
-    width: 80px; height: 80px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, var(--orange), #ff9a5c);
-    margin: 0 auto 20px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 40px rgba(255,103,31,0.5);
-  }
-  .cta-glow svg { width: 40px; height: 40px; fill: #fff; }
-  .cta-link {
-    display: inline-block;
-    margin-top: 20px;
-    background: var(--orange);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-    padding: 14px 32px;
-    border-radius: 50px;
-    text-decoration: none;
-    box-shadow: 0 4px 24px rgba(255,103,31,0.45);
-    transition: transform 0.2s, box-shadow 0.2s;
-    letter-spacing: 0.02em;
-  }
-  .cta-link:hover { transform: scale(1.03); box-shadow: 0 6px 32px rgba(255,103,31,0.6); }
-  .cta-note { font-size: 11.5px; color: var(--muted); margin-top: 10px; }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: rgba(30,30,30,0.95);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 50px;
-    padding: 10px 18px;
-    font-size: 13px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 200;
-    opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-    pointer-events: auto;
-  }
-  .toast-undo {
-    color: var(--orange);
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 13px;
-    background: none;
-    border: none;
-    padding: 0;
-  }
-
-  /* SECTION BG ACCENTS */
-  .section::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300px; height: 300px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,103,31,0.04) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  /* SCROLL INDICATOR */
-  .scroll-hint {
-    position: absolute;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    animation: bounce 2s infinite;
-    opacity: 0.4;
-  }
-  .scroll-hint svg { width: 16px; height: 16px; }
-  .scroll-hint span { font-size: 9px; letter-spacing: 0.1em; color: var(--muted); }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(5px); }
-  }
-
-  .section:last-child .scroll-hint { display: none; }
-
-  /* Divider */
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-    margin: 16px 0;
-  }
-
-  /* HIGHLIGHT BOX */
-  .highlight-box {
-    background: var(--orange-dim);
-    border: 1px solid rgba(255,103,31,0.25);
-    border-left: 3px solid var(--orange);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: #ddd;
-    line-height: 1.6;
-    margin: 12px 0;
-    font-style: italic;
-  }
-
-  /* stat row */
-  .stat-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 14px;
-  }
-  .stat-box {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 12px;
-    padding: 14px 12px;
-    text-align: center;
-  }
-  .stat-num {
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--orange);
-    letter-spacing: -0.02em;
-  }
-  .stat-lbl { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
-</style>
-</head>
-<body>
-
-<!-- NAV -->
-<nav>
-  <a href="https://viadecide.com/blogs" class="nav-back">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-    Back
-  </a>
-  <div class="nav-pill" id="navPill"><span id="pillNum">SEC 1/11</span> &nbsp;HOOK</div>
-  <button class="nav-lang" id="langToggle" onclick="toggleLang()">हिं</button>
-</nav>
-
-<!-- SCROLL ROOT -->
-<div class="scroll-root" id="scrollRoot">
-
-  <!-- 1. HOOK -->
-  <section class="section" data-name="HOOK" data-index="1">
-    <div class="card" id="card-0">
-      <div class="kicker">The Hook</div>
-      <h1 id="s1-h">The Psychology of Personalized Gifts</h1>
-      <p class="subtitle" id="s1-sub">How memory, identity, and daily interaction turn ordinary objects into lifelong emotional anchors.</p>
-      <div class="highlight-box" id="s1-quote">
-        "A ₹200 keychain with a name engraved on it outlasts a ₹5,000 generic watch in emotional memory — not because it costs more, but because it <em>means</em> more."
-      </div>
-      <p id="s1-body">Personalized gifts are not a trend. They are a direct channel into the human brain's most powerful systems — identity, memory, and emotion. Understanding why they work is the first step to giving better, and for sellers, to selling smarter.</p>
-      <div class="stat-row">
-        <div class="stat-box">
-          <div class="stat-num">74%</div>
-          <div class="stat-lbl" id="s1-stat1">prefer personalized gifts over generic ones</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num">3×</div>
-          <div class="stat-lbl" id="s1-stat2">more likely to keep & display the gift</div>
-        </div>
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 2. SIGNALS -->
-  <section class="section" data-name="SIGNALS" data-index="2">
-    <div class="card" id="card-1">
-      <div class="kicker">Price vs Meaning</div>
-      <h2 id="s2-h">Meaning Is the Real Currency</h2>
-      <p id="s2-body">We've been conditioned to equate price with value. But psychological research consistently shows that <strong>perceived thoughtfulness</strong> — not monetary value — determines how a gift lands emotionally.</p>
-      <div class="tag" id="s2-tag">INFOGRAPHIC A</div>
-      <div class="infograph-price">
-        <div class="price-card personalized">
-          <div class="price-winner" id="s2-win">WINS ❤️</div>
-          <div class="price-amount">₹200</div>
-          <div class="price-label" id="s2-l1">Personalized Keychain</div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p1">Has recipient's name</span></div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p2">Triggers daily memory</span></div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p3">Shows real effort</span></div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p4">Unique — can't be bought off a shelf</span></div>
-        </div>
-        <div class="price-card generic">
-          <div class="price-amount">₹5,000</div>
-          <div class="price-label" id="s2-l2">Generic Watch</div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p5">Functional</span></div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p6">No personal signal</span></div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p7">Forgotten origin</span></div>
-          <div class="price-item"><span class="dot"></span><span id="s2-p8">Replaceable</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 3. IDENTITY -->
-  <section class="section" data-name="IDENTITY" data-index="3">
-    <div class="card" id="card-2">
-      <div class="kicker">Identity Recognition</div>
-      <h2 id="s3-h">Seeing Your Name Changes Everything</h2>
-      <p id="s3-body">The moment someone sees their name, face, or a private memory on an object, the brain shifts from passive observation to active ownership. This is called <strong>self-referential processing</strong> — a cognitive shortcut that deepens encoding and emotional weight.</p>
-      <div class="highlight-box" id="s3-quote">
-        "It's not just a keychain. It's a keychain with <em>my</em> name on it." — That single word shifts the entire psychological relationship with the object.
-      </div>
-      <ul>
-        <li id="s3-l1"><strong>Vicarious pride:</strong> The giver projects care. The receiver feels <em>seen</em>.</li>
-        <li id="s3-l2"><strong>Ownership effect:</strong> Personalised objects feel harder to let go of immediately.</li>
-        <li id="s3-l3"><strong>Identity anchoring:</strong> The object becomes an extension of who the person believes themselves to be.</li>
-      </ul>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 4. MEMORY -->
-  <section class="section" data-name="MEMORY" data-index="4">
-    <div class="card" id="card-3">
-      <div class="kicker">Associative Memory</div>
-      <h2 id="s4-h">Objects Remember So You Don't Have To</h2>
-      <p id="s4-body">Every time you touch a personalized object, you involuntarily re-experience the moment it represents. This is <strong>associative memory</strong> — the same system that makes a smell transport you to childhood.</p>
-      <div class="tag" id="s4-tag">INFOGRAPHIC B</div>
-      <div class="infograph-loop">
-        <div class="loop-track">
-          <div class="loop-node">
-            <div class="loop-icon">
-              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
-            </div>
-            <div class="loop-word" id="loop-1">OBJECT</div>
-          </div>
-          <div class="loop-arrow">→</div>
-          <div class="loop-node">
-            <div class="loop-icon">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
-            </div>
-            <div class="loop-word" id="loop-2">TOUCH</div>
-          </div>
-          <div class="loop-arrow">→</div>
-          <div class="loop-node">
-            <div class="loop-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/></svg>
-            </div>
-            <div class="loop-word" id="loop-3">MEMORY</div>
-          </div>
-          <div class="loop-arrow">→</div>
-          <div class="loop-node">
-            <div class="loop-icon">
-              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            </div>
-            <div class="loop-word" id="loop-4">EMOTION</div>
-          </div>
-          <div class="loop-arrow">→</div>
-          <div class="loop-node">
-            <div class="loop-icon">
-              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <div class="loop-word" id="loop-5">BOND</div>
-          </div>
-          <div class="loop-arrow">↺</div>
-        </div>
-        <div class="loop-label" id="s4-loopl">Every interaction re-strengthens the emotional bond</div>
-      </div>
-      <p id="s4-body2" style="margin-top:14px">Unlike expensive gifts stored in drawers, small personalized objects are <em>used daily</em>. Each use is a micro-dose of connection to the giver.</p>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 5. DAILY USE -->
-  <section class="section" data-name="DAILY USE" data-index="5">
-    <div class="card" id="card-4">
-      <div class="kicker">Frequency Effect</div>
-      <h2 id="s5-h">The Keychain Beats the Watch Because It's Always There</h2>
-      <p id="s5-body">Emotional bonds with objects are proportional to frequency of interaction — not cost. A keychain is touched 4–10 times per day. A watch may be worn occasionally. Every touch is a reminder of the person who gave it.</p>
-      <div class="divider"></div>
-      <ul>
-        <li id="s5-l1">Repetition strengthens neural pathways associated with the memory.</li>
-        <li id="s5-l2">Small objects integrate into <strong>daily rituals</strong> — wallet, bag, desk.</li>
-        <li id="s5-l3">Out-of-sight gifts lose emotional resonance rapidly.</li>
-        <li id="s5-l4">Size ≠ impact. The <strong>visibility cycle</strong> is what creates lasting bonds.</li>
-      </ul>
-      <div class="stat-row">
-        <div class="stat-box">
-          <div class="stat-num">8×</div>
-          <div class="stat-lbl" id="s5-stat1">avg daily touches for a keychain</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num">∞</div>
-          <div class="stat-lbl" id="s5-stat2">emotional loops over its lifetime</div>
-        </div>
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 6. THOUGHTFULNESS -->
-  <section class="section" data-name="THOUGHTFULNESS" data-index="6">
-    <div class="card" id="card-5">
-      <div class="kicker">The Effort Signal</div>
-      <h2 id="s6-h">Thoughtfulness Is Worth More Than the Gift Itself</h2>
-      <p id="s6-body">Research by Dunn, Aknin & Norton shows that <strong>the perceived effort of a gift matters more than its price</strong>. Personalization is a visible effort signal — it says "I thought specifically about <em>you</em>, not just what to buy."</p>
-      <div class="highlight-box" id="s6-quote">
-        "Anyone can spend money. Not everyone takes the time to make something personal. That difference is what people remember years later."
-      </div>
-      <ul>
-        <li id="s6-l1">Choosing a name, a date, or a photo requires intentionality.</li>
-        <li id="s6-l2">Recipients attribute more love to the giver — even unconsciously.</li>
-        <li id="s6-l3">The customization process becomes part of the gift's story.</li>
-      </ul>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 7. WARM GLOW + DRIVERS -->
-  <section class="section" data-name="WARM GLOW" data-index="7">
-    <div class="card" id="card-6">
-      <div class="kicker">5 Psychological Drivers</div>
-      <h2 id="s7-h">Why We Keep Giving Personalized Gifts</h2>
-      <p id="s7-body">The <strong>warm-glow effect</strong> means the giver also benefits — emotionally — from a personalized gift. Here are the five psychological forces at play:</p>
-      <div class="tag" id="s7-tag">INFOGRAPHIC C</div>
-      <div class="infograph-drivers">
-        <div class="driver-card">
-          <div class="driver-icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#ff671f"/></svg>
-          </div>
-          <div class="driver-title" id="d1-t">Vicarious Pride</div>
-          <div class="driver-desc" id="d1-d">Givers feel pride when recipients love the gift they curated.</div>
-        </div>
-        <div class="driver-card">
-          <div class="driver-icon-wrap">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5" fill="#ff671f"/><path d="M3 21c0-4 4-7 9-7s9 3 9 7" fill="#ff671f"/></svg>
-          </div>
-          <div class="driver-title" id="d2-t">Self-Recognition</div>
-          <div class="driver-desc" id="d2-d">Seeing your name activates deep ownership and identity loops.</div>
-        </div>
-        <div class="driver-card">
-          <div class="driver-icon-wrap">
-            <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" fill="#ff671f"/></svg>
-          </div>
-          <div class="driver-title" id="d3-t">Associative Memory</div>
-          <div class="driver-desc" id="d3-d">Objects encode moments. Each touch replays a meaningful memory.</div>
-        </div>
-        <div class="driver-card">
-          <div class="driver-icon-wrap">
-            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" fill="#ff671f"/></svg>
-          </div>
-          <div class="driver-title" id="d4-t">Thoughtfulness &gt; Price</div>
-          <div class="driver-desc" id="d4-d">Effort signals beat monetary value in emotional impact, every time.</div>
-        </div>
-        <div class="driver-card full">
-          <div class="driver-icon-wrap" style="width:auto;height:auto;padding:6px 10px;border-radius:6px;display:inline-flex;margin-bottom:7px">
-            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#ff671f"/></svg>
-          </div>
-          <div class="driver-title" id="d5-t">Warm-Glow Effect</div>
-          <div class="driver-desc" id="d5-d">The giver experiences a neurological reward from giving something truly personal — independent of the recipient's reaction. This creates a positive feedback loop that drives repeat gifting behaviour.</div>
-        </div>
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 8. WHY 3D PREVIEW -->
-  <section class="section" data-name="3D PREVIEW" data-index="8">
-    <div class="card" id="card-7">
-      <div class="kicker">Remove Doubt</div>
-      <h2 id="s8-h">Why 3D Preview Converts Hesitation into Confidence</h2>
-      <p id="s8-body">Personalized products carry a unique risk: buyers can't see the final product before they commit. A 3D interactive preview eliminates this uncertainty. It shifts the buyer's mental state from <em>"trust me"</em> to <em>"see for yourself."</em></p>
-      <div class="divider"></div>
-      <ul>
-        <li id="s8-l1"><strong>Visual confirmation</strong> reduces returns and buyer remorse.</li>
-        <li id="s8-l2">Buyers emotionally <strong>pre-attach</strong> to the item during preview — ownership begins before purchase.</li>
-        <li id="s8-l3">Reduces anxiety in high-thoughtfulness purchases where "getting it right" matters.</li>
-        <li id="s8-l4">Creates a shareable, satisfying creation experience — customers feel like co-creators.</li>
-      </ul>
-      <div class="highlight-box" id="s8-quote">
-        "The 3D preview isn't a feature. It's a trust mechanism that makes personalization feel safe to buy — and exciting to share."
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 9. FOR SELLERS -->
-  <section class="section" data-name="FOR SELLERS" data-index="9">
-    <div class="card" id="card-8">
-      <div class="kicker">Seller Blueprint</div>
-      <h2 id="s9-h">Build a Page That Converts Like a Gift Experience</h2>
-      <p id="s9-body">If you sell personalized products, your product page is the gift-wrapping. Here's the framework that aligns with how buyers actually think:</p>
-      <div class="tag" id="s9-tag">INFOGRAPHIC D</div>
-      <div class="infograph-blueprint">
-        <div class="blueprint-step">
-          <div class="blueprint-num">1</div>
-          <div class="blueprint-content">
-            <div class="blueprint-title" id="bp1-t">Lead with Story, Not Specs</div>
-            <div class="blueprint-sub" id="bp1-s">Open with the emotional moment: the birthday, the milestone, the friendship. Specs follow emotion.</div>
-          </div>
-          <div class="blueprint-badge" id="bp1-b">HOOK</div>
-        </div>
-        <div class="blueprint-step">
-          <div class="blueprint-num">2</div>
-          <div class="blueprint-content">
-            <div class="blueprint-title" id="bp2-t">Show the 3D Preview Experience</div>
-            <div class="blueprint-sub" id="bp2-s">Let buyers see their name, photo, or text on the product before they buy. Convert doubt into delight.</div>
-          </div>
-          <div class="blueprint-badge" id="bp2-b">TRUST</div>
-        </div>
-        <div class="blueprint-step">
-          <div class="blueprint-num">3</div>
-          <div class="blueprint-content">
-            <div class="blueprint-title" id="bp3-t">Own Your Page, Own Your Margins</div>
-            <div class="blueprint-sub" id="bp3-s">A direct page means zero commission loss, full brand control, and a customer relationship that's yours.</div>
-          </div>
-          <div class="blueprint-badge" id="bp3-b">PROFIT</div>
-        </div>
-        <div class="blueprint-step">
-          <div class="blueprint-num">4</div>
-          <div class="blueprint-content">
-            <div class="blueprint-title" id="bp4-t">Make Every Order Feel Handcrafted</div>
-            <div class="blueprint-sub" id="bp4-s">Confirmation messages, packaging inserts, and follow-up touch-points extend the emotional lifecycle of the gift.</div>
-          </div>
-          <div class="blueprint-badge" id="bp4-b">LOYALTY</div>
-        </div>
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 10. TAKEAWAYS -->
-  <section class="section" data-name="TAKEAWAYS" data-index="10">
-    <div class="card" id="card-9">
-      <div class="kicker">Key Takeaways</div>
-      <h2 id="s10-h">What This Means for You</h2>
-      <p id="s10-body">Whether you're a giver, receiver, or seller — the psychology of personalization applies to all of you.</p>
-      <div class="divider"></div>
-      <ul>
-        <li id="s10-l1">Meaning is not a function of price. A personalized ₹200 object can outlast a ₹50,000 experience in emotional memory.</li>
-        <li id="s10-l2">Daily interaction compounds emotional value. Small objects win because they're always present.</li>
-        <li id="s10-l3">Effort is visible. Personalization is a tangible proof of care that generic gifts can never replicate.</li>
-        <li id="s10-l4">3D preview technology removes the last barrier — uncertainty — between personalization and purchase.</li>
-        <li id="s10-l5">For sellers: story + preview + direct page = higher margins, higher trust, and loyal customers.</li>
-      </ul>
-      <div class="highlight-box" id="s10-quote">
-        "The best gift isn't the most expensive one. It's the one that proves someone was paying attention."
-      </div>
-    </div>
-    <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg><span>SCROLL</span></div>
-  </section>
-
-  <!-- 11. CTA -->
-  <section class="section" data-name="CTA" data-index="11">
-    <div class="card cta-inner" id="card-10">
-      <div class="kicker" style="justify-content:center" id="s11-kicker">Experience It Yourself</div>
-      <div class="cta-glow">
-        <svg viewBox="0 0 24 24"><path d="M12 1C8.676 1 6 3.676 6 7v1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v1H8V7c0-2.276 1.724-4 4-4zm0 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
-      </div>
-      <h2 id="s11-h">Design Your Personalized Keychain</h2>
-      <p id="s11-body">See your name, photo, or message on a premium keychain — in 3D, before you buy. No commitment. No guessing. Just the perfect gift, made personal.</p>
-      <a href="https://viadecide.com/keychain" class="cta-link" id="s11-btn">
-        ✦ Customize Your Keychain
-      </a>
-      <p class="cta-note" id="s11-note">3D Preview · Instant Personalization · Ships India-wide</p>
-      <div class="divider" style="margin-top:20px"></div>
-      <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px">
-        <a href="https://viadecide.com/blogs" style="color:var(--orange);text-decoration:none" id="s11-more">← Read More on ViaDecide Blog</a>
-      </p>
-    </div>
-  </section>
-
-</div>
-
-<!-- FAB -->
-<a href="https://viadecide.com/blogs" class="fab">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-  View All Blogs
-</a>
-
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <span id="toastMsg">Translated to Hindi</span>
-  <button class="toast-undo" id="toastUndo" onclick="undoLang()">Undo</button>
-</div>
-
-<script>
-  // ─── DATA ───────────────────────────────────────────────────────
-  const sections = document.querySelectorAll('.section');
-  const cards = document.querySelectorAll('.card');
-  const total = sections.length;
-
-  // ─── INTERSECTION OBSERVER ───────────────────────────────────────
-  const navPill = document.getElementById('navPill');
-  const pillNum = document.getElementById('pillNum');
-
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting && e.intersectionRatio > 0.5) {
-        const sec = e.target;
-        const idx = sec.dataset.index;
-        const name = sec.dataset.name;
-        pillNum.textContent = `SEC ${idx}/${total}`;
-        navPill.lastChild.textContent = '';
-        navPill.innerHTML = `<span>SEC ${idx}/${total}</span> &nbsp;${name}`;
-        // animate card in
-        const card = sec.querySelector('.card');
-        if (card) {
-          card.classList.remove('active');
-          requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('active')));
-        }
-      }
-    });
-  }, { threshold: 0.5 });
-
-  sections.forEach(s => obs.observe(s));
-
-  // activate first card immediately
-  cards[0].classList.add('active');
-
-  // ─── TRANSLATIONS ─────────────────────────────────────────────────
-  const t = {
-    en: {
-      's1-h': 'The Psychology of Personalized Gifts',
-      's1-sub': 'How memory, identity, and daily interaction turn ordinary objects into lifelong emotional anchors.',
-      's1-quote-inner': '"A ₹200 keychain with a name engraved on it outlasts a ₹5,000 generic watch in emotional memory — not because it costs more, but because it <em>means</em> more."',
-      's1-body': 'Personalized gifts are not a trend. They are a direct channel into the human brain\'s most powerful systems — identity, memory, and emotion. Understanding why they work is the first step to giving better, and for sellers, to selling smarter.',
-      's1-stat1': 'prefer personalized gifts over generic ones',
-      's1-stat2': 'more likely to keep & display the gift',
-      's2-h': 'Meaning Is the Real Currency',
-      's2-body': 'We\'ve been conditioned to equate price with value. But psychological research consistently shows that <strong>perceived thoughtfulness</strong> — not monetary value — determines how a gift lands emotionally.',
-      's2-win': 'WINS ❤️',
-      's2-l1': 'Personalized Keychain',
-      's2-l2': 'Generic Watch',
-      's2-p1': 'Has recipient\'s name', 's2-p2': 'Triggers daily memory', 's2-p3': 'Shows real effort', 's2-p4': 'Unique — can\'t be bought off a shelf',
-      's2-p5': 'Functional', 's2-p6': 'No personal signal', 's2-p7': 'Forgotten origin', 's2-p8': 'Replaceable',
-      's3-h': 'Seeing Your Name Changes Everything',
-      's3-body': 'The moment someone sees their name, face, or a private memory on an object, the brain shifts from passive observation to active ownership. This is called <strong>self-referential processing</strong> — a cognitive shortcut that deepens encoding and emotional weight.',
-      's3-quote': '"It\'s not just a keychain. It\'s a keychain with <em>my</em> name on it." — That single word shifts the entire psychological relationship with the object.',
-      's3-l1': '<strong>Vicarious pride:</strong> The giver projects care. The receiver feels <em>seen</em>.',
-      's3-l2': '<strong>Ownership effect:</strong> Personalised objects feel harder to let go of immediately.',
-      's3-l3': '<strong>Identity anchoring:</strong> The object becomes an extension of who the person believes themselves to be.',
-      's4-h': 'Objects Remember So You Don\'t Have To',
-      's4-body': 'Every time you touch a personalized object, you involuntarily re-experience the moment it represents. This is <strong>associative memory</strong> — the same system that makes a smell transport you to childhood.',
-      'loop-1': 'OBJECT', 'loop-2': 'TOUCH', 'loop-3': 'MEMORY', 'loop-4': 'EMOTION', 'loop-5': 'BOND',
-      's4-loopl': 'Every interaction re-strengthens the emotional bond',
-      's4-body2': 'Unlike expensive gifts stored in drawers, small personalized objects are <em>used daily</em>. Each use is a micro-dose of connection to the giver.',
-      's5-h': 'The Keychain Beats the Watch Because It\'s Always There',
-      's5-body': 'Emotional bonds with objects are proportional to frequency of interaction — not cost. A keychain is touched 4–10 times per day. A watch may be worn occasionally. Every touch is a reminder of the person who gave it.',
-      's5-l1': 'Repetition strengthens neural pathways associated with the memory.',
-      's5-l2': 'Small objects integrate into <strong>daily rituals</strong> — wallet, bag, desk.',
-      's5-l3': 'Out-of-sight gifts lose emotional resonance rapidly.',
-      's5-l4': 'Size ≠ impact. The <strong>visibility cycle</strong> is what creates lasting bonds.',
-      's5-stat1': 'avg daily touches for a keychain',
-      's5-stat2': 'emotional loops over its lifetime',
-      's6-h': 'Thoughtfulness Is Worth More Than the Gift Itself',
-      's6-body': 'Research by Dunn, Aknin & Norton shows that <strong>the perceived effort of a gift matters more than its price</strong>. Personalization is a visible effort signal — it says "I thought specifically about <em>you</em>, not just what to buy."',
-      's6-quote': '"Anyone can spend money. Not everyone takes the time to make something personal. That difference is what people remember years later."',
-      's6-l1': 'Choosing a name, a date, or a photo requires intentionality.',
-      's6-l2': 'Recipients attribute more love to the giver — even unconsciously.',
-      's6-l3': 'The customization process becomes part of the gift\'s story.',
-      's7-h': 'Why We Keep Giving Personalized Gifts',
-      's7-body': 'The <strong>warm-glow effect</strong> means the giver also benefits — emotionally — from a personalized gift. Here are the five psychological forces at play:',
-      'd1-t': 'Vicarious Pride', 'd1-d': 'Givers feel pride when recipients love the gift they curated.',
-      'd2-t': 'Self-Recognition', 'd2-d': 'Seeing your name activates deep ownership and identity loops.',
-      'd3-t': 'Associative Memory', 'd3-d': 'Objects encode moments. Each touch replays a meaningful memory.',
-      'd4-t': 'Thoughtfulness > Price', 'd4-d': 'Effort signals beat monetary value in emotional impact, every time.',
-      'd5-t': 'Warm-Glow Effect', 'd5-d': 'The giver experiences a neurological reward from giving something truly personal — independent of the recipient\'s reaction. This creates a positive feedback loop that drives repeat gifting behaviour.',
-      's8-h': 'Why 3D Preview Converts Hesitation into Confidence',
-      's8-body': 'Personalized products carry a unique risk: buyers can\'t see the final product before they commit. A 3D interactive preview eliminates this uncertainty. It shifts the buyer\'s mental state from <em>"trust me"</em> to <em>"see for yourself."</em>',
-      's8-l1': '<strong>Visual confirmation</strong> reduces returns and buyer remorse.',
-      's8-l2': 'Buyers emotionally <strong>pre-attach</strong> to the item during preview — ownership begins before purchase.',
-      's8-l3': 'Reduces anxiety in high-thoughtfulness purchases where "getting it right" matters.',
-      's8-l4': 'Creates a shareable, satisfying creation experience — customers feel like co-creators.',
-      's8-quote': '"The 3D preview isn\'t a feature. It\'s a trust mechanism that makes personalization feel safe to buy — and exciting to share."',
-      's9-h': 'Build a Page That Converts Like a Gift Experience',
-      's9-body': 'If you sell personalized products, your product page is the gift-wrapping. Here\'s the framework that aligns with how buyers actually think:',
-      'bp1-t': 'Lead with Story, Not Specs', 'bp1-s': 'Open with the emotional moment: the birthday, the milestone, the friendship. Specs follow emotion.', 'bp1-b': 'HOOK',
-      'bp2-t': 'Show the 3D Preview Experience', 'bp2-s': 'Let buyers see their name, photo, or text on the product before they buy. Convert doubt into delight.', 'bp2-b': 'TRUST',
-      'bp3-t': 'Own Your Page, Own Your Margins', 'bp3-s': 'A direct page means zero commission loss, full brand control, and a customer relationship that\'s yours.', 'bp3-b': 'PROFIT',
-      'bp4-t': 'Make Every Order Feel Handcrafted', 'bp4-s': 'Confirmation messages, packaging inserts, and follow-up touch-points extend the emotional lifecycle of the gift.', 'bp4-b': 'LOYALTY',
-      's10-h': 'What This Means for You',
-      's10-body': 'Whether you\'re a giver, receiver, or seller — the psychology of personalization applies to all of you.',
-      's10-l1': 'Meaning is not a function of price. A personalized ₹200 object can outlast a ₹50,000 experience in emotional memory.',
-      's10-l2': 'Daily interaction compounds emotional value. Small objects win because they\'re always present.',
-      's10-l3': 'Effort is visible. Personalization is a tangible proof of care that generic gifts can never replicate.',
-      's10-l4': '3D preview technology removes the last barrier — uncertainty — between personalization and purchase.',
-      's10-l5': 'For sellers: story + preview + direct page = higher margins, higher trust, and loyal customers.',
-      's10-quote': '"The best gift isn\'t the most expensive one. It\'s the one that proves someone was paying attention."',
-      's11-kicker': 'Experience It Yourself',
-      's11-h': 'Design Your Personalized Keychain',
-      's11-body': 'See your name, photo, or message on a premium keychain — in 3D, before you buy. No commitment. No guessing. Just the perfect gift, made personal.',
-      's11-btn': '✦ Customize Your Keychain',
-      's11-note': '3D Preview · Instant Personalization · Ships India-wide',
-      's11-more': '← Read More on ViaDecide Blog',
-      'toastMsg': 'Translated to Hindi',
-      's2-tag': 'INFOGRAPHIC A',
-      's4-tag': 'INFOGRAPHIC B',
-      's7-tag': 'INFOGRAPHIC C',
-      's9-tag': 'INFOGRAPHIC D',
-    },
-    hi: {
-      's1-h': 'व्यक्तिगत उपहारों का मनोविज्ञान',
-      's1-sub': 'कैसे स्मृति, पहचान और दैनिक उपयोग साधारण वस्तुओं को आजीवन भावनात्मक बंधन में बदल देते हैं।',
-      's1-quote-inner': '"₹200 का नाम-उकेरा कीचेन, ₹5,000 की साधारण घड़ी से अधिक समय तक भावनाओं में जीवित रहता है — क्योंकि इसका <em>मतलब</em> ज़्यादा है।"',
-      's1-body': 'व्यक्तिगत उपहार कोई चलन नहीं हैं। ये सीधे मानव मस्तिष्क की सबसे शक्तिशाली प्रणालियों से जुड़ते हैं — पहचान, स्मृति और भावना। यह समझना कि ये क्यों काम करते हैं, बेहतर उपहार देने और बेहतर बिक्री करने की पहली सीढ़ी है।',
-      's1-stat1': 'लोग व्यक्तिगत उपहार पसंद करते हैं',
-      's1-stat2': 'उपहार रखने और प्रदर्शित करने की संभावना',
-      's2-h': 'अर्थ ही असली मुद्रा है',
-      's2-body': 'हम आदतन मूल्य को कीमत से जोड़ते हैं। लेकिन मनोवैज्ञानिक शोध दर्शाता है कि <strong>महसूस की गई सोच</strong> — न कि मौद्रिक मूल्य — यह तय करती है कि उपहार भावनात्मक रूप से कैसा लगता है।',
-      's2-win': 'जीतता है ❤️',
-      's2-l1': 'व्यक्तिगत कीचेन',
-      's2-l2': 'साधारण घड़ी',
-      's2-p1': 'प्राप्तकर्ता का नाम है', 's2-p2': 'रोज़ याद दिलाता है', 's2-p3': 'वास्तविक प्रयास दर्शाता है', 's2-p4': 'अनूठा — दुकान से नहीं मिलता',
-      's2-p5': 'कार्यात्मक', 's2-p6': 'कोई व्यक्तिगत संकेत नहीं', 's2-p7': 'भूला हुआ स्रोत', 's2-p8': 'बदला जा सकता है',
-      's3-h': 'अपना नाम देखना सब कुछ बदल देता है',
-      's3-body': 'जब कोई किसी वस्तु पर अपना नाम, चेहरा या यादें देखता है, तो मस्तिष्क निष्क्रिय अवलोकन से सक्रिय स्वामित्व की ओर जाता है। इसे <strong>स्व-संदर्भित प्रसंस्करण</strong> कहते हैं।',
-      's3-quote': '"यह सिर्फ एक कीचेन नहीं है। यह <em>मेरे</em> नाम वाली कीचेन है।" — यह एक शब्द पूरे मनोवैज्ञानिक संबंध को बदल देता है।',
-      's3-l1': '<strong>परोक्ष गर्व:</strong> देने वाला देखभाल प्रकट करता है। पाने वाला <em>महत्वपूर्ण</em> महसूस करता है।',
-      's3-l2': '<strong>स्वामित्व प्रभाव:</strong> व्यक्तिगत वस्तुएं छोड़ना कठिन लगता है।',
-      's3-l3': '<strong>पहचान लंगर:</strong> वस्तु व्यक्ति की स्व-धारणा का विस्तार बन जाती है।',
-      's4-h': 'वस्तुएं याद रखती हैं ताकि आपको न पड़े',
-      's4-body': 'हर बार जब आप किसी व्यक्तिगत वस्तु को छूते हैं, तो आप अनायास उस पल को फिर जीते हैं। यही <strong>साहचर्य स्मृति</strong> है — जैसे कोई गंध बचपन में ले जाती है।',
-      'loop-1': 'वस्तु', 'loop-2': 'स्पर्श', 'loop-3': 'स्मृति', 'loop-4': 'भावना', 'loop-5': 'बंधन',
-      's4-loopl': 'हर बातचीत भावनात्मक बंधन को मजबूत करती है',
-      's4-body2': 'महंगे उपहारों के विपरीत जो दराज में रहते हैं, छोटी व्यक्तिगत वस्तुएं <em>रोज़ उपयोग</em> होती हैं।',
-      's5-h': 'कीचेन घड़ी को इसलिए हराती है क्योंकि वह हमेशा साथ है',
-      's5-body': 'वस्तुओं से भावनात्मक बंधन संपर्क की आवृत्ति से होता है — कीमत से नहीं। एक कीचेन दिन में 4-10 बार छुई जाती है।',
-      's5-l1': 'दोहराव स्मृति से जुड़े तंत्रिका मार्गों को मजबूत करता है।',
-      's5-l2': 'छोटी वस्तुएं <strong>दैनिक अनुष्ठानों</strong> में शामिल हो जाती हैं।',
-      's5-l3': 'नजर से दूर उपहार जल्दी भावनात्मक महत्व खो देते हैं।',
-      's5-l4': 'आकार ≠ प्रभाव। <strong>दृश्यता चक्र</strong> ही स्थायी बंधन बनाता है।',
-      's5-stat1': 'कीचेन के रोज़ाना औसत स्पर्श',
-      's5-stat2': 'जीवन भर भावनात्मक लूप',
-      's6-h': 'सोचना उपहार से ज़्यादा कीमती है',
-      's6-body': 'शोध बताता है कि <strong>उपहार में लगा प्रयास उसकी कीमत से ज़्यादा मायने रखता है</strong>। व्यक्तिकरण एक दृश्य प्रयास संकेत है — यह कहता है "मैंने विशेष रूप से <em>तुम्हारे</em> बारे में सोचा।"',
-      's6-quote': '"पैसे कोई भी खर्च कर सकता है। कुछ व्यक्तिगत बनाने का समय हर कोई नहीं निकालता। यही फर्क लोग वर्षों तक याद रखते हैं।"',
-      's6-l1': 'नाम, तारीख या फोटो चुनना जानबूझकर की गई देखभाल है।',
-      's6-l2': 'पाने वाले देने वाले को और प्रेमपूर्ण मानते हैं — अनजाने में भी।',
-      's6-l3': 'अनुकूलन प्रक्रिया उपहार की कहानी का हिस्सा बन जाती है।',
-      's7-h': 'हम व्यक्तिगत उपहार क्यों देते रहते हैं',
-      's7-body': '<strong>वार्म-ग्लो प्रभाव</strong> का अर्थ है कि देने वाला भी — भावनात्मक रूप से — व्यक्तिगत उपहार से लाभान्वित होता है।',
-      'd1-t': 'परोक्ष गर्व', 'd1-d': 'देने वालों को गर्व होता है जब प्राप्तकर्ता उनके चुने उपहार से खुश होते हैं।',
-      'd2-t': 'स्व-पहचान', 'd2-d': 'अपना नाम देखना गहरे स्वामित्व और पहचान के लूप को सक्रिय करता है।',
-      'd3-t': 'साहचर्य स्मृति', 'd3-d': 'वस्तुएं पलों को एन्कोड करती हैं। हर स्पर्श एक अर्थपूर्ण स्मृति को दोहराता है।',
-      'd4-t': 'सोच > कीमत', 'd4-d': 'प्रयास के संकेत हर बार भावनात्मक प्रभाव में मौद्रिक मूल्य को हराते हैं।',
-      'd5-t': 'वार्म-ग्लो प्रभाव', 'd5-d': 'देने वाले को व्यक्तिगत उपहार देने से न्यूरोलॉजिकल इनाम मिलता है — प्राप्तकर्ता की प्रतिक्रिया से स्वतंत्र। यह एक सकारात्मक प्रतिक्रिया लूप बनाता है।',
-      's8-h': '3D प्रीव्यू हिचकिचाहट को आत्मविश्वास में बदलता है',
-      's8-body': 'व्यक्तिगत उत्पादों में एक अनूठा जोखिम होता है: खरीदार खरीदने से पहले अंतिम उत्पाद नहीं देख सकते। 3D इंटरेक्टिव प्रीव्यू इस अनिश्चितता को समाप्त करता है।',
-      's8-l1': '<strong>दृश्य पुष्टि</strong> वापसी और खरीदार के पछतावे को कम करती है।',
-      's8-l2': 'खरीदार प्रीव्यू के दौरान भावनात्मक रूप से <strong>पूर्व-जुड़ाव</strong> करते हैं।',
-      's8-l3': 'उच्च-विचारशीलता वाली खरीद में चिंता कम करता है।',
-      's8-l4': 'ग्राहक सह-निर्माता की तरह महसूस करते हैं — अनुभव साझा करने योग्य बन जाता है।',
-      's8-quote': '"3D प्रीव्यू एक सुविधा नहीं है। यह एक विश्वास तंत्र है जो व्यक्तिकरण को सुरक्षित और रोमांचक बनाता है।"',
-      's9-h': 'एक पेज बनाएं जो उपहार अनुभव की तरह कन्वर्ट करे',
-      's9-body': 'यदि आप व्यक्तिगत उत्पाद बेचते हैं, तो आपका उत्पाद पेज उपहार की पैकेजिंग है।',
-      'bp1-t': 'कहानी से शुरू करें, विशेषताओं से नहीं', 'bp1-s': 'भावनात्मक पल से खोलें: जन्मदिन, मील का पत्थर, दोस्ती। विशेषताएं भावना के बाद आती हैं।', 'bp1-b': 'हुक',
-      'bp2-t': '3D प्रीव्यू अनुभव दिखाएं', 'bp2-s': 'खरीदारों को खरीदने से पहले उत्पाद पर उनका नाम, फोटो देखने दें। संदेह को प्रसन्नता में बदलें।', 'bp2-b': 'विश्वास',
-      'bp3-t': 'अपना पेज, अपना मुनाफा', 'bp3-s': 'सीधे पेज का मतलब है शून्य कमीशन हानि, पूर्ण ब्रांड नियंत्रण और आपके ग्राहक।', 'bp3-b': 'लाभ',
-      'bp4-t': 'हर ऑर्डर को हस्तनिर्मित महसूस कराएं', 'bp4-s': 'पुष्टि संदेश, पैकेजिंग और फॉलो-अप उपहार के भावनात्मक जीवनचक्र को बढ़ाते हैं।', 'bp4-b': 'वफादारी',
-      's10-h': 'आपके लिए इसका क्या अर्थ है',
-      's10-body': 'चाहे आप देने वाले हों, पाने वाले हों या विक्रेता — व्यक्तिकरण का मनोविज्ञान सभी पर लागू होता है।',
-      's10-l1': 'अर्थ कीमत का कार्य नहीं है। ₹200 की व्यक्तिगत वस्तु भावनात्मक स्मृति में ₹50,000 के अनुभव को पीछे छोड़ सकती है।',
-      's10-l2': 'दैनिक संपर्क भावनात्मक मूल्य को बढ़ाता है। छोटी वस्तुएं जीतती हैं क्योंकि वे हमेशा उपस्थित हैं।',
-      's10-l3': 'प्रयास दृश्यमान है। व्यक्तिकरण देखभाल का ठोस प्रमाण है जिसे साधारण उपहार कभी नहीं दे सकते।',
-      's10-l4': '3D प्रीव्यू तकनीक व्यक्तिकरण और खरीद के बीच की आखिरी बाधा — अनिश्चितता — को हटाती है।',
-      's10-l5': 'विक्रेताओं के लिए: कहानी + प्रीव्यू + सीधा पेज = उच्च मार्जिन, उच्च विश्वास, वफादार ग्राहक।',
-      's10-quote': '"सबसे अच्छा उपहार सबसे महंगा नहीं होता। वह होता है जो साबित करता है कि किसी ने ध्यान दिया था।"',
-      's11-kicker': 'खुद अनुभव करें',
-      's11-h': 'अपना व्यक्तिगत कीचेन डिज़ाइन करें',
-      's11-body': 'प्रीमियम कीचेन पर अपना नाम, फोटो या संदेश 3D में देखें — खरीदने से पहले। कोई जोखिम नहीं। कोई अनुमान नहीं।',
-      's11-btn': '✦ अपना कीचेन कस्टमाइज़ करें',
-      's11-note': '3D प्रीव्यू · तत्काल व्यक्तिकरण · भारत भर में डिलीवरी',
-      's11-more': '← ViaDecide ब्लॉग पर और पढ़ें',
-      'toastMsg': 'हिंदी में अनुवादित',
-      's2-tag': 'इन्फोग्राफिक A',
-      's4-tag': 'इन्फोग्राफिक B',
-      's7-tag': 'इन्फोग्राफिक C',
-      's9-tag': 'इन्फोग्राफिक D',
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --safeLeft: env(safe-area-inset-left, 0px);
+      --safeRight: env(safe-area-inset-right, 0px);
     }
-  };
 
-  let lang = 'en';
-  let toastTimer;
+    html[data-theme="light"]{
+      --bg:#fbfbfb;
+      --card-bg: rgba(255,255,255,0.86);
+      --card-border: rgba(0, 0, 0, 0.10);
+      --text:#0b0b0b;
+      --text-muted: rgba(0,0,0,0.62);
+      --text-dim: rgba(0,0,0,0.48);
+      --shadow: 0 18px 60px rgba(0,0,0,0.12);
+      --accent-glow: rgba(255,103,31,0.10);
+    }
 
-  function applyTranslation(lng) {
-    const d = t[lng];
-    Object.keys(d).forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = d[id];
-    });
-    document.getElementById('langToggle').textContent = lng === 'en' ? 'हिं' : 'EN';
-    document.documentElement.lang = lng === 'en' ? 'en' : 'hi';
-  }
+    html, body{
+      height:100%;
+      height:100dvh;
+      margin:0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow:hidden;
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    *{ box-sizing:border-box; }
+    a{ color:inherit; text-decoration:none; }
+    button, input{ font:inherit; color:inherit; }
+    button{ background:none; border:none; padding:0; cursor:pointer; }
 
-  function toggleLang() {
-    const prev = lang;
-    lang = lang === 'en' ? 'hi' : 'en';
-    applyTranslation(lang);
-    showToast();
-  }
+    #appWrapper{ position: relative; width: 100vw; height: 100dvh; overflow:hidden; }
 
-  function undoLang() {
-    lang = lang === 'en' ? 'hi' : 'en';
-    applyTranslation(lang);
-    hideToast();
-  }
+    .bg-glow{
+      position:absolute; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%),
+        radial-gradient(circle at 85% 100%, rgba(255,255,255,0.04), transparent 60%);
+    }
+    html[data-theme="light"] .bg-glow{
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,103,31,0.08), transparent 62%),
+        radial-gradient(circle at 85% 100%, rgba(0,0,0,0.05), transparent 62%);
+    }
 
-  function showToast() {
-    const toast = document.getElementById('toast');
-    document.getElementById('toastMsg').textContent = t[lang]['toastMsg'];
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, 4000);
-  }
+    /* Top Nav */
+    .top{
+      position:absolute; top:0; left:0; right:0; z-index:50;
+      padding: calc(14px + var(--safeTop)) calc(14px + var(--safeRight)) 12px calc(14px + var(--safeLeft));
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      pointer-events:none;
+      background: linear-gradient(180deg, rgba(5,5,5,0.92) 0%, rgba(5,5,5,0) 100%);
+    }
+    html[data-theme="light"] .top{
+      background: linear-gradient(180deg, rgba(251,251,251,0.92) 0%, rgba(251,251,251,0) 100%);
+    }
+    .top > *{ pointer-events:auto; }
 
-  function hideToast() {
-    document.getElementById('toast').classList.remove('show');
-  }
-</script>
+    .top-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .back, .pill, .btn-icon{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--card-border);
+      background: rgba(15,15,15,0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.2s ease;
+      user-select:none;
+    }
+    html[data-theme="light"] .back,
+    html[data-theme="light"] .pill,
+    html[data-theme="light"] .btn-icon{ background: rgba(255,255,255,0.70); }
+
+    .btn-icon{ width:38px; height:38px; padding:0; font-weight:800; color: var(--accent); }
+    .back{ font-weight:700; font-size:14px; color: var(--text); }
+    .back:active, .btn-icon:active{ transform: scale(0.96); }
+
+    .pill{
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .pill b{ color: var(--text); letter-spacing: 0.1em; font-weight:800; }
+
+    /* Scroll */
+    .scroll-container{
+      position:absolute; inset:0;
+      overflow-y:auto; overflow-x:hidden;
+      scroll-snap-type: y mandatory;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling: touch;
+      z-index:10;
+    }
+    .scroll-container::-webkit-scrollbar{ display:none; }
+
+    /* Section/Card */
+    .section-wrapper{
+      height:100%;
+      width:100%;
+      scroll-snap-align:start;
+      scroll-snap-stop:always;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding: calc(92px + var(--safeTop)) calc(16px + var(--safeRight)) calc(60px + var(--safeBottom)) calc(16px + var(--safeLeft));
+      position:relative;
+    }
+    .card{
+      width:100%;
+      max-width: 820px;
+      flex:1;
+      min-height:0;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      opacity:0.25;
+      transform: scale(0.93) translateY(26px);
+      transition: opacity .7s cubic-bezier(0.16,1,0.3,1), transform .7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .section-wrapper.is-active .card{ opacity:1; transform: scale(1) translateY(0); }
+
+    .cardHeader{
+      padding: 22px 22px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.20);
+      flex-shrink:0;
+    }
+    html[data-theme="light"] .cardHeader{
+      background: rgba(0,0,0,0.03);
+      border-bottom-color: rgba(0,0,0,0.08);
+    }
+    .kicker{
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+    .h1{
+      margin:0;
+      font-size: clamp(22px, 5vw, 28px);
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      font-weight: 800;
+    }
+
+    .cardBody{
+      padding: 22px;
+      overflow-y:auto;
+      -webkit-overflow-scrolling: touch;
+      flex:1;
+    }
+
+    /* Typography */
+    .big{
+      font-size: clamp(28px, 6vw, 42px);
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin: 0 0 18px;
+    }
+    .big .accent{
+      background: linear-gradient(135deg, #ff8a4c, #ff4c00);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color: transparent;
+      color: var(--accent);
+    }
+    .lead{
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--text-muted);
+      margin: 0 0 14px;
+    }
+    .list{
+      margin: 18px 0;
+      padding: 0;
+      list-style:none;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    .list li{
+      position:relative;
+      padding-left: 24px;
+      margin: 12px 0;
+    }
+    .list li::before{
+      content:'→';
+      position:absolute; left:0;
+      color: var(--accent);
+      font-weight: 900;
+    }
+    .quote{
+      margin: 20px 0 14px;
+      padding: 14px 16px;
+      border-left: 3px solid var(--accent);
+      background: linear-gradient(90deg, var(--accent-glow), transparent);
+      border-radius: 0 12px 12px 0;
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+      font-style: italic;
+    }
+
+    /* Buttons */
+    .ctaRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:8px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: rgba(0,0,0,0.22);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 14px;
+      user-select:none;
+      transition: transform .15s ease, filter .15s ease;
+    }
+    html[data-theme="light"] .btn{ background: rgba(255,255,255,0.50); }
+    .btn:active{ transform: scale(0.98); }
+    .btn.primary{
+      background: var(--accent);
+      border-color: rgba(255,103,31,0.55);
+      color:#fff;
+    }
+    .btn.primary:hover{ filter: brightness(1.06); }
+
+    .chipRow{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 8px; }
+    .chip{
+      font-size: 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.20);
+    }
+    html[data-theme="light"] .chip{ background: rgba(0,0,0,0.03); }
+
+    /* Subscribe UI (mailto) */
+    .formBox{
+      border: 1px solid var(--card-border);
+      background: rgba(0,0,0,.20);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+    html[data-theme="light"] .formBox{ background: rgba(0,0,0,.03); }
+
+    .fieldRow{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items:center;
+      margin-top: 10px;
+    }
+    @media (max-width: 520px){
+      .fieldRow{ grid-template-columns: 1fr; }
+      .btn{ width:100%; }
+    }
+
+    .input{
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: rgba(0,0,0,.28);
+      color: var(--text);
+      padding: 12px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    html[data-theme="light"] .input{ background: rgba(0,0,0,.03); }
+
+    .input:focus{
+      border-color: rgba(255,103,31,.45);
+      box-shadow: 0 0 0 3px rgba(255,103,31,.14);
+    }
+
+    .fineprint{
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .statusLine{
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .statusLine.ok{ color: rgba(34,197,94,.95); }
+    .statusLine.bad{ color: rgba(239,68,68,.95); }
+
+    /* Scroll hint */
+    .hint{
+      position:absolute;
+      bottom: calc(16px + var(--safeBottom));
+      left:50%;
+      transform: translateX(-50%);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      color: rgba(255,255,255,0.35);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      pointer-events:none;
+      animation: pulse 2s infinite;
+    }
+    html[data-theme="light"] .hint{ color: rgba(0,0,0,0.35); }
+    .hint svg{ width: 14px; height: 14px; stroke: currentColor; fill:none; stroke-width: 2.5; }
+    @keyframes pulse{
+      0%,100%{ transform: translateX(-50%) translateY(0); opacity: 0.6; }
+      50%{ transform: translateX(-50%) translateY(5px); opacity: 1; }
+    }
+    .section-wrapper:last-child .hint{ display:none; }
+  </style>
+</head>
+
+<body>
+  <div id="appWrapper">
+    <div class="bg-glow"></div>
+
+    <div class="top">
+      <a class="back" href="#" data-back>← Back</a>
+
+      <div class="top-actions">
+        <button class="btn-icon" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        <button class="btn-icon" id="langBtn" aria-label="Translate" title="Translate">A/अ</button>
+        <div class="pill"><b id="secLabel">SEC 1/8</b> • <span id="secName">INTRO</span></div>
+      </div>
+    </div>
+
+    <main class="scroll-container" id="scrollContainer"></main>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      // ======= CONFIG =======
+      const SUBSCRIBE_TO_EMAIL = "dharam@viadecide.com";
+
+      // ======= THEME =======
+      const THEME_KEY = "vdTheme";
+      const themeBtn = document.getElementById("themeBtn");
+
+      function applyTheme(t){
+        const theme = (t === "light") ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+        try { localStorage.setItem(THEME_KEY, theme); } catch(e){}
+        if(themeBtn) themeBtn.textContent = (theme === "light") ? "☀" : "☾";
+      }
+      (function initTheme(){
+        let saved = "dark";
+        try { saved = localStorage.getItem(THEME_KEY) || "dark"; } catch(e){}
+        applyTheme(saved);
+      })();
+
+      if(themeBtn){
+        themeBtn.addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme") || "dark";
+          applyTheme(cur === "dark" ? "light" : "dark");
+        });
+      }
+
+      // ======= AFFILIATE TAG (optional, preserved) =======
+      function getParam(key){
+        try{
+          const u = new URL(location.href);
+          const v = u.searchParams.get(key);
+          return v ? v.trim() : null;
+        }catch(e){ return null; }
+      }
+      function normalizeTag(t){
+        t = (t || "").trim().replace(/[^\w.-]/g,"").slice(0,64);
+        return t || "viadecide";
+      }
+      function getAffiliateTag(){
+        let t = normalizeTag(getParam("tag") || getParam("aff"));
+        try{
+          const stored = localStorage.getItem("affiliateTag");
+          if(stored) t = normalizeTag(stored);
+          if(getParam("tag") || getParam("aff")) localStorage.setItem("affiliateTag", t);
+        }catch(e){}
+        return t;
+      }
+
+      function safeNowIST(){
+        try {
+          return new Intl.DateTimeFormat("en-GB", {
+            timeZone:"Asia/Kolkata", year:"numeric", month:"2-digit", day:"2-digit",
+            hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false
+          }).format(new Date()).replace(",","");
+        } catch(e){ return new Date().toISOString(); }
+      }
+
+      // ======= LANGUAGE =======
+      let currentLang = "en";
+      const langBtn = document.getElementById("langBtn");
+      if(langBtn){
+        langBtn.addEventListener("click", () => {
+          currentLang = (currentLang === "en") ? "hi" : "en";
+          renderSections();
+        });
+      }
+
+      // ======= CONTENT =======
+      const SECTIONS = [
+        {
+          name:"INTRO",
+          kicker:"Gifting Psychology",
+          title:{
+            en:"Gifts That Mean More: Why Personalization Wins",
+            hi:"ऐसे गिफ्ट जो ज़्यादा मायने रखते हैं"
+          },
+          html:{
+            en:()=>`
+              <div class="big">Most people think expensive = <span class="accent">meaningful.</span></div>
+              <p class="lead">
+                But the gifts people remember aren’t always the costly ones. They’re the ones that feel <b>specific</b>.
+                The ones that say: <i>“I see you.”</i>
+              </p>
+              <div class="quote">
+                Personalization doesn’t add “luxury.” It adds identity — and identity is what bonds to memory.
+              </div>
+              <div class="chipRow">
+                <span class="chip">Psychology</span>
+                <span class="chip">Memory</span>
+                <span class="chip">Everyday meaning</span>
+                <span class="chip">3D printing gifts</span>
+              </div>
+              <div class="ctaRow" style="margin-top:16px;">
+                <a class="btn primary" href="guides">All Blogs / Guides →</a>
+                <a class="btn" href="keychain">View Product (3D Preview) →</a>
+              </div>
+            `,
+            hi:()=>`
+              <div class="big">अक्सर लोग सोचते हैं: महँगा = <span class="accent">meaningful</span></div>
+              <p class="lead">
+                लेकिन सबसे यादगार गिफ्ट अक्सर सबसे महँगे नहीं होते। सबसे यादगार वो होते हैं जो <b>स्पेसिफिक</b> लगते हैं।
+                जो कहते हैं: <i>“मैंने तुम्हें समझा।”</i>
+              </p>
+              <div class="quote">
+                Personalization “luxury” नहीं जोड़ता — यह identity जोड़ता है। और identity memory से जुड़ती है।
+              </div>
+              <div class="ctaRow" style="margin-top:16px;">
+                <a class="btn primary" href="guides">All Blogs / Guides →</a>
+                <a class="btn" href="keychain">Product देखें (3D) →</a>
+              </div>
+            `
+          }
+        },
+
+        {
+          name:"1/10 • SYMBOL",
+          kicker:"Principle 1",
+          title:{ en:"Personalized gifts become emotional symbols", hi:"Personalized गिफ्ट भावनात्मक प्रतीक बनते हैं" },
+          html:{
+            en:()=>`
+              <p class="lead">
+                A gift is never just an object. It’s a message. And personalization makes that message <b>unmistakable</b>.
+                A name, a date, an inside joke — these tiny details turn a commodity into a symbol.
+              </p>
+              <ul class="list">
+                <li>A generic watch says: “I bought something nice.”</li>
+                <li>A personalized keychain says: “This is <b>yours</b>. I chose it for <b>you</b>.”</li>
+              </ul>
+              <p class="lead">The value shifts from price → <b>meaning</b>. That’s where bonding starts.</p>
+            `,
+            hi:()=>`
+              <p class="lead">
+                गिफ्ट सिर्फ़ वस्तु नहीं होता। वह एक संदेश होता है। और personalization उस संदेश को <b>स्पष्ट</b> बनाता है।
+                नाम, तारीख, या अंदर का मज़ाक — ये छोटे डिटेल्स किसी साधारण चीज़ को प्रतीक बना देते हैं।
+              </p>
+              <ul class="list">
+                <li>Generic watch: “मैंने कुछ अच्छा खरीदा।”</li>
+                <li>Personalized keychain: “यह <b>तुम्हारा</b> है। मैंने <b>तुम्हारे लिए</b> चुना।”</li>
+              </ul>
+            `
+          }
+        },
+
+        {
+          name:"2/10 • SEEN",
+          kicker:"Principle 2",
+          title:{ en:"Personalization makes people feel seen", hi:"Personalization लोगों को ‘seen’ महसूस कराता है" },
+          html:{
+            en:()=>`
+              <div class="big">People don’t remember <span class="accent">objects.</span> They remember being understood.</div>
+              <p class="lead">
+                When a gift reflects someone’s identity — their name, role, story, or taste — it triggers
+                <b>self-recognition</b>. The recipient doesn’t just like the gift. They like what it says about them.
+              </p>
+              <div class="quote">“You paid attention.” That sentence is the real gift.</div>
+              <p class="lead">That’s why a small customized item often beats a larger generic item emotionally.</p>
+            `,
+            hi:()=>`
+              <div class="big">लोग <span class="accent">objects</span> नहीं, ‘समझे जाने’ को याद रखते हैं।</div>
+              <p class="lead">
+                जब गिफ्ट किसी की identity को reflect करता है — नाम, role, कहानी — तो self-recognition trigger होता है।
+                सबसे बड़ा signal होता है: <b>ध्यान दिया गया</b>।
+              </p>
+            `
+          }
+        },
+
+        {
+          name:"3/10 • MEMORY",
+          kicker:"Principle 3",
+          title:{ en:"Everyday objects become memory triggers", hi:"रोज़मर्रा की चीज़ें memory trigger बनती हैं" },
+          html:{
+            en:()=>`
+              <p class="lead">Associative memory: when a physical object repeatedly pulls you back to a moment.</p>
+              <ul class="list">
+                <li>A keychain is touched daily.</li>
+                <li>Daily touch = daily recall.</li>
+                <li>Daily recall = stronger bond.</li>
+              </ul>
+              <div class="quote">The best gifts don’t sit on a shelf. They live with the person.</div>
+              <p class="lead">That’s why keychains, tags, desk objects, and small keepsakes can be powerful.</p>
+            `,
+            hi:()=>`
+              <p class="lead">Associative memory: कोई वस्तु बार-बार किसी पल/रिश्ते की याद दिलाए।</p>
+              <ul class="list">
+                <li>Keychain रोज़ हाथ में आता है।</li>
+                <li>रोज़ = recall।</li>
+                <li>recall = bond मजबूत।</li>
+              </ul>
+            `
+          }
+        },
+
+        {
+          name:"4/10 • THOUGHT",
+          kicker:"Principle 4",
+          title:{ en:"Thoughtfulness beats price", hi:"Thoughtfulness कीमत से ऊपर" },
+          html:{
+            en:()=>`
+              <div class="big">The formula isn’t <span class="accent">spend more</span>. It’s care more visibly.</div>
+              <p class="lead">
+                People value effort, intention, and relevance more than the number on the bill.
+                Personalization signals effort in a way a generic expensive gift often can’t.
+              </p>
+              <ul class="list">
+                <li>Generic expensive: impressive, but forgettable.</li>
+                <li>Personalized small: specific, repeatable, memorable.</li>
+              </ul>
+            `,
+            hi:()=>`
+              <div class="big">Formula: spend more नहीं, <span class="accent">care visibly</span>।</div>
+              <p class="lead">
+                लोग effort + intention को price से ज़्यादा value करते हैं। Personalized चीज़ effort को साफ दिखाती है।
+              </p>
+            `
+          }
+        },
+
+        {
+          name:"5/10 • JOY",
+          kicker:"Principle 5",
+          title:{ en:"Warm-glow: the giver feels happier too", hi:"Warm-glow: देने वाला भी खुश होता है" },
+          html:{
+            en:()=>`
+              <p class="lead">
+                Thoughtful giving isn’t only good for the receiver. The giver also feels a genuine “warm-glow”
+                — the satisfaction of making someone feel valued.
+              </p>
+              <div class="quote">When giving feels like connection, it doesn’t feel like obligation.</div>
+              <p class="lead">That’s why personalization tends to strengthen both sides.</p>
+            `,
+            hi:()=>`
+              <p class="lead">
+                Thoughtful gifting receiver के साथ-साथ giver के लिए भी अच्छा होता है — warm-glow effect।
+              </p>
+            `
+          }
+        },
+
+        {
+          name:"SELLER NOTE",
+          kicker:"For Sellers",
+          title:{ en:"Why this matters for 3D printing sellers", hi:"3D printing sellers के लिए क्यों ज़रूरी" },
+          html:{
+            en:()=>`
+              <div class="big">For 3D printed products, <span class="accent">trust</span> is the bottleneck.</div>
+              <p class="lead">
+                If you sell personalized gifts, you’re not selling plastic. You’re selling meaning.
+                Online, meaning travels best as: <b>story + proof</b>.
+              </p>
+              <ul class="list">
+                <li>Story explains the “why” (emotional hook).</li>
+                <li>Specs reduce doubt (clarity).</li>
+                <li><b>3D preview builds trust</b> (inspect before buying).</li>
+              </ul>
+              <div class="ctaRow">
+                <a class="btn primary" href="keychain">See the Keychain demo (3D) →</a>
+                <a class="btn" href="guides">Browse all blogs →</a>
+              </div>
+              <p class="fineprint">All internal links above are router routes (compatible with your router.js).</p>
+            `,
+            hi:()=>`
+              <div class="big">3D printed products में bottleneck <span class="accent">trust</span> है।</div>
+              <p class="lead">Story + proof से trust तेज़ बनता है। 3D preview buyers को “see for yourself” देता है।</p>
+              <div class="ctaRow">
+                <a class="btn primary" href="keychain">Keychain demo (3D) →</a>
+                <a class="btn" href="guides">All blogs →</a>
+              </div>
+            `
+          }
+        },
+
+        // ======= SUBSCRIBE (MAILTO) =======
+        {
+          name:"SUBSCRIBE",
+          kicker:"Daily Updates",
+          title:{ en:"Get one decision insight daily", hi:"हर दिन 1 decision insight" },
+          html:{
+            en:()=>`
+              <div class="big">A calm daily <span class="accent">signal.</span></div>
+              <p class="lead">
+                One short update: what changed, what matters, what to ignore — so you decide with less noise.
+              </p>
+
+              <div class="formBox" id="subBox">
+                <div id="subBefore">
+                  <div class="chipRow">
+                    <span class="chip">No spam</span>
+                    <span class="chip">1 email/day</span>
+                    <span class="chip">Unsubscribe anytime</span>
+                  </div>
+
+                  <div class="fieldRow">
+                    <input class="input" id="subEmail" type="email" inputmode="email" autocomplete="email"
+                      placeholder="you@example.com" aria-label="Email address" />
+                    <button class="btn primary" id="subBtn" type="button">Subscribe →</button>
+                  </div>
+
+                  <div class="statusLine" id="subStatus"></div>
+
+                  <div class="fineprint">
+                    This opens your email app with a pre-filled message. Hit “Send” to subscribe.
+                  </div>
+                </div>
+
+                <div id="subAfter" style="display:none;">
+                  <div class="quote" style="margin-top:0;">✅ Draft email opened. Press “Send” to confirm subscription.</div>
+                  <p class="lead" style="margin-bottom:0;">Explore more:</p>
+                  <div class="ctaRow">
+                    <a class="btn primary" href="guides">All Blogs / Guides →</a>
+                    <a class="btn" href="keychain">Product demo (3D) →</a>
+                  </div>
+                </div>
+              </div>
+            `,
+            hi:()=>`
+              <div class="big">हर दिन एक <span class="accent">शांत</span> अपडेट।</div>
+              <p class="lead">
+                1 छोटा email: क्या बदला, क्या मायने रखता है, क्या ignore करें — ताकि निर्णय आसान हो।
+              </p>
+
+              <div class="formBox" id="subBox">
+                <div id="subBefore">
+                  <div class="chipRow">
+                    <span class="chip">Spam नहीं</span>
+                    <span class="chip">1 email/day</span>
+                    <span class="chip">कभी भी unsubscribe</span>
+                  </div>
+
+                  <div class="fieldRow">
+                    <input class="input" id="subEmail" type="email" inputmode="email" autocomplete="email"
+                      placeholder="you@example.com" aria-label="Email address" />
+                    <button class="btn primary" id="subBtn" type="button">Subscribe →</button>
+                  </div>
+
+                  <div class="statusLine" id="subStatus"></div>
+
+                  <div class="fineprint">
+                    आपका email app खुलेगा। बस “Send” दबाकर subscribe करें।
+                  </div>
+                </div>
+
+                <div id="subAfter" style="display:none;">
+                  <div class="quote" style="margin-top:0;">✅ Draft email खुल गया। Confirm करने के लिए “Send” दबाएँ।</div>
+                  <div class="ctaRow">
+                    <a class="btn primary" href="guides">All Blogs / Guides →</a>
+                    <a class="btn" href="keychain">Product demo (3D) →</a>
+                  </div>
+                </div>
+              </div>
+            `
+          }
+        }
+      ];
+
+      // ======= RENDER =======
+      const container = document.getElementById("scrollContainer");
+      const secLabelEl = document.getElementById("secLabel");
+      const secNameEl  = document.getElementById("secName");
+
+      const observerOptions = { root: container, threshold: 0.62 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            entry.target.classList.add("is-active");
+            const idx = parseInt(entry.target.getAttribute("data-index") || "0", 10);
+            secLabelEl.textContent = `SEC ${idx + 1}/${SECTIONS.length}`;
+            secNameEl.textContent  = entry.target.getAttribute("data-name") || "";
+          } else {
+            entry.target.classList.remove("is-active");
+          }
+        });
+      }, observerOptions);
+
+      function renderSections(){
+        container.innerHTML = "";
+        SECTIONS.forEach((sec, idx) => {
+          const wrap = document.createElement("div");
+          wrap.className = "section-wrapper";
+          wrap.setAttribute("data-index", String(idx));
+          wrap.setAttribute("data-name", sec.name);
+
+          wrap.innerHTML = `
+            <article class="card">
+              <header class="cardHeader">
+                <div class="kicker">${sec.kicker}</div>
+                <h1 class="h1">${sec.title[currentLang]}</h1>
+              </header>
+              <div class="cardBody">
+                ${sec.html[currentLang]()}
+                <div style="height:80px;"></div>
+              </div>
+            </article>
+            <div class="hint">
+              <span>Scroll for more</span>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          `;
+          container.appendChild(wrap);
+          observer.observe(wrap);
+        });
+
+        setTimeout(wireSubscribeUI, 0);
+      }
+
+      // ======= SUBSCRIBE (MAILTO REDIRECT) =======
+      function wireSubscribeUI(){
+        const before = document.getElementById("subBefore");
+        const after  = document.getElementById("subAfter");
+        if(!before || !after) return;
+
+        const emailEl  = document.getElementById("subEmail");
+        const btnEl    = document.getElementById("subBtn");
+        const statusEl = document.getElementById("subStatus");
+
+        function setStatus(msg, cls){
+          if(!statusEl) return;
+          statusEl.className = "statusLine" + (cls ? " " + cls : "");
+          statusEl.textContent = msg || "";
+        }
+
+        function validEmail(v){
+          v = String(v || "").trim();
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        }
+
+        // restore email
+        try{
+          const saved = localStorage.getItem("vdSubEmail") || "";
+          if(saved && emailEl) emailEl.value = saved;
+        }catch(e){}
+
+        if(!btnEl) return;
+
+        btnEl.onclick = () => {
+          const fromEmail = (emailEl ? emailEl.value : "").trim();
+          if(!validEmail(fromEmail)){
+            setStatus(currentLang === "hi" ? "कृपया सही email डालें।" : "Please enter a valid email.", "bad");
+            return;
+          }
+
+          try { localStorage.setItem("vdSubEmail", fromEmail); } catch(e){}
+
+          const tag = getAffiliateTag();
+          const page = location.href;
+          const ts = safeNowIST();
+
+          const subject = `Subscribe: ViaDecide daily updates (${fromEmail})`;
+          const bodyLines = [
+            "Hi ViaDecide,",
+            "",
+            "Please add me to the daily decision insight updates.",
+            "",
+            `Email: ${fromEmail}`,
+            `Source page: ${page}`,
+            `Timestamp (IST): ${ts}`,
+            `Affiliate tag (if any): ${tag}`,
+            "",
+            "Thanks!"
+          ];
+          const body = bodyLines.join("\n");
+
+          const mailto = `mailto:${encodeURIComponent(SUBSCRIBE_TO_EMAIL)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+          // UI feedback + open email client
+          setStatus(currentLang === "hi" ? "Email app खुल रहा है…" : "Opening your email app…", "ok");
+          before.style.display = "none";
+          after.style.display = "block";
+
+          // redirect to mailto
+          window.location.href = mailto;
+        };
+      }
+
+      // Boot
+      renderSections();
+
+    })();
+  </script>
 </body>
 </html>
-```
