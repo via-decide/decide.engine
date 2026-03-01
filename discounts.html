@@ -11,44 +11,47 @@
       --bg: #050505;
       --card-bg: rgba(18, 18, 20, 0.75);
       --card-border: rgba(255, 255, 255, 0.08);
-      --text: #fdfdfd;
-      --text-muted: rgba(242, 242, 242, 0.65);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.62);
       --accent: #ff671f;
-      --accent-glow: rgba(255, 103, 31, 0.15);
-      --accent2: #22c55e;
-      --yt-red: #ff0000;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      --accent-glow: rgba(255, 103, 31, 0.14);
       --radius: 24px;
-
-      --safeTop: env(safe-area-inset-top, 0px);
-      --safeBottom: env(safe-area-inset-bottom, 0px);
-      --safeLeft: env(safe-area-inset-left, 0px);
-      --safeRight: env(safe-area-inset-right, 0px);
-
-      --maxw: 760px;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
     }
 
-    /* Base Reset */
     html, body {
       height: 100%; height: 100dvh; margin: 0; background-color: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: pan-y;
     }
     * { box-sizing: border-box; }
     button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 
     /* App Wrapper for Rotation */
-    #appWrapper { position: relative; width: 100vw; height: 100dvh; transform-origin: center center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }
-    #appWrapper.forced-landscape { width: 100dvh; height: 100vw; position: absolute; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50dvh; }
+    #appWrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      transition: transform 0.6s ease, width 0.6s ease, height 0.6s ease;
+      transform-origin: center center;
+    }
 
-    /* Ambient Glow */
-    .bg-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index: 0; }
+    /* Background glow */
+    .bg-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(85,105,255,0.14), transparent 55%); filter: blur(2px); opacity: 1; }
 
-    /* Top Navigation */
+    /* Top bar */
     .top {
       position: absolute; top: 0; left: 0; right: 0;
-      padding: calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
-      z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 18px 18px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
       pointer-events: none; background: linear-gradient(180deg, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0) 100%);
     }
     .top > * { pointer-events: auto; }
@@ -56,129 +59,292 @@
 
     .back, .pill, .btn-icon {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08);
       background: rgba(15,15,15,0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       transition: all 0.2s ease;
     }
-    .btn-icon { padding: 10px; font-weight: 700; color: var(--accent); width: 38px; height: 38px; }
+    .btn-icon { padding: 10px; font-weight: 700; color: rgba(255,255,255,0.88); }
+    .btn-icon:hover, .back:hover { border-color: rgba(255,255,255,0.14); transform: translateY(-1px); }
+    .btn-icon.logout { border-color: rgba(255, 103, 31, 0.30); }
+    .btn-icon.logout:hover { border-color: rgba(255, 103, 31, 0.55); }
+    .btn-icon svg { display: block; }
+    .btn-icon.is-on { border-color: rgba(255,103,31,0.40); box-shadow: 0 0 0 4px rgba(255, 103, 31, 0.10); }
+    .btn-icon.is-on svg { color: var(--accent); }
     .btn-icon:active, .back:active { transform: scale(0.96); }
     .back { color: rgba(255,255,255,0.9); font-weight: 600; font-size: 14px; text-decoration: none;}
-    .pill { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
-    .pill b { color: #fff; letter-spacing: 0.1em; font-weight: 700; }
+    .pill { font-size: 12px; color: rgba(255,255,255,0.70); padding: 10px 14px; white-space: nowrap; }
+    .pill strong { color: rgba(255,255,255,0.92); font-weight: 700; }
 
-    /* Scroll Container */
-    .scroll-container {
-      position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
-      scroll-snap-type: y mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; z-index: 10;
+    /* Slider container */
+    .stage { position: absolute; inset: 0; padding: 74px 16px 16px; display: flex; align-items: stretch; justify-content: center; }
+    .carousel {
+      width: min(980px, 100%);
+      position: relative;
+      display: flex; align-items: stretch; justify-content: center;
+      overflow: hidden;
     }
-    .scroll-container::-webkit-scrollbar { display: none; }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      will-change: transform;
+      transition: transform 420ms cubic-bezier(.22,1,.36,1), opacity 360ms ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .slide.is-active { opacity: 1; pointer-events: auto; }
 
-    /* Card Layout */
-    .section-wrapper {
-      height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always; 
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(60px + var(--safeBottom)) calc(16px + var(--safeLeft));
+    /* Card */
+    .card {
+      width: 100%;
+      height: 100%;
+      max-height: calc(100dvh - 100px);
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
       position: relative;
     }
-    .card {
-      width: 100%; max-width: var(--maxw); flex: 1; min-height: 0; 
-      border-radius: var(--radius); border: 1px solid var(--card-border);
-      background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
-      opacity: 0.3; transform: scale(0.92) translateY(30px);
-      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .cardHeader {
+      padding: 22px 22px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+      flex-shrink: 0;
     }
-    .section-wrapper.is-active .card { opacity: 1; transform: scale(1) translateY(0); }
+    .kicker {
+      color: var(--muted); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .kicker:before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px rgba(255,103,31,0.12); }
+    .h1 { margin: 10px 0 0; font-size: clamp(22px, 3.2vw, 34px); line-height: 1.12; letter-spacing: -0.02em; }
+    .h1 .accent { color: var(--accent); }
 
-    .cardHeader { padding: 24px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.3); flex-shrink: 0; }
-    .kicker { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
-    .h1 { margin: 0; font-size: clamp(22px, 5vw, 28px); line-height: 1.3; letter-spacing: -0.01em; font-weight: 700; }
-    
-    .cardBody { padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
-    .cardBody::-webkit-scrollbar { width: 5px; }
-    .cardBody::-webkit-scrollbar-track { background: transparent; }
-    .cardBody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    .cardBody {
+      padding: 18px 22px 20px;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .cardBody::-webkit-scrollbar { display: none; }
 
-    /* Typography */
-    .big { font-size: clamp(28px, 6vw, 42px); line-height: 1.15; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 24px; }
-    .big .accent { background: linear-gradient(135deg, #ff8a4c, #ff4c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: var(--accent); }
-    .lead { font-size: 17px; line-height: 1.6; color: rgba(255,255,255,0.85); margin: 0 0 16px; }
-    .list { margin: 20px 0; padding: 0; list-style: none; color: rgba(255,255,255,0.75); font-size: 16px; line-height: 1.6; }
-    .list li { position: relative; padding-left: 24px; margin: 14px 0; }
-    .list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
-    .list b { color: #fff; }
-    .quote { margin: 28px 0 20px; padding: 16px 20px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-glow), transparent); border-radius: 0 12px 12px 0; color: rgba(255,255,255,0.95); line-height: 1.6; font-size: 15px; font-style: italic; }
+    .lead {
+      font-size: 16px;
+      color: rgba(255,255,255,0.86);
+      line-height: 1.55;
+      margin: 0;
+    }
+    .p { margin: 0; color: rgba(255,255,255,0.78); line-height: 1.68; font-size: 15px; }
+    .p strong { color: rgba(255,255,255,0.92); }
+    .quote {
+      margin: 6px 0 0; padding: 14px 16px;
+      border-left: 3px solid rgba(255,103,31,0.9);
+      background: rgba(255, 103, 31, 0.07);
+      border-radius: 16px;
+      color: rgba(255,255,255,0.88);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 840px) { .grid2 { grid-template-columns: 1fr 1fr; } }
 
-    /* --- Internal Links & YouTube Blocks --- */
-    .yt-box { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.04); padding: 16px 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); margin: 24px 0; cursor: pointer; transition: all 0.2s; text-decoration: none;}
-    .yt-box:hover { border-color: var(--accent); background: rgba(255,103,31,0.05); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4);}
-    .yt-icon { color: var(--yt-red); display: flex; align-items: center; justify-content: center; }
-    .yt-text b { color: var(--text); font-size: 15px; }
-    .yt-text span { color: var(--text-muted); font-size: 13px; }
+    .chipRow { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(10,10,10,0.35);
+      color: rgba(255,255,255,0.74);
+      font-size: 12px; white-space: nowrap;
+    }
+    .chip svg { opacity: 0.9; }
 
-    .internal-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-radius: 12px; background: rgba(0,0,0,0.4); margin-bottom: 10px; text-decoration: none; color: var(--text); border: 1px solid rgba(255,255,255,0.06); transition: 0.2s; }
-    .internal-link:hover { border-color: var(--accent); background: rgba(255,103,31,0.08); padding-left: 24px; }
-    .internal-link span { color: var(--text-muted); font-family: monospace; font-size: 12px; }
+    .divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+    .hint {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      bottom: 14px;
+      font-size: 12px; color: rgba(255,255,255,0.58);
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(10,10,10,0.55);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+    .hint svg { width: 18px; height: 18px; opacity: 0.85; }
+    .slide.is-active .hint { opacity: 1; }
 
-    /* --- Forms & Onboarding UI --- */
-    .auth-protocol { background: rgba(255,103,31,0.06); border: 1px dashed rgba(255,103,31,0.3); padding: 16px; border-radius: 12px; margin-bottom: 24px; font-size: 13px; line-height: 1.6; color: var(--text-muted); }
-    .auth-protocol b { color: var(--text); }
-    .auth-protocol .step { color: var(--accent); font-weight: 700; margin-right: 4px; }
+    /* Progress dots */
+    .dots {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      bottom: 16px;
+      display: flex; gap: 8px;
+      pointer-events: auto;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.20);
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: transform 240ms ease, background 240ms ease;
+    }
+    .dot.is-on { background: rgba(255,103,31,0.85); transform: scale(1.35); }
 
-    .onboard-form { display: flex; flex-direction: column; gap: 16px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
-    
-    .input-group { display: flex; flex-direction: column; gap: 8px; }
-    .input-group label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 600; }
-    .input-group input, .input-group textarea, .input-group select { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; color: #fff; font-family: inherit; font-size: 15px; outline: none; transition: all 0.2s; appearance: none; }
-    .input-group textarea { resize: vertical; min-height: 80px; }
-    .input-group input::placeholder, .input-group textarea::placeholder { color: rgba(255,255,255,0.3); }
-    .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: var(--accent); background: rgba(0,0,0,0.6); box-shadow: 0 0 0 3px var(--accent-glow); }
-    
-    .select-wrapper { position: relative; }
-    .select-wrapper::after { content: "▼"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 10px; color: rgba(255,255,255,0.4); pointer-events: none; }
-    
-    /* Pills */
-    .pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
-    .check-pill input { display: none; }
-    .check-pill span { display: inline-flex; padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); font-size: 14px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; user-select: none; }
-    .check-pill input:checked + span { background: var(--accent-glow); border-color: var(--accent); color: #fff; font-weight: 600; }
+    /* Controls */
+    .controls {
+      position: absolute;
+      right: 18px;
+      bottom: 16px;
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
 
-    /* Buttons */
-    .btn-submit, .btn-secondary, .btn-success { border: none; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.2s, filter 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; }
-    .btn-submit { background: var(--accent); color: #fff; margin-top: 8px; }
-    .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; margin-top: 8px; border: 1px solid rgba(255,255,255,0.15); }
-    .btn-success { background: var(--accent2); color: #000; margin-top: 16px; }
-    .btn-submit:active, .btn-secondary:active, .btn-success:active { transform: scale(0.98); filter: brightness(1.1); }
+    /* Portrait rotation prompt */
+    .rotate-popup {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      max-width: min(560px, calc(100% - 24px));
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(12,12,12,0.78);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: rgba(255,255,255,0.88);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms ease, transform 250ms ease;
+      z-index: 9999;
+    }
+    .rotate-popup.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(-2px);
+    }
+    .rotate-popup svg { flex-shrink: 0; opacity: 0.95; }
 
-    /* Mono Preview / Verification */
-    .verify-box { background: rgba(0,0,0,0.6); border: 1px solid var(--accent); padding: 20px; border-radius: 12px; margin-top: 16px; text-align: center; }
-    .verify-box p { font-size: 14px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.5; }
-    .mono-preview { background: rgba(5, 5, 5, 0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-top: 16px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; color: #cbd5e1; white-space: pre-wrap; word-break: break-word; line-height: 1.5; display: none; }
+    /* Forced landscape on portrait */
+    #appWrapper.forced-landscape {
+      width: 100dvh;
+      height: 100dvw;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(90deg);
+      border-radius: 0;
+    }
 
-    /* Success State UI */
-    .success-state { text-align: center; padding: 40px 20px; }
-    .success-icon { font-size: 48px; margin-bottom: 16px; display: block; }
-    .success-state h2 { margin: 0 0 10px; font-size: 24px; color: #fff; }
-    .success-state p { color: var(--text-muted); line-height: 1.6; font-size: 15px; }
+    /* Fine typography */
+    .big { font-size: 18px; color: rgba(255,255,255,0.88); line-height: 1.6; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; color: rgba(255,255,255,0.78); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 10px 12px; border-radius: 16px; }
+    .bullets { margin: 0; padding-left: 18px; color: rgba(255,255,255,0.78); }
+    .bullets li { margin: 6px 0; line-height: 1.6; }
 
-    /* Hint Scroll Indicator */
-    .hint { position: absolute; bottom: calc(16px + var(--safeBottom)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; animation: pulse 2s infinite; z-index: 100; }
-    .hint svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-    @keyframes pulse { 0%, 100% { transform: translate(-50%, 0); opacity: 0.6; } 50% { transform: translate(-50%, 5px); opacity: 1; } }
-    .section-wrapper:last-child .hint { display: none; } 
+    a.internal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(10,10,10,0.40);
+      color: rgba(255,255,255,0.88);
+      text-decoration: none;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      font-size: 14px;
+      width: fit-content;
+    }
+    a.internal-link:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.16); background: rgba(10,10,10,0.55); }
+    a.internal-link span { color: var(--accent); font-weight: 700; }
 
-    /* Overlays */
-    .rotate-popup { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0.9); background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(255, 103, 31, 0.4); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; cursor: pointer; }
-    .rotate-popup.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
-    .rotate-popup:active { transform: translateX(-50%) scale(0.95); }
+    /* Meta chips */
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    .meta .chip { font-size: 11px; }
+    .meta .chip strong { color: rgba(255,255,255,0.92); }
+    .meta .chip .k { color: rgba(255,255,255,0.60); font-weight: 600; }
 
-    .translate-toast { position: fixed; top: calc(80px + var(--safeTop)); left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(20, 20, 22, 0.95); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #fff; padding: 10px 16px 10px 20px; border-radius: 999px; font-size: 14px; display: flex; align-items: center; gap: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; }
-    .translate-toast.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-    .btn-undo { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; padding: 6px 12px; background: rgba(255, 103, 31, 0.15); border-radius: 999px; }
-    .btn-undo:active { background: rgba(255, 103, 31, 0.25); }
+    /* Accessibility */
+    .sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
+    /* Landscape support for small height */
+    @media (max-height: 640px) {
+      .cardHeader { padding: 18px 18px 12px; }
+      .cardBody { padding: 14px 18px 18px; }
+      .stage { padding-top: 66px; }
+      .h1 { font-size: 22px; }
+      .lead { font-size: 15px; }
+    }
+
+    /* Slightly bigger glow when landscape */
+    @media (orientation: landscape) {
+      .bg-glow { opacity: 1; filter: blur(1px); }
+      .card { max-height: calc(100dvh - 92px); }
+    }
+
+    /* Page-specific */
+    .accent { color: var(--accent); }
+    .callout {
+      border: 1px solid rgba(255,103,31,0.22);
+      background: rgba(255,103,31,0.07);
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: rgba(255,255,255,0.86);
+      line-height: 1.6;
+    }
+    .callout strong { color: rgba(255,255,255,0.92); }
+    .callout .tag { display:inline-flex; align-items:center; gap:8px; font-size: 12px; color: rgba(255,255,255,0.78); margin-bottom: 6px; }
+    .callout .tag:before { content:""; width:8px; height:8px; border-radius:50%; background: rgba(255,103,31,0.85); box-shadow: 0 0 0 6px rgba(255,103,31,0.16); }
+
+    /* Extra polish for embedded image block */
+    .imgblock {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow: hidden;
+      background: rgba(10,10,10,0.30);
+    }
+    .imgblock img { display:block; width:100%; height:auto; }
+    .imgcap { padding: 10px 12px; font-size: 12px; color: rgba(255,255,255,0.68); border-top: 1px solid rgba(255,255,255,0.08); }
+
+    /* Small “simulate iPhone” glow */
+    .card:before {
+      content:"";
+      position:absolute; inset:0;
+      pointer-events:none;
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    /* subtle top highlight */
+    .card:after{
+      content:"";
+      position:absolute; left:0; right:0; top:0; height:120px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.10), transparent 70%);
+      pointer-events:none;
+    }
+    .card > * { position: relative; z-index: 1; }
+
+    /* Ensure footer padding to keep hint visible */
+    .cardBody > :last-child { margin-bottom: 34px; }
+
+    /* For “tap targets” */
+    a, button { -webkit-tap-highlight-color: transparent; }
+
+    /* Avoid selection highlight */
+    ::selection { background: rgba(255,103,31,0.25); }
   </style>
 </head>
 
@@ -193,451 +359,354 @@
         <button id="btnLogout" class="btn-icon" aria-label="Logout" title="End Session" style="display:none;" onclick="logoutSession()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </button>
-        <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate to Hindi">A/अ</button>
-        <div class="pill"><b id="secLabel">SEC 1/9</b> • <span id="secName">HOOK</span></div>
+        <button id="btnRotate" class="btn-icon" aria-label="Rotate" title="Rotate / Landscape">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-7.5L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 7.5L3 16"></path></svg>
+        </button>
+        <div class="pill" id="pillLang" title="Language Toggle" style="cursor:pointer;"><strong>EN</strong></div>
       </div>
     </div>
 
-    <main class="scroll-container" id="scrollContainer"></main>
+    <div class="stage">
+      <div class="carousel" id="carousel"></div>
+      <div class="dots" id="dots" aria-label="Slide progress"></div>
+
+      <div class="controls">
+        <button class="btn-icon" id="prevBtn" aria-label="Previous" title="Previous">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="btn-icon" id="nextBtn" aria-label="Next" title="Next">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <div id="translationToast" class="translate-toast">
-    <span id="toastMsg">Translated to Hindi</span>
-    <button id="btnUndoTranslate" class="btn-undo">Undo</button>
-  </div>
   <div id="rotatePopup" class="rotate-popup"></div>
 
   <script>
-    <script src="../vd-nav-fix.js" defer></script>
+    // ─────────────────────────────────────────────────────────────
+    // ViaDecide: page-local nav + backend fix (non-visual)
+    // - Fixes invalid nested script tag issue
+    // - Makes Back button work consistently
+    // - Fixes broken internal links across root vs /blogs/ deployments
+    // - Provides safe logoutSession() implementation
+    // ─────────────────────────────────────────────────────────────
+    (function initViaDecideNavFix(){
+      try {
+        var path = (location.pathname || "").toLowerCase();
+        var parts = path.split("/").filter(function (s) { return s; });
+        // Count folders only (ignore the .html file)
+        var depth = parts.length > 0 && parts[parts.length - 1].indexOf(".html") >= 0 ? parts.length - 1 : parts.length;
+        var ROOT = depth > 0 ? "../".repeat(depth) : "./";
+
+        function safeHref(file) {
+          // encodeURI keeps slashes but may leave quotes; normalize
+          return (ROOT + encodeURI(file)).replace(/"/g, "%22").replace(/'/g, "%27");
+        }
+
+        // Back button: history.back() when possible; otherwise send to blogs section
+        var backEl = document.querySelector("a.back");
+        if (backEl) {
+          backEl.setAttribute("href", safeHref("index.html") + "#blogs");
+          backEl.addEventListener("click", function (e) {
+            // If there is meaningful history, prefer it.
+            if (window.history && window.history.length > 1) {
+              e.preventDefault();
+              window.history.back();
+            }
+          }, { passive: false });
+        }
+
+        // Repair internal links in the "EXPLORE THE INFRASTRUCTURE" block
+        var internalLinks = Array.prototype.slice.call(document.querySelectorAll("a.internal-link"));
+        internalLinks.forEach(function (a) {
+          var label = (a.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+          if (label.indexOf("pricing infrastructure") >= 0) a.setAttribute("href", safeHref("pricing.html"));
+          else if (label.indexOf("inventory rules") >= 0) a.setAttribute("href", safeHref("cashback-rules.html"));
+          else if (label.indexOf("decision memory") >= 0) a.setAttribute("href", safeHref("memory.html"));
+          else if (label.indexOf("saas vs structure") >= 0) a.setAttribute("href", safeHref("“Why Most Small Businesses Don’t Need SaaS — They Need Structure\".html"));
+        });
+
+        // Expose ROOT for any other inline logic that may need it
+        window.__VD_ROOT__ = ROOT;
+      } catch (err) {
+        // Silent fail to avoid disrupting page UX
+      }
+    })();
+
+    // Provide logoutSession() used by the UI button (no visual changes)
+    function logoutSession() {
+      try {
+        localStorage.removeItem("VIA_USER");
+        localStorage.removeItem("VIA_ROLE");
+      } catch (e) {}
+      // Prefer returning to home
+      try {
+        var root = window.__VD_ROOT__ || "./";
+        location.href = root + "index.html";
+      } catch (e2) {
+        location.href = "index.html";
+      }
+    }
+
     (function(){
       "use strict";
 
       // --- SESSION STATE ---
       let authState = {
-        role: localStorage.getItem('VIA_ROLE') || null,
-        email: localStorage.getItem('VIA_USER') || null,
-        pendingVerification: false,
-        pendingRole: null,
-        pendingEmail: null
+        user: null,
+        role: null,
+        isAuthenticated: false
       };
 
-      // Configuration
-      const WA_NUMBER = "916351537770";
-      
-      // Algorithm to generate expected code locally (Option B)
-      function generateExpectedCode(email) {
-        const raw = email.trim().toLowerCase() + "_VIACO2026";
-        const b64 = btoa(raw).replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
-        return "VIA-" + b64;
+      function readAuth() {
+        try {
+          const u = localStorage.getItem("VIA_USER");
+          const r = localStorage.getItem("VIA_ROLE");
+          if (u) authState.user = JSON.parse(u);
+          if (r) authState.role = r;
+          authState.isAuthenticated = !!authState.user;
+        } catch (e) {
+          authState.user = null;
+          authState.role = null;
+          authState.isAuthenticated = false;
+        }
       }
 
-      // --- MULTILINGUAL CONTENT (9 Sections) ---
-      const SECTIONS = [
-        {
-          name: "HOOK", kicker: "Discount Strategy",
-          title: { 
-            en: "Discounts Are Not Strategy: The Margin Trap", 
-            hi: "छूट रणनीति नहीं है: मार्जिन का जाल" 
-          },
-          html: {
-            en: () => `<div class="big">Discounts feel <span class="accent">powerful.</span></div>
-                       <p class="lead">You announce 20% off. Sales jump. Footfall increases. The team feels relieved.</p>
-                       <p class="lead">But here’s the uncomfortable truth: <b>A sales spike is not the same as strategy.</b></p>
-                       <p class="lead">Discounting can be a tool. But when it becomes a habit, it turns into a slow bleed. And most small businesses don’t realize the bleeding until margins are thin and cashflow tightens.</p>
-                       <div class="quote">Discounts aren’t evil. They’re just dangerous when they replace thinking.</div>`,
-            hi: () => `<div class="big">छूट (Discounts) <span class="accent">शक्तिशाली</span> लगती है।</div>
-                       <p class="lead">आप 20% छूट की घोषणा करते हैं। बिक्री उछलती है। फुटफॉल बढ़ता है। टीम को राहत महसूस होती है।</p>
-                       <p class="lead">लेकिन यहाँ एक असहज करने वाली सच्चाई है: <b>बिक्री में उछाल रणनीति के समान नहीं है।</b></p>
-                       <p class="lead">छूट देना एक उपकरण हो सकता है। लेकिन जब यह एक आदत बन जाती है, तो यह एक धीमे नुकसान में बदल जाती है। और अधिकांश छोटे व्यवसायों को इस नुकसान का एहसास तब तक नहीं होता जब तक कि नकदी प्रवाह तंग न हो जाए।</p>
-                       <div class="quote">छूट बुरी नहीं है। वे केवल तब खतरनाक होती हैं जब वे सोच-विचार की जगह ले लेती हैं।</div>`
-          }
-        },
-        {
-          name: "DOPAMINE", kicker: "The Psychology",
-          title: { 
-            en: "The Dopamine Effect in Business", 
-            hi: "व्यवसाय में डोपामाइन प्रभाव" 
-          },
-          html: {
-            en: () => `<div class="big">Discounting gives <span class="accent">quick wins.</span></div>
-                       <p class="lead">And quick wins are addictive. A slow week triggers anxiety. You run a discount. Revenue spikes. Anxiety drops. Next slow week? You repeat.</p>
-                       <p class="lead">Soon, discounts are no longer tactical. They’re structural. Customers learn the pattern. They wait.</p>
-                       <ul class="list">
-                         <li><b>Inventory-Based:</b> Liquidate aging stock. (Healthy)</li>
-                         <li><b>Acquisition:</b> Get new buyers at controlled cost. (Healthy)</li>
-                         <li><b>Strategic Promos:</b> Predefined events. (Healthy)</li>
-                       </ul>
-                       <div class="quote">Anything outside these categories is panic discounting. And panic discounting bleeds margins.</div>`,
-            hi: () => `<div class="big">छूट <span class="accent">त्वरित जीत</span> देती है।</div>
-                       <p class="lead">और त्वरित जीत की लत लग जाती है। एक धीमा सप्ताह चिंता पैदा करता है। आप छूट चलाते हैं। राजस्व बढ़ता है। चिंता कम होती है। अगला धीमा सप्ताह? आप दोहराते हैं।</p>
-                       <p class="lead">जल्द ही, छूट अब सामरिक नहीं रह जाती। वे संरचनात्मक हो जाती हैं। ग्राहक पैटर्न सीख जाते हैं। वे इंतजार करते हैं।</p>
-                       <ul class="list">
-                         <li><b>इन्वेंटरी-आधारित:</b> पुराने स्टॉक को बेचना। (स्वस्थ)</li>
-                         <li><b>अधिग्रहण:</b> नियंत्रित लागत पर नए खरीदार प्राप्त करना। (स्वस्थ)</li>
-                         <li><b>रणनीतिक प्रोमो:</b> पूर्वनिर्धारित कार्यक्रम। (स्वस्थ)</li>
-                       </ul>
-                       <div class="quote">इन श्रेणियों के बाहर कुछ भी घबराहट में दी गई छूट (panic discounting) है। और घबराहट में दी गई छूट मार्जिन को खत्म कर देती है।</div>`
-          }
-        },
-        {
-          name: "MATH", kicker: "The Reality",
-          title: { 
-            en: "The Margin Math Most People Ignore", 
-            hi: "मार्जिन का गणित जिसे ज्यादातर लोग नज़रअंदाज़ करते हैं" 
-          },
-          html: {
-            en: () => `<div class="big">You reduced your margin by <span class="accent">80%.</span></div>
-                       <p class="lead">Let’s do simple math.</p>
-                       <ul class="list">
-                         <li>Selling price: ₹1,000</li>
-                         <li>Cost: ₹750</li>
-                         <li><b>Gross margin: ₹250 (25%)</b></li>
-                       </ul>
-                       <p class="lead">You offer a 20% discount. New price: ₹800. <b>New margin: ₹50.</b></p>
-                       <p class="lead">You didn’t reduce price by 20%. You reduced margin by 80%. To earn the same total profit, you must now sell five times more units.</p>
-                       <div class="quote">Revenue growth can hide profit collapse. Revenue feels good. But margin pays bills. Increase perceived value before you lower price.</div>`,
-            hi: () => `<div class="big">आपने अपना मार्जिन <span class="accent">80%</span> कम कर दिया।</div>
-                       <p class="lead">आइए सरल गणित करते हैं।</p>
-                       <ul class="list">
-                         <li>विक्रय मूल्य: ₹1,000</li>
-                         <li>लागत: ₹750</li>
-                         <li><b>सकल मार्जिन: ₹250 (25%)</b></li>
-                       </ul>
-                       <p class="lead">आप 20% छूट देते हैं। नया मूल्य: ₹800। <b>नया मार्जिन: ₹50।</b></p>
-                       <p class="lead">आपने कीमत 20% कम नहीं की। आपने मार्जिन 80% कम कर दिया। समान कुल लाभ कमाने के लिए, अब आपको पांच गुना अधिक इकाइयां बेचनी होंगी।</p>
-                       <div class="quote">राजस्व वृद्धि लाभ के पतन को छिपा सकती है। राजस्व अच्छा लगता है। लेकिन मार्जिन बिलों का भुगतान करता है। कीमत कम करने से पहले मूल्य (value) बढ़ाएँ।</div>`
-          }
-        },
-        {
-          name: "RULEBOOK", kicker: "Framework",
-          title: { 
-            en: "The Rulebook for Responsible Discounting", 
-            hi: "जिम्मेदार छूट के लिए नियम पुस्तिका" 
-          },
-          html: {
-            en: () => `<div class="big">Without rules, discounting is <span class="accent">emotional.</span></div>
-                       <ul class="list">
-                         <li><b>Rule 1: Define a Margin Floor.</b> Never discount below contribution margin threshold. No exceptions.</li>
-                         <li><b>Rule 2: Define Triggers.</b> Example: Inventory aging > 60 days. No trigger, no discount.</li>
-                         <li><b>Rule 3: Define Duration.</b> All discounts must have a start and end date. Open-ended discounts become permanent price reductions.</li>
-                         <li><b>Rule 4: Review Outcomes.</b> Analyze revenue change, margin impact, and repeat purchase behavior.</li>
-                       </ul>`,
-            hi: () => `<div class="big">नियमों के बिना, छूट देना <span class="accent">भावनात्मक</span> है।</div>
-                       <ul class="list">
-                         <li><b>नियम 1: मार्जिन सीमा परिभाषित करें।</b> कभी भी सीमा से कम छूट न दें। कोई अपवाद नहीं।</li>
-                         <li><b>नियम 2: ट्रिगर परिभाषित करें।</b> उदाहरण: इन्वेंट्री 60 दिनों से पुरानी है। कोई ट्रिगर नहीं, कोई छूट नहीं।</li>
-                         <li><b>नियम 3: अवधि परिभाषित करें।</b> सभी छूटों की एक प्रारंभ और समाप्ति तिथि होनी चाहिए।</li>
-                         <li><b>नियम 4: परिणामों की समीक्षा करें।</b> राजस्व परिवर्तन, मार्जिन प्रभाव और बार-बार खरीदारी व्यवहार का विश्लेषण करें।</li>
-                       </ul>`
-          }
-        },
-        // --- NEW: ECOSYSTEM & INTERNAL LINKS ---
-        {
-          name: "ECOSYSTEM", kicker: "The Decision Stack",
-          title: { 
-            en: "Discounts Don't Live In Isolation", 
-            hi: "छूट अलगाव में नहीं रहती है" 
-          },
-          html: {
-            en: () => `<div class="big">Connect the <span class="accent">dots.</span></div>
-                       <p class="lead">A discount is just one layer of your operational architecture. If your inventory is stuck or your pricing is reactive, discounts will fail.</p>
-                       
-                       <a href="https://www.youtube.com/results?search_query=Discounts+Are+Not+Strategy" target="_blank" class="yt-box">
-                         <div class="yt-icon">
-                           <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.86-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg>
-                         </div>
-                         <div class="yt-text"><b>Watch Summary on YouTube</b><br><span>"Discounts Are Not Strategy"</span></div>
-                       </a>
+      function applyAuthUI() {
+        const btn = document.getElementById("btnLogout");
+        if (!btn) return;
+        if (authState.isAuthenticated) {
+          btn.style.display = "inline-flex";
+          btn.classList.add("logout");
+        } else {
+          btn.style.display = "none";
+          btn.classList.remove("logout");
+        }
+      }
 
-                       <p class="lead" style="margin-top:20px; font-size:14px; color:var(--text-muted); font-weight: 700; letter-spacing: 1px;">EXPLORE THE INFRASTRUCTURE:</p>
+      // --- LANGUAGE / CONTENT ---
+      const container = document.getElementById("carousel");
+      const dots = document.getElementById("dots");
+      const pillLang = document.getElementById("pillLang");
+
+      let current = 0;
+      let slides = [];
+      let currentLang = "en";
+
+      const sections = [
+        {
+          kicker: "Pricing • Strategy",
+          title: { en: "Discounts are not strategy.", hi: "डिस्काउंट रणनीति नहीं हैं।" },
+          content: {
+            en: `
+              <p class="lead">
+                A discount can move inventory. It cannot build a business.
+              </p>
+              <div class="meta">
+                <div class="chip"><span class="k">Theme</span> <strong>Margin Trap</strong></div>
+                <div class="chip"><span class="k">Lens</span> <strong>Decision Infrastructure</strong></div>
+                <div class="chip"><span class="k">Read</span> <strong>4–6 min</strong></div>
+              </div>
+              <div class="divider"></div>
+              <p class="p">
+                Indian commerce is learning the hard way: <strong>price is a lever</strong>, not a foundation.
+                A business that survives on discounts is renting growth and paying in margin.
+              </p>
+              <p class="p">
+                If your offer is the product, the moment the offer ends, so does demand.
+              </p>
+            `,
+            hi: `
+              <p class="lead">
+                डिस्काउंट स्टॉक बेचवा सकता है। बिज़नेस नहीं बना सकता।
+              </p>
+              <div class="meta">
+                <div class="chip"><span class="k">थीम</span> <strong>मार्जिन ट्रैप</strong></div>
+                <div class="chip"><span class="k">लेंस</span> <strong>Decision Infrastructure</strong></div>
+                <div class="chip"><span class="k">समय</span> <strong>4–6 मिनट</strong></div>
+              </div>
+              <div class="divider"></div>
+              <p class="p">
+                भारतीय कॉमर्स धीरे-धीरे सीख रहा है: <strong>कीमत एक लीवर है</strong>, आधार नहीं।
+                जो बिज़नेस डिस्काउंट पर चलता है, वह ग्रोथ किराए पर लेता है — और कीमत मार्जिन से चुकाता है।
+              </p>
+              <p class="p">
+                अगर ऑफ़र ही प्रोडक्ट है, तो ऑफ़र खत्म होते ही डिमांड भी खत्म।
+              </p>
+            `
+          }
+        },
+        {
+          kicker: "The Trap",
+          title: { en: "The Margin Trap is silent.", hi: "मार्जिन ट्रैप चुपचाप होता है।" },
+          content: {
+            en: `
+              <p class="p">
+                Discounts do three things — and only one is visible.
+              </p>
+              <div class="grid2">
+                <div class="callout">
+                  <div class="tag">1) Visible</div>
+                  <strong>Revenue spikes.</strong> Sales charts go up. Celebrations happen.
+                </div>
+                <div class="callout">
+                  <div class="tag">2) Invisible</div>
+                  <strong>Unit economics collapse.</strong> Your real margin is now a rumor.
+                </div>
+                <div class="callout">
+                  <div class="tag">3) Invisible</div>
+                  <strong>Customer memory changes.</strong> Buyers learn your “real” price is lower.
+                </div>
+                <div class="callout">
+                  <div class="tag">Outcome</div>
+                  <strong>You get addicted</strong> to temporary demand.
+                </div>
+              </div>
+
+              <div class="quote">
+                “If your customer only comes when you’re cheaper, you’re not building loyalty —
+                you’re training behavior.”
+              </div>
+            `,
+            hi: `
+              <p class="p">
+                डिस्काउंट तीन काम करता है — और सिर्फ़ एक दिखता है।
+              </p>
+              <div class="grid2">
+                <div class="callout">
+                  <div class="tag">1) दिखने वाला</div>
+                  <strong>रेवेन्यू स्पाइक।</strong> ग्राफ ऊपर। ताली बजती है।
+                </div>
+                <div class="callout">
+                  <div class="tag">2) न दिखने वाला</div>
+                  <strong>यूनिट इकॉनॉमिक्स टूटता है।</strong> असली मार्जिन अब अफ़वाह बनता है।
+                </div>
+                <div class="callout">
+                  <div class="tag">3) न दिखने वाला</div>
+                  <strong>कस्टमर मेमोरी बदलती है।</strong> खरीदार सीखता है कि “असल” कीमत कम है।
+                </div>
+                <div class="callout">
+                  <div class="tag">नतीजा</div>
+                  <strong>आप एडिक्ट</strong> हो जाते हैं अस्थायी डिमांड के।
+                </div>
+              </div>
+
+              <div class="quote">
+                “अगर ग्राहक सिर्फ़ तब आता है जब आप सस्ते होते हैं, तो यह लॉयल्टी नहीं —
+                यह व्यवहार की ट्रेनिंग है।”
+              </div>
+            `
+          }
+        },
+        {
+          kicker: "Pricing Infrastructure",
+          title: { en: "Discounts are a missing system.", hi: "डिस्काउंट एक missing system है।" },
+          content: {
+            en: `
+              <p class="p">
+                Most discount-heavy businesses are not “aggressive marketers”.
+                They are <strong>operating without pricing infrastructure</strong>.
+              </p>
+              <ul class="bullets">
+                <li>No coherent price floors</li>
+                <li>No channel-specific rules</li>
+                <li>No inventory-linked offers</li>
+                <li>No memory of what worked last season</li>
+              </ul>
+              <p class="p">
+                Discounts feel like strategy because there’s no structure underneath.
+              </p>
+
+              <div class="divider"></div>
+
+              <p class="p" style="color: var(--muted); font-weight: 700; letter-spacing: 1px;">EXPLORE THE INFRASTRUCTURE:</p>
                        <a href="pricing.html" class="internal-link">Pricing Infrastructure <span>→</span></a>
                        <a href="inventory.html" class="internal-link">Inventory Rules <span>→</span></a>
                        <a href="memory.html" class="internal-link">Decision Memory <span>→</span></a>
                        <a href="index.html" class="internal-link">SaaS vs Structure <span>→</span></a>
                        `,
-            hi: () => `<div class="big">कड़ियों को <span class="accent">जोड़ें।</span></div>
-                       <p class="lead">छूट आपके परिचालन ढांचे की केवल एक परत है। यदि आपकी इन्वेंट्री फंसी हुई है या आपका मूल्य निर्धारण प्रतिक्रियाशील है, तो छूट विफल हो जाएगी।</p>
-                       
-                       <a href="https://www.youtube.com/results?search_query=Discounts+Are+Not+Strategy" target="_blank" class="yt-box">
-                         <div class="yt-icon">
-                           <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.86-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg>
-                         </div>
-                         <div class="yt-text"><b>सारांश YouTube पर देखें</b><br><span>"छूट रणनीति नहीं है"</span></div>
-                       </a>
+            hi: () => `<div class="big">कड़ियों को <span class="accent">जोड़े बिना</span> छूट केवल शोर है।<br/><br/>जो सिस्टम नहीं बनाता, वो छूट से ही चलने पर मजबूर रहता है।</div>`
+          }
+        },
+        {
+          kicker: "A Better Move",
+          title: { en: "Build rules. Then use price.", hi: "नियम बनाओ। फिर कीमत।" },
+          content: {
+            en: `
+              <p class="p">
+                Discounts can be powerful — <strong>when they’re rules-driven</strong>.
+              </p>
+              <div class="chipRow">
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Price Floors
+                </div>
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Inventory Triggers
+                </div>
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Channel Rules
+                </div>
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Memory + Iteration
+                </div>
+              </div>
 
-                       <p class="lead" style="margin-top:20px; font-size:14px; color:var(--text-muted); font-weight: 700; letter-spacing: 1px;">बुनियादी ढांचे का अन्वेषण करें:</p>
-                       <a href="pricing.html" class="internal-link">मूल्य निर्धारण ढांचा <span>→</span></a>
-                       <a href="inventory.html" class="internal-link">इन्वेंटरी नियम <span>→</span></a>
-                       <a href="memory.html" class="internal-link">निर्णय मेमोरी <span>→</span></a>
-                       <a href="index.html" class="internal-link">SaaS बनाम संरचना <span>→</span></a>
-                       `
-          }
-        },
-        // --- NEW: NEWSLETTER & CONCLUSION ---
-        {
-          name: "CONCLUSION", kicker: "Final Action",
-          title: { 
-            en: "The Founder Mindset Shift", 
-            hi: "संस्थापक की मानसिकता में बदलाव" 
-          },
-          html: {
-            en: () => `<div class="big">Margin is <span class="accent">sanity.</span></div>
-                       <p class="lead">Revenue is vanity. Cashflow is reality. Optimize for the one that sustains you, not the one that looks impressive.</p>
-                       
-                       <div style="background:rgba(255,103,31,0.05); border:1px solid rgba(255,103,31,0.2); padding:20px; border-radius:16px; margin:24px 0;">
-                         <p style="margin:0 0 16px; font-size:15px; font-weight:700; color:#fff;">📬 Join 5,000+ operators building decision logic.</p>
-                         <form id="newsletterForm" style="display:flex; flex-direction:column; gap:12px;" onsubmit="event.preventDefault(); subscribeNewsletter(); return false;">
-                           <input type="email" placeholder="Enter your email address" required style="width:100%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:14px 16px; color:#fff; font-size:15px; outline:none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
-                           <button type="submit" style="width:100%; background:var(--accent); color:#fff; font-weight:700; border-radius:10px; padding:14px; font-size:15px; cursor:pointer; border:none; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">Subscribe to Logic</button>
-                         </form>
-                       </div>
+              <div class="callout" style="margin-top: 10px;">
+                <div class="tag">Bottom line</div>
+                <strong>Strategy is what stays when the discount is gone.</strong><br/>
+                Build systems that make pricing predictable — then discounts become a tool, not a crutch.
+              </div>
+            `,
+            hi: `
+              <p class="p">
+                छूट शक्तिशाली हो सकती है — <strong>अगर वह नियमों से चले</strong>।
+              </p>
+              <div class="chipRow">
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  प्राइस फ्लोर
+                </div>
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  इन्वेंटरी ट्रिगर
+                </div>
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  चैनल नियम
+                </div>
+                <div class="chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  मेमोरी + इटरेशन
+                </div>
+              </div>
 
-                       <div class="quote">Strategy is long-term positioning. Panic is short-term reaction. Choose carefully. Because once customers learn to wait… you’ll always be forced to chase.</div>`,
-            hi: () => `<div class="big">मार्जिन <span class="accent">समझदारी</span> है।</div>
-                       <p class="lead">राजस्व घमंड है। नकदी प्रवाह वास्तविकता है। उसके लिए अनुकूलन करें जो आपको बनाए रखता है, न कि जो प्रभावशाली दिखता है。</p>
-                       
-                       <div style="background:rgba(255,103,31,0.05); border:1px solid rgba(255,103,31,0.2); padding:20px; border-radius:16px; margin:24px 0;">
-                         <p style="margin:0 0 16px; font-size:15px; font-weight:700; color:#fff;">📬 5,000+ ऑपरेटरों से जुड़ें जो निर्णय तर्क प्राप्त करते हैं।</p>
-                         <form id="newsletterForm" style="display:flex; flex-direction:column; gap:12px;" onsubmit="event.preventDefault(); subscribeNewsletter(); return false;">
-                           <input type="email" placeholder="अपना ईमेल पता दर्ज करें" required style="width:100%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:14px 16px; color:#fff; font-size:15px; outline:none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
-                           <button type="submit" style="width:100%; background:var(--accent); color:#fff; font-weight:700; border-radius:10px; padding:14px; font-size:15px; cursor:pointer; border:none; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">सदस्यता लें</button>
-                         </form>
-                       </div>
-
-                       <div class="quote">रणनीति दीर्घकालिक स्थिति है। घबराहट अल्पकालिक प्रतिक्रिया है। सावधानी से चुनें। क्योंकि एक बार जब ग्राहक इंतजार करना सीख जाते हैं... तो आपको हमेशा पीछा करने के लिए मजबूर होना पड़ेगा।</div>`
-          }
-        },
-        // --- SECURE ONBOARDING: READER ---
-        {
-          name: "READER", kicker: "Join as Reader",
-          title: { en: "Consume Better.", hi: "बेहतर उपभोग करें।" },
-          html: {
-            en: () => {
-              if(authState.role === 'reader' || authState.role === 'creator') {
-                return `<div class="success-state">
-                          <span class="success-icon">🔓</span><h2>Feed Unlocked</h2>
-                          <p>Welcome back, ${authState.email}. Your curated logic stream is active. Zero noise.</p>
-                        </div>`;
-              }
-              if(authState.pendingVerification && authState.pendingRole === 'reader') {
-                return `<div class="big">Verify <span class="accent">Identity.</span></div>
-                        <div class="verify-box">
-                          <p>Check WhatsApp for your secure access code linked to <b>${authState.pendingEmail}</b>.</p>
-                          <div class="input-group">
-                            <input type="text" id="verify-code-reader" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; letter-spacing:2px; text-transform:uppercase;" />
-                          </div>
-                          <button class="btn-success" onclick="verifyAccessCode('reader')">Unlock Feed</button>
-                          <button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">Cancel</button>
-                        </div>`;
-              }
-              return `<div class="big">Curated logic, <br><span class="accent">zero noise.</span></div>
-                      <div class="auth-protocol">
-                        <span class="step">1.</span> Enter parameters below.<br>
-                        <span class="step">2.</span> Request encrypted code via WhatsApp.<br>
-                        <span class="step">3.</span> Authenticate and unlock.
-                      </div>
-                      <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('reader');">
-                        <div class="input-group"><label>Full Name</label><input type="text" id="r-name" placeholder="John Doe" required /></div>
-                        <div class="input-group"><label>Email Address</label><input type="email" id="r-email" placeholder="name@email.com" required /></div>
-                        <div class="input-group" style="margin-top:4px;">
-                          <label>What systems are you building?</label>
-                          <div class="pill-group">
-                            <label class="check-pill"><input type="checkbox" value="Pricing Logic" class="r-int"/><span>Pricing Logic</span></label>
-                            <label class="check-pill"><input type="checkbox" value="Inventory Mgmt" class="r-int"/><span>Inventory Mgmt</span></label>
-                            <label class="check-pill"><input type="checkbox" value="Discounts" class="r-int"/><span>Discounts</span></label>
-                          </div>
-                        </div>
-                        <button type="submit" class="btn-submit">Request Access Code →</button>
-                      </form>`;
-            },
-            hi: () => {
-              if(authState.role === 'reader' || authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🔓</span><h2>फ़ीड अनलॉक</h2><p>वापसी पर स्वागत है, ${authState.email}। आपकी क्यूरेटेड स्ट्रीम सक्रिय है।</p></div>`;
-              if(authState.pendingVerification && authState.pendingRole === 'reader') return `<div class="big">पहचान <span class="accent">सत्यापित करें।</span></div><div class="verify-box"><p><b>${authState.pendingEmail}</b> से जुड़े सुरक्षित कोड के लिए WhatsApp जांचें।</p><div class="input-group"><input type="text" id="verify-code-reader" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; text-transform:uppercase;" /></div><button class="btn-success" onclick="verifyAccessCode('reader')">अनलॉक करें</button><button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">रद्द करें</button></div>`;
-              
-              return `<div class="big">क्यूरेटेड तर्क, <br><span class="accent">शून्य शोर।</span></div>
-                      <div class="auth-protocol"><span class="step">1.</span> नीचे पैरामीटर दर्ज करें।<br><span class="step">2.</span> WhatsApp के माध्यम से एन्क्रिप्टेड कोड का अनुरोध करें।<br><span class="step">3.</span> प्रमाणित करें और अनलॉक करें।</div>
-                      <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('reader');">
-                        <div class="input-group"><label>पूरा नाम</label><input type="text" id="r-name" placeholder="जॉन डो" required /></div>
-                        <div class="input-group"><label>ईमेल पता</label><input type="email" id="r-email" placeholder="name@email.com" required /></div>
-                        <button type="submit" class="btn-submit">एक्सेस कोड का अनुरोध करें →</button>
-                      </form>`;
-            }
-          }
-        },
-        // --- SECURE ONBOARDING: CREATOR ---
-        {
-          name: "CREATOR", kicker: "Join as Blogger",
-          title: { en: "Shape the Narrative.", hi: "कहानी को आकार दें।" },
-          html: {
-            en: () => {
-              if(authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🚀</span><h2>Creator Authenticated</h2><p>Identity verified: ${authState.email}.<br>Please proceed down to the Workspace module.</p></div>`;
-              if(authState.role === 'reader') return `<div class="success-state"><span class="success-icon">🔒</span><h2>Upgrade Required</h2><p>You are currently logged in as a Reader. To access the Creator Workspace, please logout and register as a Blogger.</p></div>`;
-              if(authState.pendingVerification && authState.pendingRole === 'creator') {
-                return `<div class="big">Verify <span class="accent">Creator.</span></div>
-                        <div class="verify-box">
-                          <p>Check WhatsApp for your secure workspace code linked to <b>${authState.pendingEmail}</b>.</p>
-                          <div class="input-group"><input type="text" id="verify-code-creator" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; letter-spacing:2px; text-transform:uppercase;" /></div>
-                          <button class="btn-success" onclick="verifyAccessCode('creator')">Unlock Workspace</button>
-                          <button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">Cancel</button>
-                        </div>`;
-              }
-              return `<div class="big">Build your <br><span class="accent">audience.</span></div>
-                      <div class="auth-protocol">
-                        <span class="step">1.</span> Define publication details.<br>
-                        <span class="step">2.</span> Request secure Creator Code via WhatsApp.<br>
-                        <span class="step">3.</span> Initialize Workspace.
-                      </div>
-                      <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('creator');">
-                        <div class="input-group"><label>Publication Name</label><input type="text" id="c-pub" placeholder="e.g., Kutch Automation" required /></div>
-                        <div class="input-group"><label>Author Email</label><input type="email" id="c-email" placeholder="author@domain.com" required /></div>
-                        <button type="submit" class="btn-submit">Request Workspace Code →</button>
-                      </form>`;
-            },
-            hi: () => {
-              if(authState.role === 'creator') return `<div class="success-state"><span class="success-icon">🚀</span><h2>निर्माता प्रमाणित</h2><p>पहचान सत्यापित: ${authState.email}। कार्यक्षेत्र मॉड्यूल में आगे बढ़ें।</p></div>`;
-              if(authState.role === 'reader') return `<div class="success-state"><span class="success-icon">🔒</span><h2>अपग्रेड आवश्यक है</h2><p>आप वर्तमान में एक पाठक के रूप में लॉग इन हैं। कार्यक्षेत्र तक पहुँचने के लिए लॉग आउट करें।</p></div>`;
-              if(authState.pendingVerification && authState.pendingRole === 'creator') return `<div class="big">सत्यापित <span class="accent">करें।</span></div><div class="verify-box"><p><b>${authState.pendingEmail}</b> के कोड के लिए WhatsApp जांचें।</p><div class="input-group"><input type="text" id="verify-code-creator" placeholder="VIA-XXXXX" style="text-align:center; font-family:monospace; font-size:18px; text-transform:uppercase;" /></div><button class="btn-success" onclick="verifyAccessCode('creator')">अनलॉक करें</button><button class="btn-secondary" onclick="cancelVerification()" style="margin-top:10px; padding:10px; font-size:12px;">रद्द करें</button></div>`;
-              
-              return `<div class="big">अपने दर्शकों का <br><span class="accent">निर्माण करें।</span></div>
-                      <div class="auth-protocol"><span class="step">1.</span> विवरण परिभाषित करें।<br><span class="step">2.</span> WhatsApp के माध्यम से क्रिएटर कोड का अनुरोध करें।<br><span class="step">3.</span> कार्यक्षेत्र प्रारंभ करें।</div>
-                      <form class="onboard-form" onsubmit="event.preventDefault(); requestWAAccess('creator');">
-                        <div class="input-group"><label>प्रकाशन का नाम</label><input type="text" id="c-pub" placeholder="उदा., कच्छ ऑटोमेशन" required /></div>
-                        <div class="input-group"><label>लेखक का ईमेल</label><input type="email" id="c-email" placeholder="author@domain.com" required /></div>
-                        <button type="submit" class="btn-submit">कार्यक्षेत्र कोड का अनुरोध करें →</button>
-                      </form>`;
-            }
-          }
-        },
-        // --- WORKSPACE (Requires Creator Auth) ---
-        {
-          name: "WORKSPACE", kicker: "Creator Workspace",
-          title: { en: "Prompt Engine", hi: "प्रॉम्प्ट इंजन" },
-          html: {
-            en: () => {
-              if(authState.role !== 'creator') return `<div class="success-state" style="opacity:0.5;"><span class="success-icon">🔒</span><h2>System Locked</h2><p>This module requires active Creator Authentication. Please register above.</p></div>`;
-              
-              return `<p class="lead">Configure constraints to generate a structured blog prompt.</p>
-                      <form class="onboard-form" id="workspaceForm">
-                        <div class="row">
-                          <div class="input-group"><label>Topic / Niche</label><input type="text" id="ws-niche" placeholder="e.g., Discount Strategies" /></div>
-                          <div class="input-group">
-                            <label>Post Goal</label>
-                            <div class="select-wrapper">
-                              <select id="ws-goal"><option value="authority">Authority</option><option value="viral">Viral</option></select>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="input-group"><label>Core Idea <span style="color:#ef4444">*</span></label><textarea id="ws-idea" placeholder="Main thesis..." rows="2" required></textarea></div>
-                        <button type="button" class="btn-secondary" onclick="generateBlogPrompt()">Generate Draft Prompt</button>
-                      </form>
-                      <div id="ws-preview" class="mono-preview"></div>
-                      <button id="btnSubmitReview" class="btn-success" style="display:none;" onclick="submitForReview()">Submit for Review</button>`;
-            },
-            hi: () => {
-              if(authState.role !== 'creator') return `<div class="success-state" style="opacity:0.5;"><span class="success-icon">🔒</span><h2>सिस्टम लॉक है</h2><p>इस मॉड्यूल के लिए क्रिएटर प्रमाणीकरण की आवश्यकता है। कृपया ऊपर पंजीकरण करें।</p></div>`;
-              return `<p class="lead">संरचित प्रॉम्प्ट उत्पन्न करने के लिए सीमाएँ कॉन्फ़िगर करें।</p>
-                      <form class="onboard-form" id="workspaceForm">
-                        <div class="row">
-                          <div class="input-group"><label>विषय</label><input type="text" id="ws-niche" placeholder="उदा., छूट रणनीतियाँ" /></div>
-                          <div class="input-group"><label>लक्ष्य</label><div class="select-wrapper"><select id="ws-goal"><option value="authority">अधिकार</option><option value="viral">वायरल</option></select></div></div>
-                        </div>
-                        <div class="input-group"><label>मुख्य विचार <span style="color:#ef4444">*</span></label><textarea id="ws-idea" rows="2" required></textarea></div>
-                        <button type="button" class="btn-secondary" onclick="generateBlogPrompt()">प्रॉम्प्ट उत्पन्न करें</button>
-                      </form>
-                      <div id="ws-preview" class="mono-preview"></div>
-                      <button id="btnSubmitReview" class="btn-success" style="display:none;" onclick="submitForReview()">समीक्षा के लिए सबमिट करें</button>`;
-            }
+              <div class="callout" style="margin-top: 10px;">
+                <div class="tag">निष्कर्ष</div>
+                <strong>रणनीति वही है जो छूट खत्म होने के बाद भी रहती है।</strong><br/>
+                ऐसे सिस्टम बनाओ जिससे प्राइसिंग अनुमानित हो — फिर छूट एक टूल बनती है, बैसाखी नहीं।
+              </div>
+            `
           }
         }
       ];
 
-      const container = document.getElementById('scrollContainer');
-      const secLabel = document.getElementById('secLabel');
-      const secName = document.getElementById('secName');
-      const btnLogout = document.getElementById('btnLogout');
-      let currentLang = 'en';
+      function render() {
+        container.innerHTML = "";
+        dots.innerHTML = "";
+        slides = [];
 
-      // Global Access exposed to inline HTML handlers
-      window.requestWAAccess = function(role) {
-        let name = "", email = "", extras = "";
-        if(role === 'reader') {
-          name = document.getElementById('r-name').value;
-          email = document.getElementById('r-email').value;
-          const checks = Array.from(document.querySelectorAll('.r-int:checked')).map(e => e.value).join(', ');
-          extras = `*Focus:* ${checks || 'General'}`;
-        } else {
-          name = document.getElementById('c-pub').value;
-          email = document.getElementById('c-email').value;
-          extras = `*Publication:* ${name}`;
-        }
+        sections.forEach((sec, idx) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "slide" + (idx === 0 ? " is-active" : "");
+          wrapper.setAttribute("data-index", String(idx));
 
-        if(!email) return;
-
-        // Set Auth State to Verifying
-        authState.pendingVerification = true;
-        authState.pendingRole = role;
-        authState.pendingEmail = email.trim();
-        renderSections();
-
-        // Build WA Link
-        const text = `✦ *DECISION LAB ACCESS REQUEST* ✦\n\n*Role:* ${role.toUpperCase()}\n*Name:* ${name}\n*Email:* ${authState.pendingEmail}\n${extras}\n\n_Please generate my secure access code._`;
-        const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-        
-        // Open WA
-        window.open(url, '_blank');
-      };
-
-      window.verifyAccessCode = function(role) {
-        const inputId = role === 'reader' ? 'verify-code-reader' : 'verify-code-creator';
-        const inputVal = document.getElementById(inputId).value.trim().toUpperCase();
-        
-        const expected = generateExpectedCode(authState.pendingEmail);
-        
-        if (inputVal === expected) {
-          localStorage.setItem('VIA_USER', authState.pendingEmail);
-          localStorage.setItem('VIA_ROLE', role);
-          
-          authState.email = authState.pendingEmail;
-          authState.role = role;
-          authState.pendingVerification = false;
-          renderSections();
-        } else {
-          alert(currentLang === 'hi' ? "अमान्य कोड। कृपया पुनः प्रयास करें।" : "Invalid code. Please verify and try again.");
-        }
-      };
-
-      window.cancelVerification = function() {
-        authState.pendingVerification = false;
-        authState.pendingEmail = null;
-        renderSections();
-      }
-
-      window.logoutSession = function() {
-        if(confirm(currentLang === 'hi' ? "क्या आप लॉग आउट करना चाहते हैं?" : "Are you sure you want to end your session?")) {
-          localStorage.removeItem('VIA_USER');
-          localStorage.removeItem('VIA_ROLE');
-          location.reload();
-        }
-      }
-
-      window.subscribeNewsletter = function() {
-        alert(currentLang === 'hi' ? "न्यूज़लेटर की सदस्यता के लिए धन्यवाद!" : "Subscribed to Decision Logic!");
-        const form = document.getElementById('newsletterForm');
-        if(form) form.reset();
-      }
-
-      // --- RENDER LOGIC ---
-      function renderSections() {
-        btnLogout.style.display = authState.email ? 'inline-flex' : 'none';
-        container.innerHTML = '';
-        
-        SECTIONS.forEach((sec, index) => {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'section-wrapper';
-          wrapper.setAttribute('data-index', index);
-          wrapper.setAttribute('data-name', sec.name);
-
-          const htmlContent = sec.html[currentLang]();
+          // Allow content to be function for language
+          const htmlContent = typeof sec.content[currentLang] === "function" ? sec.content[currentLang]() : sec.content[currentLang];
 
           wrapper.innerHTML = `
             <article class="card">
@@ -655,117 +724,161 @@
             </div>
           `;
           container.appendChild(wrapper);
+          slides.push(wrapper);
+
+          const dot = document.createElement("div");
+          dot.className = "dot" + (idx === 0 ? " is-on" : "");
+          dot.setAttribute("aria-label", `Go to slide ${idx+1}`);
+          dot.addEventListener("click", () => go(idx));
+          dots.appendChild(dot);
         });
 
         // Re-attach Intersection Observer
-        document.querySelectorAll('.section-wrapper').forEach(wrapper => {
-          observer.observe(wrapper);
+        document.querySelectorAll(".cardBody").forEach(el => {
+          el.addEventListener("scroll", handleBodyScroll, { passive: true });
         });
       }
 
-      // Intersection Observer
-      const observerOptions = { root: container, threshold: 0.6 };
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-active');
-            const index = parseInt(entry.target.getAttribute('data-index'));
-            secLabel.textContent = `SEC ${index + 1}/${SECTIONS.length}`;
-            secName.textContent = entry.target.getAttribute('data-name');
-          } else {
-            entry.target.classList.remove('is-active');
-          }
+      function updateDots() {
+        const ds = dots.querySelectorAll(".dot");
+        ds.forEach((d, i) => d.classList.toggle("is-on", i === current));
+      }
+
+      function go(index) {
+        if (index < 0 || index >= slides.length || index === current) return;
+
+        const dir = index > current ? 1 : -1;
+
+        slides.forEach((s, i) => {
+          const offset = i - index;
+          s.classList.remove("is-active");
+          s.style.transform = `translateX(${offset * 110}%)`;
+          s.style.opacity = i === index ? "1" : "0";
         });
-      }, observerOptions);
 
-      // Translation Handling
-      const btnTranslate = document.getElementById('btnTranslate');
-      const toast = document.getElementById('translationToast');
-      const btnUndo = document.getElementById('btnUndoTranslate');
-      const toastMsg = document.getElementById('toastMsg');
-      let toastTimer;
+        const next = slides[index];
+        next.classList.add("is-active");
+        next.style.transform = "translateX(0%)";
+        next.style.opacity = "1";
 
-      function triggerTranslation(lang) {
+        current = index;
+        updateDots();
+      }
+
+      function next() { go(current + 1); }
+      function prev() { go(current - 1); }
+
+      // Handle drag/swipe
+      let startX = 0, currentX = 0, isDragging = false;
+      let startTime = 0;
+
+      function onDown(e) {
+        isDragging = true;
+        startTime = Date.now();
+        startX = (e.touches ? e.touches[0].clientX : e.clientX);
+        currentX = startX;
+      }
+      function onMove(e) {
+        if (!isDragging) return;
+        currentX = (e.touches ? e.touches[0].clientX : e.clientX);
+      }
+      function onUp() {
+        if (!isDragging) return;
+        isDragging = false;
+        const dx = currentX - startX;
+        const dt = Date.now() - startTime;
+        const velocity = Math.abs(dx) / Math.max(dt, 1);
+        if (Math.abs(dx) > 55 || velocity > 0.55) {
+          if (dx < 0) next(); else prev();
+        }
+      }
+
+      // Body scroll hint hide
+      function handleBodyScroll(e) {
+        const slide = e.target.closest(".slide");
+        if (!slide) return;
+        const hint = slide.querySelector(".hint");
+        if (!hint) return;
+        if (e.target.scrollTop > 22) hint.style.opacity = "0";
+        else hint.style.opacity = "";
+      }
+
+      // Language toggle
+      function setLang(lang) {
         currentLang = lang;
-        renderSections();
-        
-        toast.classList.add('is-visible');
-        if(lang === 'hi') {
-          toastMsg.textContent = "Translated to Hindi";
-          btnUndo.style.display = 'block';
-        } else {
-          toastMsg.textContent = "Reverted to English";
-          btnUndo.style.display = 'none';
-        }
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => { toast.classList.remove('is-visible'); }, 4000);
+        pillLang.innerHTML = `<strong>${lang.toUpperCase()}</strong>`;
+        render();
+        // Keep current slide
+        go(Math.min(current, sections.length - 1));
       }
 
-      btnTranslate.addEventListener('click', () => { if (currentLang === 'en') triggerTranslation('hi'); });
-      btnUndo.addEventListener('click', () => { triggerTranslation('en'); });
-
-      renderSections();
-
-      // --- WORKSPACE GENERATION LOGIC ---
-      window.generateBlogPrompt = function() {
-        const niche = document.getElementById('ws-niche').value || 'Business';
-        const goal = document.getElementById('ws-goal').value;
-        const idea = document.getElementById('ws-idea').value;
-
-        if(!idea.trim()) return alert("Please enter a Core Idea!");
-
-        const promptText = `SYSTEM: You are an expert copywriter compiling a blog brief.
-TARGET:
-- Niche: ${niche.toUpperCase()}
-- Primary Goal: ${goal.toUpperCase()}
-
-CORE IDEA / BRIEF:
-${idea}
-
-OUTPUT REQUIREMENTS:
-1. Provide a high-converting Hook (Pattern Interrupt).
-2. Outline 3 core structural points (Body).
-3. Conclude with a strong Call-To-Action (CTA).`;
-
-        const previewBox = document.getElementById('ws-preview');
-        previewBox.textContent = promptText;
-        previewBox.style.display = 'block';
-        document.getElementById('btnSubmitReview').style.display = 'flex';
-      };
-
-      window.submitForReview = function() {
-        alert(currentLang === 'hi' ? "आपका ड्राफ्ट समीक्षा के लिए सबमिट कर दिया गया है!" : "Draft submitted for review!");
-        renderSections();
-      };
-
-      // --- AUTO-ROTATION SENSOR LOGIC ---
-      const popup = document.getElementById('rotatePopup');
-      const appWrapper = document.getElementById('appWrapper');
-      let isForcedLandscape = false; let targetRotationAngle = 0;
-
-      window.addEventListener('deviceorientation', (e) => {
-        const gamma = e.gamma; 
-        if (gamma === null || typeof gamma === 'undefined') return;
-        const rotationThreshold = 45; const deadband = 25; 
-
-        if (!isForcedLandscape) {
-          if (gamma > rotationThreshold) showRotatePopup(90); 
-          else if (gamma < -rotationThreshold) showRotatePopup(-90); 
-          else hideRotatePopup();
-        } else {
-          if (Math.abs(gamma) < deadband) showRotatePopup(0); 
-          else hideRotatePopup();
-        }
+      pillLang.addEventListener("click", () => {
+        setLang(currentLang === "en" ? "hi" : "en");
       });
 
-      function showRotatePopup(angle) {
-        targetRotationAngle = angle; popup.classList.add('is-visible');
-        if (angle === 0) {
-          popup.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2v20M17 7l-5-5-5 5M17 17l-5 5-5-5"/></svg> Tap for Portrait`;
+      // Buttons
+      document.getElementById("nextBtn").addEventListener("click", next);
+      document.getElementById("prevBtn").addEventListener("click", prev);
+
+      // Add swipe listeners
+      container.addEventListener("mousedown", onDown);
+      container.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      container.addEventListener("touchstart", onDown, { passive: true });
+      container.addEventListener("touchmove", onMove, { passive: true });
+      container.addEventListener("touchend", onUp);
+
+      // Keyboard support
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") next();
+        if (e.key === "ArrowLeft") prev();
+      });
+
+      // Init content transform states
+      function initTransforms() {
+        slides.forEach((s, i) => {
+          const offset = i - current;
+          s.style.transform = `translateX(${offset * 110}%)`;
+          s.style.opacity = i === current ? "1" : "0";
+        });
+      }
+
+      // Rotation logic
+      const btnRotate = document.getElementById("btnRotate");
+      const popup = document.getElementById("rotatePopup");
+      const appWrapper = document.getElementById("appWrapper");
+      let targetRotationAngle = 0; // 0 means normal, 90 means rotate
+      let isForcedLandscape = false;
+
+      function computeTargetRotation() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        if (w < h) {
+          // portrait → suggest rotate to landscape
+          targetRotationAngle = 90;
+        } else {
+          targetRotationAngle = 0;
+        }
+      }
+
+      btnRotate.addEventListener("click", () => {
+        computeTargetRotation();
+        showRotatePopup();
+      });
+
+      function showRotatePopup() {
+        // Message varies depending on state
+        if (targetRotationAngle !== 0) {
+          popup.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-7.5L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 7.5L3 16"/></svg> Tap to rotate to Landscape`;
         } else {
           popup.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"/><path d="M12 12h.01"/></svg> Tap for Landscape`;
         }
+        popup.classList.add("is-visible");
+        // auto-hide after 4.5s
+        clearTimeout(showRotatePopup._t);
+        showRotatePopup._t = setTimeout(hideRotatePopup, 4500);
       }
+
       function hideRotatePopup() { popup.classList.remove('is-visible'); }
 
       popup.addEventListener('click', () => {
@@ -779,6 +892,17 @@ OUTPUT REQUIREMENTS:
           isForcedLandscape = false;
         }
         hideRotatePopup();
+      });
+
+      // Startup
+      readAuth();
+      applyAuthUI();
+      setLang("en");
+      initTransforms();
+
+      // Recompute on resize (for rotation prompt)
+      window.addEventListener("resize", () => {
+        computeTargetRotation();
       });
 
     })();
