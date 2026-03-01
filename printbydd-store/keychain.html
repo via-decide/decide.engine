@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>Hardcore NFC Keychain • PrintByDD</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
   <style>
     :root{
       --bg:#050505;
@@ -49,13 +48,12 @@
       z-index:1000;
     }
     .site-header .logo{ color:var(--accent); font-size:18px; font-weight:900; letter-spacing:-0.02em; }
-    
+
     .nav-container { display: flex; align-items: center; gap: 20px; }
     .site-header nav{ display:flex; gap:20px; align-items:center; }
     .site-header nav a{ color:var(--text-muted); font-weight:600; font-size:14px; transition:color 0.2s; }
     .site-header nav a:hover, .site-header nav a.active{ color:var(--text); }
 
-    /* Instagram nav pill - Fixed Glitch */
     .nav-insta{
       display:inline-flex; align-items:center; gap:5px;
       padding: 5px 11px; border-radius:999px;
@@ -141,7 +139,6 @@
     .btn-secondary{ background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.16); }
     .btn-submit:active, .btn-secondary:active{ transform:scale(0.98); filter:brightness(1.08); }
 
-    /* Instagram CTA button */
     .btn-insta{
       border:none; padding:14px 16px; border-radius:12px;
       font-weight:900; font-size:14px;
@@ -169,20 +166,20 @@
       white-space:nowrap;
     }
 
-    /* STL viewer - Fixed Placement */
-    .stl-viewer-wrap{ 
-      position:relative; 
-      width:100%; 
-      height: 260px; /* Force rigid height */
+    /* STL viewer */
+    .stl-viewer-wrap{
+      position:relative;
+      width:100%;
+      height: 260px;
       min-height: 260px;
       max-height: 260px;
-      border-radius:16px; overflow:hidden; 
-      border:1px solid rgba(255,255,255,0.1); 
-      background:#0a0a0a; margin-bottom:14px; 
-      touch-action:none; 
+      border-radius:16px; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.1);
+      background:#0a0a0a; margin-bottom:14px;
+      touch-action:none;
     }
     .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; object-fit: contain; }
-    
+
     .stl-loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,0.4); letter-spacing:0.1em; text-transform:uppercase; pointer-events:none; background:#0a0a0a; transition:opacity 0.4s; padding:16px; text-align:center; z-index: 5; }
     .stl-loading.hidden{ opacity:0; pointer-events:none; }
     .stl-hint{ position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; pointer-events:none; z-index: 5; }
@@ -235,14 +232,13 @@
     .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
     .bn-cta .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.18); }
     .cta-focus{ outline:3px solid rgba(232,40,40,0.65); box-shadow:0 0 0 6px rgba(232,40,40,0.18),0 18px 55px rgba(232,40,40,0.25); }
-    
+
     @media (max-width: 600px) {
-      .site-header nav { display: none; } /* Hide standard nav on mobile if too crowded */
+      .site-header nav { display: none; }
       .nav-container { justify-content: flex-end; width: 100%; }
     }
   </style>
 </head>
-
 <body>
   <div id="appWrapper">
     <div class="bg-glow"></div>
@@ -302,7 +298,7 @@
   </div>
   <div id="rotatePopup" class="rotate-popup"></div>
 
-<script>
+  <script>
 (function(){
   "use strict";
 
@@ -325,7 +321,7 @@
 
   // Auth
   const authState = { email:null, role:null };
-  const WA = "919999999999"; 
+  const WA = "919999999999";
 
   function genCode(email){
     let h=0; for(let i=0;i<email.length;i++) h=(h*31+email.charCodeAt(i))>>>0;
@@ -348,11 +344,14 @@
     }
   };
 
-  // ===== 3D Viewer — FIX Z-AXIS HEURISTIC =====
+  // =============================================================
+  // 3D Viewer — FIXED
+  // =============================================================
   const STL_URL = "/printbydd-store/keychain.stl";
   let stlScene=null, stlRenderer=null, stlCamera=null;
   let stlMeshBody=null, stlMeshArms=null, stlGroup=null;
   let stlPointerDown=false, stlLastX=0, stlLastY=0, stlInited=false;
+  let stlAutoRotate=true; // auto-spin until user touches
 
   const BODY_COLORS = { black:0x111111, white:0xf0f0f0, blue:0x1a6bd1, sand:0xd8c7a6 };
   const ARM_COLORS  = { red:0xe82828, black:0x111111, white:0xf0f0f0, green:0x22c55e };
@@ -372,8 +371,9 @@
   }
 
   function applyKeyColors(){
-    if(stlMeshBody) stlMeshBody.material.color.setHex(BODY_COLORS[currentBodyKey]);
-    if(stlMeshArms) stlMeshArms.material.color.setHex(ARM_COLORS[currentArmKey]);
+    // Guard: only update if meshes exist
+    if(stlMeshBody && stlMeshBody.material) stlMeshBody.material.color.setHex(BODY_COLORS[currentBodyKey]);
+    if(stlMeshArms && stlMeshArms.material) stlMeshArms.material.color.setHex(ARM_COLORS[currentArmKey]);
     persistColors(); syncColorUI();
   }
 
@@ -387,6 +387,7 @@
     if(btn){ document.querySelectorAll('[data-arm-btn]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
   };
 
+  // ----- STL Parsers -----
   function parseBinarySTL(buf){
     const v=new DataView(buf), n=v.getUint32(80,true), pos=[], nor=[];
     let o=84;
@@ -418,71 +419,188 @@
     const res=await fetch(STL_URL,{cache:"no-store"});
     if(!res.ok) throw new Error("Couldn't load keychain.stl ("+res.status+")");
     const buf=await res.arrayBuffer();
-    const h=new TextDecoder().decode(new Uint8Array(buf.slice(0,80))).trim().toLowerCase();
-    return (h.startsWith("solid")&&h.includes("openscad")) ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf))) : parseBinarySTL(buf);
+    // FIX 1: Reliable ASCII detection — check for "facet" keyword in first 256 bytes,
+    // not just "openscad" which missed all other ASCII STL exporters.
+    const headerText = new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(buf.slice(0,256)));
+    const isAscii = headerText.trimStart().toLowerCase().startsWith("solid") && headerText.toLowerCase().includes("facet");
+    return isAscii
+      ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf)))
+      : parseBinarySTL(buf);
+  }
+
+  // ----- Build a geometry from flat arrays -----
+  function buildGeo(ps, ns){
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3));
+    g.setAttribute('normal',   new THREE.Float32BufferAttribute(ns, 3));
+    return g;
   }
 
   window.initSTLViewer = async function(){
     if(stlInited) return;
-    const wrap=document.getElementById('stl-viewer-wrap'), canvas=document.getElementById('stl-canvas'), loading=document.getElementById('stl-loading');
-    if(!wrap||!canvas) return;
-    stlInited=true;
-    
-    const W=wrap.clientWidth, H=260; // Rigid height
-    stlRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-    stlRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-    stlRenderer.setSize(W,H,false);
-    stlScene=new THREE.Scene();
-    
-    // Camera pulled back slightly to ensure fit
-    stlCamera=new THREE.PerspectiveCamera(45,W/H,0.1,1000);
-    stlCamera.position.set(0,0,3.5); 
-    
-    stlScene.add(new THREE.AmbientLight(0xffffff,0.75));
-    const dir=new THREE.DirectionalLight(0xffffff,0.9); dir.position.set(2,3,2); stlScene.add(dir);
-    stlGroup=new THREE.Group(); stlScene.add(stlGroup);
-    
+    const wrap    = document.getElementById('stl-viewer-wrap');
+    const canvas  = document.getElementById('stl-canvas');
+    const loading = document.getElementById('stl-loading');
+    if(!wrap || !canvas) return;
+    stlInited = true;
+
+    // FIX 2: Use actual clientWidth at init time; fall back to 300 if container is hidden.
+    const W = wrap.clientWidth || 300;
+    const H = 260;
+
+    stlRenderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    stlRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    stlRenderer.setSize(W, H, false);
+    stlScene = new THREE.Scene();
+
+    stlCamera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
+    stlCamera.position.set(0, 0, 4);
+
+    stlScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(2, 3, 2);
+    stlScene.add(dir);
+    const dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
+    dir2.position.set(-2, -1, -2);
+    stlScene.add(dir2);
+
+    stlGroup = new THREE.Group();
+    stlScene.add(stlGroup);
+
     try{
-      const geo=await loadSTLGeometry(); geo.center();
-      const pa=geo.getAttribute('position'), na=geo.getAttribute('normal');
-      const bp=[],bn=[],ap=[],an=[];
-      
-      // Heuristic fix: Separate by absolute Z height instead of normal angle
-      for(let i=0;i<pa.count;i+=3){
-        const pz1=pa.array[(i*3)+2], pz2=pa.array[((i+1)*3)+2], pz3=pa.array[((i+2)*3)+2];
-        const avgZ = (pz1 + pz2 + pz3) / 3;
-        
-        const tp=[pa.array[i*3],pa.array[i*3+1],pa.array[i*3+2],pa.array[(i+1)*3],pa.array[(i+1)*3+1],pa.array[(i+1)*3+2],pa.array[(i+2)*3],pa.array[(i+2)*3+1],pa.array[(i+2)*3+2]];
-        const tn=[na.array[i*3],na.array[i*3+1],na.array[i*3+2],na.array[(i+1)*3],na.array[(i+1)*3+1],na.array[(i+1)*3+2],na.array[(i+2)*3],na.array[(i+2)*3+1],na.array[(i+2)*3+2]];
-        
-        // If height > 1.0 (relative to center), it's the raised muscle.
-        if(avgZ > 1.0){ap.push(...tp);an.push(...tn);}else{bp.push(...tp);bn.push(...tn);}
+      const geo = await loadSTLGeometry();
+
+      // FIX 3: Compute bounding box BEFORE centering to understand Z-extent.
+      // This lets us derive a model-relative threshold instead of a hardcoded 1.0.
+      geo.computeBoundingBox();
+      const preCenterBbox = geo.boundingBox.clone();
+      const preZMin = preCenterBbox.min.z;
+      const preZMax = preCenterBbox.max.z;
+      const preZRange = preZMax - preZMin;
+
+      // Center geometry
+      geo.center();
+
+      // After centering, Z runs from -preZRange/2 to +preZRange/2.
+      // "Arms" = top 30 % of the Z extent (the raised accent band).
+      // Threshold is relative so it works for any STL, not just one specific size.
+      const zThreshold = (preZRange / 2) * 0.4; // top 30 % of positive-Z half
+
+      const pa = geo.getAttribute('position');
+      const na = geo.getAttribute('normal');
+      const bp=[], bn=[], ap=[], an=[];
+
+      // FIX 4: Correct per-triangle vertex indexing.
+      // pa is a Float32BufferAttribute with itemSize=3.
+      // Vertex k → pa.array[k*3], pa.array[k*3+1], pa.array[k*3+2]
+      // Loop in steps of 3 (one triangle = vertices i, i+1, i+2).
+      for(let i=0; i<pa.count; i+=3){
+        // Z coordinate of each vertex in the triangle
+        const pz0 = pa.array[i*3+2];
+        const pz1 = pa.array[(i+1)*3+2];
+        const pz2 = pa.array[(i+2)*3+2];
+        const avgZ = (pz0 + pz1 + pz2) / 3;
+
+        // Collect all 9 floats for positions and normals of this triangle
+        const tp = [
+          pa.array[i*3],   pa.array[i*3+1],   pa.array[i*3+2],
+          pa.array[(i+1)*3], pa.array[(i+1)*3+1], pa.array[(i+1)*3+2],
+          pa.array[(i+2)*3], pa.array[(i+2)*3+1], pa.array[(i+2)*3+2]
+        ];
+        const tn = [
+          na.array[i*3],   na.array[i*3+1],   na.array[i*3+2],
+          na.array[(i+1)*3], na.array[(i+1)*3+1], na.array[(i+1)*3+2],
+          na.array[(i+2)*3], na.array[(i+2)*3+1], na.array[(i+2)*3+2]
+        ];
+
+        if(avgZ > zThreshold){ ap.push(...tp); an.push(...tn); }
+        else                  { bp.push(...tp); bn.push(...tn); }
       }
-      
-      function mg(ps,ns){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(ps,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(ns,3)); return g; }
-      stlMeshBody=new THREE.Mesh(mg(bp,bn),new THREE.MeshStandardMaterial({color:BODY_COLORS[currentBodyKey],roughness:0.62,metalness:0.08}));
-      stlMeshArms=new THREE.Mesh(mg(ap,an),new THREE.MeshStandardMaterial({color:ARM_COLORS[currentArmKey],roughness:0.56,metalness:0.08}));
-      stlGroup.add(stlMeshBody); stlGroup.add(stlMeshArms);
-      stlGroup.rotation.x=-0.2; stlGroup.rotation.y=0.9;
-      
-      const box=new THREE.Box3().setFromObject(stlGroup), sz=new THREE.Vector3(); box.getSize(sz);
-      stlGroup.scale.setScalar(1.65/Math.max(sz.x,sz.y,sz.z)||1);
-      
+
+      // FIX 5: Graceful fallback — if heuristic produced no arm faces,
+      // render everything as body (avoids invisible empty mesh + THREE warnings).
+      const hasArms = ap.length > 0;
+
+      stlMeshBody = new THREE.Mesh(
+        buildGeo(bp, bn),
+        new THREE.MeshStandardMaterial({color:BODY_COLORS[currentBodyKey], roughness:0.62, metalness:0.08})
+      );
+      stlGroup.add(stlMeshBody);
+
+      if(hasArms){
+        stlMeshArms = new THREE.Mesh(
+          buildGeo(ap, an),
+          new THREE.MeshStandardMaterial({color:ARM_COLORS[currentArmKey], roughness:0.56, metalness:0.08})
+        );
+        stlGroup.add(stlMeshArms);
+      }
+
+      // Initial orientation
+      stlGroup.rotation.x = -0.2;
+      stlGroup.rotation.y =  0.9;
+
+      // Scale to fit nicely in view
+      const box = new THREE.Box3().setFromObject(stlGroup);
+      const sz  = new THREE.Vector3();
+      box.getSize(sz);
+      const maxDim = Math.max(sz.x, sz.y, sz.z) || 1;
+      stlGroup.scale.setScalar(2.2 / maxDim);
+
       if(loading) loading.classList.add('hidden');
-      
-      function onDown(e){ stlPointerDown=true; const t=e.touches?e.touches[0]:e; stlLastX=t.clientX; stlLastY=t.clientY; }
-      function onMove(e){ if(!stlPointerDown) return; const t=e.touches?e.touches[0]:e; stlGroup.rotation.y+=(t.clientX-stlLastX)*0.01; stlGroup.rotation.x+=(t.clientY-stlLastY)*0.01; stlLastX=t.clientX; stlLastY=t.clientY; }
-      function onUp(){ stlPointerDown=false; }
-      
-      wrap.addEventListener('pointerdown',onDown); wrap.addEventListener('pointermove',onMove); window.addEventListener('pointerup',onUp);
-      wrap.addEventListener('touchstart',onDown,{passive:true}); wrap.addEventListener('touchmove',onMove,{passive:true}); wrap.addEventListener('touchend',onUp,{passive:true});
-      
-      window.addEventListener('resize',()=>{ if(!wrap||!stlRenderer||!stlCamera) return; const w=wrap.clientWidth,h=260; stlRenderer.setSize(w,h,false); stlCamera.aspect=w/h; stlCamera.updateProjectionMatrix(); });
-      
-      (function animate(){ requestAnimationFrame(animate); stlRenderer.render(stlScene,stlCamera); })();
+
+      // ----- Input handlers -----
+      function onDown(e){
+        stlPointerDown = true;
+        stlAutoRotate  = false;   // stop auto-spin on first user interaction
+        const t = e.touches ? e.touches[0] : e;
+        stlLastX = t.clientX; stlLastY = t.clientY;
+      }
+      function onMove(e){
+        if(!stlPointerDown) return;
+        const t = e.touches ? e.touches[0] : e;
+        stlGroup.rotation.y += (t.clientX - stlLastX) * 0.01;
+        stlGroup.rotation.x += (t.clientY - stlLastY) * 0.01;
+        stlLastX = t.clientX; stlLastY = t.clientY;
+      }
+      function onUp(){ stlPointerDown = false; }
+
+      wrap.addEventListener('pointerdown', onDown);
+      wrap.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      wrap.addEventListener('touchstart', onDown, {passive:true});
+      wrap.addEventListener('touchmove',  onMove, {passive:true});
+      wrap.addEventListener('touchend',   onUp,   {passive:true});
+
+      // FIX 6: Resize handler accounts for the rigid 260 px height
+      window.addEventListener('resize', ()=>{
+        if(!wrap || !stlRenderer || !stlCamera) return;
+        const w = wrap.clientWidth || 300, h = 260;
+        stlRenderer.setSize(w, h, false);
+        stlCamera.aspect = w / h;
+        stlCamera.updateProjectionMatrix();
+      });
+
+      // FIX 7: Render loop with auto-rotation
+      (function animate(){
+        requestAnimationFrame(animate);
+        if(stlAutoRotate) stlGroup.rotation.y += 0.004; // gentle idle spin
+        stlRenderer.render(stlScene, stlCamera);
+      })();
+
+      // Apply stored colours now that meshes exist
       applyKeyColors();
-    } catch(err){ if(loading) loading.textContent="STL load failed. Put keychain.stl next to this HTML.\n"+(err&&err.message?err.message:""); console.error(err); }
+
+    } catch(err){
+      if(loading){
+        loading.style.fontSize = "12px";
+        loading.textContent = "3D preview unavailable — place keychain.stl next to this HTML.\n" + (err && err.message ? err.message : "");
+      }
+      console.error("STL viewer error:", err);
+    }
   };
+  // =============================================================
+  // End 3D Viewer
+  // =============================================================
 
   // ===== Sections =====
   const SECTIONS = [
@@ -703,12 +821,20 @@
 
   const observer=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{
-      if(entry.isIntersecting){ entry.target.classList.add('is-active'); const idx=parseInt(entry.target.getAttribute('data-index'),10); currentSecIndex=isNaN(idx)?0:idx; secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`; secName.textContent=entry.target.getAttribute('data-name'); updateBottomNav(); if(entry.target.getAttribute('data-name')==='BUYER') setTimeout(()=>{window.initSTLViewer();syncColorUI();},120); }
-      else entry.target.classList.remove('is-active');
+      if(entry.isIntersecting){
+        entry.target.classList.add('is-active');
+        const idx=parseInt(entry.target.getAttribute('data-index'),10);
+        currentSecIndex=isNaN(idx)?0:idx;
+        secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
+        secName.textContent=entry.target.getAttribute('data-name');
+        updateBottomNav();
+        if(entry.target.getAttribute('data-name')==='BUYER') setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); },120);
+      } else {
+        entry.target.classList.remove('is-active');
+      }
     });
   },{root:container,threshold:0.6});
 
-  // Attach event listener directly to the back button script to bypass standard routing if needed
   document.getElementById("backBtn").addEventListener("click", function(e) {
     if(!this.hasAttribute('data-vd-route')) {
        e.preventDefault();
@@ -746,6 +872,6 @@
   renderSections(); initBottomNav(); syncColorUI();
 
 })();
-</script>
+  </script>
 </body>
 </html>
