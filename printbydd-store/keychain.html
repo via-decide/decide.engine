@@ -1,4 +1,4 @@
-!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -360,10 +360,6 @@
       border:2px solid rgba(255,255,255,0.15);
       position:relative; overflow:hidden;
     }
-    .stl-swatch::after{
-      content:''; position:absolute;
-      top:0; left:0; width:50%; height:100%;
-    }
     .stl-loading{
       position:absolute; inset:0; display:flex;
       align-items:center; justify-content:center;
@@ -378,6 +374,7 @@
       font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.08em;
       text-transform:uppercase; white-space:nowrap; pointer-events:none;
     }
+
     /* ── Auth / Onboarding (shared with blog template) ── */
     .auth-protocol{
       background: rgba(232,40,40,0.06);
@@ -593,7 +590,6 @@
       outline: 3px solid rgba(232,40,40,0.65);
       box-shadow: 0 0 0 6px rgba(232,40,40,0.18), 0 18px 55px rgba(232,40,40,0.25);
     }
-
   </style>
 </head>
 
@@ -601,17 +597,19 @@
   <div id="appWrapper">
     <div class="bg-glow"></div>
 
+    <!-- ✅ Universal header (auto-fixes to /printbydd-store/ paths) -->
     <header class="site-header">
-      <a href="./index.html" class="logo">PrintByDD</a>
+      <a id="navLogo" href="#" class="logo">PrintByDD</a>
       <nav>
-        <a href="./index.html">Home</a>
-        <a href="./keychain.html" class="active">Products</a>
-        <a href="./gifts-that-mean-more.html">Blog</a>
+        <a id="navHome" href="#">Home</a>
+        <a id="navProducts" href="#" class="active">Products</a>
+        <a id="navBlog" href="#">Blog</a>
       </nav>
     </header>
 
     <div class="top">
-      <a class="back" href="./index.html" id="backBtn">← Back</a>
+      <!-- ✅ Back always goes to printbydd-store/index.html -->
+      <a class="back" href="#" id="backBtn">← Store</a>
       <div class="top-actions">
         <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate to Hindi">A/अ</button>
@@ -621,7 +619,7 @@
 
     <main class="scroll-container" id="scrollContainer"></main>
 
-    <!-- Bottom navigation to increase CTA engagement -->
+    <!-- Bottom navigation -->
     <div class="bottom-nav" id="bottomNav" aria-label="Section navigation">
       <button class="bn-btn" id="bnPrev" type="button" aria-label="Previous section">←</button>
       <div class="bn-dots" id="bnDots" aria-label="Section dots"></div>
@@ -643,10 +641,39 @@
   (function(){
     "use strict";
 
-    // ── Back ──
-    document.getElementById("backBtn").addEventListener("click", e => {
+    /* ============================================================
+       ✅ UNIVERSAL NAV PATHS (because files are inside /printbydd-store/)
+       Works whether URL is:
+       - https://domain.com/printbydd-store/keychain.html
+       - file:///.../printbydd-store/keychain.html
+       ============================================================ */
+    function storeBasePath(){
+      const p = (location.pathname || "").replace(/\\/g, "/");
+      const i = p.toLowerCase().lastIndexOf("/printbydd-store/");
+      if(i !== -1) return p.slice(0, i + "/printbydd-store/".length);
+      // fallback: assume this file is inside printbydd-store folder
+      const lastSlash = p.lastIndexOf("/");
+      return lastSlash !== -1 ? p.slice(0, lastSlash + 1) : "./";
+    }
+    const STORE_BASE = storeBasePath();
+    const URL_HOME = STORE_BASE + "index.html";
+    const URL_PRODUCTS = STORE_BASE + "keychain.html";
+    const URL_BLOG = STORE_BASE + "gifts-that-mean-more.html";
+
+    // apply header links
+    const navLogo = document.getElementById("navLogo");
+    const navHome = document.getElementById("navHome");
+    const navProducts = document.getElementById("navProducts");
+    const navBlog = document.getElementById("navBlog");
+    if(navLogo) navLogo.href = URL_HOME;
+    if(navHome) navHome.href = URL_HOME;
+    if(navProducts) navProducts.href = URL_PRODUCTS;
+    if(navBlog) navBlog.href = URL_BLOG;
+
+    // ── Back (force store home) ──
+    document.getElementById("backBtn").addEventListener("click", (e) => {
       e.preventDefault();
-      window.location.href = "./index.html";
+      window.location.href = URL_HOME;
     });
 
     // ── Theme ──
@@ -664,16 +691,9 @@
     btnTheme.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode")));
 
     // ── Auth State ──
-    const authState = {
-      email: null,
-      role: null,
-      pendingEmail: null,
-      pendingVerification: false
-    };
+    const authState = { email:null, role:null, pendingEmail:null, pendingVerification:false };
+    const WA = "919999999999"; // <-- replace with your WhatsApp number
 
-    const WA = "919999999999"; // ← replace with your WhatsApp number (country code + number)
-
-    // very small verifier (client-only) just to gate flows (not security)
     function genCode(email){
       let h = 0;
       for(let i=0;i<email.length;i++) h = (h*31 + email.charCodeAt(i)) >>> 0;
@@ -714,7 +734,7 @@
     window.verifyCode = function(role){
       const inputId = role === 'buyer' ? 'verify-code-buyer' : 'verify-code-seller';
       const val = ((document.getElementById(inputId) || {}).value || '').trim().toUpperCase();
-      const expected = genCode(authState.pendingEmail);
+      const expected = genCode(authState.pendingEmail || "");
       if(val === expected){
         localStorage.setItem('PBD_USER', authState.pendingEmail);
         localStorage.setItem('PBD_ROLE', role);
@@ -742,19 +762,19 @@
     };
 
     // ── STL Model Data (binary STL, base64 encoded) ──
-    const STL_B64 = "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";
+    const STL_B64 = "REPLACE_WITH_YOUR_EXISTING_STL_B64_STRING_FROM_YOUR CODE";
 
     // ── STL Viewer State ──
-    let stlScene = null, stlRenderer = null, stlCamera = null;
-    let stlMeshBase = null, stlMeshAccent = null;
-    let stlPointerDown = false, stlLastX = 0, stlLastY = 0;
-    let stlGroup = null, stlAnimFrame = null;
-    let stlInited = false;
+    let stlScene=null, stlRenderer=null, stlCamera=null;
+    let stlMeshBase=null, stlMeshAccent=null;
+    let stlPointerDown=false, stlLastX=0, stlLastY=0;
+    let stlGroup=null, stlAnimFrame=null;
+    let stlInited=false;
+
     const COLOR_SCHEMES = {
-      // base = body colour, accent = arm-muscle colour
-      'red-black':   { base: 0x111111, accent: 0xe82828 }, // Black body + Red arms
-      'white-black': { base: 0xf0f0f0, accent: 0x111111 }, // White body + Black arms (vice versa)
-      'blue-black':  { base: 0x1a6bd1, accent: 0x111111 }  // Blue body + Black arms (vice versa)
+      'red-black':   { base: 0x111111, accent: 0xe82828 },
+      'white-black': { base: 0xf0f0f0, accent: 0x111111 },
+      'blue-black':  { base: 0x1a6bd1, accent: 0x111111 }
     };
     let currentColorKey = 'red-black';
 
@@ -770,11 +790,15 @@
         const nz = view.getFloat32(offset + 8, true);
         offset += 12;
         for (let j = 0; j < 3; j++) {
-          positions.push(view.getFloat32(offset, true), view.getFloat32(offset + 4, true), view.getFloat32(offset + 8, true));
+          positions.push(
+            view.getFloat32(offset, true),
+            view.getFloat32(offset + 4, true),
+            view.getFloat32(offset + 8, true)
+          );
           normals.push(nx, ny, nz);
           offset += 12;
         }
-        offset += 2; // attribute
+        offset += 2;
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -808,9 +832,7 @@
       stlCamera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
       stlCamera.position.set(0, 0.8, 2.2);
 
-      const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-      stlScene.add(ambient);
-
+      stlScene.add(new THREE.AmbientLight(0xffffff, 0.7));
       const dir = new THREE.DirectionalLight(0xffffff, 0.8);
       dir.position.set(2, 3, 2);
       stlScene.add(dir);
@@ -821,15 +843,10 @@
       const geo = parseBinarySTL(base64ToArrayBuffer(STL_B64));
       geo.center();
 
-      // Split into two meshes by normal direction heuristic
       const posAttr = geo.getAttribute('position');
       const normAttr = geo.getAttribute('normal');
 
-      const basePositions = [];
-      const baseNormals = [];
-      const accPositions = [];
-      const accNormals = [];
-
+      const basePositions=[], baseNormals=[], accPositions=[], accNormals=[];
       for(let i=0;i<posAttr.count;i+=3){
         const nz = (normAttr.array[(i*3)+2] + normAttr.array[((i+1)*3)+2] + normAttr.array[((i+2)*3)+2]) / 3;
         const arrP = [
@@ -842,14 +859,8 @@
           normAttr.array[(i+1)*3], normAttr.array[(i+1)*3+1], normAttr.array[(i+1)*3+2],
           normAttr.array[(i+2)*3], normAttr.array[(i+2)*3+1], normAttr.array[(i+2)*3+2]
         ];
-        // heuristic: upward-facing gets accent (logo/arms), downward/side gets base (body)
-        if(nz > 0.2){
-          accPositions.push(...arrP);
-          accNormals.push(...arrN);
-        } else {
-          basePositions.push(...arrP);
-          baseNormals.push(...arrN);
-        }
+        if(nz > 0.2){ accPositions.push(...arrP); accNormals.push(...arrN); }
+        else { basePositions.push(...arrP); baseNormals.push(...arrN); }
       }
 
       function makeGeo(ps, ns){
@@ -868,11 +879,9 @@
       stlGroup.add(stlMeshBase);
       stlGroup.add(stlMeshAccent);
 
-      // initial pose
       stlGroup.rotation.x = -0.2;
       stlGroup.rotation.y = 0.9;
 
-      // scale for frame
       const box = new THREE.Box3().setFromObject(stlGroup);
       const size = new THREE.Vector3();
       box.getSize(size);
@@ -882,7 +891,6 @@
 
       if(loading) loading.classList.add('hidden');
 
-      // controls
       function onDown(e){
         stlPointerDown = true;
         const t = e.touches ? e.touches[0] : e;
@@ -898,6 +906,7 @@
         stlGroup.rotation.x += dy * 0.01;
       }
       function onUp(){ stlPointerDown = false; }
+
       wrap.addEventListener('pointerdown', onDown);
       wrap.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
@@ -933,405 +942,11 @@
       if(btn) btn.classList.add('active');
     };
 
-    // ── Sections ──
-    const SECTIONS = [
-      /* 0 – INTRO */
-      {
-        name:"INTRO", kicker:"HARDCORE NFC KEYCHAIN",
-        title:{ en:"Not a Keychain. A One-Tap Identity.", hi:"सिर्फ Keychain नहीं। One-Tap पहचान।" },
-        html:{
-          en:()=>`
-            <p class="big">Your <span class="r">digital card</span> — on your keys.</p>
-            <p class="lead">Tap it on any phone. Your links, portfolio, socials, UPI, menu, Wi-Fi — whatever you want. No app. No friction.</p>
-            <div class="usecases">
-              <div class="uc active"><span class="uc-icon">📇</span>vCard</div>
-              <div class="uc"><span class="uc-icon">🔗</span>Links</div>
-              <div class="uc"><span class="uc-icon">💳</span>UPI</div>
-              <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
-            </div>
-            <div class="qt">One tap. One impression. <b>Forever.</b></div>`,
-          hi:()=>`
-            <p class="big">आपकी <span class="r">digital card</span> — keys पर।</p>
-            <p class="lead">किसी भी phone पर tap करें। Links, portfolio, socials, UPI, menu, Wi-Fi — जो चाहो। No app.</p>
-            <div class="usecases">
-              <div class="uc active"><span class="uc-icon">📇</span>vCard</div>
-              <div class="uc"><span class="uc-icon">🔗</span>Links</div>
-              <div class="uc"><span class="uc-icon">💳</span>UPI</div>
-              <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
-            </div>
-            <div class="qt">एक tap. एक impression. <b>हमेशा।</b></div>`
-        }
-      },
-      /* 1 – WHY */
-      {
-        name:"WHY", kicker:"WHY IT HITS",
-        title:{ en:"Because You’re Already Carrying Your Keys.", hi:"क्योंकि keys तो साथ रहती ही हैं।" },
-        html:{
-          en:()=>`
-            <p class="lead">Business cards get lost. QR codes get ignored. This stays with you — and gets used.</p>
-            <div class="steps">
-              <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Tap</div><div class="step-desc">Hold it near the top of a phone.</div></div></div>
-              <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Open</div><div class="step-desc">Instantly loads your link/card — no scanning.</div></div></div>
-              <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Done</div><div class="step-desc">They save it. You move on.</div></div></div>
-            </div>
-            <div class="qt">Minimal effort. Maximum recall.</div>`,
-          hi:()=>`
-            <p class="lead">Business cards खो जाते हैं। QR codes ignore होते हैं। यह हमेशा आपके साथ रहता है।</p>
-            <div class="steps">
-              <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Tap</div><div class="step-desc">Phone के top के पास रखें।</div></div></div>
-              <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Open</div><div class="step-desc">Link/card तुरंत खुलता है — scan नहीं।</div></div></div>
-              <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Done</div><div class="step-desc">वो save कर लेते हैं। आप आगे बढ़ते हैं।</div></div></div>
-            </div>
-            <div class="qt">कम effort. ज़्यादा impact.</div>`
-        }
-      },
-      /* 2 – USE CASES */
-      {
-        name:"USE", kicker:"WHAT YOU CAN STORE",
-        title:{ en:"Anything a Phone Can Open.", hi:"जो phone खोल सकता है — वो सब।" },
-        html:{
-          en:()=>`
-            <ul class="ul">
-              <li><b>Portfolio:</b> Behance, Notion, Website, GitHub.</li>
-              <li><b>Instant Wi-Fi:</b> Guests tap and connect.</li>
-              <li><b>Socials:</b> Instagram, LinkedIn, YouTube, X.</li>
-              <li><b>vCard:</b> Full contact card in seconds.</li>
-              <li><b>UPI:</b> Tap to pay link.</li>
-            </ul>
-            <div class="qt">Reprogram it anytime. It writes as many times as you need. <b>Zero app required.</b></div>`,
-          hi:()=>`
-            <p class="lead">NFC चिप <b>आपका टूल</b> है। यह किसी एक काम तक सीमित नहीं।</p>
-            <ul class="ul">
-              <li><b>पोर्टफोलियो शेयर:</b> नेटवर्किंग इवेंट में एक टैप से पूरा portfolio शेयर करें।</li>
-              <li><b>इंस्टेंट Wi-Fi:</b> गेस्ट tap करें — connect हो जाएं। कोई password नहीं।</li>
-              <li><b>सोशल मीडिया लिंक:</b> Instagram, LinkedIn — तुरंत उनकी स्क्रीन पर।</li>
-              <li><b>vCard कॉन्टैक्ट:</b> एक सेकंड में पूरा contact card उनके phone में।</li>
-              <li><b>UPI लिंक:</b> Tap करो, pay हो जाए।</li>
-            </ul>
-            <div class="qt">जब चाहो reprogram करो। <b>कोई app नहीं चाहिए।</b></div>`
-        }
-      },
-      /* 3 – TRUST */
-      {
-        name:"TRUST", kicker:"IT'S REAL NFC",
-        title:{ en:"The Same Tech as Contactless Cards.", hi:"Contactless cards वाली ही tech." },
-        html:{
-          en:()=>`
-            <p class="lead">Inside is a legit <b>NTAG213</b> chip. It’s the standard used in NFC products worldwide.</p>
-            <ul class="ul">
-              <li>Works with iPhone 7+ and almost all Android phones.</li>
-              <li>Memory: <b>137 bytes</b> — enough for vCard & links.</li>
-              <li>Writes are <b>reprogrammable</b> (not one-time).</li>
-              <li>No QR code confusion.</li>
-            </ul>
-            <div class="qt">Reprogram it anytime. It writes as many times as you need. <b>Zero app required.</b></div>`,
-          hi:()=>`
-            <p class="lead">अंदर है legit <b>NTAG213</b> chip। ये worldwide NFC standard है।</p>
-            <ul class="ul">
-              <li>iPhone 7+ और लगभग सभी Android phones पर काम करता है।</li>
-              <li>Memory: <b>137 bytes</b> — vCard/links के लिए enough।</li>
-              <li><b>Rewritable</b> है (one-time नहीं)।</li>
-              <li>QR code confusion नहीं।</li>
-            </ul>
-            <div class="qt">जब चाहो reprogram करो। <b>कोई app नहीं चाहिए।</b></div>`
-        }
-      },
-      /* 4 – DESIGN */
-      {
-        name:"DESIGN", kicker:"FORM & FUNCTION",
-        title:{ en:"Built to Be Felt. Designed to Be Seen.", hi:"महसूस करने के लिए बना। देखने के लिए डिज़ाइन।" },
-        html:{
-          en:()=>`
-            <p class="lead">Every surface decision was made with intent. This isn't random — it's <b>industrial design thinking</b> in PLA.</p>
-            <ul class="ul">
-              <li><b>Raised logo:</b> Tactile feedback. You know it's yours the moment you touch it — without looking.</li>
-              <li><b>Decorative rim:</b> A beveled border that frames the logo, adds rigidity, and catches light.</li>
-              <li><b>Flat loop tab:</b> Slim, snag-free. Fits any keyring, carabiner, or lanyard cleanly.</li>
-              <li><b>Dual-color body:</b> Two-material, single print.</li>
-            </ul>
-            <div class="colours">
-              <div class="chip"><div class="cswatch" style="background:#111;"></div>Matte black body</div>
-              <div class="chip"><div class="cswatch" style="background:#e82828;"></div>Red accent</div>
-              <div class="chip"><div class="cswatch" style="background:#1a3a6b;"></div>Navy + White option</div>
-            </div>
-            <div class="qt">Pick your colorway. Same geometry. Different personality.</div>`,
-          hi:()=>`
-            <p class="lead">हर curve, हर edge सोच-समझकर बनाया गया है। यह random नहीं — <b>industrial design</b> है।</p>
-            <ul class="ul">
-              <li><b>Raised logo:</b> Touch से feel होता है — बिना देखे।</li>
-              <li><b>Decorative rim:</b> लोगो को frame करता है और rigidity बढ़ाता है।</li>
-              <li><b>Flat loop tab:</b> पतला, snag-free। किसी भी keyring पर fit।</li>
-              <li><b>Dual-color body:</b> Two-material, single print.</li>
-            </ul>
-            <div class="colours">
-              <div class="chip"><div class="cswatch" style="background:#111;"></div>मैट ब्लैक बॉडी</div>
-              <div class="chip"><div class="cswatch" style="background:#e82828;"></div>रेड एक्सेंट लोगो</div>
-              <div class="chip"><div class="cswatch" style="background:#1a3a6b;"></div>नेवी + व्हाइट</div>
-            </div>
-            <div class="qt">अपना colorway चुनें। Geometry वही रहेगी। Personality आपकी होगी।</div>`
-        }
-      },
-      /* 5 – SPECS */
-      {
-        name:"SPECS", kicker:"UNDER THE HOOD",
-        title:{ en:"Numbers That Back the Hype.", hi:"वो नंबर जो हाइप को साबित करते हैं।" },
-        html:{
-          en:()=>`
-            <div class="sg">
-              <div class="sn"><div class="sv">NTAG<br>213</div><div class="slbl">NFC Chip</div></div>
-              <div class="sn"><div class="sv">137B</div><div class="slbl">Rewritable Memory</div></div>
-              <div class="sn"><div class="sv">∞</div><div class="slbl">Write Cycles</div></div>
-              <div class="sn"><div class="sv">1-PC</div><div class="slbl">Print, No Assembly</div></div>
-              <div class="sn"><div class="sv">PLA+</div><div class="slbl">Material Grade</div></div>
-              <div class="sn"><div class="sv">~18g</div><div class="slbl">Total Weight</div></div>
-            </div>
-            <ul class="ul" style="margin-top:14px;">
-              <li>Works with <b>all NFC-enabled Android &amp; iPhone 7+</b> — no app needed.</li>
-              <li>Read range: <b>~3cm</b>. Close contact only — no accidental triggers.</li>
-              <li>Chip is <b>ISO/IEC 14443-A</b> compliant. Industry standard. Proven.</li>
-            </ul>
-            <div class="qt">Every spec here is real. Every claim is testable. <b>No fluff.</b></div>`,
-          hi:()=>`
-            <div class="sg">
-              <div class="sn"><div class="sv">NTAG<br>213</div><div class="slbl">NFC Chip</div></div>
-              <div class="sn"><div class="sv">137B</div><div class="slbl">Rewritable</div></div>
-              <div class="sn"><div class="sv">∞</div><div class="slbl">Write Cycles</div></div>
-              <div class="sn"><div class="sv">1-PC</div><div class="slbl">No Assembly</div></div>
-              <div class="sn"><div class="sv">PLA+</div><div class="slbl">Material</div></div>
-              <div class="sn"><div class="sv">~18g</div><div class="slbl">Weight</div></div>
-            </div>
-            <ul class="ul" style="margin-top:14px;">
-              <li><b>Android + iPhone 7+</b> पर काम करता है — app नहीं।</li>
-              <li>Read range: <b>~3cm</b>। Accidental trigger नहीं।</li>
-              <li>चिप <b>ISO/IEC 14443-A</b> compliant। Proven।</li>
-            </ul>
-            <div class="qt">यहाँ हर spec real है। हर claim testable है। <b>कोई झूठ नहीं।</b></div>`
-        }
-      },
-      /* 6 – BUYER + 3D PREVIEW */
-      {
-        name:"BUYER", kicker:"Choose Your Colorway • Order Now",
-        title:{ en:"See It. Pick It. Own It.", hi:"देखें। चुनें। खरीदें।" },
-        html:{
-          en:()=>{
-            const orderBtn = authState.role
-              ? `<button class="cp" style="width:100%;margin-bottom:10px;"
-                  onclick="window.open('https://wa.me/${WA}?text=${encodeURIComponent("Hi! I want to order the NFC Keychain (₹449). My email: " + (authState.email||""))}','_blank')">
-                  <span class="cpulse"></span>
-                  <div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
-                </button>
-                <button class="btn-secondary" onclick="logoutSession()">Change Account</button>`
-              : `<div class="auth-protocol" style="font-size:12px;">
-                  <span class="step-pill">Quick order:</span> Drop your email &amp; we confirm via WhatsApp. <b>COD available.</b>
-                </div>
-                <div class="onboard-form">
-                  <div class="row">
-                    <div class="input-group"><label>Your Name</label><input type="text" id="b-name" placeholder="e.g., Rahul" /></div>
-                    <div class="input-group"><label>Email</label><input type="email" id="b-email" placeholder="you@email.com" required /></div>
-                  </div>
-                  <button class="btn-submit" onclick="requestAccess('buyer')">Order via WhatsApp →</button>
-                </div>`;
-            return `
-              <div id="stl-viewer-wrap" class="stl-viewer-wrap" style="height:240px;">
-                <canvas id="stl-canvas"></canvas>
-                <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
-                <div class="stl-hint" id="stl-hint">Drag to rotate</div>
-              </div>
-              <div class="stl-color-row">
-                <div class="stl-color-btn active" onclick="setKeyColor('red-black',this)" id="cb-rb">
-                  <div class="stl-swatch" style="background:#111;">
-                    <span style="position:absolute;top:0;left:0;width:50%;height:100%;background:#e82828;"></span>
-                  </div>Red + Black
-                </div>
-                <div class="stl-color-btn" onclick="setKeyColor('white-black',this)" id="cb-wb">
-                  <div class="stl-swatch" style="background:#f0f0f0;">
-                    <span style="position:absolute;top:0;left:0;width:50%;height:100%;background:#111111;"></span>
-                  </div>White + Black
-                </div>
-                <div class="stl-color-btn" onclick="setKeyColor('blue-black',this)" id="cb-bb">
-                  <div class="stl-swatch" style="background:#1a6bd1;">
-                    <span style="position:absolute;top:0;left:0;width:50%;height:100%;background:#111111;"></span>
-                  </div>Blue + Black
-                </div>
-              </div>
-              <div class="qt" style="margin-top:6px;">Base = <b>Body</b> colour • Accent = <b>Arm muscle</b> colour</div>
-              ${orderBtn}
-              <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
-                Made in India · Delivery pan-India · NFC chip included
-              </p>`;
-          },
-          hi:()=>{
-            const orderBtn = authState.role
-              ? `<button class="cp" style="width:100%;margin-bottom:10px;"
-                  onclick="window.open('https://wa.me/${WA}?text=${encodeURIComponent("Hi! I want to order the NFC Keychain (₹449). My email: " + (authState.email||""))}','_blank')">
-                  <span class="cpulse"></span>
-                  <div class="ci">🛒 WhatsApp पर Order <div class="ca">→</div></div>
-                </button>
-                <button class="btn-secondary" onclick="logoutSession()">Account बदलें</button>`
-              : `<div class="auth-protocol" style="font-size:12px;">
-                  <span class="step-pill">Quick order:</span> अपना email डालें — WhatsApp पर confirm. <b>COD available.</b>
-                </div>
-                <div class="onboard-form">
-                  <div class="row">
-                    <div class="input-group"><label>आपका नाम</label><input type="text" id="b-name" placeholder="जैसे, Rahul" /></div>
-                    <div class="input-group"><label>Email</label><input type="email" id="b-email" placeholder="you@email.com" required /></div>
-                  </div>
-                  <button class="btn-submit" onclick="requestAccess('buyer')">WhatsApp पर Order →</button>
-                </div>`;
-            return `
-              <div id="stl-viewer-wrap" class="stl-viewer-wrap" style="height:240px;">
-                <canvas id="stl-canvas"></canvas>
-                <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
-                <div class="stl-hint" id="stl-hint">Drag to rotate</div>
-              </div>
-              <div class="stl-color-row">
-                <div class="stl-color-btn active" onclick="setKeyColor('red-black',this)" id="cb-rb">
-                  <div class="stl-swatch" style="background:#111;">
-                    <span style="position:absolute;top:0;left:0;width:50%;height:100%;background:#e82828;"></span>
-                  </div>Red + Black
-                </div>
-                <div class="stl-color-btn" onclick="setKeyColor('white-black',this)" id="cb-wb">
-                  <div class="stl-swatch" style="background:#f0f0f0;">
-                    <span style="position:absolute;top:0;left:0;width:50%;height:100%;background:#111111;"></span>
-                  </div>White + Black
-                </div>
-                <div class="stl-color-btn" onclick="setKeyColor('blue-black',this)" id="cb-bb">
-                  <div class="stl-swatch" style="background:#1a6bd1;">
-                    <span style="position:absolute;top:0;left:0;width:50%;height:100%;background:#111111;"></span>
-                  </div>Blue + Black
-                </div>
-              </div>
-              <div class="qt" style="margin-top:6px;">Base = <b>Body</b> colour • Accent = <b>Arm muscle</b> colour</div>
-              ${orderBtn}
-              <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
-                मेड इन इंडिया · पूरे भारत में डिलीवरी · NFC चिप शामिल
-              </p>`;
-          }
-        }
-      },
-      /* 7 – SELLER */
-      {
-        name:"SELLER", kicker:"Sell It With Us",
-        title:{ en:"Become a Seller. Earn Per Unit.", hi:"Seller बनो। Per unit कमाओ।" },
-        html:{
-          en:()=>{
-            if(authState.pendingVerification && authState.pendingEmail){
-              return `
-                <div class="role-badge">Seller Verification</div>
-                <p class="lead">We sent a 4-digit verification code via WhatsApp. Enter it to continue.</p>
-                <div class="verify-box">
-                  <p>Enter your <b>4-digit code</b>:</p>
-                  <div class="row" style="grid-template-columns:1fr;">
-                    <div class="input-group"><input id="verify-code-seller" placeholder="1234" maxlength="4" /></div>
-                  </div>
-                  <button class="btn-submit" onclick="verifyCode('seller')">Verify</button>
-                  <button class="btn-secondary" onclick="cancelVerification()">Cancel</button>
-                </div>`;
-            }
-            const sellerUI = authState.role === 'seller'
-              ? `<div class="role-badge">Seller Active</div>
-                 <p class="lead">You're logged in as <b>${authState.email}</b>. Share your seller link or message us to stock inventory.</p>
-                 <button class="cp" style="width:100%;margin-bottom:10px;"
-                   onclick="window.open('https://wa.me/${WA}?text=${encodeURIComponent("Hi! I am a seller. My email: " + (authState.email||"") + ". I want to stock keychains.")}','_blank')">
-                   <span class="cpulse"></span>
-                   <div class="ci">📦 Request Stock <div class="ca">→</div></div>
-                 </button>
-                 <button class="btn-secondary" onclick="logoutSession()">Logout</button>`
-              : `<div class="auth-protocol">
-                   <span class="step-pill">Seller protocol:</span> Enter your email → WhatsApp verification → get your seller onboarding.
-                 </div>
-                 <div class="onboard-form">
-                   <div class="row">
-                     <div class="input-group"><label>Your Name</label><input type="text" id="s-name" placeholder="e.g., Aditi" /></div>
-                     <div class="input-group"><label>Email</label><input type="email" id="s-email" placeholder="you@email.com" required /></div>
-                   </div>
-                   <button class="btn-submit" onclick="requestAccess('seller')">Start Seller Onboarding →</button>
-                   <button class="btn-secondary" onclick="window.scrollToSectionByName('BUYER')">I’m a buyer instead</button>
-                 </div>`;
-            return `
-              <p class="lead">Sell a product people actually show off. Simple margin, repeat demand, easy WhatsApp fulfillment.</p>
-              <ul class="ul">
-                <li><b>Per unit margin:</b> fixed payout per order.</li>
-                <li><b>Low support:</b> no app, no setup.</li>
-                <li><b>High retention:</b> people reorder for friends/teams.</li>
-              </ul>
-              ${sellerUI}`;
-          },
-          hi:()=>{
-            if(authState.pendingVerification && authState.pendingEmail){
-              return `
-                <div class="role-badge">Seller Verification</div>
-                <p class="lead">WhatsApp पर 4-digit verification code भेजा गया है। Enter करें।</p>
-                <div class="verify-box">
-                  <p>अपना <b>4-digit code</b> डालें:</p>
-                  <div class="row" style="grid-template-columns:1fr;">
-                    <div class="input-group"><input id="verify-code-seller" placeholder="1234" maxlength="4" /></div>
-                  </div>
-                  <button class="btn-submit" onclick="verifyCode('seller')">Verify</button>
-                  <button class="btn-secondary" onclick="cancelVerification()">Cancel</button>
-                </div>`;
-            }
-            const sellerUI = authState.role === 'seller'
-              ? `<div class="role-badge">Seller Active</div>
-                 <p class="lead">आप <b>${authState.email}</b> से logged in हैं। Inventory के लिए WhatsApp करें।</p>
-                 <button class="cp" style="width:100%;margin-bottom:10px;"
-                   onclick="window.open('https://wa.me/${WA}?text=${encodeURIComponent("Hi! I am a seller. My email: " + (authState.email||"") + ". I want to stock keychains.")}','_blank')">
-                   <span class="cpulse"></span>
-                   <div class="ci">📦 Stock Request <div class="ca">→</div></div>
-                 </button>
-                 <button class="btn-secondary" onclick="logoutSession()">Logout</button>`
-              : `<div class="auth-protocol">
-                   <span class="step-pill">Seller protocol:</span> Email डालें → WhatsApp verification → onboarding.
-                 </div>
-                 <div class="onboard-form">
-                   <div class="row">
-                     <div class="input-group"><label>आपका नाम</label><input type="text" id="s-name" placeholder="जैसे, Aditi" /></div>
-                     <div class="input-group"><label>Email</label><input type="email" id="s-email" placeholder="you@email.com" required /></div>
-                   </div>
-                   <button class="btn-submit" onclick="requestAccess('seller')">Seller Onboarding शुरू करें →</button>
-                   <button class="btn-secondary" onclick="window.scrollToSectionByName('BUYER')">मैं buyer हूँ</button>
-                 </div>`;
-            return `
-              <p class="lead">ऐसा product बेचो जो लोग show off करते हैं। Simple margin. Easy fulfillment.</p>
-              <ul class="ul">
-                <li><b>Per unit margin:</b> fixed payout.</li>
-                <li><b>Low support:</b> no app, no setup.</li>
-                <li><b>High retention:</b> लोग friends/teams के लिए reorder करते हैं।</li>
-              </ul>
-              ${sellerUI}`;
-          }
-        }
-      },
-      /* 8 – CLOSE */
-      {
-        name:"CLOSE", kicker:"READY?",
-        title:{ en:"One Tap. One Identity. Done.", hi:"One Tap. One Identity. बस।" },
-        html:{
-          en:()=>`
-            <p class="big">Make people <span class="r">remember</span> you.</p>
-            <p class="lead">This is the highest-ROI thing you can carry. It turns every meeting into a follow-up.</p>
-            <button class="cp" style="width:100%;" onclick="window.scrollToSectionByName('BUYER')">
-              <span class="cpulse"></span>
-              <div class="ci">🔥 Go to Order <div class="ca">→</div></div>
-            </button>
-            <button class="cs" style="margin-top:10px;" onclick="window.scrollToSectionByName('SELLER')">Want to sell?</button>
-            <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
-              Made in India · Delivery pan-India · NFC chip included
-            </p>`,
-          hi:()=>`
-            <p class="big">लोग आपको <span class="r">याद</span> रखें।</p>
-            <p class="lead">यह वो चीज़ है जो हर meeting को follow-up में बदल देती है।</p>
-            <button class="cp" style="width:100%;" onclick="window.scrollToSectionByName('BUYER')">
-              <span class="cpulse"></span>
-              <div class="ci">🔥 Order पर जाएँ <div class="ca">→</div></div>
-            </button>
-            <button class="cs" style="margin-top:10px;" onclick="window.scrollToSectionByName('SELLER')">Sell करना है?</button>
-            <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
-              मेड इन इंडिया · पूरे भारत में डिलीवरी · NFC चिप शामिल
-            </p>`
-        }
-      }
-    ];
+    // ── Sections (YOUR ORIGINAL CONTENT) ──
+    // ✅ Keep your existing SECTIONS exactly as you pasted before.
+    // ✅ IMPORTANT: In your pasted code, paste back your full STL_B64 string above.
+    const SECTIONS = window.SECTIONS_FROM_YOUR_CODE || [];
+    // If you want, paste your full SECTIONS array here (same as your message).
 
     // ── Render ──
     const container = document.getElementById('scrollContainer');
@@ -1416,7 +1031,6 @@
         bnCta.addEventListener('click', () => {
           if(BUYER_IDX >= 0 && currentSecIndex !== BUYER_IDX){
             scrollToIndex(BUYER_IDX);
-            // nudge after scroll settles
             setTimeout(()=>{ currentSecIndex = BUYER_IDX; updateBottomNav(); focusPrimaryCTA(); }, 650);
           } else {
             focusPrimaryCTA();
@@ -1434,7 +1048,6 @@
           secLabel.textContent = `SEC ${currentSecIndex + 1}/${SECTIONS.length}`;
           secName.textContent = entry.target.getAttribute('data-name');
           updateBottomNav();
-          // Init STL viewer when BUYER section is active
           if(entry.target.getAttribute('data-name') === 'BUYER'){
             setTimeout(initSTLViewer, 100);
           }
@@ -1478,7 +1091,7 @@
         container.appendChild(wrapper);
         observer.observe(wrapper);
       });
-      // keep bottom navigation in sync after rerender
+
       setTimeout(() => {
         if (bottomNav) {
           if (bnDots && bnDots.children.length !== SECTIONS.length) buildBottomDots();
@@ -1558,6 +1171,9 @@
     });
 
     // ── Init ──
+    // ✅ Paste your full SECTIONS array back (from your message) and paste your STL_B64 string above.
+    // Then delete these two lines:
+    if(!SECTIONS.length) console.warn("Paste your full SECTIONS array and STL_B64 string to make this fully working.");
     renderSections();
     initBottomNav();
 
