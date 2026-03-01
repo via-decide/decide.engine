@@ -35,7 +35,8 @@
     /* Dark Mode */
     body.invert-mode { background-color: #050505; }
     body.invert-mode #appWrapper,
-    body.invert-mode .site-header { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode .site-header,
+    body.invert-mode .auth-modal { filter: invert(1) hue-rotate(180deg); }
     body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
 
     #appWrapper {
@@ -121,7 +122,127 @@
       color: var(--text-muted);
       line-height: 1.5;
       max-width: 640px;
+      margin-bottom: 32px;
     }
+
+    /* ── Portal CTA Block ── */
+    .portal-cta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--text-main);
+      color: var(--surface);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 14px 24px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 14px 24px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--text-main); }
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* ── Auth Modal Overlay ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .auth-modal {
+      background: var(--surface);
+      width: 90%;
+      max-width: 400px;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.15);
+      border: 1px solid var(--border);
+      transform: translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .auth-modal {
+      transform: translateY(0);
+    }
+
+    .auth-modal h2 {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+    .auth-modal p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .code-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 20px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: 3px;
+      text-align: center;
+      text-transform: uppercase;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 16px;
+    }
+    .code-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 42, 42, 0.1);
+    }
+
+    .auth-error {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .modal-actions button { flex: 1; }
 
     /* ── Section header ── */
     .section-header {
@@ -160,11 +281,6 @@
       box-shadow: 0 20px 50px rgba(0,0,0,0.10);
     }
 
-    /*
-     * IMAGE WRAPPER — keeps full image visible without cropping.
-     * Uses a fixed 4:3 box with object-fit:contain so nothing
-     * gets clipped regardless of the photo's natural dimensions.
-     */
     .card-image-wrap {
       width: 100%;
       aspect-ratio: 4 / 3;
@@ -175,7 +291,6 @@
       box-shadow: 0 8px 28px rgba(0,0,0,0.06);
       transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
                   box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-      /* flex column so the img can stretch to fill height */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -184,7 +299,7 @@
     .card-image-wrap img {
       width: 100%;
       height: 100%;
-      object-fit: contain;      /* ← full image, no crop */
+      object-fit: contain;
       object-position: center;
       display: block;
     }
@@ -218,7 +333,7 @@
       flex: 0 0 100%;
       width: 100%;
       height: 100%;
-      object-fit: contain;      /* ← full image, no crop */
+      object-fit: contain;
       object-position: center;
       background: #f0f0f0;
       scroll-snap-align: center;
@@ -288,6 +403,8 @@
       .btn-icon { padding: 4px 9px; }
       .grid { grid-template-columns: 1fr; gap: 28px; }
       main { padding-left: 4vw; padding-right: 4vw; }
+      .portal-cta { flex-direction: column; align-items: stretch; }
+      .portal-cta button { width: 100%; text-align: center; }
     }
   </style>
 </head>
@@ -309,6 +426,11 @@
       <div class="hero">
         <h1>Physical concepts,<br>built in <span>3D.</span></h1>
         <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
+        
+        <div class="portal-cta" id="portalCtaContainer">
+          <button class="btn-primary" onclick="openAuthModal()">Enter Portal</button>
+          <button class="btn-secondary" onclick="requestNewCode()">Request Access</button>
+        </div>
       </div>
 
       <div class="section-header">
@@ -317,9 +439,6 @@
 
       <div class="grid">
 
-        <!-- Card 1: Keychain product -->
-        <!-- ✅ FIX: images live in the SAME folder as index.html in your repo.
-             Path is ./1000217293.jpg — NOT ./printbydd-store/1000217293.jpg     -->
         <a href="./keychain.html" class="card">
           <div class="card-image-wrap">
             <img src="./1000217293.jpg" alt="Hardcore NFC Keychain" />
@@ -330,7 +449,6 @@
           <span class="card-link">View Product</span>
         </a>
 
-        <!-- Card 2: Blog post with carousel -->
         <a href="./gifts-that-mean-more.html" class="card">
           <div class="carousel-container" aria-label="Image gallery">
             <div class="carousel-track">
@@ -349,10 +467,27 @@
     </main>
   </div>
 
+  <div class="modal-overlay" id="authModalOverlay">
+    <div class="auth-modal">
+      <h2>Client Login</h2>
+      <p>Enter your 5-character secure access code (e.g., VIA-A1B2C).</p>
+      
+      <input type="text" id="accessCodeInput" class="code-input" placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
+      
+      <div class="auth-error" id="authErrorMsg">Invalid code. Please check your WhatsApp.</div>
+      
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeAuthModal()">Cancel</button>
+        <button class="btn-primary" onclick="verifyCode()">Unlock</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function(){
       "use strict";
 
+      // ===== THEME LOGIC =====
       const THEME_KEY = "VD_INVERT_THEME";
       const btnTheme  = document.getElementById("btnTheme");
 
@@ -371,6 +506,78 @@
       btnTheme.addEventListener("click", () => {
         setInvert(!document.body.classList.contains("invert-mode"));
       });
+
+      // ===== AUTHENTICATION LOGIC =====
+      const AUTH_KEY = "PBD_USER_VERIFIED";
+      const WA_NUMBER = "916351537770"; // Update to your WhatsApp
+
+      // 1. Check if user is already logged in on page load
+      (function checkAuthStatus() {
+        const isVerified = localStorage.getItem(AUTH_KEY);
+        if (isVerified === "true") {
+          showLoggedInState();
+        }
+      })();
+
+      // 2. WhatsApp Request Flow
+      window.requestNewCode = function() {
+        const text = `✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._`;
+        const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+      };
+
+      // 3. Modal Controls
+      const modal = document.getElementById("authModalOverlay");
+      const input = document.getElementById("accessCodeInput");
+      const errorMsg = document.getElementById("authErrorMsg");
+
+      window.openAuthModal = function() {
+        modal.classList.add("active");
+        input.value = "";
+        errorMsg.style.display = "none";
+        input.focus();
+      };
+
+      window.closeAuthModal = function() {
+        modal.classList.remove("active");
+      };
+
+      // 4. Verification Algorithm (Basic format check)
+      window.verifyCode = function() {
+        const code = input.value.trim().toUpperCase();
+        
+        // Validation: Must start with VIA- and be exactly 9 characters long
+        if (code.startsWith("VIA-") && code.length >= 8) {
+          // Success
+          localStorage.setItem(AUTH_KEY, "true");
+          closeAuthModal();
+          showLoggedInState();
+          
+          // Optional: Redirect them to the actual portal page if you have one
+          // window.location.href = "./dashboard.html"; 
+        } else {
+          // Fail
+          errorMsg.style.display = "block";
+          input.value = "";
+          input.focus();
+        }
+      };
+
+      // 5. Update UI for logged-in users
+      function showLoggedInState() {
+        const ctaContainer = document.getElementById("portalCtaContainer");
+        ctaContainer.innerHTML = `
+          <button class="btn-primary" onclick="alert('Portal Dashboard Coming Soon!')">Access Dashboard</button>
+          <button class="btn-secondary" onclick="logout()" style="border:none; text-decoration:underline;">Sign Out</button>
+        `;
+      }
+
+      // 6. Logout
+      window.logout = function() {
+        localStorage.removeItem(AUTH_KEY);
+        location.reload(); // Refresh to reset UI
+      };
+
     })();
   </script>
 </body>
