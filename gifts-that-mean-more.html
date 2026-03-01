@@ -25,6 +25,7 @@
       --safeRight: env(safe-area-inset-right, 0px);
 
       --maxw: 860px;
+      --header-height: 60px;
     }
 
     /* ===== Base Reset ===== */
@@ -41,8 +42,8 @@
     }
     *{ box-sizing:border-box; }
 
-    /* ===== Prevent text selection (like your light-mode screenshot) ===== */
-    html, body, #appWrapper, .card, .cardHeader, .cardBody, .pill, .back { -webkit-user-select: none; user-select: none; }
+    /* ===== Prevent text selection ===== */
+    html, body, #appWrapper, .card, .cardHeader, .cardBody, .pill, .back, .site-header { -webkit-user-select: none; user-select: none; }
     input, textarea, select { -webkit-user-select: text; user-select: text; }
     button, a { -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color: transparent; }
     ::selection{ background: transparent; }
@@ -50,20 +51,55 @@
 
     button{ background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; }
 
-    /* ===== Invert Color Light Mode (requested) =====
-       Adds a clean light mode without maintaining a second palette.
-       We hue-rotate to keep the orange accent looking orange-ish after invert.
-    */
+    /* ===== Invert Color Light Mode ===== */
     body.invert-mode #appWrapper,
     body.invert-mode #translationToast,
-    body.invert-mode #rotatePopup{
+    body.invert-mode #rotatePopup,
+    body.invert-mode .site-header{
       filter: invert(1) hue-rotate(180deg);
     }
-    /* Re-invert media/canvas if you add them later (keeps photos normal) */
     body.invert-mode img,
     body.invert-mode video,
     body.invert-mode canvas{
       filter: invert(1) hue-rotate(180deg);
+    }
+
+    /* ===== Global Site Header ===== */
+    .site-header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: rgba(5, 5, 5, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+      z-index: 1000;
+    }
+    .site-header .logo{
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 900;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .site-header nav{
+      display: flex;
+      gap: 24px;
+    }
+    .site-header nav a{
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .site-header nav a:hover,
+    .site-header nav a.active{
+      color: var(--text);
     }
 
     /* App Wrapper */
@@ -96,9 +132,11 @@
       z-index:0;
     }
 
-    /* Top Navigation */
+    /* Top Navigation (Tool Controls) */
     .top{
-      position:absolute; top:0; left:0; right:0;
+      position:absolute;
+      top: var(--header-height);
+      left:0; right:0;
       padding: calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
       z-index:50;
       display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -144,7 +182,10 @@
     /* Scroll Container */
     .scroll-container{
       position:absolute;
-      inset:0;
+      top: var(--header-height);
+      bottom: 0;
+      left: 0;
+      right: 0;
       overflow-y:auto;
       overflow-x:hidden;
       scroll-snap-type:y mandatory;
@@ -270,7 +311,7 @@
       font-style: italic;
     }
 
-    /* Chips + Buttons (make visible in inverted mode too) */
+    /* Chips + Buttons */
     .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin: 12px 0 2px; }
     .chip{
       display:inline-flex;
@@ -295,6 +336,7 @@
       font-weight:900;
       font-size:14px;
       transition: transform .2s, filter .2s, background .2s, border-color .2s;
+      text-decoration:none;
     }
     .btn:hover{ border-color: rgba(255,103,31,0.35); }
     .btn:active{ transform: scale(0.98); filter: brightness(1.05); }
@@ -521,7 +563,7 @@
 
     .translate-toast{
       position: fixed;
-      top: calc(80px + var(--safeTop));
+      top: calc(100px + var(--safeTop));
       left: 50%;
       transform: translateX(-50%) translateY(-20px);
       background: rgba(20,20,22,0.95);
@@ -564,8 +606,17 @@
   <div id="appWrapper">
     <div class="bg-glow"></div>
 
+    <header class="site-header">
+      <a href="/index.html" class="logo">ViaDecide</a>
+      <nav>
+        <a href="/index.html">Home</a>
+        <a href="/products.html">Products</a>
+        <a href="#" class="active">Blog</a>
+      </nav>
+    </header>
+
     <div class="top">
-      <a class="back" href="#" id="backBtn">← Back</a>
+      <a class="back" href="/index.html" id="backBtn">← Home</a>
       <div class="top-actions">
         <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate to Hindi">A/अ</button>
@@ -586,12 +637,11 @@
     (function(){
       "use strict";
 
-      // ===== Back =====
+      // ===== Back Logic (universal, robust) =====
       const backBtn = document.getElementById("backBtn");
       backBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        if (window.history.length > 1) window.history.back();
-        else window.location.href = "https://viadecide.com/";
+        window.location.href = "/index.html";
       });
 
       // ===== Invert Theme Toggle =====
@@ -1123,9 +1173,10 @@
 
       window.verifyAccessCode = function(role){
         const inputId = role === 'reader' ? 'verify-code-reader' : 'verify-code-creator';
-        const inputVal = (document.getElementById(inputId).value || '').trim().toUpperCase();
+        const inputEl = document.getElementById(inputId);
+        const inputVal = (inputEl ? (inputEl.value || '') : '').trim().toUpperCase();
 
-        const expected = generateExpectedCode(authState.pendingEmail);
+        const expected = generateExpectedCode(authState.pendingEmail || '');
         if(inputVal === expected){
           localStorage.setItem('VIA_USER', authState.pendingEmail);
           localStorage.setItem('VIA_ROLE', role);
@@ -1143,6 +1194,7 @@
       window.cancelVerification = function(){
         authState.pendingVerification = false;
         authState.pendingEmail = null;
+        authState.pendingRole = null;
         renderSections();
       };
 
@@ -1156,18 +1208,28 @@
 
       // ===== Workspace Prompt Engine =====
       window.generateBlogPrompt = function(){
-        const niche = document.getElementById('ws-niche').value || 'General';
-        const goal = document.getElementById('ws-goal').value;
-        const idea = document.getElementById('ws-idea').value;
+        const nicheEl = document.getElementById('ws-niche');
+        const goalEl = document.getElementById('ws-goal');
+        const ideaEl = document.getElementById('ws-idea');
+        const previewBox = document.getElementById('ws-preview');
+        const btnSubmit = document.getElementById('btnSubmitReview');
+
+        if(!ideaEl) return;
+        const niche = (nicheEl && nicheEl.value) ? nicheEl.value : 'General';
+        const goal = (goalEl && goalEl.value) ? goalEl.value : 'authority';
+        const idea = ideaEl.value || '';
 
         if(!idea.trim()) return alert(currentLang === 'hi' ? "कृपया मुख्य विचार लिखें!" : "Please enter a Core Idea!");
 
-        const promptText = `SYSTEM: You are an expert copywriter compiling a blog brief.\nTARGET:\n- Niche: ${niche.toUpperCase()}\n- Primary Goal: ${goal.toUpperCase()}\n\nCORE IDEA / BRIEF:\n${idea}\n\nOUTPUT REQUIREMENTS:\n1) High-converting Hook\n2) 3 core structural points\n3) Strong CTA`;
+        const promptText = `SYSTEM: You are an expert copywriter compiling a blog brief.\nTARGET:\n- Niche: ${String(niche).toUpperCase()}\n- Primary Goal: ${String(goal).toUpperCase()}\n\nCORE IDEA / BRIEF:\n${idea}\n\nOUTPUT REQUIREMENTS:\n1) High-converting Hook\n2) 3 core structural points\n3) Strong CTA`;
 
-        const previewBox = document.getElementById('ws-preview');
-        previewBox.textContent = promptText;
-        previewBox.style.display = 'block';
-        document.getElementById('btnSubmitReview').style.display = 'flex';
+        if(previewBox){
+          previewBox.textContent = promptText;
+          previewBox.style.display = 'block';
+        }
+        if(btnSubmit){
+          btnSubmit.style.display = 'flex';
+        }
       };
 
       window.submitForReview = function(){
