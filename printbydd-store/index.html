@@ -33,7 +33,7 @@
     a { text-decoration: none; color: inherit; }
     button { background: none; border: none; cursor: pointer; font: inherit; }
 
-    /* ===== Dark Mode Logic (Matches your Blogs) ===== */
+    /* Dark Mode Logic */
     body.invert-mode #appWrapper,
     body.invert-mode .site-header {
       filter: invert(1) hue-rotate(180deg);
@@ -42,7 +42,7 @@
       filter: invert(1) hue-rotate(180deg);
     }
     body.invert-mode {
-      background-color: #050505; /* Ensures the background beyond the wrapper is dark */
+      background-color: #050505; 
     }
 
     #appWrapper {
@@ -51,7 +51,7 @@
       transition: filter 0.3s ease;
     }
 
-    /* ===== Global Header ===== */
+    /* Global Header */
     .site-header {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -102,7 +102,7 @@
     }
     .btn-icon:active { transform: scale(0.9); }
 
-    /* ===== Layout & Hero ===== */
+    /* Layout & Hero */
     main {
       padding-top: calc(var(--header-height) + 80px);
       max-width: 1200px;
@@ -135,7 +135,7 @@
       max-width: 600px;
     }
 
-    /* ===== Grid Layout ===== */
+    /* Grid Layout */
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -159,14 +159,14 @@
       gap: 40px;
     }
 
-    /* ===== Minimalist Cards ===== */
+    /* Minimalist Cards */
     .card {
       display: flex;
       flex-direction: column;
       position: relative;
+      cursor: pointer;
     }
 
-    /* Standard Image Placeholder */
     .card-image-placeholder {
       width: 100%;
       aspect-ratio: 4/3;
@@ -184,7 +184,7 @@
       transform: translateY(-4px);
     }
 
-    /* Swipable Carousel Specifics */
+    /* Carousel */
     .carousel-container {
       width: 100%;
       aspect-ratio: 4/3;
@@ -234,7 +234,6 @@
       text-transform: uppercase;
     }
 
-    /* Typography inside Cards */
     .card .kicker {
       font-size: 11px;
       font-weight: 800;
@@ -282,7 +281,6 @@
       transform: translateX(4px);
     }
     
-    /* Responsive */
     @media (max-width: 600px) {
       .site-header nav { gap: 14px; }
       .site-header .logo { font-size: 18px; }
@@ -292,11 +290,11 @@
 <body>
 
   <header class="site-header">
-    <a href="./index.html" class="logo">PrintByDD</a>
+    <a href="/printbydd-store" class="logo" data-link>PrintByDD</a>
     <nav>
-      <a href="./index.html" class="active">Home</a>
-      <a href="./nfc-keychain-blog.html">Products</a> 
-      <a href="./Viadecide-blogs.html">Blog</a> 
+      <a href="/printbydd-store" class="active" data-link>Home</a>
+      <a href="/nfc-keychain-blog" data-link>Products</a> 
+      <a href="/gifting-psychology" data-link>Blog</a> 
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
     </nav>
   </header>
@@ -314,19 +312,19 @@
 
       <div class="grid">
         
-        <a href="./nfc-keychain-blog.html" class="card">
-          <img src="./1000217293.png" alt="Marketing vs ViaDecide Physical Keychain" class="card-image-placeholder">
+        <a href="/nfc-keychain-blog" class="card" data-link>
+          <img src="/printbydd/1000217293.png" alt="Marketing vs ViaDecide Physical Keychain" class="card-image-placeholder">
           <div class="kicker">Smart Accessories</div>
           <h3>The Hardcore NFC Keychain</h3>
           <p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
           <span class="card-link">View Product</span>
         </a>
 
-        <a href="./Viadecide-blogs.html" class="card">
+        <a href="/gifting-psychology" class="card" data-link>
           <div class="carousel-container">
             <div class="carousel-track">
-              <img src="./1000217292.png" alt="Geometric Organizer">
-              <img src="./1000217276.jpg" alt="Muscle Keychain Model">
+              <img src="/printbydd/1000217292.png" alt="Geometric Organizer">
+              <img src="/printbydd/1000217276.jpg" alt="Muscle Keychain Model">
             </div>
             <div class="swipe-hint">Swipe Gallery ↔</div>
           </div>
@@ -353,14 +351,12 @@
         try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
       }
       
-      // Initialize theme on page load
       (function initTheme(){
         let saved = "0";
         try{ saved = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
         setInvert(saved === "1");
       })();
       
-      // Toggle theme on button click
       btnTheme.addEventListener("click", () => {
         const on = !document.body.classList.contains("invert-mode");
         setInvert(on);
