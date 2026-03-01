@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>Best Laptops Under ₹50,000 (India) • ViaDecide</title>
+  <meta name="description" content="A decision-first laptop guide under ₹50,000: criteria, trade-offs, and a shortlist you can trust. Built for Bharat buyers." />
+
+  <!-- Router (required) -->
+  <script>window.__MAIN_WEBSITE__="https://viadecide.com/";</script>
+  <script src="./router.js"></script>
+
+  <style>
+    :root {
+      --bg: #050505;
+      --card-bg: rgba(18, 18, 20, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #fdfdfd;
+      --text-muted: rgba(242, 242, 242, 0.65);
+      --accent: #ff671f;
+      --accent-glow: rgba(255, 103, 31, 0.15);
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      --radius: 24px;
+
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --safeLeft: env(safe-area-inset-left, 0px);
+      --safeRight: env(safe-area-inset-right, 0px);
+
+      --maxw: 860px;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    a { color: inherit; text-decoration: none; }
+    button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .hidden { display: none !important; }
+
+    /* Ambient glow */
+    .bg-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%),
+        radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%);
+      z-index: 0;
+    }
+
+    /* Top navigation */
+    .top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0) 100%);
+    }
+    .top > * { pointer-events: auto; }
+
+    .top-left, .top-actions { display: flex; align-items: center; gap: 10px; }
+
+    .back, .pill, .btn-icon, .btn-mini {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(15,15,15,0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.2s ease;
+    }
+    .back { color: rgba(255,255,255,0.9); font-weight: 600; font-size: 14px; }
+    .back:active { transform: scale(0.96); }
+    .pill {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+      max-width: min(60vw, 360px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pill b { color: #fff; letter-spacing: 0.1em; font-weight: 800; }
+    .btn-icon {
+      padding: 10px;
+      font-weight: 800;
+      color: var(--accent);
+      width: 42px;
+      height: 42px;
+    }
+    .btn-icon:active { transform: scale(0.96); }
+    .btn-mini{
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.86);
+    }
+    .btn-mini strong{ color: var(--accent); }
+
+    /* Scroll container */
+    .scroll-container {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      z-index: 10;
+    }
+    .scroll-container::-webkit-scrollbar { display: none; }
+
+    /* Sections */
+    .section-wrapper {
+      height: 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: calc(92px + var(--safeTop)) calc(16px + var(--safeRight)) calc(64px + var(--safeBottom)) calc(16px + var(--safeLeft));
+      position: relative;
+    }
+    .card {
+      width: 100%;
+      max-width: var(--maxw);
+      flex: 1;
+      min-height: 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      opacity: 0.25;
+      transform: scale(0.94) translateY(28px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .section-wrapper.is-active .card { opacity: 1; transform: scale(1) translateY(0); }
+
+    .cardHeader {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.30);
+      flex-shrink: 0;
+    }
+    .kicker {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+    .h1 {
+      margin: 0;
+      font-size: clamp(22px, 5vw, 30px);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      font-weight: 800;
+    }
+
+    .cardBody {
+      padding: 24px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+    }
+    .cardBody::-webkit-scrollbar { width: 5px; }
+    .cardBody::-webkit-scrollbar-track { background: transparent; }
+    .cardBody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+    /* Typography */
+    .big {
+      font-size: clamp(28px, 6vw, 44px);
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin: 0 0 18px;
+    }
+    .big .accent {
+      background: linear-gradient(135deg, #ff8a4c, #ff4c00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: var(--accent);
+    }
+    .lead {
+      font-size: 17px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.86);
+      margin: 0 0 14px;
+    }
+    .muted {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+    .quote {
+      margin: 18px 0 18px;
+      padding: 14px 18px;
+      border-left: 3px solid var(--accent);
+      background: linear-gradient(90deg, var(--accent-glow), transparent);
+      border-radius: 0 12px 12px 0;
+      color: rgba(255,255,255,0.95);
+      line-height: 1.6;
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    /* Lists */
+    .list {
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+      color: rgba(255,255,255,0.78);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .list li { position: relative; padding-left: 22px; margin: 12px 0; }
+    .list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: 900; }
+    .list b { color: #fff; }
+
+    /* Pills / badges */
+    .chips { display:flex; flex-wrap:wrap; gap:10px; margin: 4px 0 14px; }
+    .chip {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.28);
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      white-space: nowrap;
+    }
+    .chip strong{ color: var(--accent); font-weight: 800; }
+
+    /* Cards inside */
+    .panel {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px){ .grid2{ grid-template-columns: 1fr; } }
+
+    .miniCard{
+      background: rgba(0,0,0,0.40);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 14px 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .miniCard .topline{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .miniCard h4{
+      margin:0;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .badge{
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.72);
+      white-space: nowrap;
+    }
+    .badge.ok { border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); color: rgba(190,255,215,.95); }
+    .badge.warn { border-color: rgba(255,103,31,.28); background: rgba(255,103,31,.10); color: rgba(255,175,120,.95); }
+
+    .scoreRow{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .scorePill{
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.35);
+      padding: 7px 10px;
+      color: rgba(255,255,255,0.78);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .scorePill strong{ color: var(--ok); }
+
+    /* Criteria rows */
+    .criteria {
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .critRow{
+      display:grid;
+      grid-template-columns: 170px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.35);
+    }
+    .critRow .name{ font-weight: 800; font-size: 13px; }
+    .critRow .why{ color: rgba(255,255,255,0.70); font-size: 13px; line-height: 1.45; }
+    .critRow .wt{
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-weight: 900;
+      color: rgba(255,175,120,.95);
+      border: 1px solid rgba(255,103,31,.30);
+      background: rgba(255,103,31,.08);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px){
+      .critRow{ grid-template-columns: 1fr; }
+      .critRow .wt{ justify-self: start; }
+    }
+
+    /* CTA buttons */
+    .ctaRow{ display:flex; flex-wrap:wrap; gap: 10px; margin-top: 16px; }
+    .btnPrimary{
+      display:inline-flex; align-items:center; justify-content:center; gap: 8px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--accent);
+      color:#0b0b0b;
+      font-weight: 900;
+      letter-spacing: .02em;
+      border: 1px solid rgba(255,103,31,.35);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .btnPrimary:active{ transform: scale(.98); filter: brightness(1.05); }
+    .btnGhost{
+      display:inline-flex; align-items:center; justify-content:center; gap: 8px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.88);
+      font-weight: 800;
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .btnGhost:active{ transform: scale(.98); }
+    .btnGhost:hover{ border-color: rgba(255,103,31,.28); }
+
+    /* Hint */
+    .hint {
+      position: absolute;
+      bottom: calc(16px + var(--safeBottom));
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      pointer-events: none;
+      animation: pulse 2s infinite;
+    }
+    .hint svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, 0); opacity: 0.6; }
+      50% { transform: translate(-50%, 5px); opacity: 1; }
+    }
+    .section-wrapper:last-child .hint { display: none; }
+
+    /* Toast */
+    .translate-toast {
+      position: fixed;
+      top: calc(80px + var(--safeTop));
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(20, 20, 22, 0.95);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff;
+      padding: 10px 16px 10px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+      max-width: calc(100vw - 24px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .translate-toast.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .btn-undo {
+      color: var(--accent);
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      background: rgba(255, 103, 31, 0.15);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 103, 31, 0.25);
+    }
+    .btn-undo:active { background: rgba(255, 103, 31, 0.25); }
+
+    /* Accessibility */
+    :focus-visible { outline: 2px solid rgba(255,103,31,.65); outline-offset: 2px; border-radius: 10px; }
+  </style>
+</head>
+
+<body>
+  <div id="appWrapper" style="position:relative;width:100vw;height:100dvh;overflow:hidden;">
+    <div class="bg-glow"></div>
+
+    <div class="top">
+      <div class="top-left">
+        <a class="back" href="#" data-back>← Back</a>
+        <div class="pill"><b id="secLabel">SEC 1/8</b> • <span id="secName">INTRO</span></div>
+      </div>
+      <div class="top-actions">
+        <a class="btn-mini" href="guides" aria-label="All guides"><strong>All</strong> Blogs</a>
+        <button id="btnTranslate" class="btn-icon" aria-label="Translate" title="Translate">A/अ</button>
+      </div>
+    </div>
+
+    <main class="scroll-container" id="scrollContainer"></main>
+  </div>
+
+  <div id="translationToast" class="translate-toast">
+    <span id="toastMsg">Hindi version coming soon</span>
+    <button id="btnUndoTranslate" class="btn-undo">Undo</button>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      /* ====== DATA (evergreen / not dated to a specific month) ======
+         NOTE: This is a decision-style shortlist, not “we tested 14 units”.
+         If you later want real citations + SKUs, we can swap this for a JSON feed. */
+
+      const GUIDE_META = {
+        minutes: 8,
+        updated: "Updated for 2026 buyers",
+        budget: "Under ₹50,000",
+        region: "India"
+      };
+
+      const CRITERIA = [
+        { name:"Performance/₹", why:"CPU class + sustained behavior. Not just a peak benchmark.", wt:"20%" },
+        { name:"Thermals",      why:"A fast chip that throttles becomes a slow laptop.", wt:"15%" },
+        { name:"Display",       why:"Brightness + color coverage matter more than resolution marketing.", wt:"12%" },
+        { name:"Battery",       why:"Office + browsing endurance, not “up to 8 hours”.", wt:"12%" },
+        { name:"Build",         why:"Keyboard/hinge flex + portability tradeoffs.", wt:"10%" },
+        { name:"Ports",         why:"USB-C PD, HDMI, USB-A—daily friction reducer.", wt:"8%" },
+        { name:"RAM/SSD Path",  why:"Upgrade path decides 3-year usability.", wt:"8%" },
+        { name:"Service India", why:"Tier-2/3 repair reality beats spec wins.", wt:"8%" },
+        { name:"Noise/Bloat",   why:"Thermal profiles + preloaded junk affect experience.", wt:"5%" },
+        { name:"Community",     why:"6+ month owner signal catches long-term issues.", wt:"2%" }
+      ];
+
+      const SHORTLIST = [
+        {
+          rank:"#1 — Top Pick",
+          name:"Lenovo IdeaPad / Slim-class (Ryzen 5 U-series, 16GB preferred)",
+          price:"~₹45k–₹50k",
+          overall:"8.4",
+          badge:"Best balance",
+          desc:"The safest buy for most people: stable everyday performance, generally solid keyboards, and the best chance of finding a clean 16GB + SSD config under ₹50k.",
+          scores:[["Value","9.1"],["Thermals","8.2"],["Battery","8.1"],["Build","8.0"]],
+          note:"Choose 16GB if possible. Avoid 8GB soldered if you’ll keep it 3+ years."
+        },
+        {
+          rank:"#2 — Best Display",
+          name:"ASUS VivoBook-class (OLED variant when available under ₹50k)",
+          price:"~₹48k–₹50k",
+          overall:"7.9",
+          badge:"OLED advantage",
+          desc:"If you care about screen quality (reading, design, media), an OLED deal under ₹50k is the biggest quality-of-life jump in this segment.",
+          scores:[["Display","9.0"],["Value","8.0"],["Thermals","7.8"],["Battery","7.4"]],
+          note:"OLED is great, but verify warranty + panel brightness and check for PWM sensitivity."
+        },
+        {
+          rank:"#3 — Upgradeability Pick",
+          name:"Acer Aspire-class (upgrade-friendly config)",
+          price:"~₹42k–₹48k",
+          overall:"7.6",
+          badge:"Future-proof",
+          desc:"If you want to buy cheap now and upgrade later, pick the model line that historically offers RAM slot + SSD access. Not glamorous, but practical.",
+          scores:[["RAM/SSD","9.0"],["Ports","8.2"],["Value","8.2"],["Display","7.0"]],
+          note:"Display is often the compromise. If you work outdoors, check brightness."
+        },
+        {
+          rank:"#4 — Service Network",
+          name:"HP Pavilion / 15s-class (choose for service coverage)",
+          price:"~₹45k–₹50k",
+          overall:"7.4",
+          badge:"Service-first",
+          desc:"If you’re outside a metro and repair access matters, HP’s service footprint can be worth a slightly lower score.",
+          scores:[["Service","9.0"],["Battery","7.8"],["Build","7.4"],["Thermals","7.2"]],
+          note:"Pick the best config for your city availability—avoid oddball SKUs with weak screens."
+        },
+        {
+          rank:"#5 — Budget Compromise",
+          name:"Dell Inspiron-class (only if price is the priority)",
+          price:"~₹40k–₹45k",
+          overall:"7.1",
+          badge:"Price-led",
+          desc:"If you need a basic machine and you’re optimizing for lowest cost, this is acceptable. Just be honest: it’s a compromise.",
+          scores:[["Price","9.2"],["Ports","7.8"],["Thermals","7.0"],["Display","6.8"]],
+          note:"Avoid low-end panels and make sure it’s NVMe SSD (not eMMC)."
+        }
+      ];
+
+      const RED_FLAGS = [
+        { title:"‘SSD’ that is actually eMMC", body:"If it’s eMMC, it will feel slow fast. You want NVMe PCIe SSD.", icon:"🚩" },
+        { title:"8GB soldered RAM (no upgrade)", body:"8GB is already tight in 2026. Prefer 16GB, or at least a RAM slot.", icon:"🚩" },
+        { title:"45W-class chips in ultra-thin chassis", body:"They throttle hard. Sustained performance matters more than peak numbers.", icon:"🚩" },
+        { title:"No USB-C Power Delivery", body:"A proprietary charger is daily friction. USB-C PD is a quality-of-life baseline.", icon:"🚩" },
+      ];
+
+      const CHECKLIST = [
+        "Is RAM upgradeable, or soldered? Check the exact variant.",
+        "Is storage NVMe PCIe SSD (not eMMC)?",
+        "Does USB-C support Power Delivery charging?",
+        "What’s the display quality (brightness + color), not just ‘FHD’?",
+        "Do you have a nearby service center for that brand in your city?",
+        "If you’ll keep it 3+ years: prioritize 16GB RAM today.",
+        "Avoid buying only on launch-day reviews. Look for 6+ month owner signal."
+      ];
+
+      /* ====== SECTIONS (your scroll blog style) ====== */
+      const SECTIONS = [
+        {
+          name: "INTRO",
+          kicker: "Laptop Guide • ₹50,000",
+          title: { en: "Best laptops under <span class='accent'>₹50,000</span> (India)", hi: "₹50,000 के अंदर <span class='accent'>सबसे अच्छे</span> लैपटॉप" },
+          html: {
+            en: () => `
+              <div class="chips">
+                <span class="chip">🎯 Budget <strong>${GUIDE_META.budget}</strong></span>
+                <span class="chip">📍 ${GUIDE_META.region}</span>
+                <span class="chip">⏱ ${GUIDE_META.minutes} min</span>
+                <span class="chip">${GUIDE_META.updated}</span>
+              </div>
+
+              <div class="big">Stop buying laptops by <span class="accent">spec-sheet hype.</span></div>
+              <p class="lead">Under ₹50k, the best laptop isn’t “the fastest chip”. It’s the one that stays usable after 18 months: stable thermals, a decent screen, and a config that won’t trap you.</p>
+              <div class="quote">This guide is structured like a decision brief: criteria → trade-offs → shortlist → buy checklist.</div>
+
+              <div class="panel">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                  <div>
+                    <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);font-weight:800;">Top pick for most people</div>
+                    <h3 style="margin:8px 0 6px;">${SHORTLIST[0].name}</h3>
+                    <p class="muted" style="margin:0;">If you can only make one rule: <b>prefer 16GB RAM</b>. That single choice saves more regret than any “i7” sticker.</p>
+                  </div>
+                  <span class="badge ok">Overall ${SHORTLIST[0].overall}/10</span>
+                </div>
+
+                <div class="scoreRow">
+                  ${SHORTLIST[0].scores.map(s => `<span class="scorePill">${s[0]} <strong>${s[1]}</strong></span>`).join("")}
+                </div>
+              </div>
+
+              <div class="ctaRow">
+                <a class="btnPrimary" href="compare">Compare options →</a>
+                <a class="btnGhost" href="requirements-builder">Build my requirements</a>
+                <a class="btnGhost" href="price-fairness">Check price fairness</a>
+              </div>
+            `,
+            hi: () => `
+              <div class="chips">
+                <span class="chip">🎯 बजट <strong>${GUIDE_META.budget}</strong></span>
+                <span class="chip">📍 ${GUIDE_META.region}</span>
+                <span class="chip">⏱ ${GUIDE_META.minutes} मिनट</span>
+                <span class="chip">${GUIDE_META.updated}</span>
+              </div>
+
+              <div class="big">लैपटॉप <span class="accent">हाइप</span> से नहीं, ढांचे से चुनिए।</div>
+              <p class="lead">₹50k के अंदर सही लैपटॉप “सबसे तेज़” नहीं होता — सही लैपटॉप वो है जो 18 महीने बाद भी स्मूद चले: थर्मल स्थिर, स्क्रीन ठीक, और कॉन्फ़िग फँसाने वाला नहीं।</p>
+              <div class="quote">यह गाइड decision-brief जैसा है: criteria → trade-offs → shortlist → checklist.</div>
+
+              <div class="panel">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                  <div>
+                    <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);font-weight:800;">अधिकांश लोगों के लिए Top Pick</div>
+                    <h3 style="margin:8px 0 6px;">${SHORTLIST[0].name}</h3>
+                    <p class="muted" style="margin:0;">एक नियम: <b>16GB RAM</b> को प्राथमिकता दें। यही सबसे कम पछतावा देता है।</p>
+                  </div>
+                  <span class="badge ok">Overall ${SHORTLIST[0].overall}/10</span>
+                </div>
+
+                <div class="scoreRow">
+                  ${SHORTLIST[0].scores.map(s => `<span class="scorePill">${s[0]} <strong>${s[1]}</strong></span>`).join("")}
+                </div>
+              </div>
+
+              <div class="ctaRow">
+                <a class="btnPrimary" href="compare">Compare करें →</a>
+                <a class="btnGhost" href="requirements-builder">Requirements बनाएं</a>
+                <a class="btnGhost" href="price-fairness">Price fairness देखें</a>
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "THE REAL PROBLEM",
+          kicker: "Why buyers regret",
+          title: { en: "Most regret comes from <span class='accent'>three</span> hidden traps", hi: "पछतावा अक्सर <span class='accent'>तीन</span> छिपे traps से आता है" },
+          html: {
+            en: () => `
+              <div class="big">It’s not the chip. It’s the <span class="accent">constraints.</span></div>
+              <ul class="list">
+                <li><b>RAM trap:</b> 8GB soldered feels fine in month 1, painful in month 12.</li>
+                <li><b>Display trap:</b> “FHD” can still mean a dim, washed-out panel.</li>
+                <li><b>Thermal trap:</b> peak benchmarks look great, sustained use throttles.</li>
+              </ul>
+              <div class="quote">Under ₹50k, you’re buying trade-offs. Good decisions make trade-offs explicit.</div>
+              <div class="panel">
+                <p class="muted" style="margin:0;"><b>Decision rule:</b> If two laptops are close, choose the one with (1) 16GB RAM (or upgrade path), (2) USB-C PD, (3) better screen brightness.</p>
+              </div>
+            `,
+            hi: () => `
+              <div class="big">चिप नहीं — असली समस्या <span class="accent">constraints</span> हैं।</div>
+              <ul class="list">
+                <li><b>RAM trap:</b> 8GB soldered पहले ठीक लगता है, बाद में दर्द देता है।</li>
+                <li><b>Display trap:</b> “FHD” फिर भी dim/washed-out हो सकता है।</li>
+                <li><b>Thermal trap:</b> peak नंबर अच्छे, sustained में throttling।</li>
+              </ul>
+              <div class="quote">₹50k में trade-offs तय हैं। सही निर्णय trade-offs को साफ़ करता है।</div>
+              <div class="panel">
+                <p class="muted" style="margin:0;"><b>Rule:</b> अगर दो लैपटॉप बराबर हों, (1) 16GB/upgrade path, (2) USB-C PD, (3) बेहतर brightness चुनें।</p>
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "METHODOLOGY",
+          kicker: "How we think",
+          title: { en: "The scoring framework (transparent weights)", hi: "Scoring framework (weights)" },
+          html: {
+            en: () => `
+              <p class="lead">This is not “we feel it’s good.” It’s a weighted decision model you can audit.</p>
+              <div class="panel">
+                <p class="muted" style="margin:0;">Want the full breakdown? See <a href="methodology" style="color:var(--accent);font-weight:800;">methodology</a> and <a href="affiliate-disclosure" style="color:var(--accent);font-weight:800;">affiliate disclosure</a>.</p>
+              </div>
+
+              <div class="criteria">
+                ${CRITERIA.map(c => `
+                  <div class="critRow">
+                    <div class="name">${c.name}</div>
+                    <div class="why">${c.why}</div>
+                    <div class="wt">${c.wt}</div>
+                  </div>
+                `).join("")}
+              </div>
+            `,
+            hi: () => `
+              <p class="lead">यह “मुझे अच्छा लगा” नहीं है। यह एक weighted decision model है जिसे आप audit कर सकते हैं।</p>
+              <div class="panel">
+                <p class="muted" style="margin:0;">पूरा breakdown: <a href="methodology" style="color:var(--accent);font-weight:800;">methodology</a> और <a href="affiliate-disclosure" style="color:var(--accent);font-weight:800;">affiliate disclosure</a>.</p>
+              </div>
+
+              <div class="criteria">
+                ${CRITERIA.map(c => `
+                  <div class="critRow">
+                    <div class="name">${c.name}</div>
+                    <div class="why">${c.why}</div>
+                    <div class="wt">${c.wt}</div>
+                  </div>
+                `).join("")}
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "SHORTLIST",
+          kicker: "Ranked options",
+          title: { en: "Shortlist: <span class='accent'>5</span> safe picks", hi: "Shortlist: <span class='accent'>5</span> picks" },
+          html: {
+            en: () => `
+              <div class="big">A shortlist you can actually <span class="accent">buy</span>.</div>
+              <p class="muted">These are “model lines” because exact SKUs change weekly. Use the pattern + checklist below to confirm variants.</p>
+
+              <div class="grid2">
+                ${SHORTLIST.map(item => `
+                  <div class="miniCard">
+                    <div class="topline">
+                      <h4>${item.rank}</h4>
+                      <span class="badge ${item.rank.startsWith("#1") ? "ok" : "warn"}">${item.badge}</span>
+                    </div>
+                    <div style="font-weight:900;font-size:16px;line-height:1.25;">${item.name}</div>
+                    <div class="muted" style="margin:0;font-size:14px;">${item.desc}</div>
+                    <div class="scoreRow">
+                      ${item.scores.map(s => `<span class="scorePill">${s[0]} <strong>${s[1]}</strong></span>`).join("")}
+                      <span class="scorePill">Overall <strong>${item.overall}</strong></span>
+                    </div>
+                    <div class="panel" style="margin-top:10px;">
+                      <div class="muted" style="margin:0;"><b>Note:</b> ${item.note}</div>
+                      <div class="muted" style="margin:8px 0 0;"><span class="mono" style="opacity:.8;">Price band:</span> ${item.price}</div>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+
+              <div class="ctaRow">
+                <a class="btnPrimary" href="compare">Use Compare →</a>
+                <a class="btnGhost" href="tools">All tools</a>
+                <a class="btnGhost" href="guides">All guides</a>
+              </div>
+            `,
+            hi: () => `
+              <div class="big">ऐसी shortlist जो आप सच में <span class="accent">खरीद</span> सकते हैं।</div>
+              <p class="muted">Exact SKU हर हफ्ते बदलता है, इसलिए यह “model lines” हैं — variant checklist से verify करें।</p>
+
+              <div class="grid2">
+                ${SHORTLIST.map(item => `
+                  <div class="miniCard">
+                    <div class="topline">
+                      <h4>${item.rank}</h4>
+                      <span class="badge ${item.rank.startsWith("#1") ? "ok" : "warn"}">${item.badge}</span>
+                    </div>
+                    <div style="font-weight:900;font-size:16px;line-height:1.25;">${item.name}</div>
+                    <div class="muted" style="margin:0;font-size:14px;">${item.desc}</div>
+                    <div class="scoreRow">
+                      ${item.scores.map(s => `<span class="scorePill">${s[0]} <strong>${s[1]}</strong></span>`).join("")}
+                      <span class="scorePill">Overall <strong>${item.overall}</strong></span>
+                    </div>
+                    <div class="panel" style="margin-top:10px;">
+                      <div class="muted" style="margin:0;"><b>Note:</b> ${item.note}</div>
+                      <div class="muted" style="margin:8px 0 0;"><span class="mono" style="opacity:.8;">Price band:</span> ${item.price}</div>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+
+              <div class="ctaRow">
+                <a class="btnPrimary" href="compare">Compare →</a>
+                <a class="btnGhost" href="tools">Tools</a>
+                <a class="btnGhost" href="guides">Guides</a>
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "USE CASE",
+          kicker: "Routing",
+          title: { en: "Pick by <span class='accent'>use-case</span>, not hype", hi: "Use-case से चुनें" },
+          html: {
+            en: () => `
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">STUDENT / EVERYDAY</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[0].name}</h3>
+                <p class="muted" style="margin:0;">Best balance. If you want the “one laptop that won’t annoy you”, start here.</p>
+              </div>
+
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">CONTENT / DESIGN</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[1].name}</h3>
+                <p class="muted" style="margin:0;">If your eyes hurt on bad screens, OLED (when it fits budget) is a real upgrade.</p>
+              </div>
+
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">KEEP 3+ YEARS</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[2].name}</h3>
+                <p class="muted" style="margin:0;">Pick for upgrade path: RAM slot + NVMe access = future usability.</p>
+              </div>
+
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">TIER-2/3 CITY SERVICE</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[3].name}</h3>
+                <p class="muted" style="margin:0;">When service is scarce, service network becomes a feature.</p>
+              </div>
+            `,
+            hi: () => `
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">STUDENT / DAILY</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[0].name}</h3>
+                <p class="muted" style="margin:0;">Best balance — कम पछतावा।</p>
+              </div>
+
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">DESIGN / CONTENT</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[1].name}</h3>
+                <p class="muted" style="margin:0;">अगर screen quality top है, OLED (जब budget में हो) बड़ा upgrade है।</p>
+              </div>
+
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">3+ YEARS</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[2].name}</h3>
+                <p class="muted" style="margin:0;">Upgrade path चुनें: RAM slot + NVMe access।</p>
+              </div>
+
+              <div class="panel">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:800;margin-bottom:6px;">SERVICE PRIORITY</div>
+                <h3 style="margin:0 0 8px;">→ ${SHORTLIST[3].name}</h3>
+                <p class="muted" style="margin:0;">जहाँ repair access कम है, वहाँ service network ही feature है।</p>
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "RED FLAGS",
+          kicker: "Avoid regret",
+          title: { en: "Red flags that <span class='accent'>kill</span> laptops under ₹50k", hi: "Red flags" },
+          html: {
+            en: () => `
+              <p class="lead">Use this like a filter. If your option hits 2+ red flags, move on.</p>
+              ${RED_FLAGS.map(r => `
+                <div class="panel" style="border-left:3px solid rgba(239,68,68,.85);">
+                  <div style="display:flex;gap:12px;align-items:flex-start;">
+                    <div style="font-size:18px;line-height:1;">${r.icon}</div>
+                    <div>
+                      <div style="font-weight:900;">${r.title}</div>
+                      <div class="muted" style="margin:6px 0 0;">${r.body}</div>
+                    </div>
+                  </div>
+                </div>
+              `).join("")}
+              <div class="ctaRow">
+                <a class="btnGhost" href="red-flag-detector">Open Red Flag Detector →</a>
+              </div>
+            `,
+            hi: () => `
+              <p class="lead">अगर 2+ red flags हों, skip करें।</p>
+              ${RED_FLAGS.map(r => `
+                <div class="panel" style="border-left:3px solid rgba(239,68,68,.85);">
+                  <div style="display:flex;gap:12px;align-items:flex-start;">
+                    <div style="font-size:18px;line-height:1;">${r.icon}</div>
+                    <div>
+                      <div style="font-weight:900;">${r.title}</div>
+                      <div class="muted" style="margin:6px 0 0;">${r.body}</div>
+                    </div>
+                  </div>
+                </div>
+              `).join("")}
+              <div class="ctaRow">
+                <a class="btnGhost" href="red-flag-detector">Red Flag Detector →</a>
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "CHECKLIST",
+          kicker: "Before you buy",
+          title: { en: "Before you click <span class='accent'>Buy</span>", hi: "Buy से पहले" },
+          html: {
+            en: () => `
+              <div class="big">7 questions that prevent <span class="accent">regret.</span></div>
+              <ul class="list">
+                ${CHECKLIST.map(x => `<li>${x}</li>`).join("")}
+              </ul>
+              <div class="quote">If you can answer all 7, you’re ready. If not—pause, research, then decide.</div>
+              <div class="ctaRow">
+                <a class="btnPrimary" href="requirements-builder">Build requirements →</a>
+                <a class="btnGhost" href="guides">Back to guides</a>
+              </div>
+            `,
+            hi: () => `
+              <div class="big">7 सवाल — ताकि <span class="accent">पछतावा</span> न हो।</div>
+              <ul class="list">
+                ${CHECKLIST.map(x => `<li>${x}</li>`).join("")}
+              </ul>
+              <div class="quote">अगर 7/7 clear हैं, खरीदें। नहीं तो रुकें—research करें।</div>
+              <div class="ctaRow">
+                <a class="btnPrimary" href="requirements-builder">Requirements बनाएं →</a>
+                <a class="btnGhost" href="guides">Guides</a>
+              </div>
+            `
+          }
+        },
+
+        {
+          name: "VERDICT",
+          kicker: "Decision",
+          title: { en: "Verdict: the <span class='accent'>default</span> choice", hi: "Verdict" },
+          html: {
+            en: () => `
+              <div class="panel" style="border:1px solid rgba(255,103,31,.28); background: linear-gradient(90deg, rgba(255,103,31,.10), rgba(0,0,0,.35));">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);font-weight:900;">TL;DR</div>
+                <div class="muted" style="margin-top:10px;">
+                  For most people under ₹50k, choose a <b>Lenovo IdeaPad/Slim-class Ryzen 5 U-series</b> with <b>16GB RAM</b> (or a real upgrade path) and <b>USB-C PD</b>.
+                  If your screen is the main priority and an OLED deal fits budget, choose the ASUS OLED-class pick.
+                </div>
+              </div>
+
+              <div class="ctaRow">
+                <a class="btnPrimary" href="compare">Compare now →</a>
+                <a class="btnGhost" href="tools">Explore tools</a>
+                <a class="btnGhost" href="affiliate-disclosure">Affiliate disclosure</a>
+                <a class="btnGhost" href="methodology">Methodology</a>
+              </div>
+
+              <div class="panel" style="margin-top:18px;">
+                <div class="muted" style="margin:0;">
+                  Want this as a living guide? Open <a href="category-digests" style="color:var(--accent);font-weight:900;">Category Digests</a>.
+                  Found an error? Use <a href="corrections" style="color:var(--accent);font-weight:900;">Corrections</a>.
+                </div>
+              </div>
+            `,
+            hi: () => `
+              <div class="panel" style="border:1px solid rgba(255,103,31,.28); background: linear-gradient(90deg, rgba(255,103,31,.10), rgba(0,0,0,.35));">
+                <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);font-weight:900;">TL;DR</div>
+                <div class="muted" style="margin-top:10px;">
+                  अधिकतर लोगों के लिए default choice: <b>Lenovo IdeaPad/Slim-class Ryzen 5 U-series</b> + <b>16GB RAM</b> (या upgrade path) + <b>USB-C PD</b>.
+                  Screen priority हो तो budget में OLED deal मिले तो ASUS OLED-class चुनें।
+                </div>
+              </div>
+
+              <div class="ctaRow">
+                <a class="btnPrimary" href="compare">Compare →</a>
+                <a class="btnGhost" href="tools">Tools</a>
+                <a class="btnGhost" href="affiliate-disclosure">Disclosure</a>
+                <a class="btnGhost" href="methodology">Methodology</a>
+              </div>
+
+              <div class="panel" style="margin-top:18px;">
+                <div class="muted" style="margin:0;">
+                  Living guide के लिए <a href="category-digests" style="color:var(--accent);font-weight:900;">Category Digests</a>.
+                  Error? <a href="corrections" style="color:var(--accent);font-weight:900;">Corrections</a>.
+                </div>
+              </div>
+            `
+          }
+        }
+      ];
+
+      const container = document.getElementById("scrollContainer");
+      const secLabel = document.getElementById("secLabel");
+      const secName = document.getElementById("secName");
+      const btnTranslate = document.getElementById("btnTranslate");
+      const toast = document.getElementById("translationToast");
+      const toastMsg = document.getElementById("toastMsg");
+      const btnUndo = document.getElementById("btnUndoTranslate");
+
+      let currentLang = "en";
+      let toastTimer = null;
+
+      /* Render */
+      function renderSections(){
+        container.innerHTML = "";
+        SECTIONS.forEach((sec, idx) => {
+          const wrap = document.createElement("div");
+          wrap.className = "section-wrapper";
+          wrap.setAttribute("data-index", String(idx));
+          wrap.setAttribute("data-name", sec.name);
+
+          wrap.innerHTML = `
+            <article class="card">
+              <header class="cardHeader">
+                <div class="kicker">${sec.kicker}</div>
+                <h1 class="h1">${sec.title[currentLang]}</h1>
+              </header>
+              <div class="cardBody">
+                ${sec.html[currentLang]()}
+              </div>
+            </article>
+            <div class="hint" aria-hidden="true">
+              <span>Scroll for more</span>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          `;
+          container.appendChild(wrap);
+          observer.observe(wrap);
+        });
+
+        // update total in pill
+        secLabel.textContent = `SEC 1/${SECTIONS.length}`;
+        secName.textContent = SECTIONS[0].name;
+      }
+
+      /* Observer */
+      const observerOptions = { root: container, threshold: 0.6 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-active");
+            const index = parseInt(entry.target.getAttribute("data-index") || "0", 10);
+            secLabel.textContent = `SEC ${index + 1}/${SECTIONS.length}`;
+            secName.textContent = entry.target.getAttribute("data-name") || "";
+          } else {
+            entry.target.classList.remove("is-active");
+          }
+        });
+      }, observerOptions);
+
+      /* Toast */
+      function showToast(msg, canUndo){
+        toastMsg.textContent = msg;
+        btnUndo.style.display = canUndo ? "inline-flex" : "none";
+        toast.classList.add("is-visible");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 3200);
+      }
+
+      /* Translation (this page supports Hindi; keep, but allow you to disable later) */
+      btnTranslate.addEventListener("click", () => {
+        if (currentLang === "en") {
+          currentLang = "hi";
+          renderSections();
+          showToast("Translated to Hindi", true);
+        } else {
+          // already hi -> flip back
+          currentLang = "en";
+          renderSections();
+          showToast("Reverted to English", false);
+        }
+      });
+      btnUndo.addEventListener("click", () => {
+        currentLang = "en";
+        renderSections();
+        showToast("Reverted to English", false);
+      });
+
+      /* Boot */
+      renderSections();
+
+    })();
+  </script>
+</body>
+</html>
