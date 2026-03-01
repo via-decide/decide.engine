@@ -6,404 +6,131 @@
 <meta content="#fafafa" name="theme-color"/>
 <title>PrintByDD • Architectural 3D Manufacturing</title>
 <style>
-    :root {
-      /* PrintByDD "Gallery White" Theme */
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --text-main: #111111;
-      --text-muted: #666666;
-      --accent: #ff2a2a; /* Muscle Red */
-      --border: rgba(0, 0, 0, 0.08);
-      --header-height: 70px;
-      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    }
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --text-main: #111111;
+    --text-muted: #666666;
+    --accent: #ff2a2a;
+    --border: rgba(0,0,0,0.08);
+    --header-height: 70px;
+    --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background-color: var(--bg); color: var(--text-main); font-family: var(--font-stack); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+  a { text-decoration: none; color: inherit; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: var(--font-stack);
-      -webkit-font-smoothing: antialiased;
-      line-height: 1.5;
-    }
+  .site-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--header-height);
+    background: rgba(250,250,250,0.9);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5vw; z-index: 1000; transition: all 0.3s ease;
+  }
+  .site-header .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: var(--text-main); }
+  .site-header nav { display: flex; gap: 32px; align-items: center; }
+  .site-header nav a { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.2s; }
+  .site-header nav a:hover, .site-header nav a.active { color: var(--accent); }
 
-    a { text-decoration: none; color: inherit; }
+  main { padding-top: calc(var(--header-height) + 80px); max-width: 1200px; margin: 0 auto; padding-left: 5vw; padding-right: 5vw; padding-bottom: 100px; }
 
-    /* ===== Global Header ===== */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: rgba(250, 250, 250, 0.9);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 5vw;
-      z-index: 1000;
-      transition: all 0.3s ease;
-    }
+  .hero { max-width: 800px; margin-bottom: 80px; }
+  .hero h1 { font-size: clamp(40px,6vw,72px); font-weight: 900; line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 24px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: clamp(18px,2vw,22px); color: var(--text-muted); line-height: 1.5; max-width: 600px; }
 
-    .site-header .logo { 
-      font-size: 20px; 
-      font-weight: 900; 
-      letter-spacing: -0.03em;
-      color: var(--text-main);
-    }
+  .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  .section-header h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; color: var(--text-muted); }
 
-    .site-header nav { display: flex; gap: 32px; align-items:center; }
-    
-    .site-header nav a { 
-      font-size: 13px; 
-      font-weight: 700; 
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: color 0.2s;
-    }
-    
-    .site-header nav a:hover,
-    .site-header nav a.active { 
-      color: var(--accent); 
-    }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap: 40px; }
 
-    /* ===== Layout & Hero ===== */
-    main {
-      padding-top: calc(var(--header-height) + 80px);
-      max-width: 1200px;
-      margin: 0 auto;
-      padding-left: 5vw;
-      padding-right: 5vw;
-      padding-bottom: 100px;
-    }
+  .card { display: flex; flex-direction: column; position: relative; }
+  .card-image-placeholder { width: 100%; aspect-ratio: 4/3; border-radius: 12px; margin-bottom: 20px; transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1); overflow: hidden; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+  .card:hover .card-image-placeholder, .card:hover .carousel-container { transform: translateY(-4px); }
 
-    .hero {
-      max-width: 800px;
-      margin-bottom: 80px;
-    }
+  .carousel-container { width: 100%; aspect-ratio: 4/3; border-radius: 12px; margin-bottom: 20px; overflow: hidden; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1); }
+  .carousel-track { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; }
+  .carousel-track::-webkit-scrollbar { display: none; }
+  .carousel-track img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: center; }
+  .swipe-hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); color: #fff; font-size: 10px; font-weight: 700; padding: 6px 14px; border-radius: 50px; pointer-events: none; letter-spacing: 0.1em; text-transform: uppercase; }
 
-    .hero h1 {
-      font-size: clamp(40px, 6vw, 72px);
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.04em;
-      margin-bottom: 24px;
-      color: var(--text-main);
-    }
+  .card .kicker { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .card h3 { font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; flex-grow: 1; }
+  .card-link { font-size: 13px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 6px; }
+  .card-link::after { content: '→'; transition: transform 0.2s; color: var(--accent); }
+  .card:hover .card-link::after { transform: translateX(4px); }
 
-    .hero h1 span { color: var(--accent); }
+  @media (max-width: 600px) { .site-header nav { gap: 16px; } .site-header .logo { font-size: 18px; } }
 
-    .hero p {
-      font-size: clamp(18px, 2vw, 22px);
-      color: var(--text-muted);
-      line-height: 1.5;
-      max-width: 600px;
-    }
+  body[data-theme="dark"] { --bg: #050505; --surface: rgba(18,18,20,0.78); --text-main: #f7f7f7; --text-muted: rgba(245,245,245,0.65); --accent: #ff2a2a; --border: rgba(255,255,255,0.10); }
+  body[data-theme="dark"] .site-header { background: rgba(5,5,5,0.78); }
+  body[data-theme="dark"] .card-image-placeholder, body[data-theme="dark"] .carousel-container { box-shadow: 0 16px 46px rgba(0,0,0,0.55); }
 
-    /* ===== Grid Layout ===== */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 30px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 16px;
-    }
+  .theme-toggle { margin-left: 8px; width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: transform .2s, background .2s; color: var(--text-main); flex-shrink: 0; }
+  body[data-theme="dark"] .theme-toggle { background: rgba(255,255,255,0.06); }
+  .theme-toggle:active { transform: scale(0.96); }
 
-    .section-header h2 {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-weight: 800;
-      color: var(--text-muted);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 40px;
-    }
-
-    /* ===== Minimalist Cards ===== */
-    .card {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    /* Standard Image Placeholder */
-    .card-image-placeholder {
-      width: 100%;
-      aspect-ratio: 4/3;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-      overflow: hidden;
-      object-fit: cover;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    }
-
-    .card:hover .card-image-placeholder,
-    .card:hover .carousel-container {
-      transform: translateY(-4px);
-    }
-
-    /* Swipable Carousel Specifics */
-    .carousel-container {
-      width: 100%;
-      aspect-ratio: 4/3;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    
-    .carousel-track {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE/Edge */
-    }
-    
-    .carousel-track::-webkit-scrollbar { display: none; } /* Chrome/Safari */
-    
-    .carousel-track img {
-      flex: 0 0 100%;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      scroll-snap-align: center;
-    }
-
-    .swipe-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 50px;
-      pointer-events: none;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    /* Typography inside Cards */
-    .card .kicker {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .card h3 {
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-      color: var(--text-main);
-    }
-
-    .card p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 24px;
-      flex-grow: 1;
-    }
-
-    .card-link {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text-main);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .card-link::after {
-      content: '→';
-      transition: transform 0.2s;
-      color: var(--accent);
-    }
-
-    .card:hover .card-link::after {
-      transform: translateX(4px);
-    }
-    
-    /* Responsive */
-    @media (max-width: 600px) {
-      .site-header nav { gap: 16px; }
-      .site-header .logo { font-size: 18px; }
-    }
-  
-
-    /* ===== Dark Mode ===== */
-    body[data-theme="dark"]{
-      --bg: #050505;
-      --surface: rgba(18, 18, 20, 0.78);
-      --text-main: #f7f7f7;
-      --text-muted: rgba(245,245,245,0.65);
-      --accent: #ff2a2a;
-      --border: rgba(255,255,255,0.10);
-    }
-
-    body[data-theme="dark"] .site-header{
-      background: rgba(5,5,5,0.78);
-      border-bottom: 1px solid var(--border);
-    }
-
-    body[data-theme="dark"] .card-image-placeholder,
-    body[data-theme="dark"] .carousel-container{
-      box-shadow: 0 16px 46px rgba(0,0,0,0.55);
-    }
-
-    /* Theme toggle button */
-    .theme-toggle{
-      margin-left: 8px;
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.55);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      cursor: pointer;
-      transition: transform .2s, background .2s, border-color .2s, opacity .2s;
-      color: var(--text-main);
-      flex-shrink: 0;
-    }
-    body[data-theme="dark"] .theme-toggle{
-      background: rgba(255,255,255,0.06);
-    }
-    .theme-toggle:active{ transform: scale(0.96); }
-
+  /* Image fallback placeholder */
+  .img-fallback { width: 100%; aspect-ratio: 4/3; border-radius: 12px; margin-bottom: 20px; background: linear-gradient(135deg, #e8e8e8 0%, #d0d0d0 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+  body[data-theme="dark"] .img-fallback { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); }
 </style>
 </head>
 <body>
 <header class="site-header">
-<a class="logo" href="./index.html">PrintByDD</a>
-<nav>
-<a class="active" href="./index.html">Home</a>
-<a href="./nfc-keychain-blog.html">Products</a>
-<a href="./Viadecide-blogs.html">Blog</a>
-<button aria-label="Toggle dark mode" class="theme-toggle" id="themeToggle" title="Toggle dark mode" type="button">🌙</button></nav>
+  <a class="logo" href="index.html">PrintByDD</a>
+  <nav>
+    <a class="active" href="index.html">Home</a>
+    <a href="nfc-keychain-blog.html">Products</a>
+    <a href="Viadecide-blogs.html">Blog</a>
+    <button aria-label="Toggle dark mode" class="theme-toggle" id="themeToggle" type="button">🌙</button>
+  </nav>
 </header>
 <main>
-<div class="hero">
-<h1>Physical concepts,<br/>built in <span>3D.</span></h1>
-<p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
-</div>
-<div class="section-header">
-<h2>Featured Perspectives</h2>
-</div>
-<div class="grid">
-<a class="card" href="./nfc-keychain-blog.html">
-<img alt="Marketing vs ViaDecide Physical Keychain" class="card-image-placeholder" src="./1000217293.jpg"/>
-<div class="kicker">Smart Accessories</div>
-<h3>The Hardcore NFC Keychain</h3>
-<p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
-<span class="card-link">View Product</span>
-</a>
-<a class="card" href="./Viadecide-blogs.html">
-<div class="carousel-container">
-<div class="carousel-track">
-<img alt="Memories 2024 Geometric Organizer" src="./1000217292.png"/>
-<img alt="Muscle Keychain Model" src="./1000217276.jpg"/>
-</div>
-<div class="swipe-hint">Swipe Gallery ↔</div>
-</div>
-<div class="kicker">Gifting Psychology</div>
-<h3>Gifts That Mean More</h3>
-<p>The gifts people remember aren't always the costly ones. Learn why personalized objects become everyday memory triggers.</p>
-<span class="card-link">Read Story</span>
-</a>
-</div>
+  <div class="hero">
+    <h1>Physical concepts,<br/>built in <span>3D.</span></h1>
+    <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
+  </div>
+  <div class="section-header">
+    <h2>Featured Perspectives</h2>
+  </div>
+  <div class="grid">
+    <a class="card" href="nfc-keychain-blog.html">
+      <img alt="NFC Keychain Product" class="card-image-placeholder" src="1000217293.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+      <div class="img-fallback" style="display:none;">🔑</div>
+      <div class="kicker">Smart Accessories</div>
+      <h3>The Hardcore NFC Keychain</h3>
+      <p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
+      <span class="card-link">View Product</span>
+    </a>
+    <a class="card" href="Viadecide-blogs.html">
+      <div class="carousel-container">
+        <div class="carousel-track">
+          <img alt="Memories 2024 Geometric Organizer" src="1000217292.png" onerror="this.src='1000217276.jpg'" />
+          <img alt="Muscle Keychain Model" src="1000217276.jpg" />
+        </div>
+        <div class="swipe-hint">Swipe Gallery ↔</div>
+      </div>
+      <div class="kicker">Gifting Psychology</div>
+      <h3>Gifts That Mean More</h3>
+      <p>The gifts people remember aren't always the costly ones. Learn why personalized objects become everyday memory triggers.</p>
+      <span class="card-link">Read Story</span>
+    </a>
+  </div>
 </main>
 <script>
-    (function(){
-      "use strict";
-
-      const THEME_KEY = "PBD_THEME";
-      const metaTheme = document.querySelector('meta[name="theme-color"]');
-      const toggle = document.getElementById("themeToggle");
-
-      function applyTheme(theme){
-        document.body.setAttribute("data-theme", theme);
-        if (toggle) toggle.textContent = (theme === "dark") ? "☀️" : "🌙";
-        if (metaTheme) metaTheme.setAttribute("content", theme === "dark" ? "#050505" : "#fafafa");
-        try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
-      }
-
-      function getInitialTheme(){
-        let saved = null;
-        try{ saved = localStorage.getItem(THEME_KEY); }catch(e){}
-        if (saved === "dark" || saved === "light") return saved;
-        return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-      }
-
-      applyTheme(getInitialTheme());
-
-      if (toggle){
-        toggle.addEventListener("click", () => {
-          const now = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          applyTheme(now);
-        });
-      }
-
-      // Robust image path fixer for GitHub Pages / repo structure changes.
-      function proposeFixes(src){
-        const fixes = [];
-        if (!src) return fixes;
-
-        // 1) if includes /images/, try without it
-        if (src.includes("/images/")) fixes.push(src.replace("/images/","/"));
-
-        // 2) toggle extension
-        if (src.endsWith(".png")) fixes.push(src.slice(0,-4)+".jpg");
-        if (src.endsWith(".jpg") || src.endsWith(".jpeg")) fixes.push(src.replace(/\.jpe?g$/i,".png"));
-
-        // 3) combine: remove images + toggle extension
-        if (src.includes("/images/") && src.endsWith(".png")) fixes.push(src.replace("/images/","/").slice(0,-4)+".jpg");
-        if (src.includes("/images/") && (src.endsWith(".jpg") || src.endsWith(".jpeg"))) fixes.push(src.replace("/images/","/").replace(/\.jpe?g$/i,".png"));
-
-        // 4) normalize ./images/ -> ./
-        if (src.startsWith("./images/")) fixes.push("./" + src.slice("./images/".length));
-
-        return [...new Set(fixes)];
-      }
-
-      document.querySelectorAll("img").forEach(img => {
-        img.addEventListener("error", () => {
-          if (img.dataset.fixTried === "1") return;
-          img.dataset.fixTried = "1";
-          const src = img.getAttribute("src") || "";
-          const fixes = proposeFixes(src);
-          if (fixes.length) img.src = fixes[0];
-        });
-      });
-    })();
-  </script>
+  (function(){
+    "use strict";
+    const THEME_KEY = "PBD_THEME";
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const toggle = document.getElementById("themeToggle");
+    function applyTheme(t){ document.body.setAttribute("data-theme",t); if(toggle) toggle.textContent=t==="dark"?"☀️":"🌙"; if(metaTheme) metaTheme.setAttribute("content",t==="dark"?"#050505":"#fafafa"); try{localStorage.setItem(THEME_KEY,t);}catch(e){} }
+    function getInitialTheme(){ let s=null; try{s=localStorage.getItem(THEME_KEY);}catch(e){} if(s==="dark"||s==="light") return s; return(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"; }
+    applyTheme(getInitialTheme());
+    if(toggle){ toggle.addEventListener("click",()=>{ applyTheme(document.body.getAttribute("data-theme")==="dark"?"light":"dark"); }); }
+  })();
+</script>
 </body>
 </html>
