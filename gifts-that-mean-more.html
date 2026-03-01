@@ -12,15 +12,33 @@
   <script src="./router.js"></script>
 
   <style>
+    /* =========================
+       Anti-select (like image-1 feel)
+       ========================= */
+    html, body { -webkit-user-select: none; user-select: none; }
+    * { -webkit-user-select: none; user-select: none; }
+    input, textarea, select, button { -webkit-user-select: auto; user-select: auto; }
+    input, textarea { -webkit-user-select: text; user-select: text; }
+    a, button { -webkit-tap-highlight-color: transparent; }
+    ::selection { background: transparent; }
+    ::-moz-selection { background: transparent; }
+
     :root{
+      /* Dark defaults */
       --bg:#050505;
+      --bg2:#070707;
       --card-bg: rgba(18, 18, 20, 0.75);
       --card-border: rgba(255, 255, 255, 0.08);
+      --card-divider: rgba(255, 255, 255, 0.06);
+
       --text:#fdfdfd;
       --text-muted: rgba(242,242,242,0.65);
       --text-dim: rgba(242,242,242,0.45);
+
       --accent:#ff671f;
+      --accent2:#ff8a4c;
       --accent-glow: rgba(255,103,31,0.15);
+
       --shadow: 0 24px 80px rgba(0,0,0,0.6);
       --radius: 24px;
 
@@ -30,15 +48,23 @@
       --safeRight: env(safe-area-inset-right, 0px);
     }
 
+    /* =========================
+       Light mode (improved palette)
+       ========================= */
     html[data-theme="light"]{
-      --bg:#fbfbfb;
-      --card-bg: rgba(255,255,255,0.86);
-      --card-border: rgba(0, 0, 0, 0.10);
-      --text:#0b0b0b;
-      --text-muted: rgba(0,0,0,0.62);
-      --text-dim: rgba(0,0,0,0.48);
-      --shadow: 0 18px 60px rgba(0,0,0,0.12);
-      --accent-glow: rgba(255,103,31,0.10);
+      --bg: #f6f7fb;
+      --bg2:#ffffff;
+
+      --card-bg: rgba(255,255,255,0.92);
+      --card-border: rgba(15, 23, 42, 0.10);
+      --card-divider: rgba(15, 23, 42, 0.08);
+
+      --text: #0b1220;
+      --text-muted: rgba(15, 23, 42, 0.68);
+      --text-dim: rgba(15, 23, 42, 0.52);
+
+      --accent-glow: rgba(255,103,31,0.12);
+      --shadow: 0 16px 50px rgba(2, 6, 23, 0.10);
     }
 
     html, body{
@@ -52,6 +78,7 @@
       overscroll-behavior-y: none;
       -webkit-font-smoothing: antialiased;
     }
+
     *{ box-sizing:border-box; }
     a{ color:inherit; text-decoration:none; }
     button, input{ font:inherit; color:inherit; }
@@ -67,8 +94,9 @@
     }
     html[data-theme="light"] .bg-glow{
       background:
-        radial-gradient(circle at 50% 0%, rgba(255,103,31,0.08), transparent 62%),
-        radial-gradient(circle at 85% 100%, rgba(0,0,0,0.05), transparent 62%);
+        radial-gradient(circle at 50% 0%, rgba(255,103,31,0.14), transparent 62%),
+        radial-gradient(circle at 15% 35%, rgba(2,6,23,0.06), transparent 55%),
+        radial-gradient(circle at 85% 100%, rgba(2,6,23,0.05), transparent 62%);
     }
 
     /* Top Nav */
@@ -80,7 +108,7 @@
       background: linear-gradient(180deg, rgba(5,5,5,0.92) 0%, rgba(5,5,5,0) 100%);
     }
     html[data-theme="light"] .top{
-      background: linear-gradient(180deg, rgba(251,251,251,0.92) 0%, rgba(251,251,251,0) 100%);
+      background: linear-gradient(180deg, rgba(246,247,251,0.92) 0%, rgba(246,247,251,0) 100%);
     }
     .top > *{ pointer-events:auto; }
 
@@ -94,15 +122,17 @@
       background: rgba(15,15,15,0.55);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, background .2s ease;
       user-select:none;
     }
     html[data-theme="light"] .back,
     html[data-theme="light"] .pill,
-    html[data-theme="light"] .btn-icon{ background: rgba(255,255,255,0.70); }
+    html[data-theme="light"] .btn-icon{
+      background: rgba(255,255,255,0.78);
+    }
 
     .btn-icon{ width:38px; height:38px; padding:0; font-weight:800; color: var(--accent); }
-    .back{ font-weight:700; font-size:14px; color: var(--text); }
+    .back{ font-weight:800; font-size:14px; color: var(--text); }
     .back:active, .btn-icon:active{ transform: scale(0.96); }
 
     .pill{
@@ -112,7 +142,7 @@
       color: var(--text-muted);
       white-space: nowrap;
     }
-    .pill b{ color: var(--text); letter-spacing: 0.1em; font-weight:800; }
+    .pill b{ color: var(--text); letter-spacing: 0.1em; font-weight:900; }
 
     /* Scroll */
     .scroll-container{
@@ -140,7 +170,7 @@
     }
     .card{
       width:100%;
-      max-width: 820px;
+      max-width: 860px;
       flex:1;
       min-height:0;
       border-radius: var(--radius);
@@ -152,21 +182,20 @@
       display:flex;
       flex-direction:column;
       overflow:hidden;
-      opacity:0.25;
-      transform: scale(0.93) translateY(26px);
+      opacity:0.22;
+      transform: scale(0.935) translateY(26px);
       transition: opacity .7s cubic-bezier(0.16,1,0.3,1), transform .7s cubic-bezier(0.16,1,0.3,1);
     }
     .section-wrapper.is-active .card{ opacity:1; transform: scale(1) translateY(0); }
 
     .cardHeader{
       padding: 22px 22px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(0,0,0,0.20);
+      border-bottom: 1px solid var(--card-divider);
+      background: rgba(0,0,0,0.10);
       flex-shrink:0;
     }
     html[data-theme="light"] .cardHeader{
-      background: rgba(0,0,0,0.03);
-      border-bottom-color: rgba(0,0,0,0.08);
+      background: rgba(2,6,23,0.02);
     }
     .kicker{
       font-size: 11px;
@@ -174,14 +203,14 @@
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 8px;
-      font-weight: 800;
+      font-weight: 900;
     }
     .h1{
       margin:0;
       font-size: clamp(22px, 5vw, 28px);
       line-height: 1.3;
       letter-spacing: -0.01em;
-      font-weight: 800;
+      font-weight: 900;
     }
 
     .cardBody{
@@ -193,21 +222,21 @@
 
     /* Typography */
     .big{
-      font-size: clamp(28px, 6vw, 42px);
-      line-height: 1.12;
-      font-weight: 900;
+      font-size: clamp(30px, 6.2vw, 46px);
+      line-height: 1.08;
+      font-weight: 950;
       letter-spacing: -0.03em;
       margin: 0 0 18px;
     }
     .big .accent{
-      background: linear-gradient(135deg, #ff8a4c, #ff4c00);
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
       -webkit-background-clip:text;
       -webkit-text-fill-color: transparent;
       color: var(--accent);
     }
     .lead{
       font-size: 17px;
-      line-height: 1.65;
+      line-height: 1.7;
       color: var(--text-muted);
       margin: 0 0 14px;
     }
@@ -217,7 +246,7 @@
       list-style:none;
       color: var(--text-muted);
       font-size: 16px;
-      line-height: 1.65;
+      line-height: 1.7;
     }
     .list li{
       position:relative;
@@ -228,7 +257,7 @@
       content:'→';
       position:absolute; left:0;
       color: var(--accent);
-      font-weight: 900;
+      font-weight: 950;
     }
     .quote{
       margin: 20px 0 14px;
@@ -237,9 +266,12 @@
       background: linear-gradient(90deg, var(--accent-glow), transparent);
       border-radius: 0 12px 12px 0;
       color: var(--text);
-      line-height: 1.65;
+      line-height: 1.7;
       font-size: 15px;
       font-style: italic;
+    }
+    html[data-theme="light"] .quote{
+      background: linear-gradient(90deg, rgba(255,103,31,0.12), rgba(255,255,255,0));
     }
 
     /* Buttons */
@@ -250,14 +282,16 @@
       padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid var(--card-border);
-      background: rgba(0,0,0,0.22);
+      background: rgba(0,0,0,0.16);
       color: var(--text);
-      font-weight: 800;
+      font-weight: 900;
       font-size: 14px;
       user-select:none;
-      transition: transform .15s ease, filter .15s ease;
+      transition: transform .15s ease, filter .15s ease, background .2s ease;
     }
-    html[data-theme="light"] .btn{ background: rgba(255,255,255,0.50); }
+    html[data-theme="light"] .btn{
+      background: rgba(255,255,255,0.72);
+    }
     .btn:active{ transform: scale(0.98); }
     .btn.primary{
       background: var(--accent);
@@ -266,26 +300,31 @@
     }
     .btn.primary:hover{ filter: brightness(1.06); }
 
-    .chipRow{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 8px; }
+    .chipRow{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 10px; }
     .chip{
       font-size: 12px;
       border: 1px solid var(--card-border);
       border-radius: 999px;
       padding: 7px 10px;
       color: var(--text-muted);
-      background: rgba(0,0,0,0.20);
+      background: rgba(0,0,0,0.14);
     }
-    html[data-theme="light"] .chip{ background: rgba(0,0,0,0.03); }
+    html[data-theme="light"] .chip{
+      background: rgba(2,6,23,0.04);
+      color: rgba(15,23,42,0.70);
+    }
 
     /* Subscribe UI (mailto) */
     .formBox{
       border: 1px solid var(--card-border);
-      background: rgba(0,0,0,.20);
-      border-radius: 16px;
+      background: rgba(0,0,0,.14);
+      border-radius: 18px;
       padding: 14px;
       margin-top: 14px;
     }
-    html[data-theme="light"] .formBox{ background: rgba(0,0,0,.03); }
+    html[data-theme="light"] .formBox{
+      background: rgba(255,255,255,0.72);
+    }
 
     .fieldRow{
       display:grid;
@@ -303,13 +342,15 @@
       width: 100%;
       border-radius: 12px;
       border: 1px solid var(--card-border);
-      background: rgba(0,0,0,.28);
+      background: rgba(0,0,0,.22);
       color: var(--text);
       padding: 12px 12px;
       font-size: 14px;
       outline: none;
     }
-    html[data-theme="light"] .input{ background: rgba(0,0,0,.03); }
+    html[data-theme="light"] .input{
+      background: rgba(2,6,23,0.04);
+    }
 
     .input:focus{
       border-color: rgba(255,103,31,.45);
@@ -326,6 +367,7 @@
       margin-top: 10px;
       font-size: 13px;
       color: var(--text-muted);
+      user-select: none;
     }
     .statusLine.ok{ color: rgba(34,197,94,.95); }
     .statusLine.bad{ color: rgba(239,68,68,.95); }
@@ -347,7 +389,7 @@
       pointer-events:none;
       animation: pulse 2s infinite;
     }
-    html[data-theme="light"] .hint{ color: rgba(0,0,0,0.35); }
+    html[data-theme="light"] .hint{ color: rgba(2,6,23,0.35); }
     .hint svg{ width: 14px; height: 14px; stroke: currentColor; fill:none; stroke-width: 2.5; }
     @keyframes pulse{
       0%,100%{ transform: translateX(-50%) translateY(0); opacity: 0.6; }
@@ -450,10 +492,7 @@
         {
           name:"INTRO",
           kicker:"Gifting Psychology",
-          title:{
-            en:"Gifts That Mean More: Why Personalization Wins",
-            hi:"ऐसे गिफ्ट जो ज़्यादा मायने रखते हैं"
-          },
+          title:{ en:"Gifts That Mean More: Why Personalization Wins", hi:"ऐसे गिफ्ट जो ज़्यादा मायने रखते हैं" },
           html:{
             en:()=>`
               <div class="big">Most people think expensive = <span class="accent">meaningful.</span></div>
@@ -491,16 +530,14 @@
             `
           }
         },
-
         {
-          name:"1/10 • SYMBOL",
+          name:"1/6 • SYMBOL",
           kicker:"Principle 1",
           title:{ en:"Personalized gifts become emotional symbols", hi:"Personalized गिफ्ट भावनात्मक प्रतीक बनते हैं" },
           html:{
             en:()=>`
               <p class="lead">
                 A gift is never just an object. It’s a message. And personalization makes that message <b>unmistakable</b>.
-                A name, a date, an inside joke — these tiny details turn a commodity into a symbol.
               </p>
               <ul class="list">
                 <li>A generic watch says: “I bought something nice.”</li>
@@ -511,7 +548,6 @@
             hi:()=>`
               <p class="lead">
                 गिफ्ट सिर्फ़ वस्तु नहीं होता। वह एक संदेश होता है। और personalization उस संदेश को <b>स्पष्ट</b> बनाता है।
-                नाम, तारीख, या अंदर का मज़ाक — ये छोटे डिटेल्स किसी साधारण चीज़ को प्रतीक बना देते हैं।
               </p>
               <ul class="list">
                 <li>Generic watch: “मैंने कुछ अच्छा खरीदा।”</li>
@@ -520,33 +556,28 @@
             `
           }
         },
-
         {
-          name:"2/10 • SEEN",
+          name:"2/6 • SEEN",
           kicker:"Principle 2",
           title:{ en:"Personalization makes people feel seen", hi:"Personalization लोगों को ‘seen’ महसूस कराता है" },
           html:{
             en:()=>`
               <div class="big">People don’t remember <span class="accent">objects.</span> They remember being understood.</div>
               <p class="lead">
-                When a gift reflects someone’s identity — their name, role, story, or taste — it triggers
-                <b>self-recognition</b>. The recipient doesn’t just like the gift. They like what it says about them.
+                When a gift reflects someone’s identity — name, story, taste — it triggers <b>self-recognition</b>.
               </p>
               <div class="quote">“You paid attention.” That sentence is the real gift.</div>
-              <p class="lead">That’s why a small customized item often beats a larger generic item emotionally.</p>
             `,
             hi:()=>`
               <div class="big">लोग <span class="accent">objects</span> नहीं, ‘समझे जाने’ को याद रखते हैं।</div>
               <p class="lead">
-                जब गिफ्ट किसी की identity को reflect करता है — नाम, role, कहानी — तो self-recognition trigger होता है।
-                सबसे बड़ा signal होता है: <b>ध्यान दिया गया</b>।
+                जब गिफ्ट identity reflect करता है, self-recognition trigger होता है — और वही bonding बढ़ाता है।
               </p>
             `
           }
         },
-
         {
-          name:"3/10 • MEMORY",
+          name:"3/6 • MEMORY",
           kicker:"Principle 3",
           title:{ en:"Everyday objects become memory triggers", hi:"रोज़मर्रा की चीज़ें memory trigger बनती हैं" },
           html:{
@@ -558,7 +589,6 @@
                 <li>Daily recall = stronger bond.</li>
               </ul>
               <div class="quote">The best gifts don’t sit on a shelf. They live with the person.</div>
-              <p class="lead">That’s why keychains, tags, desk objects, and small keepsakes can be powerful.</p>
             `,
             hi:()=>`
               <p class="lead">Associative memory: कोई वस्तु बार-बार किसी पल/रिश्ते की याद दिलाए।</p>
@@ -570,53 +600,6 @@
             `
           }
         },
-
-        {
-          name:"4/10 • THOUGHT",
-          kicker:"Principle 4",
-          title:{ en:"Thoughtfulness beats price", hi:"Thoughtfulness कीमत से ऊपर" },
-          html:{
-            en:()=>`
-              <div class="big">The formula isn’t <span class="accent">spend more</span>. It’s care more visibly.</div>
-              <p class="lead">
-                People value effort, intention, and relevance more than the number on the bill.
-                Personalization signals effort in a way a generic expensive gift often can’t.
-              </p>
-              <ul class="list">
-                <li>Generic expensive: impressive, but forgettable.</li>
-                <li>Personalized small: specific, repeatable, memorable.</li>
-              </ul>
-            `,
-            hi:()=>`
-              <div class="big">Formula: spend more नहीं, <span class="accent">care visibly</span>।</div>
-              <p class="lead">
-                लोग effort + intention को price से ज़्यादा value करते हैं। Personalized चीज़ effort को साफ दिखाती है।
-              </p>
-            `
-          }
-        },
-
-        {
-          name:"5/10 • JOY",
-          kicker:"Principle 5",
-          title:{ en:"Warm-glow: the giver feels happier too", hi:"Warm-glow: देने वाला भी खुश होता है" },
-          html:{
-            en:()=>`
-              <p class="lead">
-                Thoughtful giving isn’t only good for the receiver. The giver also feels a genuine “warm-glow”
-                — the satisfaction of making someone feel valued.
-              </p>
-              <div class="quote">When giving feels like connection, it doesn’t feel like obligation.</div>
-              <p class="lead">That’s why personalization tends to strengthen both sides.</p>
-            `,
-            hi:()=>`
-              <p class="lead">
-                Thoughtful gifting receiver के साथ-साथ giver के लिए भी अच्छा होता है — warm-glow effect।
-              </p>
-            `
-          }
-        },
-
         {
           name:"SELLER NOTE",
           kicker:"For Sellers",
@@ -625,19 +608,17 @@
             en:()=>`
               <div class="big">For 3D printed products, <span class="accent">trust</span> is the bottleneck.</div>
               <p class="lead">
-                If you sell personalized gifts, you’re not selling plastic. You’re selling meaning.
-                Online, meaning travels best as: <b>story + proof</b>.
+                Online, meaning travels best as: <b>story + proof</b>. And proof is where <b>3D preview</b> wins.
               </p>
               <ul class="list">
-                <li>Story explains the “why” (emotional hook).</li>
-                <li>Specs reduce doubt (clarity).</li>
-                <li><b>3D preview builds trust</b> (inspect before buying).</li>
+                <li>Story explains the “why”.</li>
+                <li>Specs reduce doubt.</li>
+                <li><b>3D preview builds trust</b>.</li>
               </ul>
               <div class="ctaRow">
                 <a class="btn primary" href="keychain">See the Keychain demo (3D) →</a>
                 <a class="btn" href="guides">Browse all blogs →</a>
               </div>
-              <p class="fineprint">All internal links above are router routes (compatible with your router.js).</p>
             `,
             hi:()=>`
               <div class="big">3D printed products में bottleneck <span class="accent">trust</span> है।</div>
@@ -650,7 +631,7 @@
           }
         },
 
-        // ======= SUBSCRIBE (MAILTO) =======
+        // ======= SUBSCRIBE (MAILTO REDIRECT) =======
         {
           name:"SUBSCRIBE",
           kicker:"Daily Updates",
@@ -826,7 +807,7 @@
           const ts = safeNowIST();
 
           const subject = `Subscribe: ViaDecide daily updates (${fromEmail})`;
-          const bodyLines = [
+          const body = [
             "Hi ViaDecide,",
             "",
             "Please add me to the daily decision insight updates.",
@@ -837,17 +818,14 @@
             `Affiliate tag (if any): ${tag}`,
             "",
             "Thanks!"
-          ];
-          const body = bodyLines.join("\n");
+          ].join("\n");
 
           const mailto = `mailto:${encodeURIComponent(SUBSCRIBE_TO_EMAIL)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-          // UI feedback + open email client
           setStatus(currentLang === "hi" ? "Email app खुल रहा है…" : "Opening your email app…", "ok");
           before.style.display = "none";
           after.style.display = "block";
 
-          // redirect to mailto
           window.location.href = mailto;
         };
       }
