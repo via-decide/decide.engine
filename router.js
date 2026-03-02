@@ -1,7 +1,12 @@
 /**
  * ═══════════════════════════════════════════════════════════
- * viadecide.com — UNIVERSAL ROUTER v2.3 (Nav-safe everywhere)
+ * viadecide.com — UNIVERSAL ROUTER v2.4 (Main + Store + Pretty URLs)
  * File: router.js
+ * Notes:
+ * - Works for viadecide.com and store pages inside /printbydd-store/
+ * - Supports pretty URLs: /slug/ → mapped HTML file
+ * - Safe nav interception (doesn't break external links/assets/hash anchors)
+ * - Includes SmartTag Lite (3rd product) routes
  * ═══════════════════════════════════════════════════════════
  */
 (function ViaDecideRouter() {
@@ -13,7 +18,7 @@
   // value = actual file path in your site root (case-sensitive on Linux)
   // ─────────────────────────────────────────────────────────
   var ROUTES = {
-    // Core tools
+    // ── CORE TOOLS ──
     alchemist: "alchemist.html",
     swipeos: "SwipeOS.html",
     "engine-deals": "engine-deals.html",
@@ -21,15 +26,19 @@
     "cashback-rules": "cashback-rules.html",
     "engine-license": "engine-license.html",
     "ondc-demo": "ONDC-demo.html",
-    // FIX: was PromptAlchemy.html (Windows) — Linux is case-sensitive
+
+    // FIX: Linux case-sensitive
     "prompt-alchemy": "prompt-alchemy.html",
     promptalchemy: "prompt-alchemy.html",
-    // FIX: was StudentResearch.html — Linux is case-sensitive
+
+    // FIX: Linux case-sensitive
     "student-research": "student-research.html",
+
     contact: "contact.html",
     brief: "brief.html",
     "decision-brief": "decision-brief.html",
-    // FIX: missing routes that were 404-ing
+
+    // Missing routes
     pricing: "pricing.html",
     discounts: "discounts.html",
     memory: "memory.html",
@@ -44,8 +53,16 @@
     // ── PRINTBYDD STORE ROUTES ──
     "printbydd-store": "printbydd-store/index.html",
     printbydd: "printbydd-store/index.html",
+
+    // Products
     keychain: "printbydd-store/keychain.html",
     numberplate: "printbydd-store/numberplate.html",
+
+    // ✅ 3rd product (SmartTag Lite)
+    "smarttag-lite": "printbydd-store/smarttag-lite.html",
+    smarttag: "printbydd-store/smarttag-lite.html",
+
+    // Store pages
     products: "printbydd-store/products.html",
     "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more.html",
     gifts: "printbydd-store/gifts-that-mean-more.html",
@@ -61,6 +78,11 @@
     StudentResearch: "student-research",
     "ONDC-demo": "ondc-demo",
     ondc: "ondc-demo",
+
+    // Store convenience aliases
+    SmartTag: "smarttag-lite",
+    SmartTagLite: "smarttag-lite",
+    "smarttaglite": "smarttag-lite",
   };
 
   // ─────────────────────────────────────────────────────────
@@ -107,6 +129,7 @@
     var host = window.location.host || "";
     var path = window.location.pathname || "/";
 
+    // GitHub pages support
     if (/github\.io$/i.test(host)) {
       var seg = path.replace(/^\/+/, "").split("/")[0];
       if (seg) return "/" + seg + "/";
@@ -176,6 +199,7 @@
 
   // ─────────────────────────────────────────────────────────
   // STEP 0: Handle Pretty URLs
+  // /slug/ → mapped html file
   // ─────────────────────────────────────────────────────────
   (function handlePrettyURL() {
     var base = getBasePath();
@@ -186,7 +210,8 @@
     var clean = pathname.replace(/^\/+/, "");
     if (!clean || clean === "index.html" || clean === "index.htm") return;
 
-    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl)$/i.test(clean))
+    // If it already looks like a file or asset, do nothing
+    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl|obj|glb|gltf)$/i.test(clean))
       return;
 
     var slug = normalizeSlug(clean);
@@ -198,6 +223,7 @@
 
   // ─────────────────────────────────────────────────────────
   // STEP 1: Check for stored 404 redirects
+  // (optional: your 404.html can store __vd_redirect__ then bounce)
   // ─────────────────────────────────────────────────────────
   var stored = null;
   try {
@@ -216,10 +242,10 @@
 
     var rawSlug = path.replace(/^\//, "").split("/")[0];
     if (rawSlug) {
-      var slug = normalizeSlug(rawSlug);
-      var file = resolveRoute(slug);
-      if (file) {
-        navigateTo(file, search, hash);
+      var slug2 = normalizeSlug(rawSlug);
+      var file2 = resolveRoute(slug2);
+      if (file2) {
+        navigateTo(file2, search, hash);
         return;
       } else {
         renderNotFound(rawSlug);
@@ -229,12 +255,13 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // STEP 2: Hash routing
+  // STEP 2: Hash routing support
+  // #/slug → mapped html file
   // ─────────────────────────────────────────────────────────
   var currentHash = window.location.hash || "";
   if (currentHash) {
     var hashPath = currentHash.replace(/^#\/?/, "");
-    if (hashPath && !/^p=/.test(hashPath) && hashPath.length < 80) {
+    if (hashPath && !/^p=/.test(hashPath) && hashPath.length < 120) {
       var hashSlug = normalizeSlug(hashPath.split("?")[0]);
       var hashFile = resolveRoute(hashSlug);
       if (hashFile) {
@@ -250,15 +277,18 @@
   window.VDRouter = {
     go: function (slug, options) {
       options = options || {};
-      // Safety: if slug is actually an external URL, open it directly without routing
+
+      // If slug is actually an external URL, open it directly
       if (isLikelyExternalHref(String(slug || ""))) {
         if (!isInAppBrowser()) window.open(String(slug), "_blank", "noopener,noreferrer");
         else window.location.href = String(slug);
         return;
       }
+
       var norm = normalizeSlug(slug);
       var file = resolveRoute(norm);
 
+      // If unknown slug, go to pretty URL (server may handle)
       if (!file) {
         var fallback = origin() + joinURL(getBasePath(), norm + "/");
         if (options.newTab && !isInAppBrowser()) window.open(fallback, "_blank", "noopener,noreferrer");
@@ -300,17 +330,12 @@
           // ── [data-back] universal handler ──
           var backEl = e.target && e.target.closest ? e.target.closest("[data-back]") : null;
           if (backEl) {
-            // Don't intercept if it's an anchor pointing to an external URL
             var backHref = backEl.getAttribute("href") || "";
             if (backHref && isLikelyExternalHref(backHref)) return;
+
             e.preventDefault();
-            if (window.history.length > 1) {
-              window.history.back();
-            } else {
-              var base = getBasePath();
-              var homeHref = origin() + joinURL(base, "index.html");
-              safeReplace(homeHref);
-            }
+            if (window.history.length > 1) window.history.back();
+            else safeReplace(origin() + joinURL(getBasePath(), "index.html"));
             return;
           }
 
@@ -334,6 +359,7 @@
           var path = stripBasePrefix(url.pathname || "/", base);
           var clean = String(path || "/").replace(/^\/+/, "");
 
+          // If /some/folder/page.html or /some/folder/slug, use last segment
           if (clean.indexOf("/") !== -1) {
             var segs = clean.split("/").filter(Boolean);
             var last = segs[segs.length - 1] || "";
@@ -342,24 +368,26 @@
             }
           }
 
+          // Direct HTML file navigation
           if (/\.html?$/i.test(clean)) {
             e.preventDefault();
             navigateTo(clean, url.search || "", url.hash || "");
             return;
           }
 
-          var slug = normalizeSlug(clean);
-          if (!slug) return;
+          // Slug navigation
+          var slug3 = normalizeSlug(clean);
+          if (!slug3) return;
 
-          var file = resolveRoute(slug);
-          if (!file) {
+          var file3 = resolveRoute(slug3);
+          if (!file3) {
             e.preventDefault();
-            safeReplace(origin() + joinURL(base, slug + "/") + (url.search || "") + (url.hash || ""));
+            safeReplace(origin() + joinURL(base, slug3 + "/") + (url.search || "") + (url.hash || ""));
             return;
           }
 
           e.preventDefault();
-          window.VDRouter.go(slug, { newTab: false, search: url.search || "", hash: url.hash || "" });
+          window.VDRouter.go(slug3, { newTab: false, search: url.search || "", hash: url.hash || "" });
         },
         true
       );
@@ -367,12 +395,13 @@
   };
 
   // ─────────────────────────────────────────────────────────
-  // STEP 4: Rewrite relative nav hrefs
+  // STEP 4: Rewrite relative nav hrefs (optional safety)
   // ─────────────────────────────────────────────────────────
   function fixNavHrefs() {
     var base = getBasePath();
     var scopeSelectors = ["nav a[href]", "header a[href]", "footer a[href]"];
     var nodes = [];
+
     for (var i = 0; i < scopeSelectors.length; i++) {
       try {
         var list = document.querySelectorAll(scopeSelectors[i]);
@@ -401,11 +430,13 @@
         p = segs[segs.length - 1] || p;
       }
 
+      // slug-style href
       if (p && !/\./.test(p)) {
         a.setAttribute("href", joinURL(base, normalizeSlug(p) + "/") + s + h);
         continue;
       }
 
+      // html file href
       if (/\.html?$/i.test(p)) {
         a.setAttribute("href", joinURL(base, p.replace(/^\/+/, "")) + s + h);
         continue;
@@ -423,15 +454,12 @@
       } catch (e) {}
     };
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", bindNow);
-    } else {
-      bindNow();
-    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindNow);
+    else bindNow();
   } catch (e) {}
 
   // ─────────────────────────────────────────────────────────
-  // INLINE 404 PAGE
+  // INLINE 404 PAGE (if you land on unknown slug via redirect flow)
   // ─────────────────────────────────────────────────────────
   function renderNotFound(slug) {
     document.addEventListener("DOMContentLoaded", function () {
@@ -444,7 +472,9 @@
         "<h1>404</h1>",
         "<p>Page not found</p>",
         "<p>No subpage registered for: <strong>" + String(slug) + "</strong></p>",
-        '<a href="' + joinURL(getBasePath(), "") + '" style="color:#ff671f;text-decoration:none;margin-top:16px;border:1px solid #ff671f;padding:10px 20px;border-radius:50px;">← Back to Home</a>',
+        '<a href="' +
+          joinURL(getBasePath(), "") +
+          '" style="color:#ff671f;text-decoration:none;margin-top:16px;border:1px solid #ff671f;padding:10px 20px;border-radius:50px;">← Back to Home</a>',
       ].join("");
     });
   }
