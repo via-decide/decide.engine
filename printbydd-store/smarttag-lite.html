@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>SmartTag Lite • PrintByDD</title>
+
+  <!-- NOTE (offline):
+    This page will work offline ONLY if you host these files locally:
+      1) three.min.js (instead of CDN)
+      2) the STL file next to this HTML (see STL_URL below)
+  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#050505;
+      --card-bg: rgba(18, 18, 20, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text:#fdfdfd;
+      --text-muted: rgba(242, 242, 242, 0.65);
+      --accent:#ff2a2a;
+      --accent2:#22c55e;
+      --accent-glow: rgba(255, 42, 42, 0.15);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      --radius: 24px;
+
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --safeLeft: env(safe-area-inset-left, 0px);
+      --safeRight: env(safe-area-inset-right, 0px);
+
+      --maxw: 880px;
+      --header-height: 60px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{
+      height:100%; height:100dvh; margin:0;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow:hidden; overscroll-behavior-y:none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* No text selection (store feel) */
+    body, .site-header, .top, .bottom-nav, .card, .cardHeader, .kicker, .h1, .cardBody, .lead, .qt, .ul, .steps, .sg, .pill {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    input, textarea { user-select:text; -webkit-user-select:text; }
+
+    a{ color:inherit; text-decoration:none; }
+    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; -webkit-tap-highlight-color: transparent; }
+
+    /* ===== Site Header ===== */
+    .site-header{
+      position:absolute; top:0; left:0; right:0;
+      height: var(--header-height);
+      background: rgba(5,5,5,0.85);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+      z-index:1000;
+    }
+    .site-header .logo{ color:var(--accent); font-size:18px; font-weight:900; letter-spacing:-0.02em; }
+    .nav-container { display:flex; align-items:center; gap:18px; }
+    .site-header nav{ display:flex; gap:18px; align-items:center; }
+    .site-header nav a{ color:var(--text-muted); font-weight:800; font-size:13px; transition:color .2s; text-transform:uppercase; letter-spacing:.05em; }
+    .site-header nav a:hover, .site-header nav a.active{ color:var(--text); }
+
+    /* Invert theme method (your store style) */
+    body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
+    body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
+    body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
+
+    #appWrapper{ position:relative; width:100vw; height:100dvh; transform-origin:center center; transition:transform 0.4s cubic-bezier(0.25,1,0.5,1); overflow:hidden; }
+    #appWrapper.forced-landscape{ width:100dvh; height:100vw; position:absolute; top:50%; left:50%; margin-top:-50vw; margin-left:-50dvh; }
+
+    .bg-glow{
+      position:absolute; inset:0; pointer-events:none;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,42,42,0.16), transparent 60%),
+        radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%);
+      z-index:0;
+    }
+
+    .top{
+      position:absolute; top:var(--header-height); left:0; right:0;
+      padding:calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
+      z-index:50; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      pointer-events:none;
+      background:linear-gradient(180deg,rgba(5,5,5,0.95) 0%,rgba(5,5,5,0) 100%);
+    }
+    .top > *{ pointer-events:auto; }
+    .top-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .back, .pill, .btn-icon{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 16px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(15,15,15,0.65);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      transition:all 0.2s ease;
+    }
+    .btn-icon{ padding:10px; font-weight:950; color:var(--accent); width:38px; height:38px; }
+    .btn-icon:active, .back:active{ transform:scale(0.96); }
+    .back{ color:rgba(255,255,255,0.92); font-weight:900; font-size:14px; cursor:pointer;}
+    .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+    .pill b{ color:#fff; letter-spacing:0.1em; font-weight:950; }
+
+    .scroll-container{
+      position:absolute; top:var(--header-height); bottom:0; left:0; right:0;
+      overflow-y:auto; overflow-x:hidden;
+      scroll-snap-type:y mandatory; scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+      z-index:10;
+    }
+    .scroll-container::-webkit-scrollbar{ display:none; }
+
+    .section-wrapper{
+      height:100%; width:100%;
+      scroll-snap-align:start; scroll-snap-stop:always;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      padding:calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(120px + var(--safeBottom)) calc(16px + var(--safeLeft));
+      position:relative;
+    }
+
+    .card{
+      width:100%; max-width:var(--maxw);
+      flex:1; min-height:0;
+      border-radius:var(--radius);
+      border:1px solid var(--card-border);
+      background:var(--card-bg);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      box-shadow:var(--shadow);
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      opacity:0.30;
+      transform:scale(0.92) translateY(30px);
+      transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .section-wrapper.is-active .card{ opacity:1; transform:scale(1) translateY(0); }
+
+    .cardHeader{
+      padding:24px 24px 20px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      background:rgba(0,0,0,0.3);
+      flex-shrink:0;
+    }
+    .kicker{ font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; font-weight:950; }
+    .h1{ margin:0; font-size:clamp(22px,5vw,28px); line-height:1.3; letter-spacing:-0.01em; font-weight:950; }
+    .cardBody{ padding:24px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; }
+
+    .big{ font-size:clamp(28px,6vw,46px); line-height:1.12; font-weight:950; letter-spacing:-0.03em; margin:0 0 18px; }
+    .big .r, .r{ background:linear-gradient(135deg,#ff6b6b,#ff2a2a); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .lead{ font-size:17px; line-height:1.65; color:rgba(255,255,255,0.85); margin:0 0 16px; }
+    .qt{ margin:18px 0 10px; padding:14px 18px; border-left:3px solid var(--accent); background:linear-gradient(90deg,var(--accent-glow),transparent); border-radius:0 12px 12px 0; color:rgba(255,255,255,0.95); line-height:1.65; font-size:15px; font-style:italic; }
+
+    .ul{ margin:14px 0; padding:0; list-style:none; color:rgba(255,255,255,0.78); font-size:15px; line-height:1.65; }
+    .ul li{ position:relative; padding-left:22px; margin:10px 0; }
+    .ul li::before{ content:'→'; position:absolute; left:0; color:var(--accent); font-weight:950; }
+
+    .steps{ display:flex; flex-direction:column; gap:16px; margin:16px 0; }
+    .step{ display:flex; gap:14px; align-items:flex-start; }
+    .step-num{ flex-shrink:0; width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-weight:950; font-size:14px; display:flex; align-items:center; justify-content:center; }
+    .step-title{ font-weight:950; font-size:15px; color:#fff; margin-bottom:4px; }
+    .step-desc{ font-size:14px; color:rgba(255,255,255,0.72); line-height:1.6; }
+
+    .sg{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .sn{ background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px 10px; text-align:center; }
+    .sv{ font-size:22px; font-weight:950; color:#fff; line-height:1.1; letter-spacing:-0.02em; }
+    .slbl{ font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin-top:6px; }
+
+    .cp{
+      display:flex; align-items:center; justify-content:center;
+      border:none; border-radius:16px;
+      background:linear-gradient(135deg,#ff4444,#b80000);
+      cursor:pointer; overflow:hidden; position:relative;
+      box-shadow:0 8px 28px rgba(255,42,42,0.38);
+      transition:transform .2s,filter .2s;
+      min-height:54px; width:100%; padding:0;
+    }
+    .cp.alt{
+      background:linear-gradient(135deg,#111,#000);
+      box-shadow:0 8px 28px rgba(0,0,0,0.55);
+    }
+    .cp.green{
+      background:linear-gradient(135deg,#1dd15f,#0a7a2f);
+      box-shadow:0 8px 28px rgba(34,197,94,0.28);
+    }
+    .cp:active{ transform:scale(0.97); }
+    .cpulse{ position:absolute; inset:0; background:rgba(255,255,255,0.15); animation:cpa 2s infinite; }
+    @keyframes cpa{ 0%,100%{opacity:0} 50%{opacity:1} }
+    .ci{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; color:#fff; font-weight:950; font-size:15px; padding:0 24px; }
+    .ca{ background:rgba(255,255,255,0.2); border-radius:8px; padding:4px 10px; font-size:14px; }
+
+    /* STL viewer */
+    .stl-viewer-wrap{
+      position:relative; width:100%;
+      height: 280px; min-height: 280px; max-height: 280px;
+      border-radius:16px; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.1);
+      background:#0a0a0a; margin-bottom:14px;
+      touch-action:none;
+    }
+    .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; object-fit:contain; }
+    .stl-loading{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-size:12px; color:rgba(255,255,255,0.45);
+      letter-spacing:0.12em; text-transform:uppercase;
+      pointer-events:none; background:#0a0a0a;
+      transition:opacity 0.4s; padding:16px; text-align:center; z-index:5;
+    }
+    .stl-loading.hidden{ opacity:0; pointer-events:none; }
+    .stl-hint{
+      position:absolute; bottom:10px; left:50%;
+      transform:translateX(-50%);
+      font-size:10px; color:rgba(255,255,255,0.25);
+      letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap;
+      pointer-events:none; z-index:5;
+    }
+
+    /* Color panel */
+    .stl-color-panel{ margin-top:8px; padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.22); }
+    .stl-color-title{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.45); font-weight:950; margin:0 0 8px; }
+    .stl-color-row{ display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; margin:8px 0 0; }
+    .stl-color-btn{
+      display:flex; flex-direction:row; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.35);
+      transition:all 0.2s;
+      font-size:12px; font-weight:900;
+      color:rgba(255,255,255,0.72);
+      min-width:118px;
+    }
+    .stl-color-btn:active{ transform:scale(0.97); }
+    .stl-color-btn.active{ border-color:var(--accent); background:var(--accent-glow); color:#fff; }
+    .stl-swatch{ width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); flex-shrink:0; }
+    @media (max-width:420px){ .stl-color-btn{ min-width:46%; } }
+
+    /* Form */
+    .form-card{
+      margin-top:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(0,0,0,0.25);
+      padding:14px;
+    }
+    .fgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:560px){ .fgrid{ grid-template-columns:1fr; } }
+    .flabel{
+      font-size:10px; font-weight:950; letter-spacing:0.12em; text-transform:uppercase;
+      color:rgba(255,255,255,0.45);
+      margin:0 0 6px;
+    }
+    .finp{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(8,8,10,0.65);
+      color:#fff;
+      outline:none;
+      font-size:14px;
+      transition:border-color .15s, box-shadow .15s;
+    }
+    .finp:focus{
+      border-color: rgba(255,42,42,0.65);
+      box-shadow:0 0 0 3px rgba(255,42,42,0.12);
+    }
+    .help{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(255,255,255,0.55);
+      line-height:1.6;
+    }
+    .preview-chip{
+      margin-top:12px;
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06);
+      font-size:12px;
+      color:rgba(255,255,255,0.85);
+      font-weight:900;
+      max-width:100%;
+    }
+    .chip b{ color:#fff; }
+    .chip small{ color:rgba(255,255,255,0.60); font-weight:900; }
+    .chip .dot{ width:8px; height:8px; border-radius:999px; background:var(--accent2); box-shadow:0 0 0 3px rgba(34,197,94,0.12); }
+
+    /* Toast + rotate */
+    .rotate-popup{
+      position:fixed; bottom:80px; left:50%;
+      transform:translateX(-50%) scale(0.9);
+      background:var(--accent); color:#fff;
+      padding:12px 24px; border-radius:999px;
+      font-size:14px; font-weight:950;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 12px 30px rgba(255,42,42,0.35);
+      opacity:0; pointer-events:none;
+      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+      z-index:9999;
+    }
+    .rotate-popup.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1); }
+
+    /* Bottom nav */
+    .bottom-nav{
+      position:fixed;
+      left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
+      bottom:calc(10px + var(--safeBottom));
+      height:64px;
+      display:flex; align-items:center; gap:10px;
+      padding:10px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(10,10,12,0.78);
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 18px 60px rgba(0,0,0,0.55);
+      z-index:1200;
+    }
+    .bn-btn{
+      width:44px; height:44px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06);
+      color:rgba(255,255,255,0.92);
+      font-weight:950;
+      display:flex; align-items:center; justify-content:center;
+      transition:transform .2s,opacity .2s;
+      flex-shrink:0;
+    }
+    .bn-btn:active{ transform:scale(0.96); }
+    .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
+    .bn-dots{ flex:1; display:flex; gap:8px; align-items:center; justify-content:center; min-width:0; overflow:hidden; }
+    .bn-dot{
+      width:8px; height:8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.10);
+      transition:background .2s,border-color .2s,width .2s;
+      flex-shrink:0;
+    }
+    .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(255,42,42,0.7); }
+    .bn-cta{
+      height:44px; padding:0 16px;
+      border-radius:14px;
+      border:none;
+      background:linear-gradient(135deg,#ff4444,#b80000);
+      color:#fff; font-weight:950;
+      letter-spacing:-0.01em;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 10px 26px rgba(255,42,42,0.35);
+      transition:transform .2s,filter .2s;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+    .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
+    .bn-cta .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.18); }
+
+    .hint{
+      position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%;
+      transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      color:rgba(255,255,255,0.4);
+      font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
+      pointer-events:none;
+      animation:pulse 2s infinite;
+      z-index:100;
+    }
+    .hint svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; }
+    @keyframes pulse{ 0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6} 50%{transform:translateX(-50%) translateY(5px);opacity:1} }
+    .section-wrapper:last-child .hint{ display:none; }
+
+    @media (max-width: 600px) {
+      .site-header nav { display: none; }
+      .nav-container { justify-content: flex-end; width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="appWrapper">
+    <div class="bg-glow"></div>
+
+    <header class="site-header">
+      <a href="./index.html" class="logo" id="logoLink">PrintByDD</a>
+      <div class="nav-container">
+        <nav>
+          <a href="./index.html" id="navHome">Home</a>
+          <a href="./keychain.html" id="navProds" class="active">Products</a>
+          <a href="./gifts-that-mean-more.html" id="navBlog">Blog</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="top">
+      <a class="back" href="./keychain.html" id="backBtn">← Back</a>
+      <div class="top-actions">
+        <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        <div class="pill"><b id="secLabel">SEC 1/6</b> • <span id="secName">INTRO</span></div>
+      </div>
+    </div>
+
+    <main class="scroll-container" id="scrollContainer"></main>
+
+    <div class="bottom-nav" id="bottomNav">
+      <button class="bn-btn" id="bnPrev" type="button" aria-label="Previous">←</button>
+      <div class="bn-dots" id="bnDots"></div>
+      <button class="bn-btn" id="bnNext" type="button" aria-label="Next">→</button>
+      <button class="bn-cta" id="bnCta" type="button">
+        <span id="bnCtaText">Customize</span>
+        <span class="bn-tag" id="bnCtaTag">NFC</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="rotatePopup" class="rotate-popup"></div>
+
+  <script>
+  (function(){
+    "use strict";
+
+    // ===========================
+    // ROUTE / NAV (store + local)
+    // ===========================
+    function routeTo(htmlPath, storePath){
+      return (location.hostname === "store.viadecide.com") ? storePath : htmlPath;
+    }
+
+    // Keep your store canonicalization (same pattern as homepage)
+    (function fixStoreLinks(){
+      const isStoreDomain = location.hostname === 'store.viadecide.com';
+      if (!isStoreDomain) return;
+      if (location.pathname === '/printbydd') history.replaceState(null, '', '/printbydd/');
+    })();
+
+    // If you use "pretty routes" on store domain, these are safe defaults:
+    // Home: /printbydd/
+    // Products list: /printbydd/products  (or your keychain route if that's your "products")
+    // Blog: /printbydd/gifts-that-mean-more  (adjust if your router uses a different slug)
+    document.getElementById("logoLink").href = routeTo("./index.html", "/printbydd/");
+    document.getElementById("navHome").href  = routeTo("./index.html", "/printbydd/");
+    document.getElementById("navProds").href = routeTo("./keychain.html", "/printbydd/products");
+    document.getElementById("navBlog").href  = routeTo("./gifts-that-mean-more.html", "/printbydd/gifts-that-mean-more");
+
+    // Back button: use history if possible, else fallback to products
+    const backBtn = document.getElementById("backBtn");
+    backBtn.href = routeTo("./keychain.html", "/printbydd/products");
+    backBtn.addEventListener("click", function(e){
+      e.preventDefault();
+      if (window.history.length > 1) history.back();
+      else window.location.href = backBtn.href;
+    });
+
+    // ========= CONFIG =========
+    // Put your STL next to this HTML.
+    // IMPORTANT: rename your STL to EXACTLY this filename OR update STL_URL below.
+    const STL_URL = "./Unnamed6-keychain1.1.stl";
+
+    const WA_NUMBER = "916351537770";
+    const PRODUCT_NAME = "SmartTag Lite (NFC + QR)";
+    const PRICE_SINGLE = "₹199";
+    const PRICE_BULK = "₹89 (25+ units)";
+
+    // ========= THEME =========
+    const THEME_KEY = "VD_INVERT_THEME";
+    const btnTheme = document.getElementById("btnTheme");
+    function setInvert(on){
+      document.body.classList.toggle("invert-mode", !!on);
+      btnTheme.textContent = on ? "☀" : "☾";
+      try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
+    }
+    (function initTheme(){
+      let s="0"; try{ s = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
+      setInvert(s==="1");
+    })();
+    btnTheme.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode")));
+
+    // ========= 3D VIEWER =========
+    let scene=null, renderer=null, camera=null, group=null;
+    let mesh=null;
+
+    let pointerDown=false, lastX=0, lastY=0, inited=false, autoRotate=true;
+
+    const COLOR_STORAGE_KEY = "PBD_SMARTTAG_LITE_COLOR_V1";
+    const COLORS = {
+      black: 0x101010,
+      white: 0xf2f2f2,
+      red:   0xff2a2a,
+      blue:  0x1a6bd1,
+      neon:  0x22c55e,
+      gold:  0xd4af37
+    };
+    let currentColorKey="black";
+
+    (function restoreColor(){
+      try{
+        const s = JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY)||"{}");
+        if(s.color && COLORS[s.color]) currentColorKey = s.color;
+      }catch(e){}
+    })();
+
+    function persistColor(){
+      try{ localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify({ color: currentColorKey })); }catch(e){}
+    }
+
+    function buildGeo(ps, ns){
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3));
+      g.setAttribute('normal',   new THREE.Float32BufferAttribute(ns, 3));
+      return g;
+    }
+
+    function parseBinarySTL(buf){
+      const v=new DataView(buf), n=v.getUint32(80,true), pos=[], nor=[];
+      let o=84;
+      for(let i=0;i<n;i++){
+        const nx=v.getFloat32(o,true),ny=v.getFloat32(o+4,true),nz=v.getFloat32(o+8,true); o+=12;
+        for(let j=0;j<3;j++){
+          pos.push(v.getFloat32(o,true),v.getFloat32(o+4,true),v.getFloat32(o+8,true));
+          nor.push(nx,ny,nz);
+          o+=12;
+        }
+        o+=2;
+      }
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+      g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+      return g;
+    }
+
+    function parseAsciiSTL(txt){
+      const pos=[],nor=[],lines=txt.split(/\r?\n/); let cn=[0,0,1],v=[];
+      for(const lr of lines){
+        const l=lr.trim(); if(!l) continue;
+        if(l.startsWith("facet normal")){
+          const p=l.split(/\s+/); cn=[parseFloat(p[2]),parseFloat(p[3]),parseFloat(p[4])];
+        } else if(l.startsWith("vertex")){
+          const p=l.split(/\s+/);
+          v.push([parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])]);
+          if(v.length===3){
+            for(const vv of v){ pos.push(vv[0],vv[1],vv[2]); nor.push(...cn); }
+            v=[];
+          }
+        }
+      }
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+      g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+      return g;
+    }
+
+    async function loadSTLGeometry(){
+      const res = await fetch(STL_URL, { cache:"no-store" });
+      if(!res.ok) throw new Error("Couldn't load STL ("+res.status+"). Put the STL next to this HTML and ensure filename matches STL_URL.");
+      const buf = await res.arrayBuffer();
+      const headerText = new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(buf.slice(0,256)));
+      const isAscii = headerText.trimStart().toLowerCase().startsWith("solid") && headerText.toLowerCase().includes("facet");
+      return isAscii ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf))) : parseBinarySTL(buf);
+    }
+
+    function applyColor(){
+      if(mesh) mesh.material.color.setHex(COLORS[currentColorKey]);
+      persistColor();
+      syncColorUI();
+    }
+
+    function syncColorUI(){
+      document.querySelectorAll('[data-color-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-color-btn')===currentColorKey));
+      const lbl=document.getElementById("colorLbl");
+      if(lbl) lbl.textContent=currentColorKey.toUpperCase();
+    }
+
+    window.setTagColor = function(key, btn){
+      if(!COLORS[key]) return;
+      currentColorKey = key;
+      applyColor();
+      if(btn){
+        document.querySelectorAll('[data-color-btn]').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    };
+
+    window.initSTLViewer = async function(){
+      if(inited) return;
+      const wrap    = document.getElementById('stl-viewer-wrap');
+      const canvas  = document.getElementById('stl-canvas');
+      const loading = document.getElementById('stl-loading');
+      if(!wrap || !canvas) return;
+      inited = true;
+
+      const W = wrap.clientWidth || 320;
+      const H = 280;
+
+      renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      renderer.setSize(W, H, false);
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
+      camera.position.set(0, 0, 4.2);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+      const d1 = new THREE.DirectionalLight(0xffffff, 0.95); d1.position.set(2.5, 3, 2); scene.add(d1);
+      const d2 = new THREE.DirectionalLight(0xffffff, 0.35); d2.position.set(-2, -1, -2); scene.add(d2);
+
+      group = new THREE.Group();
+      scene.add(group);
+
+      try{
+        const geo = await loadSTLGeometry();
+        geo.computeBoundingBox();
+        geo.center();
+
+        const mat = new THREE.MeshStandardMaterial({ color: COLORS[currentColorKey], roughness:0.58, metalness:0.06 });
+        mesh = new THREE.Mesh(geo, mat);
+        group.add(mesh);
+
+        group.rotation.x = -0.35;
+        group.rotation.y =  0.90;
+
+        const box = new THREE.Box3().setFromObject(group);
+        const sz  = new THREE.Vector3(); box.getSize(sz);
+        const maxDim = Math.max(sz.x, sz.y, sz.z) || 1;
+        group.scale.setScalar(2.45 / maxDim);
+
+        if(loading) loading.classList.add('hidden');
+
+        // Interactions
+        function onDown(e){
+          pointerDown=true; autoRotate=false;
+          const t = e.touches ? e.touches[0] : e;
+          lastX=t.clientX; lastY=t.clientY;
+        }
+        function onMove(e){
+          if(!pointerDown || !group) return;
+          const t = e.touches ? e.touches[0] : e;
+          group.rotation.y += (t.clientX-lastX) * 0.01;
+          group.rotation.x += (t.clientY-lastY) * 0.01;
+          lastX=t.clientX; lastY=t.clientY;
+        }
+        function onUp(){ pointerDown=false; }
+
+        wrap.addEventListener('pointerdown', onDown);
+        wrap.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+
+        wrap.addEventListener('touchstart', onDown, {passive:true});
+        wrap.addEventListener('touchmove',  onMove, {passive:true});
+        wrap.addEventListener('touchend',   onUp,   {passive:true});
+
+        window.addEventListener('resize', ()=>{
+          if(!wrap || !renderer || !camera) return;
+          const w = wrap.clientWidth || 320, h = 280;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+        });
+
+        (function animate(){
+          requestAnimationFrame(animate);
+          if(autoRotate && group) group.rotation.y += 0.004;
+          if(renderer && scene && camera) renderer.render(scene, camera);
+        })();
+
+        applyColor();
+      } catch(err){
+        if(loading){
+          loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
+        }
+        console.error("SmartTag Lite STL viewer error:", err);
+      }
+    };
+
+    // ========= CUSTOM DATA (NFC/QR content) =========
+    const FORM_KEY = "PBD_SMARTTAG_LITE_FORM_V1";
+    const formState = {
+      displayName: "",
+      phone: "",
+      link: "",
+      note: ""
+    };
+
+    function sanitizePhone(s){
+      return (s||"").replace(/[^\d+]/g,"").slice(0,18);
+    }
+    function sanitizeLink(s){
+      s = (s||"").trim();
+      if(!s) return "";
+      // allow wa.me, https, http, or plain domain
+      if(/^https?:\/\//i.test(s)) return s;
+      if(/^wa\.me\//i.test(s)) return "https://" + s;
+      // if looks like domain, prefix https
+      if(/^[a-z0-9.-]+\.[a-z]{2,}([\/?#].*)?$/i.test(s)) return "https://" + s;
+      return s; // last resort
+    }
+
+    function loadForm(){
+      try{
+        const s = JSON.parse(localStorage.getItem(FORM_KEY) || "{}");
+        if(typeof s.displayName==="string") formState.displayName = s.displayName.slice(0,40);
+        if(typeof s.phone==="string") formState.phone = sanitizePhone(s.phone);
+        if(typeof s.link==="string") formState.link = sanitizeLink(s.link).slice(0,160);
+        if(typeof s.note==="string") formState.note = s.note.slice(0,80);
+      }catch(e){}
+    }
+    function saveForm(){
+      try{ localStorage.setItem(FORM_KEY, JSON.stringify(formState)); }catch(e){}
+    }
+
+    function setFormFromDOM(){
+      const n = document.getElementById("fName");
+      const p = document.getElementById("fPhone");
+      const l = document.getElementById("fLink");
+      const t = document.getElementById("fNote");
+      if(n) formState.displayName = (n.value||"").slice(0,40);
+      if(p) formState.phone = sanitizePhone(p.value);
+      if(l) formState.link = sanitizeLink(l.value).slice(0,160);
+      if(t) formState.note = (t.value||"").slice(0,80);
+      saveForm();
+      syncPreviewChips();
+    }
+
+    function syncFormToDOM(){
+      const n = document.getElementById("fName");
+      const p = document.getElementById("fPhone");
+      const l = document.getElementById("fLink");
+      const t = document.getElementById("fNote");
+      if(n) n.value = formState.displayName;
+      if(p) p.value = formState.phone;
+      if(l) l.value = formState.link;
+      if(t) t.value = formState.note;
+      syncPreviewChips();
+    }
+
+    function syncPreviewChips(){
+      const c1 = document.getElementById("chipNameVal");
+      const c2 = document.getElementById("chipPhoneVal");
+      const c3 = document.getElementById("chipLinkVal");
+      const c4 = document.getElementById("chipNoteVal");
+      if(c1) c1.textContent = formState.displayName ? formState.displayName : "Your Name";
+      if(c2) c2.textContent = formState.phone ? formState.phone : "+91…";
+      if(c3) c3.textContent = formState.link ? formState.link : "https://…";
+      if(c4) c4.textContent = formState.note ? formState.note : "Optional";
+    }
+
+    // ========= CONTENT (snap sections) =========
+    const SECTIONS = [
+      {
+        name:"INTRO",
+        kicker:"LOW-COST SMART TAG",
+        title:"SmartTag Lite — <span class='r'>NFC</span> + <span class='r'>QR</span>, no fluff.",
+        html:()=>`
+          <p class="big">Tap. Scan. Share.<br><span class="r">Instant identity</span> in your pocket.</p>
+          <p class="lead">SmartTag Lite is the simplest, low-cost version: a clean keychain with real NFC inside and a QR backup.</p>
+          <div class="qt">Same NFC hardware in bulk — pricing changes, quality doesn’t.</div>
+          <ul class="ul">
+            <li><b>NFC + QR:</b> works for everyone (tap or scan).</li>
+            <li><b>Clean & slim:</b> minimal everyday carry.</li>
+            <li><b>Great for bulk:</b> fests, teams, onboarding, events.</li>
+          </ul>
+          <button class="cp green" onclick="scrollToSectionByName('CUSTOMIZE')">
+            <span class="cpulse"></span>
+            <div class="ci">🎛 Customize + Preview <div class="ca">→</div></div>
+          </button>
+        `
+      },
+      {
+        name:"WHY",
+        kicker:"WHY IT WORKS",
+        title:"Because <span class='r'>friction</span> kills sharing.",
+        html:()=>`
+          <p class="lead">Most people won’t type a number or search a profile. They’ll tap once, or scan once — and that’s it.</p>
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div><div><div class="step-title">NFC for speed</div><div class="step-desc">One tap opens your link on modern phones.</div></div></div>
+            <div class="step"><div class="step-num">2</div><div><div class="step-title">QR for universal access</div><div class="step-desc">Works even when NFC is off or unsupported.</div></div></div>
+            <div class="step"><div class="step-num">3</div><div><div class="step-title">Physical repetition</div><div class="step-desc">Keys are used daily — your identity stays top-of-mind.</div></div></div>
+          </div>
+          <div class="qt">People remember objects. Not ads.</div>
+        `
+      },
+      {
+        name:"CUSTOMIZE",
+        kicker:"3D PREVIEW + NFC/QR DATA",
+        title:"Pick a color. Enter your <span class='r'>tap</span> destination.",
+        html:()=>`
+          <div id="stl-viewer-wrap" class="stl-viewer-wrap">
+            <canvas id="stl-canvas"></canvas>
+            <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
+            <div class="stl-hint">Drag to rotate</div>
+          </div>
+
+          <div class="qt" style="margin-top:6px;">
+            Color: <b id="colorLbl">${currentColorKey.toUpperCase()}</b> • NFC + QR uses the data below
+          </div>
+
+          <div class="stl-color-panel">
+            <div class="stl-color-title">Tag Color</div>
+            <div class="stl-color-row">
+              <button class="stl-color-btn" data-color-btn="black" onclick="setTagColor('black',this)"><span class="stl-swatch" style="background:#101010;"></span> Black</button>
+              <button class="stl-color-btn" data-color-btn="white" onclick="setTagColor('white',this)"><span class="stl-swatch" style="background:#f2f2f2;"></span> White</button>
+              <button class="stl-color-btn" data-color-btn="red"   onclick="setTagColor('red',this)"><span class="stl-swatch" style="background:#ff2a2a;"></span> Red</button>
+              <button class="stl-color-btn" data-color-btn="blue"  onclick="setTagColor('blue',this)"><span class="stl-swatch" style="background:#1a6bd1;"></span> Blue</button>
+              <button class="stl-color-btn" data-color-btn="neon"  onclick="setTagColor('neon',this)"><span class="stl-swatch" style="background:#22c55e;"></span> Neon</button>
+              <button class="stl-color-btn" data-color-btn="gold"  onclick="setTagColor('gold',this)"><span class="stl-swatch" style="background:#d4af37;"></span> Gold</button>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <div class="fgrid">
+              <div>
+                <div class="flabel">Display name (optional)</div>
+                <input class="finp" id="fName" type="text" placeholder="e.g., Rahul Sharma" maxlength="40" autocomplete="name" />
+              </div>
+              <div>
+                <div class="flabel">Phone (optional)</div>
+                <input class="finp" id="fPhone" type="tel" placeholder="e.g., +91 98XXXXXX" maxlength="18" autocomplete="tel" />
+              </div>
+              <div style="grid-column:1/-1;">
+                <div class="flabel">Primary link (NFC + QR)</div>
+                <input class="finp" id="fLink" type="url" placeholder="e.g., https://instagram.com/yourhandle" maxlength="160" autocomplete="url" />
+              </div>
+              <div style="grid-column:1/-1;">
+                <div class="flabel">Note / role (optional)</div>
+                <input class="finp" id="fNote" type="text" placeholder="e.g., Founder • ViaDecide" maxlength="80" />
+              </div>
+            </div>
+
+            <div class="help">
+              Tip: If you paste a domain like <b>example.com</b>, we auto-convert it to <b>https://example.com</b>.
+            </div>
+
+            <div class="preview-chip" aria-label="Preview chips">
+              <div class="chip"><span class="dot"></span> <small>Name</small> <b id="chipNameVal">Your Name</b></div>
+              <div class="chip"><span class="dot"></span> <small>Phone</small> <b id="chipPhoneVal">+91…</b></div>
+              <div class="chip"><span class="dot"></span> <small>Link</small> <b id="chipLinkVal">https://…</b></div>
+              <div class="chip"><span class="dot"></span> <small>Note</small> <b id="chipNoteVal">Optional</b></div>
+            </div>
+          </div>
+
+          <button class="cp" style="margin-top:14px;" onclick="orderOnWhatsApp(false)">
+            <span class="cpulse"></span>
+            <div class="ci">🛒 Order SmartTag Lite <div class="ca">→</div></div>
+          </button>
+
+          <button class="cp alt" style="margin-top:10px;" onclick="orderOnWhatsApp(true)">
+            <span class="cpulse" style="opacity:.2"></span>
+            <div class="ci">📦 Request Bulk (25+) <div class="ca">→</div></div>
+          </button>
+        `
+      },
+      {
+        name:"PRICING",
+        kicker:"PRICING",
+        title:"Simple pricing. <span class='r'>Real</span> NFC inside.",
+        html:()=>`
+          <div class="sg">
+            <div class="sn"><div class="sv">${PRICE_SINGLE}</div><div class="slbl">SmartTag Lite</div></div>
+            <div class="sn"><div class="sv">NFC + QR</div><div class="slbl">Included</div></div>
+            <div class="sn"><div class="sv">${PRICE_BULK}</div><div class="slbl">Bulk (25+)</div></div>
+          </div>
+
+          <div class="qt">Bulk pricing is lower margin — not lower quality.</div>
+
+          <ul class="ul" style="margin-top:14px;">
+            <li><b>Single:</b> ${PRICE_SINGLE} (1–24 units)</li>
+            <li><b>Bulk:</b> ${PRICE_BULK}</li>
+            <li><b>Includes:</b> QR engraving + NFC programming with your link</li>
+          </ul>
+
+          <button class="cp green" onclick="scrollToSectionByName('BULK')">
+            <span class="cpulse"></span>
+            <div class="ci">📦 Bulk Use-Cases <div class="ca">→</div></div>
+          </button>
+        `
+      },
+      {
+        name:"BULK",
+        kicker:"BULK ORDERS",
+        title:"Perfect for teams, fests, onboarding, <span class='r'>events</span>.",
+        html:()=>`
+          <p class="lead">If you’re ordering for a group, SmartTag Lite is designed for fast fulfillment and consistent quality.</p>
+          <ul class="ul">
+            <li><b>College fests:</b> instant social sharing + sponsor links</li>
+            <li><b>Startup teams:</b> tap-to-profile, tap-to-portfolio, tap-to-calendar</li>
+            <li><b>Gyms / clubs:</b> check-in links + WhatsApp community</li>
+            <li><b>Weddings:</b> couple story / album / RSVP link</li>
+          </ul>
+          <div class="qt">Tell us quantity + city + deadline — we’ll quote fast.</div>
+
+          <button class="cp alt" onclick="orderOnWhatsApp(true)">
+            <span class="cpulse" style="opacity:.2"></span>
+            <div class="ci">💬 WhatsApp Bulk Quote <div class="ca">→</div></div>
+          </button>
+        `
+      },
+      {
+        name:"ORDER",
+        kicker:"READY?",
+        title:"Lock it. <span class='r'>Order</span> it.",
+        html:()=>`
+          <p class="big">Make your sharing <span class="r">effortless</span>.</p>
+          <p class="lead">Choose a clean color, set your link, and you’re done.</p>
+
+          <button class="cp" onclick="scrollToSectionByName('CUSTOMIZE')">
+            <span class="cpulse"></span>
+            <div class="ci">🎛 Back to Customizer <div class="ca">→</div></div>
+          </button>
+
+          <button class="cp alt" style="margin-top:10px;" onclick="orderOnWhatsApp(false)">
+            <span class="cpulse" style="opacity:.2"></span>
+            <div class="ci">💬 WhatsApp Order <div class="ca">→</div></div>
+          </button>
+
+          <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.30);line-height:1.6;">
+            Your selected color + form data are saved on this device (localStorage), so you can come back later.
+          </p>
+        `
+      }
+    ];
+
+    // ========= ORDER ACTION =========
+    window.orderOnWhatsApp = function(isBulk){
+      // pull latest values if inputs exist
+      setFormFromDOM();
+
+      const bulkLine = isBulk ? "Request Type: BULK (25+)\n" : "Request Type: SINGLE\n";
+      const msg =
+`Hi! I want to order: ${PRODUCT_NAME}
+
+${bulkLine}
+Selected Color: ${currentColorKey.toUpperCase()}
+
+NFC/QR Content:
+- Name: ${formState.displayName || "—"}
+- Phone: ${formState.phone || "—"}
+- Link: ${formState.link || "—"}
+- Note: ${formState.note || "—"}
+
+Pricing:
+- Single: ${PRICE_SINGLE}
+- Bulk (25+): ${PRICE_BULK}
+
+(Please share next steps + delivery timeline.)`;
+      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+    };
+
+    // ========= NAV / RENDER =========
+    const container=document.getElementById('scrollContainer');
+    const secLabel=document.getElementById('secLabel');
+    const secName=document.getElementById('secName');
+
+    const bnPrev=document.getElementById('bnPrev');
+    const bnNext=document.getElementById('bnNext');
+    const bnDots=document.getElementById('bnDots');
+    const bnCta=document.getElementById('bnCta');
+    const bnCtaText=document.getElementById('bnCtaText');
+    const bnCtaTag=document.getElementById('bnCtaTag');
+
+    const CUSTOMIZE_IDX = SECTIONS.findIndex(s=>s.name==="CUSTOMIZE");
+    let currentSecIndex=0;
+
+    function buildBottomDots(){
+      if(!bnDots) return;
+      bnDots.innerHTML='';
+      for(let i=0;i<SECTIONS.length;i++){
+        const d=document.createElement('button');
+        d.type='button';
+        d.className='bn-dot';
+        d.setAttribute('aria-label',`Section ${i+1}`);
+        d.addEventListener('click',()=>scrollToIndex(i));
+        bnDots.appendChild(d);
+      }
+    }
+
+    function scrollToIndex(i){
+      i=Math.max(0,Math.min(SECTIONS.length-1,i));
+      const el=container.querySelector(`.section-wrapper[data-index="${i}"]`);
+      if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+
+    window.scrollToSectionByName = function(name){
+      const idx = SECTIONS.findIndex(s=>s.name===name);
+      if(idx<0) return;
+      scrollToIndex(idx);
+    };
+
+    function updateBottomNav(){
+      if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
+      if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
+      if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
+
+      if(bnCtaText && bnCtaTag){
+        if(currentSecIndex === CUSTOMIZE_IDX){
+          bnCtaText.textContent="Order";
+          bnCtaTag.textContent="Now";
+        } else {
+          bnCtaText.textContent="Customize";
+          bnCtaTag.textContent="NFC";
+        }
+      }
+    }
+
+    function initBottomNav(){
+      buildBottomDots();
+      updateBottomNav();
+      if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
+      if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
+      if(bnCta) bnCta.addEventListener('click',()=>{
+        if(currentSecIndex !== CUSTOMIZE_IDX && CUSTOMIZE_IDX>=0){
+          scrollToIndex(CUSTOMIZE_IDX);
+        } else {
+          orderOnWhatsApp(false);
+        }
+      });
+    }
+
+    // NOTE: threshold/rootMargin tuned so CUSTOMIZE activates on small screens
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-active');
+          const idx=parseInt(entry.target.getAttribute('data-index'),10);
+          currentSecIndex=isNaN(idx)?0:idx;
+
+          secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
+          secName.textContent=entry.target.getAttribute('data-name');
+
+          updateBottomNav();
+
+          if(entry.target.getAttribute('data-name')==='CUSTOMIZE'){
+            setTimeout(()=>{
+              window.initSTLViewer();
+              syncColorUI();
+              loadForm();
+              syncFormToDOM();
+              // bind form listeners only once (safe even if called again)
+              const fids = ["fName","fPhone","fLink","fNote"];
+              fids.forEach(id=>{
+                const el = document.getElementById(id);
+                if(el && !el.dataset.bound){
+                  el.dataset.bound = "1";
+                  el.addEventListener("input", setFormFromDOM);
+                  el.addEventListener("change", setFormFromDOM);
+                }
+              });
+            }, 120);
+          }
+        } else {
+          entry.target.classList.remove('is-active');
+        }
+      });
+    },{root:container,threshold:0.45,rootMargin:"0px 0px -60px 0px"});
+
+    function renderSections(){
+      container.innerHTML='';
+      SECTIONS.forEach((sec,index)=>{
+        const w=document.createElement('div');
+        w.className='section-wrapper';
+        w.setAttribute('data-index',index);
+        w.setAttribute('data-name',sec.name);
+
+        w.innerHTML = `
+          <article class="card">
+            <header class="cardHeader">
+              <div class="kicker">${sec.kicker}</div>
+              <h1 class="h1">${sec.title}</h1>
+            </header>
+            <div class="cardBody">
+              ${sec.html()}
+              <div style="height:85px;"></div>
+            </div>
+          </article>
+          <div class="hint">
+            <span>Scroll for more</span>
+            <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        `;
+        container.appendChild(w);
+        observer.observe(w);
+      });
+
+      setTimeout(()=>{ if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots(); updateBottomNav(); }, 60);
+    }
+
+    // ========= ROTATION POPUP (optional helper) =========
+    const popup=document.getElementById('rotatePopup');
+    const appWrapper=document.getElementById('appWrapper');
+    let isForcedLandscape=false, targetRotationAngle=0;
+
+    window.addEventListener('deviceorientation',e=>{
+      const g=e.gamma;
+      if(g===null||typeof g==='undefined') return;
+      if(!isForcedLandscape){
+        if(g>45) showRotatePopup(90);
+        else if(g<-45) showRotatePopup(-90);
+        else hideRotatePopup();
+      } else {
+        if(Math.abs(g)<25) showRotatePopup(0);
+        else hideRotatePopup();
+      }
+    });
+    function showRotatePopup(a){
+      targetRotationAngle=a;
+      popup.classList.add('is-visible');
+      popup.textContent = (a===0) ? "Tap for Portrait" : "Tap for Landscape";
+    }
+    function hideRotatePopup(){ popup.classList.remove('is-visible'); }
+    popup.addEventListener('click',()=>{
+      if(targetRotationAngle!==0){
+        appWrapper.classList.add('forced-landscape');
+        appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`;
+        isForcedLandscape=true;
+      } else {
+        appWrapper.classList.remove('forced-landscape');
+        appWrapper.style.transform='none';
+        isForcedLandscape=false;
+      }
+      hideRotatePopup();
+    });
+
+    // ========= INIT =========
+    renderSections();
+    initBottomNav();
+    syncColorUI();
+
+  })();
+  </script>
+</body>
+</html>
