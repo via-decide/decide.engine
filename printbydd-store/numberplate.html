@@ -334,6 +334,21 @@
       .site-header nav { display: none; }
       .nav-container { justify-content: flex-end; width: 100%; }
     }
+
+    /* Instagram pill - matches keychain/index style */
+    .nav-insta{
+      display:inline-flex; align-items:center; gap:5px;
+      padding: 5px 11px; border-radius:999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size:12px; font-weight:800;
+      background: linear-gradient(135deg,rgba(240,148,51,0.12),rgba(188,24,136,0.12));
+      transition: all 0.2s; white-space:nowrap;
+    }
+    .nav-insta:hover{ border-color: rgba(220,39,67,0.5); background: linear-gradient(135deg,rgba(240,148,51,0.2),rgba(188,24,136,0.2)); }
+    .nav-insta span{
+      background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
   </style>
 </head>
 
@@ -342,18 +357,35 @@
     <div class="bg-glow"></div>
 
     <header class="site-header">
-      <a href="/printbydd-store" class="logo" data-vd-route>PrintByDD</a>
+      <a id="npLogo" class="logo">PrintByDD</a>
       <div class="nav-container">
         <nav>
-          <a href="/printbydd-store" data-vd-route>Home</a>
-          <a href="/numberplate" class="active" data-vd-route>Products</a>
-          <a href="/gifts-that-mean-more" data-vd-route>Blog</a>
+          <a id="npHome">Home</a>
+          <a id="npProducts" class="active">Products</a>
+          <a id="npBlog">Blog</a>
         </nav>
+        <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
+           target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="ig-np" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f09433"/>
+                <stop offset="50%" stop-color="#dc2743"/>
+                <stop offset="100%" stop-color="#bc1888"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-np)"/>
+            <circle cx="12" cy="12" r="4" stroke="url(#ig-np)"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="url(#ig-np)" stroke="none"/>
+          </svg>
+          <span>@printbydd</span>
+        </a>
+        <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
       </div>
     </header>
 
     <div class="top">
-      <a class="back" href="/printbydd-store" id="backBtn" data-vd-route>← Back</a>
+      <a class="back" id="backBtn">← Back</a>
       <div class="top-actions">
         <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
@@ -384,10 +416,26 @@
   (function(){
     "use strict";
 
+    // ======= ROUTING HELPER =======
+    function routeTo(pathHtml, pathStore) {
+      return location.hostname === 'store.viadecide.com' ? pathStore : pathHtml;
+    }
+    (function applyNavLinks() {
+      var links = {
+        'npLogo':    ['./index.html',               '/printbydd/'],
+        'npHome':    ['./index.html',               '/printbydd/'],
+        'npProducts':['./products.html',            '/printbydd/products'],
+        'npBlog':    ['./gifts-that-mean-more.html','/printbydd/gifts'],
+        'backBtn':   ['./index.html',               '/printbydd/'],
+      };
+      Object.keys(links).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.href = routeTo(links[id][0], links[id][1]);
+      });
+    })();
+
     // ======= CONFIG =======
-    // Put your uploaded STL next to this HTML and keep the name here.
-    // (You uploaded: ImageToStl.com_Numberplate.stl)
-    const STL_URL = "./ImageToStl.com_Numberplate.stl";
+    const STL_URL = "./numberplate.stl";
 
     const WA_NUMBER = "916351537770";
 
