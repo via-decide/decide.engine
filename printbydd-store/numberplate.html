@@ -7,7 +7,7 @@
   <title>3D Numberplate • PrintByDD</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -30,60 +30,82 @@
       --header-height: 60px;
       --warn:#f59e0b;
       --ok:#22c55e;
+      --wa:#25D366;
     }
 
     *{ box-sizing:border-box; }
-
-    /* FIX #1: Always provide 100vh BEFORE 100dvh so older Android Chrome
-       gets a real height. Without this fallback, #appWrapper collapses to
-       height:0 → scroll-container gets height:0 → blank page.            */
     html, body{
-      height:100vh; height:100dvh;
-      margin:0;
+      height:100%; margin:0;
       background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: "Exo 2", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overflow:hidden; overscroll-behavior-y:none;
       -webkit-font-smoothing: antialiased;
     }
+    body{ height:100vh; height:100svh; height:100dvh; }
 
     body, .site-header, .top, .bottom-nav, .card, .cardHeader, .kicker, .h1, .cardBody, .lead, .qt, .ul, .steps, .usecases, .sg, .social-strip {
-      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+      user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
     }
-    input, textarea { user-select: text; -webkit-user-select: text; }
+    input, textarea { user-select:text; -webkit-user-select:text; }
 
     a{ color:inherit; text-decoration:none; }
-    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; -webkit-tap-highlight-color: transparent; }
+    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
+    /* ===== HEADER ===== */
     .site-header{
       position:absolute; top:0; left:0; right:0;
-      height: var(--header-height);
-      background: rgba(5,5,5,0.85);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      height:var(--header-height);
+      background:rgba(5,5,5,0.88);
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(255,255,255,0.08);
       display:flex; align-items:center; justify-content:space-between;
-      padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+      padding:0 max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left));
       z-index:1000;
     }
-    .site-header .logo{ color:var(--accent); font-size:18px; font-weight:900; letter-spacing:-0.02em; }
-    .nav-container { display:flex; align-items:center; gap:18px; }
+    .site-header .logo{
+      color:var(--accent); font-size:18px; font-weight:900;
+      letter-spacing:-0.02em; cursor:pointer;
+      display:flex; align-items:center; gap:8px;
+    }
+    .logo-dot{
+      width:7px; height:7px; border-radius:50%;
+      background:var(--accent);
+      box-shadow:0 0 8px var(--accent);
+      animation:logoPulse 2s infinite;
+    }
+    @keyframes logoPulse{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.8)} }
+
+    .nav-container{ display:flex; align-items:center; gap:14px; }
     .site-header nav{ display:flex; gap:18px; align-items:center; }
-    .site-header nav a{ color:var(--text-muted); font-weight:700; font-size:13px; transition:color .2s; text-transform:uppercase; letter-spacing:.05em; }
-    .site-header nav a:hover, .site-header nav a.active{ color:var(--text); }
+    .site-header nav a{
+      color:var(--text-muted); font-weight:700; font-size:13px;
+      transition:color .2s; text-transform:uppercase; letter-spacing:.05em;
+      cursor:pointer; position:relative; padding-bottom:2px;
+    }
+    .site-header nav a::after{
+      content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px;
+      background:var(--accent); border-radius:2px;
+      transform:scaleX(0); transition:transform .25s;
+    }
+    .site-header nav a:hover{ color:var(--text); }
+    .site-header nav a:hover::after, .site-header nav a.active::after{ transform:scaleX(1); }
+    .site-header nav a.active{ color:var(--text); }
 
     body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
-    body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
+    body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup, body.invert-mode #errorToast{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
 
-    /* FIX #1 continued: same 100vh → 100dvh fallback on #appWrapper */
     #appWrapper{
       position:relative; width:100vw;
-      height:100vh; height:100dvh;
+      height:100vh; height:100svh; height:100dvh;
       transform-origin:center center;
       transition:transform 0.4s cubic-bezier(0.25,1,0.5,1);
       overflow:hidden;
     }
-    .bg-glow{ position:absolute; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index:0; }
+    #appWrapper.forced-landscape{ width:100dvh; height:100vw; position:absolute; top:50%; left:50%; margin-top:-50vw; margin-left:-50dvh; }
+    .bg-glow{ position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index:0; }
 
+    /* ===== TOP BAR ===== */
     .top{
       position:absolute; top:var(--header-height); left:0; right:0;
       padding:calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
@@ -104,34 +126,22 @@
     }
     .btn-icon{ padding:10px; font-weight:950; color:var(--accent); width:38px; height:38px; }
     .btn-icon:active, .back:active{ transform:scale(0.96); }
-    .back{ color:rgba(255,255,255,0.92); font-weight:800; font-size:14px; cursor:pointer;}
+    .back{ color:rgba(255,255,255,0.92); font-weight:800; font-size:14px; cursor:pointer; }
     .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
     .pill b{ color:#fff; letter-spacing:0.1em; font-weight:950; }
 
-    /* FIX #2: Scroll container must have an explicit height so height:100%
-       on children resolves correctly. Use calc(100vh - ...) as the primary
-       value and calc(100dvh - ...) as the preferred value.                */
+    /* ===== SCROLL / SECTIONS ===== */
     .scroll-container{
-      position:absolute;
-      top:var(--header-height);
-      left:0; right:0; bottom:0;
-      /* Explicit height fallback — critical for Android Chrome < 108 */
-      height: calc(100vh - var(--header-height));
-      height: calc(100dvh - var(--header-height));
+      position:absolute; top:var(--header-height); left:0; right:0; bottom:0;
       overflow-y:auto; overflow-x:hidden;
       scroll-snap-type:y mandatory; scroll-behavior:smooth;
       -webkit-overflow-scrolling:touch; z-index:10;
+      height:calc(100% - var(--header-height));
     }
     .scroll-container::-webkit-scrollbar{ display:none; }
 
-    /* FIX #3: section-wrapper also needs vh fallback, and min-height so
-       it never collapses if percentage resolution is broken.              */
     .section-wrapper{
-      /* Fallback first, then dvh override */
-      height: calc(100vh - var(--header-height));
-      height: calc(100dvh - var(--header-height));
-      min-height: 400px;   /* safety floor so content never vanishes */
-      width:100%;
+      height:100%; width:100%;
       scroll-snap-align:start; scroll-snap-stop:always;
       display:flex; flex-direction:column; justify-content:center; align-items:center;
       padding:calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(120px + var(--safeBottom)) calc(16px + var(--safeLeft));
@@ -150,8 +160,6 @@
       opacity:0.3; transform:scale(0.92) translateY(30px);
       transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
     }
-    /* FIX #4: Also show first section card fully on load before observer fires */
-    .section-wrapper:first-child .card,
     .section-wrapper.is-active .card{ opacity:1; transform:scale(1) translateY(0); }
 
     .cardHeader{
@@ -160,10 +168,10 @@
       background:rgba(0,0,0,0.3); flex-shrink:0;
     }
     .kicker{ font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; font-weight:950; }
-    .h1{ margin:0; font-size:clamp(22px,5vw,28px); line-height:1.3; letter-spacing:-0.01em; font-weight:950; }
+    .h1{ margin:0; font-size:clamp(22px,5vw,28px); line-height:1.3; letter-spacing:-0.01em; font-weight:900; }
     .cardBody{ padding:24px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; }
 
-    .big{ font-size:clamp(28px,6vw,46px); line-height:1.12; font-weight:950; letter-spacing:-0.03em; margin:0 0 18px; }
+    .big{ font-size:clamp(28px,6vw,46px); line-height:1.12; font-weight:900; letter-spacing:-0.03em; margin:0 0 18px; }
     .big .r, .r{ background:linear-gradient(135deg,#ff6b6b,#ff2a2a); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
     .lead{ font-size:17px; line-height:1.65; color:rgba(255,255,255,0.85); margin:0 0 16px; }
     .qt{ margin:18px 0 10px; padding:14px 18px; border-left:3px solid var(--accent); background:linear-gradient(90deg,var(--accent-glow),transparent); border-radius:0 12px 12px 0; color:rgba(255,255,255,0.95); line-height:1.65; font-size:15px; font-style:italic; }
@@ -175,28 +183,85 @@
     .steps{ display:flex; flex-direction:column; gap:16px; margin:16px 0; }
     .step{ display:flex; gap:14px; align-items:flex-start; }
     .step-num{ flex-shrink:0; width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-weight:950; font-size:14px; display:flex; align-items:center; justify-content:center; }
-    .step-title{ font-weight:950; font-size:15px; color:#fff; margin-bottom:4px; }
+    .step-title{ font-weight:900; font-size:15px; color:#fff; margin-bottom:4px; }
     .step-desc{ font-size:14px; color:rgba(255,255,255,0.72); line-height:1.6; }
 
     .sg{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
     .sn{ background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px 10px; text-align:center; }
-    .sv{ font-size:22px; font-weight:950; color:#fff; line-height:1.1; letter-spacing:-0.02em; }
+    .sv{ font-size:22px; font-weight:900; color:#fff; line-height:1.1; letter-spacing:-0.02em; }
     .slbl{ font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin-top:6px; }
 
-    .cp{
-      display:flex; align-items:center; justify-content:center;
+    /* ===== WHATSAPP CTA ===== */
+    .wa-cta{
+      display:flex; align-items:center; gap:12px;
+      padding:16px 22px; border-radius:18px; border:none;
+      background:linear-gradient(135deg, #128C7E, #25D366);
+      color:#fff; font-weight:900; font-size:16px;
+      cursor:pointer; width:100%; position:relative; overflow:hidden;
+      box-shadow:0 10px 32px rgba(37,211,102,0.35);
+      transition:transform .2s, filter .2s, box-shadow .2s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .wa-cta:active{ transform:scale(0.97); filter:brightness(1.05); box-shadow:0 5px 16px rgba(37,211,102,0.2); }
+    .wa-cta .wa-icon{ font-size:22px; flex-shrink:0; }
+    .wa-cta .wa-text{ flex:1; text-align:left; }
+    .wa-cta .wa-sub{ font-size:12px; font-weight:600; opacity:0.85; display:block; margin-top:2px; }
+    .wa-cta .wa-arr{ font-size:18px; opacity:0.8; }
+    .wa-cta .wa-pulse{
+      position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation:waSweep 2.5s infinite;
+    }
+    @keyframes waSweep{ 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+    .red-cta{
+      display:flex; align-items:center; justify-content:center; gap:10px;
       border:none; border-radius:16px;
       background:linear-gradient(135deg,#ff4444,#b80000);
       cursor:pointer; overflow:hidden; position:relative;
       box-shadow:0 8px 28px rgba(255,42,42,0.38);
       transition:transform .2s,filter .2s;
       min-height:54px; width:100%; padding:0;
+      color:#fff; font-weight:900; font-size:15px;
     }
-    .cp:active{ transform:scale(0.97); }
-    .cpulse{ position:absolute; inset:0; background:rgba(255,255,255,0.15); animation:cpa 2s infinite; }
+    .red-cta:active{ transform:scale(0.97); }
+    .cpulse{ position:absolute; inset:0; background:rgba(255,255,255,0.12); animation:cpa 2s infinite; }
     @keyframes cpa{ 0%,100%{opacity:0} 50%{opacity:1} }
-    .ci{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; color:#fff; font-weight:950; font-size:15px; padding:0 24px; }
+    .ci{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; color:#fff; font-weight:900; font-size:15px; padding:0 24px; }
     .ca{ background:rgba(255,255,255,0.2); border-radius:8px; padding:4px 10px; font-size:14px; }
+
+    /* ===== URGENCY BANNER ===== */
+    .urgency-bar{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(245,158,11,0.3);
+      background:rgba(245,158,11,0.08);
+      margin-bottom:14px;
+    }
+    .urgency-dot{ width:8px; height:8px; border-radius:50%; background:#f59e0b; animation:urgPulse 1.4s infinite; flex-shrink:0; }
+    @keyframes urgPulse{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+    .urgency-text{ font-size:13px; color:rgba(255,255,255,0.85); font-weight:700; line-height:1.4; }
+    .urgency-text b{ color:#fbbf24; }
+
+    /* Social proof */
+    .social-proof{
+      display:flex; align-items:center; gap:12px;
+      padding:12px 16px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.07);
+      background:rgba(0,0,0,0.3); margin:12px 0;
+    }
+    .sp-avatars{ display:flex; }
+    .sp-avatar{
+      width:28px; height:28px; border-radius:50%;
+      border:2px solid rgba(0,0,0,0.5);
+      background:linear-gradient(135deg, var(--c1), var(--c2));
+      margin-left:-8px; font-size:11px; font-weight:900;
+      display:flex; align-items:center; justify-content:center;
+      color:#fff;
+    }
+    .sp-avatar:first-child{ margin-left:0; }
+    .sp-text{ font-size:13px; color:rgba(255,255,255,0.7); line-height:1.45; }
+    .sp-text b{ color:#fff; }
 
     /* ===== 3D VIEWER ===== */
     .stl-viewer-wrap{
@@ -210,22 +275,20 @@
     .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; object-fit:contain; }
     .stl-loading{
       position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      font-size:12px; color:rgba(255,255,255,0.45);
+      font-size:12px; color:rgba(255,255,255,0.55);
       letter-spacing:0.12em; text-transform:uppercase;
       pointer-events:none; background:#0a0a0a;
       transition:opacity 0.4s; padding:16px; text-align:center; z-index:5;
+      white-space:pre-line; flex-direction:column; gap:8px;
     }
     .stl-loading.hidden{ opacity:0; pointer-events:none; }
-    /* FIX #5: WebGL fallback message style */
-    .stl-webgl-fallback{
-      position:absolute; inset:0; display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:8px;
-      font-size:13px; color:rgba(255,255,255,0.55);
-      letter-spacing:0.06em; padding:20px; text-align:center; z-index:5;
-      background:#0a0a0a;
+    .stl-load-spinner{
+      width:28px; height:28px; border-radius:50%;
+      border:2.5px solid rgba(255,255,255,0.1);
+      border-top-color:var(--accent);
+      animation:spin 0.8s linear infinite;
     }
-    .stl-webgl-fallback .fallback-icon{ font-size:28px; margin-bottom:4px; }
-    .stl-webgl-fallback b{ color:rgba(255,255,255,0.85); }
+    @keyframes spin{ to{transform:rotate(360deg)} }
     .stl-hint{
       position:absolute; bottom:10px; left:50%;
       transform:translateX(-50%);
@@ -235,23 +298,39 @@
     }
 
     /* ===== LIVE 2D PLATE PREVIEW ===== */
-    .plate-preview-block{ width:100%; margin-bottom:12px; }
+    .plate-preview-block{ width:100%; margin-bottom:14px; }
     .plate-preview-label{
       font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
       color:rgba(255,255,255,0.35); font-weight:700; margin-bottom:8px;
+      display:flex; align-items:center; gap:8px;
     }
-    .plate-canvas-wrap{
+    .preview-live-dot{
+      width:6px; height:6px; border-radius:50%; background:var(--ok);
+      animation:urgPulse 1.4s infinite;
+    }
+    .plate-canvas-outer{
       width:100%; display:flex; align-items:center; justify-content:center;
-      background:rgba(0,0,0,0.3); border-radius:14px; padding:14px;
+      background:repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px;
+      border-radius:16px; padding:18px 14px;
       border:1px solid rgba(255,255,255,0.07);
+      position:relative; overflow:hidden;
     }
+    /* Flash animation on plate update */
+    @keyframes plateFlash{
+      0%{ box-shadow:0 0 0 0 rgba(255,255,255,0.3); }
+      50%{ box-shadow:0 0 0 6px rgba(255,255,255,0); }
+      100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
+    }
+    .plate-flash{ animation:plateFlash 0.35s ease-out; }
+
     #plate2DCanvas{
-      display:block; border-radius:8px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+      display:block; border-radius:10px;
+      box-shadow:0 12px 36px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
       max-width:100%; height:auto;
+      transition:filter 0.15s;
     }
 
-    /* ===== PLATE TEXT INPUT + WARNINGS ===== */
+    /* ===== PLATE TEXT INPUT ===== */
     .plate-input-block{ margin-bottom:12px; }
     .plate-input-label{
       font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
@@ -265,32 +344,51 @@
     }
     .plate-warn{
       display:none; font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
-      padding:4px 10px; border-radius:999px; border:1px solid rgba(245,158,11,0.35);
-      background:rgba(245,158,11,0.12); color:rgba(255,255,255,0.92);
-      white-space:nowrap; gap:6px; align-items:center;
+      padding:4px 10px; border-radius:999px;
+      border:1px solid rgba(245,158,11,0.35); background:rgba(245,158,11,0.12);
+      color:rgba(255,255,255,0.92); white-space:nowrap; gap:6px; align-items:center;
     }
     .plate-warn.show{ display:inline-flex; }
-    .plate-warn .dot{
-      width:8px; height:8px; border-radius:50%; background:var(--warn);
-      box-shadow:0 0 0 3px rgba(245,158,11,0.18);
-    }
+    .plate-warn .dot{ width:8px; height:8px; border-radius:50%; background:var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,0.18); }
 
     .plate-input-row{ display:flex; align-items:center; gap:10px; }
     .plate-text-input{
-      flex:1; min-width:0; height:52px;
-      background:rgba(0,0,0,0.45); border:1.5px solid rgba(255,255,255,0.12);
-      border-radius:14px; color:#fff;
+      flex:1; min-width:0; height:58px;
+      background:rgba(0,0,0,0.5);
+      border:1.5px solid rgba(255,255,255,0.12);
+      border-radius:16px; color:#fff;
       font-family:'Share Tech Mono', 'Courier New', monospace;
-      font-size:20px; font-weight:700; letter-spacing:0.15em;
-      text-align:center; text-transform:uppercase; padding:0 16px; outline:none;
-      transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance:none;
+      font-size:22px; font-weight:700;
+      letter-spacing:0.18em; text-align:center; text-transform:uppercase;
+      padding:0 16px; outline:none;
+      transition:border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      -webkit-appearance:none;
     }
-    .plate-text-input::placeholder{ color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-size:16px; }
-    .plate-text-input:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .plate-text-input::placeholder{ color:rgba(255,255,255,0.18); letter-spacing:0.1em; font-size:16px; }
+    .plate-text-input:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px var(--accent-glow);
+      background:rgba(0,0,0,0.65);
+    }
+    .plate-hint-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .plate-hint-chip{
+      padding:5px 12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.04);
+      font-size:11px; font-family:'Share Tech Mono', monospace;
+      color:rgba(255,255,255,0.5); cursor:pointer;
+      transition:all 0.2s; letter-spacing:0.1em;
+    }
+    .plate-hint-chip:hover, .plate-hint-chip:active{
+      border-color:rgba(255,255,255,0.25);
+      background:rgba(255,255,255,0.1);
+      color:#fff;
+    }
 
     /* ===== COLOR PANEL ===== */
     .stl-color-panel{
-      padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.08);
+      padding:14px; border-radius:16px;
+      border:1px solid rgba(255,255,255,0.08);
       background:rgba(0,0,0,0.22); margin-bottom:12px;
     }
     .color-group{ margin-bottom:14px; }
@@ -298,32 +396,38 @@
     .color-group-header{
       display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
     }
-    .color-group-title{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.4); font-weight:900; }
+    .color-group-title{
+      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.4); font-weight:900;
+    }
     .color-active-badge{ font-size:11px; font-weight:800; color:#fff; letter-spacing:0.05em; display:flex; align-items:center; gap:6px; }
-    .color-active-dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.3); display:inline-block; transition: background 0.25s; }
+    .color-active-dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.3); display:inline-block; transition:background 0.25s; }
 
     .color-swatches{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     .swatch-btn{
       position:relative; width:40px; height:40px; border-radius:50%;
       border:2px solid rgba(255,255,255,0.12); cursor:pointer;
-      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), border-color 0.18s, box-shadow 0.18s;
+      transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1), border-color 0.18s, box-shadow 0.18s;
       flex-shrink:0; -webkit-tap-highlight-color:transparent;
     }
     .swatch-btn:active{ transform:scale(0.9) !important; }
     .swatch-btn.active{
-      border-color: #fff; transform: scale(1.18);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.5);
+      border-color:#fff; transform:scale(1.18);
+      box-shadow:0 0 0 2px rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.5);
     }
     .swatch-btn.active::after{
-      content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      font-size:16px; font-weight:900; color:rgba(255,255,255,0.9); text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      content:'✓'; position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:16px; font-weight:900; color:rgba(255,255,255,0.9);
+      text-shadow:0 1px 3px rgba(0,0,0,0.6);
     }
     .swatch-btn[data-label]::before{
-      content: attr(data-label); position:absolute; top:calc(100% + 5px); left:50%;
-      transform:translateX(-50%); font-size:9px; white-space:nowrap;
-      color:rgba(255,255,255,0.45); font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
-      pointer-events:none;
+      content:attr(data-label);
+      position:absolute; top:calc(100% + 5px); left:50%; transform:translateX(-50%);
+      font-size:9px; white-space:nowrap; color:rgba(255,255,255,0.45);
+      font-weight:700; letter-spacing:0.06em; text-transform:uppercase; pointer-events:none;
     }
+
     .swatch-custom{
       position:relative; width:40px; height:40px; border-radius:50%;
       border:2px dashed rgba(255,255,255,0.25); cursor:pointer; overflow:hidden;
@@ -333,21 +437,19 @@
     }
     .swatch-custom:hover{ border-color:rgba(255,255,255,0.5); transform:scale(1.08); }
     .swatch-custom input[type=color]{
-      position:absolute; inset:0; width:100%; height:100%;
-      opacity:0; cursor:pointer; border:none; padding:0; margin:0;
+      position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:none; padding:0; margin:0;
     }
 
     .color-summary{
       display:flex; align-items:center; gap:8px; padding:10px 14px;
-      background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.07);
-      margin-top:8px; flex-wrap:wrap;
+      background:rgba(0,0,0,0.3); border-radius:12px;
+      border:1px solid rgba(255,255,255,0.07); margin-top:8px; flex-wrap:wrap;
     }
     .cs-item{ display:flex; align-items:center; gap:5px; font-size:11px; color:rgba(255,255,255,0.5); font-weight:700; letter-spacing:0.04em; }
     .cs-dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.2); flex-shrink:0; }
     .cs-sep{ color:rgba(255,255,255,0.15); }
     .cs-val{ color:rgba(255,255,255,0.85); font-weight:900; letter-spacing:0.06em; }
 
-    /* ===== CONTRAST BADGE ===== */
     .contrast-badge{
       margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.26);
@@ -364,39 +466,56 @@
 
     /* ===== BOTTOM NAV ===== */
     .bottom-nav{
-      position:fixed; left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
+      position:fixed;
+      left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
       bottom:calc(10px + var(--safeBottom)); height:64px;
       display:flex; align-items:center; gap:10px; padding:10px;
       border-radius:18px; border:1px solid rgba(255,255,255,0.10);
-      background:rgba(10,10,12,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      background:rgba(10,10,12,0.82);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
       box-shadow:0 18px 60px rgba(0,0,0,0.55); z-index:1200;
     }
     .bn-btn{
-      width:44px; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,0.12);
-      background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.92); font-weight:950;
+      width:44px; height:44px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.06);
+      color:rgba(255,255,255,0.92); font-weight:950;
       display:flex; align-items:center; justify-content:center;
-      transition:transform .2s,opacity .2s; flex-shrink:0;
+      transition:transform .2s, opacity .2s, background .2s; flex-shrink:0;
     }
+    .bn-btn:hover{ background:rgba(255,255,255,0.10); }
     .bn-btn:active{ transform:scale(0.96); }
     .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
     .bn-dots{ flex:1; display:flex; gap:8px; align-items:center; justify-content:center; min-width:0; overflow:hidden; }
     .bn-dot{
-      width:8px; height:8px; border-radius:999px; border:1px solid rgba(255,255,255,0.18);
-      background:rgba(255,255,255,0.10); transition:background .2s,border-color .2s,width .2s; flex-shrink:0;
+      width:8px; height:8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.10);
+      transition:background .2s, border-color .2s, width .2s; flex-shrink:0; cursor:pointer;
     }
+    .bn-dot:hover{ background:rgba(255,255,255,0.25); }
     .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(255,42,42,0.7); }
+
+    /* Bottom nav CTA - switches to WhatsApp green on ORDER section */
     .bn-cta{
       height:44px; padding:0 16px; border-radius:14px; border:none;
-      background:linear-gradient(135deg,#ff4444,#b80000); color:#fff; font-weight:950; letter-spacing:-0.01em;
-      display:flex; align-items:center; gap:10px; box-shadow:0 10px 26px rgba(255,42,42,0.35);
-      transition:transform .2s,filter .2s; white-space:nowrap; flex-shrink:0;
+      background:linear-gradient(135deg,#ff4444,#b80000);
+      color:#fff; font-weight:900; letter-spacing:-0.01em;
+      display:flex; align-items:center; gap:8px;
+      box-shadow:0 10px 26px rgba(255,42,42,0.35);
+      transition:transform .2s, filter .2s, background .35s, box-shadow .35s;
+      white-space:nowrap; flex-shrink:0;
     }
     .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
-    .bn-cta .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.18); }
+    .bn-cta.wa-mode{
+      background:linear-gradient(135deg,#128C7E,#25D366);
+      box-shadow:0 10px 26px rgba(37,211,102,0.35);
+    }
+    .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.2); }
 
+    /* ===== SCROLL HINT ===== */
     .hint{
       position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%;
-      transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px;
+      transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
       color:rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
       pointer-events:none; animation:pulse 2s infinite; z-index:100;
     }
@@ -404,6 +523,7 @@
     @keyframes pulse{ 0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6} 50%{transform:translateX(-50%) translateY(5px);opacity:1} }
     .section-wrapper:last-child .hint{ display:none; }
 
+    /* ===== TOASTS / POPUPS ===== */
     .rotate-popup{
       position:fixed; bottom:80px; left:50%; transform:translateX(-50%) scale(0.9);
       background:var(--accent); color:#fff; padding:12px 24px; border-radius:999px;
@@ -425,34 +545,36 @@
     .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
     .btn-undo{ color:var(--accent); font-weight:950; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(255,42,42,0.15); border-radius:999px; }
 
-    /* ===== FIX #6: Error toast for mobile debug visibility ===== */
-    #errorToast{
-      position:fixed; bottom:calc(80px + var(--safeBottom)); left:50%;
-      transform:translateX(-50%);
-      max-width:calc(100vw - 32px);
-      background:rgba(180,20,20,0.95); border:1px solid rgba(255,80,80,0.4);
-      backdrop-filter:blur(12px); color:#fff;
-      padding:10px 16px; border-radius:14px; font-size:12px; line-height:1.5;
-      box-shadow:0 8px 30px rgba(0,0,0,0.6); z-index:99999;
-      display:none; word-break:break-word; text-align:center;
+    /* ===== ERROR TOAST ===== */
+    .error-toast{
+      position:fixed; left:12px; right:12px;
+      bottom:calc(86px + var(--safeBottom)); z-index:10000;
+      background:rgba(20,20,22,0.96); border:1px solid rgba(255,255,255,0.14);
+      border-left:3px solid var(--accent); border-radius:14px;
+      box-shadow:0 18px 55px rgba(0,0,0,0.55); padding:10px 12px;
+      display:none; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
     }
-    #errorToast.visible{ display:block; }
+    .error-toast.show{ display:block; }
+    .error-toast .row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .error-toast .msg{ font-size:12px; color:rgba(255,255,255,0.92); line-height:1.4; overflow-wrap:anywhere; }
+    .error-toast .close{ flex-shrink:0; width:28px; height:28px; border-radius:10px; border:1px solid rgba(255,255,255,0.16); background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; }
+
+    /* ===== INSTAGRAM ===== */
+    .nav-insta{
+      display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:800;
+      background:linear-gradient(135deg,rgba(240,148,51,0.12),rgba(188,24,136,0.12));
+      transition:all 0.2s; white-space:nowrap; cursor:pointer;
+    }
+    .nav-insta:hover{ border-color:rgba(220,39,67,0.5); background:linear-gradient(135deg,rgba(240,148,51,0.2),rgba(188,24,136,0.2)); }
+    .nav-insta span{
+      background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
 
     @media (max-width: 600px) {
-      .site-header nav { display: none; }
-      .nav-container { justify-content: flex-end; width: 100%; }
-    }
-
-    .nav-insta{
-      display:inline-flex; align-items:center; gap:5px; padding: 5px 11px; border-radius:999px;
-      border: 1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:800;
-      background: linear-gradient(135deg,rgba(240,148,51,0.12),rgba(188,24,136,0.12));
-      transition: all 0.2s; white-space:nowrap;
-    }
-    .nav-insta:hover{ border-color: rgba(220,39,67,0.5); background: linear-gradient(135deg,rgba(240,148,51,0.2),rgba(188,24,136,0.2)); }
-    .nav-insta span{
-      background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      .site-header nav{ display:none; }
+      .nav-container{ justify-content:flex-end; width:100%; }
     }
   </style>
 </head>
@@ -462,7 +584,10 @@
     <div class="bg-glow"></div>
 
     <header class="site-header">
-      <a id="npLogo" class="logo">PrintByDD</a>
+      <a id="npLogo" class="logo">
+        <span class="logo-dot"></span>
+        PrintByDD
+      </a>
       <div class="nav-container">
         <nav>
           <a id="npHome">Home</a>
@@ -478,20 +603,20 @@
           </svg>
           <span>@printbydd</span>
         </a>
-        <button class="btn-icon theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        <button class="btn-icon theme-toggle" aria-label="Toggle theme">☾</button>
       </div>
     </header>
 
     <div class="top">
       <a class="back" id="backBtn">← Back</a>
       <div class="top-actions">
-        <button class="btn-icon theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        <button class="btn-icon theme-toggle" aria-label="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
         <div class="pill"><b id="secLabel">SEC 1/5</b> • <span id="secName">INTRO</span></div>
       </div>
     </div>
 
-    <main class="scroll-container" id="scrollContainer"></main>
+    <main class="scroll-container" id="scrollContainer" aria-label="Sections"></main>
 
     <div class="bottom-nav" id="bottomNav">
       <button class="bn-btn" id="bnPrev" type="button" aria-label="Previous">←</button>
@@ -510,64 +635,62 @@
   </div>
   <div id="rotatePopup" class="rotate-popup"></div>
 
-  <!-- FIX #6: On-screen error toast for mobile visibility -->
-  <div id="errorToast"></div>
+  <div id="errorToast" class="error-toast" role="status" aria-live="polite">
+    <div class="row">
+      <div class="msg" id="errorToastMsg">Error</div>
+      <button class="close" id="errorToastClose" type="button" aria-label="Close">×</button>
+    </div>
+  </div>
 
 <script>
 (function(){
   "use strict";
 
-  // ===== DEBUG MODE =====
-  // Add ?debug=1 to URL to enable lifecycle logging.
-  const DEBUG = /[?&]debug=1/.test(location.search);
-  function dbg(){
-    if(!DEBUG) return;
-    var args = Array.prototype.slice.call(arguments);
-    console.log('[DBG]', new Date().toISOString().slice(11,23), args.join(' '));
-  }
-  dbg('Script started');
+  const DEBUG = (new URLSearchParams(location.search).get("debug") === "1");
+  const dlog = (...a) => { if(DEBUG) console.log("[PBD]", ...a); };
 
-  // ===== ON-SCREEN ERROR TOAST (FIX #6) =====
-  // Displays errors visibly on mobile where DevTools aren't open.
-  var errorToast = document.getElementById('errorToast');
-  var errorToastTimer = null;
+  // ===== Error Toast =====
+  const errorToast = document.getElementById("errorToast");
+  const errorToastMsg = document.getElementById("errorToastMsg");
+  const errorToastClose = document.getElementById("errorToastClose");
+
   function showErrorToast(msg){
-    if(!errorToast) return;
-    errorToast.textContent = '⚠ ' + String(msg).slice(0, 200);
-    errorToast.classList.add('visible');
-    clearTimeout(errorToastTimer);
-    errorToastTimer = setTimeout(function(){ errorToast.classList.remove('visible'); }, 6000);
+    try{
+      if(!errorToast || !errorToastMsg) return;
+      errorToastMsg.textContent = String(msg || "Unknown error");
+      errorToast.classList.add("show");
+      clearTimeout(showErrorToast._t);
+      showErrorToast._t = setTimeout(()=>errorToast.classList.remove("show"), 6500);
+    }catch(e){}
   }
-
-  // Global error handlers — catch anything we missed
-  window.onerror = function(msg, src, line, col, err){
-    var label = (err && err.message) ? err.message : String(msg);
-    showErrorToast('JS Error: ' + label + (line ? ' (L'+line+')' : ''));
-    dbg('window.onerror:', label);
-    return false; // don't suppress
+  if(errorToastClose) errorToastClose.addEventListener("click", ()=>errorToast.classList.remove("show"));
+  window.onerror = function(message, source, lineno, colno, error){
+    showErrorToast((error && error.message) ? error.message : message);
+    return false;
   };
-  window.addEventListener('unhandledrejection', function(e){
-    var reason = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
-    showErrorToast('Unhandled Promise: ' + reason);
-    dbg('unhandledrejection:', reason);
+  window.addEventListener("unhandledrejection", function(ev){
+    const r = ev && ev.reason;
+    showErrorToast((r && r.message) ? r.message : String(r || "Unhandled rejection"));
   });
 
-  // ===== ROUTING =====
+  // ===== Routing =====
   function routeTo(pathHtml, pathStore) {
     return location.hostname === 'store.viadecide.com' ? pathStore : pathHtml;
   }
-  (function applyNavLinks() {
-    var links = {
-      'npLogo':    ['./index.html',               '/printbydd/'],
-      'npHome':    ['./index.html',               '/printbydd/'],
-      'npProducts':['./products.html',            '/printbydd/products'],
-      'npBlog':    ['./gifts-that-mean-more.html','/printbydd/gifts'],
-      'backBtn':   ['./index.html',               '/printbydd/'],
-    };
-    Object.keys(links).forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.href = routeTo(links[id][0], links[id][1]);
-    });
+  (function applyNavLinks(){
+    try{
+      const links = {
+        'npLogo':    ['./index.html', '/printbydd/'],
+        'npHome':    ['./index.html', '/printbydd/'],
+        'npProducts':['./products.html', '/printbydd/products'],
+        'npBlog':    ['./gifts-that-mean-more.html', '/printbydd/gifts'],
+        'backBtn':   ['./index.html', '/printbydd/'],
+      };
+      Object.keys(links).forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.href = routeTo(links[id][0], links[id][1]);
+      });
+    }catch(e){ dlog("nav init error", e); }
   })();
 
   const WA_NUMBER = "916351537770";
@@ -581,184 +704,290 @@
     try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
   }
   (function initTheme(){
-    let s="0"; try{ s = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
-    setInvert(s==="1");
+    try{
+      let s="0"; try{ s = localStorage.getItem(THEME_KEY)||"0"; }catch(e){}
+      setInvert(s==="1");
+    }catch(e){}
   })();
-  themeBtns.forEach(btn => btn.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode"))));
+  themeBtns.forEach(btn => btn.addEventListener("click", ()=>setInvert(!document.body.classList.contains("invert-mode"))));
 
-  // ===== 3D VIEWER STATE =====
+  // ===== 3D STATE =====
   let scene=null, renderer=null, camera=null, group=null;
   let matBase3D=null, matChar3D=null, matBorder3D=null;
   let charGroup3D=null;
   let pointerDown=false, lastX=0, lastY=0, autoRotate=true;
-  let initedCanvasEl = null;
-  let renderToken = 0;
-  let webglSupported = null; // null = unchecked, true/false after detection
+  let initedCanvasEl=null, renderToken=0;
 
-  // ===== WEBGL DETECTION (FIX #5) =====
-  function detectWebGL(){
-    if(webglSupported !== null) return webglSupported;
-    try{
-      const testCanvas = document.createElement('canvas');
-      const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
-      webglSupported = !!(gl && gl instanceof WebGLRenderingContext);
-    }catch(e){
-      webglSupported = false;
-    }
-    dbg('WebGL supported:', webglSupported);
-    return webglSupported;
-  }
-
-  const COLOR_STORAGE_KEY = "PBD_NUMBERPLATE_COLORS_V2";
-  const PLATE_TEXT_KEY = "PBD_PLATE_TEXT_V2";
+  // ===== STORAGE =====
+  const COLOR_KEY = "PBD_NUMBERPLATE_COLORS_V2";
+  const TEXT_KEY = "PBD_PLATE_TEXT_V2";
 
   // ===== INPUT RULES =====
-  const MAX_PLATE_LEN = 18;
+  const MAX_LEN = 18;
   const ALLOWED_RE = /[A-Z0-9 -]/;
 
   function normalizePlateInput(raw){
-    const up = String(raw || "").toUpperCase();
-    let cleaned = "";
-    let removed = 0;
-    for (let i=0;i<up.length;i++){
+    const up = String(raw||"").toUpperCase();
+    let cleaned = "", removed = 0;
+    for(let i=0;i<up.length;i++){
       let ch = up[i];
-      if (ch === "_") ch = "-";
-      if (ALLOWED_RE.test(ch)) cleaned += ch;
-      else if (ch !== "\n" && ch !== "\r" && ch !== "\t") removed++;
+      if(ch==="_") ch="-";
+      if(ALLOWED_RE.test(ch)) cleaned += ch;
+      else if(ch!=="\n"&&ch!=="\r"&&ch!=="\t") removed++;
     }
-    cleaned = cleaned.replace(/\s+/g, " ").trim();
-    if (!cleaned.includes(" ") && /^[A-Z0-9-]+$/.test(cleaned)){
+    cleaned = cleaned.replace(/\s+/g," ").trim();
+    if(!cleaned.includes(" ") && /^[A-Z0-9-]+$/.test(cleaned)){
       const m = cleaned.match(/^([A-Z]{2})(\d{1,2})([A-Z]{1,3})(\d{1,4})$/);
-      if (m) cleaned = [m[1], m[2], m[3], m[4]].join(" ");
+      if(m) cleaned = [m[1],m[2],m[3],m[4]].join(" ");
     }
-    if (cleaned.length > MAX_PLATE_LEN) cleaned = cleaned.slice(0, MAX_PLATE_LEN).trim();
-    return { value: cleaned, removed };
+    if(cleaned.length > MAX_LEN) cleaned = cleaned.slice(0, MAX_LEN).trim();
+    return { value:cleaned, removed };
   }
 
   // ===== COLOR DEFINITIONS =====
   const BASE_COLORS = {
-    black: { hex: 0x0d0d0d, css: '#0d0d0d', label: 'Black' },
-    white: { hex: 0xf0f0f0, css: '#f0f0f0', label: 'White' },
-    gray:  { hex: 0x2a2a2a, css: '#2a2a2a', label: 'Gray'  },
-    blue:  { hex: 0x1a6bd1, css: '#1a6bd1', label: 'Blue'  }
+    black:{ hex:0x0d0d0d, css:'#0d0d0d', label:'Black' },
+    white:{ hex:0xf0f0f0, css:'#f0f0f0', label:'White' },
+    gray: { hex:0x2a2a2a, css:'#2a2a2a', label:'Gray'  },
+    blue: { hex:0x1a6bd1, css:'#1a6bd1', label:'Blue'  }
   };
   const CHAR_COLORS = {
-    white: { hex: 0xf0f0f0, css: '#f0f0f0', label: 'White' },
-    black: { hex: 0x0d0d0d, css: '#0d0d0d', label: 'Black' },
-    red:   { hex: 0xff2a2a, css: '#ff2a2a', label: 'Red'   },
-    gold:  { hex: 0xd4af37, css: '#d4af37', label: 'Gold'  },
-    neon:  { hex: 0x22c55e, css: '#22c55e', label: 'Neon'  }
+    white:{ hex:0xf0f0f0, css:'#f0f0f0', label:'White' },
+    black:{ hex:0x0d0d0d, css:'#0d0d0d', label:'Black' },
+    red:  { hex:0xff2a2a, css:'#ff2a2a', label:'Red'   },
+    gold: { hex:0xd4af37, css:'#d4af37', label:'Gold'  },
+    neon: { hex:0x22c55e, css:'#22c55e', label:'Neon'  }
   };
   const BOUNDARY_COLORS = {
-    red:   { hex: 0xff2a2a, css: '#ff2a2a', label: 'Red'   },
-    black: { hex: 0x0d0d0d, css: '#0d0d0d', label: 'Black' },
-    white: { hex: 0xf0f0f0, css: '#f0f0f0', label: 'White' },
-    blue:  { hex: 0x1a6bd1, css: '#1a6bd1', label: 'Blue'  },
-    steel: { hex: 0x9aa4b2, css: '#9aa4b2', label: 'Steel' }
+    red:  { hex:0xff2a2a, css:'#ff2a2a', label:'Red'   },
+    black:{ hex:0x0d0d0d, css:'#0d0d0d', label:'Black' },
+    white:{ hex:0xf0f0f0, css:'#f0f0f0', label:'White' },
+    blue: { hex:0x1a6bd1, css:'#1a6bd1', label:'Blue'  },
+    steel:{ hex:0x9aa4b2, css:'#9aa4b2', label:'Steel' }
   };
 
-  let customBaseHex = null, customCharHex = null, customBoundaryHex = null;
-  let currentBaseKey = "black";
-  let currentCharKey = "white";
-  let currentBoundaryKey = "red";
+  let customBaseHex=null, customCharHex=null, customBoundaryHex=null;
+  let currentBaseKey="black", currentCharKey="white", currentBoundaryKey="red";
   let plateText = "MH 01 AB 1234";
+  let fontsReady = false;
 
   (function restoreState(){
     try{
-      const s = JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY)||"{}");
-      if(s.base && BASE_COLORS[s.base]) currentBaseKey = s.base;
-      if(s.char && CHAR_COLORS[s.char]) currentCharKey = s.char;
-      if(s.boundary && BOUNDARY_COLORS[s.boundary]) currentBoundaryKey = s.boundary;
-      if(s.customBaseHex) customBaseHex = s.customBaseHex;
-      if(s.customCharHex) customCharHex = s.customCharHex;
-      if(s.customBoundaryHex) customBoundaryHex = s.customBoundaryHex;
-      const pt = localStorage.getItem(PLATE_TEXT_KEY);
-      if(pt){ const n = normalizePlateInput(pt); plateText = n.value || plateText; }
-    }catch(e){ dbg('restoreState error:', e.message); }
+      const s = JSON.parse(localStorage.getItem(COLOR_KEY)||"{}");
+      if(s.base && BASE_COLORS[s.base]) currentBaseKey=s.base;
+      if(s.char && CHAR_COLORS[s.char]) currentCharKey=s.char;
+      if(s.boundary && BOUNDARY_COLORS[s.boundary]) currentBoundaryKey=s.boundary;
+      if(s.customBaseHex) customBaseHex=s.customBaseHex;
+      if(s.customCharHex) customCharHex=s.customCharHex;
+      if(s.customBoundaryHex) customBoundaryHex=s.customBoundaryHex;
+      const pt = localStorage.getItem(TEXT_KEY);
+      if(pt){ const n=normalizePlateInput(pt); plateText=n.value||plateText; }
+    }catch(e){}
   })();
 
   function persistState(){
     try{
-      localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify({
-        base: currentBaseKey, char: currentCharKey, boundary: currentBoundaryKey,
+      localStorage.setItem(COLOR_KEY, JSON.stringify({
+        base:currentBaseKey, char:currentCharKey, boundary:currentBoundaryKey,
         customBaseHex, customCharHex, customBoundaryHex
       }));
-      localStorage.setItem(PLATE_TEXT_KEY, plateText);
+      localStorage.setItem(TEXT_KEY, plateText);
     }catch(e){}
   }
 
-  function getBaseColor(){ return customBaseHex ? parseInt(customBaseHex.replace('#',''), 16) : BASE_COLORS[currentBaseKey].hex; }
-  function getCharColor(){ return customCharHex ? parseInt(customCharHex.replace('#',''), 16) : CHAR_COLORS[currentCharKey].hex; }
-  function getBoundaryColor(){ return customBoundaryHex ? parseInt(customBoundaryHex.replace('#',''), 16) : BOUNDARY_COLORS[currentBoundaryKey].hex; }
-  function getBaseCss(){ return customBaseHex || BASE_COLORS[currentBaseKey].css; }
-  function getCharCss(){ return customCharHex || CHAR_COLORS[currentCharKey].css; }
-  function getBoundaryCss(){ return customBoundaryHex || BOUNDARY_COLORS[currentBoundaryKey].css; }
+  // ===== COLOR GETTERS =====
+  function getBaseColor(){ return customBaseHex ? parseInt(customBaseHex.replace('#',''),16) : BASE_COLORS[currentBaseKey].hex; }
+  function getCharColor(){ return customCharHex ? parseInt(customCharHex.replace('#',''),16) : CHAR_COLORS[currentCharKey].hex; }
+  function getBoundaryColor(){ return customBoundaryHex ? parseInt(customBoundaryHex.replace('#',''),16) : BOUNDARY_COLORS[currentBoundaryKey].hex; }
+  function getBaseCss(){ return customBaseHex||BASE_COLORS[currentBaseKey].css; }
+  function getCharCss(){ return customCharHex||CHAR_COLORS[currentCharKey].css; }
+  function getBoundaryCss(){ return customBoundaryHex||BOUNDARY_COLORS[currentBoundaryKey].css; }
 
   // ===== CONTRAST =====
   function hexToRgb(hex){
-    const h = String(hex || "").replace("#","").trim();
+    const h = String(hex||"").replace("#","").trim();
     if(!/^[0-9a-fA-F]{6}$/.test(h)) return {r:0,g:0,b:0};
-    return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+    return {r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)};
   }
-  function srgbToLin(c){ c=c/255; return (c<=0.03928)?(c/12.92):Math.pow((c+0.055)/1.055,2.4); }
+  function srgbToLin(c){ c=c/255; return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4); }
   function relLuminance(rgb){ return 0.2126*srgbToLin(rgb.r)+0.7152*srgbToLin(rgb.g)+0.0722*srgbToLin(rgb.b); }
-  function contrastRatio(hexA,hexB){
-    const La=relLuminance(hexToRgb(hexA)), Lb=relLuminance(hexToRgb(hexB));
-    return (Math.max(La,Lb)+0.05)/(Math.min(La,Lb)+0.05);
+  function contrastRatio(a,b){
+    const La=relLuminance(hexToRgb(a)), Lb=relLuminance(hexToRgb(b));
+    const L1=Math.max(La,Lb),L2=Math.min(La,Lb); return (L1+0.05)/(L2+0.05);
   }
   function updateContrastUI(){
-    try{
-      const c1=contrastRatio(getBaseCss(),getCharCss());
-      const c2=contrastRatio(getBaseCss(),getBoundaryCss());
-      const score=Math.min(c1,c2);
-      const badge=document.getElementById("contrastScore");
-      const msg=document.getElementById("contrastMsg");
-      if(!badge||!msg) return;
-      badge.textContent=score.toFixed(2)+"×";
-      const good=score>=4.0;
-      badge.classList.toggle("ok",good); badge.classList.toggle("warn",!good);
-      msg.textContent=good?"Readability: Strong contrast.":score>=2.5?"Readability: Medium. Consider higher contrast.":"Readability: Low. Digits may blend in daylight.";
-    }catch(e){}
+    const score = Math.min(contrastRatio(getBaseCss(),getCharCss()), contrastRatio(getBaseCss(),getBoundaryCss()));
+    const badge = document.getElementById("contrastScore");
+    const msg   = document.getElementById("contrastMsg");
+    if(!badge||!msg) return;
+    badge.textContent = score.toFixed(2)+"×";
+    const good = score>=4.0;
+    badge.classList.toggle("ok", good);
+    badge.classList.toggle("warn", !good);
+    if(good) msg.textContent = "Readability: Strong contrast.";
+    else if(score>=2.5) msg.textContent = "Readability: Medium — consider higher contrast.";
+    else msg.textContent = "Readability: Low — digits may blend in daylight.";
   }
 
-  // ===== 2D PLATE CANVAS RENDERER =====
-  function draw2DPlate(){
-    try{
-      const canvas = document.getElementById('plate2DCanvas');
-      if(!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const W=520, H=130;
-      canvas.width=W; canvas.height=H;
-      const base=getBaseCss(), charC=getCharCss(), borderC=getBoundaryCss();
-      const r=18, bw=10;
-      ctx.clearRect(0,0,W,H);
-      ctx.beginPath(); roundRect(ctx,0,0,W,H,r); ctx.fillStyle=borderC; ctx.fill();
-      ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,r-bw*0.7); ctx.fillStyle=base; ctx.fill();
-      const grad=ctx.createLinearGradient(bw,bw,bw,H-bw);
-      grad.addColorStop(0,'rgba(255,255,255,0.06)'); grad.addColorStop(1,'rgba(0,0,0,0.08)');
-      ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,r-bw*0.7); ctx.fillStyle=grad; ctx.fill();
-      drawScrew(ctx,32,H/2,7,borderC); drawScrew(ctx,W-32,H/2,7,borderC);
-      const text=(plateText||'MH 01 AB 1234').toUpperCase();
-      ctx.font=`bold ${Math.min(58,Math.floor(320/Math.max(text.length,4)))}px "Share Tech Mono","Courier New",monospace`;
-      ctx.fillStyle=charC; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=4; ctx.shadowOffsetY=2;
-      ctx.fillText(text,W/2,H/2+1);
-      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-    }catch(e){ dbg('draw2DPlate error:', e.message); }
-  }
-
-  function roundRect(ctx,x,y,w,h,r){
+  // ===== 2D PLATE CANVAS (improved) =====
+  function roundRect(ctx, x, y, w, h, r){
     ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
     ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
     ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
     ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
   }
-  function drawScrew(ctx,x,y,r,color){
-    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,r*0.65,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=1.2;
-    ctx.beginPath(); ctx.moveTo(x-r*0.4,y); ctx.lineTo(x+r*0.4,y);
-    ctx.moveTo(x,y-r*0.4); ctx.lineTo(x,y+r*0.4); ctx.stroke();
+
+  function drawScrew(ctx, x, y, r, borderC){
+    // Shadow
+    ctx.beginPath(); ctx.arc(x,y,r+1,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fill();
+    // Outer ring
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fill();
+    // Cap
+    ctx.beginPath(); ctx.arc(x,y,r*0.68,0,Math.PI*2);
+    ctx.fillStyle=borderC; ctx.fill();
+    // Slot
+    ctx.save();
+    ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=2; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(x-r*0.42,y); ctx.lineTo(x+r*0.42,y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function measureTextFit(ctx, text, maxWidth, startSize, minSize){
+    let size = startSize;
+    ctx.font = `bold ${size}px "Share Tech Mono", "Courier New", monospace`;
+    while(ctx.measureText(text).width > maxWidth && size > minSize){
+      size -= 1;
+      ctx.font = `bold ${size}px "Share Tech Mono", "Courier New", monospace`;
+    }
+    return size;
+  }
+
+  let plateFlashTimer = null;
+  function flashPlateCanvas(){
+    const outer = document.querySelector('.plate-canvas-outer');
+    if(!outer) return;
+    outer.classList.remove('plate-flash');
+    void outer.offsetWidth; // reflow
+    outer.classList.add('plate-flash');
+    clearTimeout(plateFlashTimer);
+    plateFlashTimer = setTimeout(()=>outer.classList.remove('plate-flash'), 400);
+  }
+
+  function draw2DPlate(animate){
+    try{
+      const canvas = document.getElementById('plate2DCanvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if(!ctx) return;
+
+      // Canvas dimensions — realistic plate aspect ~4.3:1
+      const W=560, H=130;
+      canvas.width=W; canvas.height=H;
+
+      const base=getBaseCss(), charC=getCharCss(), borderC=getBoundaryCss();
+      const bw=11, r=16;
+
+      ctx.clearRect(0,0,W,H);
+
+      // ── Outer border (shadow under plate)
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=18; ctx.shadowOffsetY=4;
+      ctx.beginPath(); roundRect(ctx,0,0,W,H,r);
+      ctx.fillStyle=borderC; ctx.fill();
+      ctx.restore();
+
+      // ── Outer border
+      ctx.beginPath(); roundRect(ctx,0,0,W,H,r);
+      ctx.fillStyle=borderC; ctx.fill();
+
+      // ── Border bevel highlight
+      const bevelGrad=ctx.createLinearGradient(0,0,0,H);
+      bevelGrad.addColorStop(0,'rgba(255,255,255,0.15)');
+      bevelGrad.addColorStop(1,'rgba(0,0,0,0.2)');
+      ctx.beginPath(); roundRect(ctx,0,0,W,H,r);
+      ctx.fillStyle=bevelGrad; ctx.fill();
+
+      // ── Base inner plate
+      const ir=r-bw*0.7;
+      ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,ir);
+      ctx.fillStyle=base; ctx.fill();
+
+      // ── Subtle base surface gradient
+      const plateGrad=ctx.createLinearGradient(bw,bw,bw,H-bw);
+      plateGrad.addColorStop(0,'rgba(255,255,255,0.07)');
+      plateGrad.addColorStop(0.5,'rgba(255,255,255,0.0)');
+      plateGrad.addColorStop(1,'rgba(0,0,0,0.1)');
+      ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,ir);
+      ctx.fillStyle=plateGrad; ctx.fill();
+
+      // ── IND strip on left (Indian numberplate convention)
+      const indW=28, indX=bw, indH=H-bw*2, indR=Math.min(ir,6);
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(indX+indR,bw); ctx.lineTo(indX+indW,bw);
+      ctx.lineTo(indX+indW,H-bw); ctx.lineTo(indX+indR,H-bw);
+      ctx.quadraticCurveTo(indX,H-bw,indX,H-bw-indR);
+      ctx.lineTo(indX,bw+indR); ctx.quadraticCurveTo(indX,bw,indX+indR,bw);
+      ctx.closePath();
+      ctx.fillStyle='#000080'; ctx.fill();
+      // IND text
+      ctx.save();
+      ctx.translate(indX+indW/2, bw+indH/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.font='bold 8px "Exo 2", sans-serif';
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('IND', 0, 0);
+      ctx.restore();
+      // Ashoka wheel dot
+      ctx.beginPath(); ctx.arc(indX+indW/2, bw+indH*0.15, 4, 0, Math.PI*2);
+      ctx.fillStyle='#FF9933'; ctx.fill();
+      ctx.restore();
+
+      // ── Screws
+      const screwY=H/2, screwR=7;
+      drawScrew(ctx, bw+indW+14, screwY, screwR, borderC);
+      drawScrew(ctx, W-bw-14, screwY, screwR, borderC);
+
+      // ── Plate number text
+      const text = (plateText||'MH 01 AB 1234').toUpperCase();
+      const SCREW_MARGIN=50; // space taken by IND strip + screws on left
+      const RIGHT_MARGIN=34;
+      const textAreaLeft = bw+indW+SCREW_MARGIN;
+      const textAreaRight = W-bw-RIGHT_MARGIN;
+      const textAreaW = textAreaRight - textAreaLeft;
+
+      // Measure and fit
+      const fontSize = measureTextFit(ctx, text, textAreaW, 58, 18);
+      ctx.font = `bold ${fontSize}px "Share Tech Mono", "Courier New", monospace`;
+      ctx.fillStyle = charC;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Text shadow for embossed look
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,0.45)'; ctx.shadowBlur=3; ctx.shadowOffsetY=2; ctx.shadowOffsetX=1;
+      ctx.fillText(text, textAreaLeft + textAreaW/2, H/2 + 1);
+      ctx.restore();
+
+      // ── Edge highlight (plate rim gloss)
+      ctx.beginPath(); roundRect(ctx,0.5,0.5,W-1,H-1,r);
+      ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1; ctx.stroke();
+
+      if(animate) flashPlateCanvas();
+    }catch(e){
+      if(DEBUG) console.error("[PBD] draw2DPlate failed:", e);
+    }
+  }
+
+  // Redraw after fonts load
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(()=>{ fontsReady=true; draw2DPlate(false); });
+  } else {
+    setTimeout(()=>{ fontsReady=true; draw2DPlate(false); }, 1200);
   }
 
   // ===== UI SYNC =====
@@ -767,118 +996,115 @@
       document.querySelectorAll('[data-base-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-base-key')===currentBaseKey&&!customBaseHex));
       document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-char-key')===currentCharKey&&!customCharHex));
       document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-boundary-key')===currentBoundaryKey&&!customBoundaryHex));
-      const bd=document.getElementById('baseDot'), cd=document.getElementById('charDot'), od=document.getElementById('boundaryDot');
-      if(bd) bd.style.background=getBaseCss(); if(cd) cd.style.background=getCharCss(); if(od) od.style.background=getBoundaryCss();
-      const bl=document.getElementById('baseActiveLbl'), cl=document.getElementById('charActiveLbl'), ol=document.getElementById('boundaryActiveLbl');
-      if(bl) bl.textContent=customBaseHex?'CUSTOM':currentBaseKey.toUpperCase();
-      if(cl) cl.textContent=customCharHex?'CUSTOM':currentCharKey.toUpperCase();
-      if(ol) ol.textContent=customBoundaryHex?'CUSTOM':currentBoundaryKey.toUpperCase();
-      const sbd=document.getElementById('sumBaseDot'), scd=document.getElementById('sumCharDot'), sod=document.getElementById('sumBoundaryDot');
-      const sbv=document.getElementById('sumBaseVal'), scv=document.getElementById('sumCharVal'), sov=document.getElementById('sumBoundaryVal');
-      if(sbd) sbd.style.background=getBaseCss(); if(scd) scd.style.background=getCharCss(); if(sod) sod.style.background=getBoundaryCss();
-      if(sbv) sbv.textContent=customBaseHex?'Custom':BASE_COLORS[currentBaseKey].label;
-      if(scv) scv.textContent=customCharHex?'Custom':CHAR_COLORS[currentCharKey].label;
-      if(sov) sov.textContent=customBoundaryHex?'Custom':BOUNDARY_COLORS[currentBoundaryKey].label;
+
+      const setDot=(id,c)=>{ const el=document.getElementById(id); if(el) el.style.background=c; };
+      setDot('baseDot',getBaseCss()); setDot('charDot',getCharCss()); setDot('boundaryDot',getBoundaryCss());
+      setDot('sumBaseDot',getBaseCss()); setDot('sumCharDot',getCharCss()); setDot('sumBoundaryDot',getBoundaryCss());
+
+      const setTxt=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+      setTxt('baseActiveLbl', customBaseHex?'CUSTOM':currentBaseKey.toUpperCase());
+      setTxt('charActiveLbl', customCharHex?'CUSTOM':currentCharKey.toUpperCase());
+      setTxt('boundaryActiveLbl', customBoundaryHex?'CUSTOM':currentBoundaryKey.toUpperCase());
+      setTxt('sumBaseVal', customBaseHex?'Custom':BASE_COLORS[currentBaseKey].label);
+      setTxt('sumCharVal', customCharHex?'Custom':CHAR_COLORS[currentCharKey].label);
+      setTxt('sumBoundaryVal', customBoundaryHex?'Custom':BOUNDARY_COLORS[currentBoundaryKey].label);
+
       const inp=document.getElementById('plateTextInput');
       if(inp && inp.value.toUpperCase()!==plateText) inp.value=plateText;
       const cnt=document.getElementById('plateCharCount');
-      if(cnt) cnt.textContent=plateText.length+'/'+MAX_PLATE_LEN;
+      if(cnt) cnt.textContent=plateText.length+'/'+MAX_LEN;
+
       updateContrastUI();
-    }catch(e){ dbg('syncColorUI error:', e.message); }
+    }catch(e){}
   }
 
   function applyColors(){
     try{
-      persistState(); syncColorUI(); draw2DPlate();
+      persistState(); syncColorUI(); draw2DPlate(false);
       if(matBase3D){ matBase3D.color.setHex(getBaseColor()); matBase3D.needsUpdate=true; }
       if(matChar3D){ matChar3D.color.setHex(getCharColor()); matChar3D.needsUpdate=true; }
       if(matBorder3D){ matBorder3D.color.setHex(getBoundaryColor()); matBorder3D.needsUpdate=true; }
       if(renderer&&scene&&camera) renderer.render(scene,camera);
-    }catch(e){ dbg('applyColors error:', e.message); }
+    }catch(e){}
   }
 
-  // ===== PUBLIC COLOR SETTERS =====
-  window.setBaseColor = function(key){
-    if(!BASE_COLORS[key]) return;
-    currentBaseKey=key; customBaseHex=null; applyColors();
-  };
-  window.setCharColor = function(key){
-    if(!CHAR_COLORS[key]) return;
-    currentCharKey=key; customCharHex=null; applyColors();
-  };
-  window.setBoundaryColor = function(key){
-    if(!BOUNDARY_COLORS[key]) return;
-    currentBoundaryKey=key; customBoundaryHex=null; applyColors();
-  };
-  window.setCustomBaseColor = function(hex){
-    customBaseHex=hex;
-    document.querySelectorAll('[data-base-key]').forEach(b=>b.classList.remove('active'));
-    applyColors();
-  };
-  window.setCustomCharColor = function(hex){
-    customCharHex=hex;
-    document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.remove('active'));
-    applyColors();
-  };
-  window.setCustomBoundaryColor = function(hex){
-    customBoundaryHex=hex;
-    document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.remove('active'));
-    applyColors();
-  };
+  // ===== COLOR SETTERS =====
+  window.setBaseColor=function(key){ if(!BASE_COLORS[key])return; currentBaseKey=key; customBaseHex=null; applyColors(); };
+  window.setCharColor=function(key){ if(!CHAR_COLORS[key])return; currentCharKey=key; customCharHex=null; applyColors(); };
+  window.setBoundaryColor=function(key){ if(!BOUNDARY_COLORS[key])return; currentBoundaryKey=key; customBoundaryHex=null; applyColors(); };
+  window.setCustomBaseColor=function(hex){ customBaseHex=hex; document.querySelectorAll('[data-base-key]').forEach(b=>b.classList.remove('active')); applyColors(); };
+  window.setCustomCharColor=function(hex){ customCharHex=hex; document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.remove('active')); applyColors(); };
+  window.setCustomBoundaryColor=function(hex){ customBoundaryHex=hex; document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.remove('active')); applyColors(); };
 
-  window.updatePlateText = function(val){
+  // ===== PLATE TEXT UPDATE (improved) =====
+  window.updatePlateText=function(val){
     try{
       const n=normalizePlateInput(val);
       plateText=(n.value||"").toUpperCase();
+
       const inp=document.getElementById('plateTextInput');
-      if(inp) inp.value=plateText;
+      if(inp && document.activeElement!==inp) inp.value=plateText;
+
       const cnt=document.getElementById('plateCharCount');
-      if(cnt) cnt.textContent=plateText.length+'/'+MAX_PLATE_LEN;
+      if(cnt) cnt.textContent=plateText.length+'/'+MAX_LEN;
+
       const warn=document.getElementById("plateWarn");
-      if(warn){ warn.classList.toggle("show",n.removed>0); warn.title=(n.removed>0)?(n.removed+" unsupported characters removed"):""; }
-      draw2DPlate(); rebuild3DChars();
+      if(warn){ warn.classList.toggle("show",n.removed>0); }
+
+      draw2DPlate(true); // animate on text change
+      rebuild3DChars();
       if(renderer&&scene&&camera) renderer.render(scene,camera);
       persistState();
-    }catch(e){ dbg('updatePlateText error:', e.message); }
+    }catch(e){
+      showErrorToast("Input error: "+(e&&e.message?e.message:e));
+    }
   };
 
-  // ===== PROCEDURAL 3D PLATE =====
+  window.setExamplePlate=function(val){
+    const inp=document.getElementById('plateTextInput');
+    if(inp){ inp.value=val; }
+    window.updatePlateText(val);
+  };
+
+  // ===== 3D PROCEDURAL =====
   const PW=5.0, PH=1.15, PD=0.18, BW=0.13;
   const CW=0.27, CH=0.63, ST=0.055, CD=0.10;
 
   function segBoxes(){
     const hH=(CH-ST)/2, qH=CH/4, armH=CH/2-ST*1.6;
     return {
-      T:  {x:0,          y:hH,    w:CW-ST*0.7, h:ST},
-      M:  {x:0,          y:0,     w:CW-ST*0.7, h:ST},
-      B:  {x:0,          y:-hH,   w:CW-ST*0.7, h:ST},
-      TL: {x:-(CW-ST)/2, y:qH,   w:ST, h:armH},
-      TR: {x: (CW-ST)/2, y:qH,   w:ST, h:armH},
-      BL: {x:-(CW-ST)/2, y:-qH,  w:ST, h:armH},
-      BR: {x: (CW-ST)/2, y:-qH,  w:ST, h:armH},
-      CV: {x:0,          y:0,     w:ST, h:CH-ST*1.8},
+      T: {x:0,y:hH,w:CW-ST*0.7,h:ST},
+      M: {x:0,y:0,w:CW-ST*0.7,h:ST},
+      B: {x:0,y:-hH,w:CW-ST*0.7,h:ST},
+      TL:{x:-(CW-ST)/2,y:qH,w:ST,h:armH},
+      TR:{x:(CW-ST)/2,y:qH,w:ST,h:armH},
+      BL:{x:-(CW-ST)/2,y:-qH,w:ST,h:armH},
+      BR:{x:(CW-ST)/2,y:-qH,w:ST,h:armH},
+      CV:{x:0,y:0,w:ST,h:CH-ST*1.8}
     };
   }
 
-  const CHAR_SEGS = {
-    '0':['T','TL','TR','BL','BR','B'], '1':['TR','BR'], '2':['T','TR','M','BL','B'],
-    '3':['T','TR','M','BR','B'], '4':['TL','M','TR','BR'], '5':['T','TL','M','BR','B'],
-    '6':['T','TL','M','BL','BR','B'], '7':['T','TR','BR'], '8':['T','TL','TR','M','BL','BR','B'],
-    '9':['T','TL','TR','M','BR','B'], 'A':['T','TL','TR','M','BL','BR'],
-    'B':['T','TL','TR','M','BL','BR','B'], 'C':['T','TL','BL','B'],
-    'D':['TL','TR','BL','BR','B'], 'E':['T','TL','M','BL','B'], 'F':['T','TL','M','BL'],
-    'G':['T','TL','M','BR','BL','B'], 'H':['TL','TR','M','BL','BR'], 'I':['T','CV','B'],
-    'J':['TR','BR','BL','B'], 'K':['TL','M','BL','TR','BR'], 'L':['TL','BL','B'],
-    'M':['T','TL','TR','BL','BR'], 'N':['TL','TR','BL','BR'], 'O':['T','TL','TR','BL','BR','B'],
-    'P':['T','TL','TR','M'], 'Q':['T','TL','TR','BL','BR','B'], 'R':['T','TL','TR','M','BL'],
-    'S':['T','TL','M','BR','B'], 'T':['T','CV'], 'U':['TL','TR','BL','BR','B'],
-    'V':['TL','TR','BL','BR','B'], 'W':['TL','TR','M','BL','BR'], 'X':['TL','TR','M','BL','BR'],
-    'Y':['TL','TR','M','BR'], 'Z':['T','TR','M','BL','B'], '-':['M'], ' ':[]
+  const CHAR_SEGS={
+    '0':['T','TL','TR','BL','BR','B'],'1':['TR','BR'],'2':['T','TR','M','BL','B'],
+    '3':['T','TR','M','BR','B'],'4':['TL','M','TR','BR'],'5':['T','TL','M','BR','B'],
+    '6':['T','TL','M','BL','BR','B'],'7':['T','TR','BR'],'8':['T','TL','TR','M','BL','BR','B'],
+    '9':['T','TL','TR','M','BR','B'],'A':['T','TL','TR','M','BL','BR'],'B':['T','TL','TR','M','BL','BR','B'],
+    'C':['T','TL','BL','B'],'D':['TL','TR','BL','BR','B'],'E':['T','TL','M','BL','B'],
+    'F':['T','TL','M','BL'],'G':['T','TL','M','BR','BL','B'],'H':['TL','TR','M','BL','BR'],
+    'I':['T','CV','B'],'J':['TR','BR','BL','B'],'K':['TL','M','BL','TR','BR'],
+    'L':['TL','BL','B'],'M':['T','TL','TR','BL','BR'],'N':['TL','TR','BL','BR'],
+    'O':['T','TL','TR','BL','BR','B'],'P':['T','TL','TR','M'],'Q':['T','TL','TR','BL','BR','B'],
+    'R':['T','TL','TR','M','BL'],'S':['T','TL','M','BR','B'],'T':['T','CV'],
+    'U':['TL','TR','BL','BR','B'],'V':['TL','TR','BL','BR','B'],'W':['TL','TR','M','BL','BR'],
+    'X':['TL','TR','M','BL','BR'],'Y':['TL','TR','M','BR'],'Z':['T','TR','M','BL','B'],
+    '-':['M'],' ':[]
   };
 
   function buildCharMeshes(text){
+    const THREE=window.THREE;
+    if(!THREE||!matChar3D) return null;
     const sb=segBoxes();
-    const chars=text.split('');
+    const chars=String(text||"").split('');
     const GAP=0.09, SPACE_W=CW*0.6;
     let totalW=0;
     chars.forEach(c=>{ totalW+=(c===' ')?SPACE_W:CW+GAP; });
@@ -890,8 +1116,7 @@
       const segs=CHAR_SEGS[c]||[];
       segs.forEach(sId=>{
         const s=sb[sId]; if(!s) return;
-        const geo=new THREE.BoxGeometry(s.w,s.h,CD);
-        const mesh=new THREE.Mesh(geo,matChar3D);
+        const mesh=new THREE.Mesh(new THREE.BoxGeometry(s.w,s.h,CD),matChar3D);
         mesh.position.set(x+CW/2+s.x,s.y,PD/2+CD/2);
         grp.add(mesh);
       });
@@ -901,185 +1126,306 @@
   }
 
   function rebuild3DChars(){
-    if(!group||!matChar3D) return;
-    if(charGroup3D){ group.remove(charGroup3D); charGroup3D=null; }
-    charGroup3D=buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
-    group.add(charGroup3D);
+    try{
+      const THREE=window.THREE;
+      if(!THREE||!group||!matChar3D) return;
+      if(charGroup3D){ group.remove(charGroup3D); charGroup3D=null; }
+      charGroup3D=buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
+      if(charGroup3D) group.add(charGroup3D);
+    }catch(e){}
   }
 
   function buildProceduralPlate(){
+    const THREE=window.THREE;
+    if(!THREE) throw new Error("Three.js not available.");
     while(group.children.length) group.remove(group.children[0]);
     charGroup3D=null;
-    matBase3D   = new THREE.MeshStandardMaterial({color:getBaseColor(),     roughness:0.62, metalness:0.06});
-    matChar3D   = new THREE.MeshStandardMaterial({color:getCharColor(),     roughness:0.42, metalness:0.10});
-    matBorder3D = new THREE.MeshStandardMaterial({color:getBoundaryColor(), roughness:0.55, metalness:0.12});
-    const baseMesh=new THREE.Mesh(new THREE.BoxGeometry(PW,PH,PD),matBase3D);
-    group.add(baseMesh);
-    const borderParts=[
-      {w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:PH/2+BW/2},{w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:-PH/2-BW/2},
-      {w:BW,h:PH,d:PD+0.05,x:-PW/2-BW/2,y:0},{w:BW,h:PH,d:PD+0.05,x:PW/2+BW/2,y:0}
-    ];
-    borderParts.forEach(p=>{
+
+    matBase3D   = new THREE.MeshStandardMaterial({color:getBaseColor(),roughness:0.62,metalness:0.06});
+    matChar3D   = new THREE.MeshStandardMaterial({color:getCharColor(),roughness:0.42,metalness:0.10});
+    matBorder3D = new THREE.MeshStandardMaterial({color:getBoundaryColor(),roughness:0.55,metalness:0.12});
+
+    group.add(new THREE.Mesh(new THREE.BoxGeometry(PW,PH,PD),matBase3D));
+
+    [{w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:PH/2+BW/2},
+     {w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:-PH/2-BW/2},
+     {w:BW,h:PH,d:PD+0.05,x:-PW/2-BW/2,y:0},
+     {w:BW,h:PH,d:PD+0.05,x:PW/2+BW/2,y:0}].forEach(p=>{
       const m=new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d),matBorder3D);
       m.position.set(p.x,p.y,0); group.add(m);
     });
-    const ridgeParts=[{w:PW-BW*0.5,h:0.045,d:0.04,y:PH/2-0.08},{w:PW-BW*0.5,h:0.045,d:0.04,y:-PH/2+0.08}];
-    ridgeParts.forEach(p=>{
+
+    [{w:PW-BW*0.5,h:0.045,d:0.04,y:PH/2-0.08},
+     {w:PW-BW*0.5,h:0.045,d:0.04,y:-PH/2+0.08}].forEach(p=>{
       const m=new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d),matBorder3D);
       m.position.set(0,p.y,PD/2+0.02); group.add(m);
     });
+
     const screwMat=new THREE.MeshStandardMaterial({color:0x222222,roughness:0.85,metalness:0.3});
     [[-PW/2+0.28,0],[PW/2-0.28,0]].forEach(([sx,sy])=>{
       const rec=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,PD+0.06,10),screwMat);
       rec.rotation.x=Math.PI/2; rec.position.set(sx,sy,0); group.add(rec);
       const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.04,10),matBorder3D);
       cap.rotation.x=Math.PI/2; cap.position.set(sx,sy,PD/2+0.02); group.add(cap);
-      const slotMat=new THREE.MeshStandardMaterial({color:0x111111,roughness:0.9});
-      const slot=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.018,0.05),slotMat);
+      const slot=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.018,0.05),new THREE.MeshStandardMaterial({color:0x111111,roughness:0.9}));
       slot.position.set(sx,sy,PD/2+0.045); group.add(slot);
     });
+
     charGroup3D=buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
-    group.add(charGroup3D);
+    if(charGroup3D) group.add(charGroup3D);
+
     group.rotation.x=-0.22; group.rotation.y=0.55;
     const box=new THREE.Box3().setFromObject(group);
     const sz=new THREE.Vector3(); box.getSize(sz);
-    const maxDim=Math.max(sz.x,sz.y)||1;
-    group.scale.setScalar(2.6/maxDim);
+    group.scale.setScalar(2.6/Math.max(sz.x,sz.y)||1);
   }
 
-  // ===== 3D VIEWER INIT (FIX #5: full try/catch + WebGL guard) =====
-  window.initSTLViewer = function(){
-    dbg('initSTLViewer called');
-    const wrap    = document.getElementById('stl-viewer-wrap');
-    const canvas  = document.getElementById('stl-canvas');
-    const loading = document.getElementById('stl-loading');
-    if(!wrap || !canvas){
-      dbg('initSTLViewer: wrap or canvas not found, skipping');
-      return;
-    }
+  function isWebGLAvailable(){
+    try{ const c=document.createElement("canvas"); return !!(window.WebGLRenderingContext&&(c.getContext("webgl")||c.getContext("experimental-webgl"))); }catch(e){ return false; }
+  }
 
-    // FIX #5: Check WebGL BEFORE touching Three.js
-    if(!detectWebGL()){
-      dbg('initSTLViewer: WebGL not available, showing fallback');
-      // Show friendly fallback — ordering still works
-      if(loading) loading.classList.add('hidden');
-      // Remove canvas so it doesn't take space
-      if(canvas) canvas.style.display='none';
-      // Inject fallback message
-      const existing = wrap.querySelector('.stl-webgl-fallback');
-      if(!existing){
-        const fb = document.createElement('div');
-        fb.className = 'stl-webgl-fallback';
-        fb.innerHTML = '<div class="fallback-icon">🎨</div><b>3D Preview unavailable</b><div style="margin-top:6px;font-size:12px;opacity:.7">Your browser doesn\'t support WebGL.<br>Use the 2D preview below to choose colors.</div>';
-        wrap.appendChild(fb);
-      }
-      applyColors();
-      return;
-    }
-
-    if(initedCanvasEl===canvas && renderer && scene && camera){
-      dbg('initSTLViewer: already inited, reapplying colors');
-      applyColors(); return;
-    }
+  window.initSTLViewer=function(){
+    const wrap=document.getElementById('stl-viewer-wrap');
+    const canvas=document.getElementById('stl-canvas');
+    const loading=document.getElementById('stl-loading');
+    if(!wrap||!canvas) return;
+    if(!window.THREE){ if(loading) loading.textContent="3D preview unavailable.\n2D preview still works."; return; }
+    if(!isWebGLAvailable()){ if(loading) loading.textContent="3D preview unavailable on this device.\n2D preview still works."; return; }
+    if(initedCanvasEl===canvas&&renderer&&scene&&camera){ applyColors(); return; }
 
     renderToken++;
-    const myToken = renderToken;
+    const myToken=renderToken;
+    try{ if(renderer) renderer.dispose(); }catch(e){}
+    scene=null; camera=null; group=null; matBase3D=null; matChar3D=null; matBorder3D=null; charGroup3D=null;
+    renderer=null; initedCanvasEl=canvas;
 
-    // FIX #5: Wrap entire Three.js init in try/catch
+    const W=wrap.clientWidth||320, H=220;
     try{
-      try{ if(renderer) renderer.dispose(); }catch(e){}
-      scene=null; camera=null; group=null;
-      matBase3D=null; matChar3D=null; matBorder3D=null; charGroup3D=null;
-      renderer=null; initedCanvasEl=canvas;
-
-      const W=wrap.clientWidth||320, H=220;
-      renderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+      renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:"high-performance"});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
       renderer.setSize(W,H,false);
-      renderer.shadowMap.enabled=true;
-
-      scene=new THREE.Scene();
-      camera=new THREE.PerspectiveCamera(42,W/H,0.1,1000);
-      camera.position.set(0,0.3,5.5); camera.lookAt(0,0,0);
-
-      scene.add(new THREE.AmbientLight(0xffffff,0.60));
-      const d1=new THREE.DirectionalLight(0xffffff,1.1); d1.position.set(3,4,3); scene.add(d1);
-      const d2=new THREE.DirectionalLight(0xffffff,0.40); d2.position.set(-3,-1,-2); scene.add(d2);
-      const d3=new THREE.DirectionalLight(0xffffff,0.25); d3.position.set(0,-3,2); scene.add(d3);
-
-      group=new THREE.Group(); scene.add(group);
-      buildProceduralPlate();
-
-      if(loading) loading.classList.add('hidden');
-      dbg('initSTLViewer: 3D scene built successfully');
-
-      function onDown(e){ pointerDown=true; autoRotate=false; const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY; }
-      function onMove(e){ if(!pointerDown||!group) return; const t=e.touches?e.touches[0]:e; group.rotation.y+=(t.clientX-lastX)*0.012; group.rotation.x+=(t.clientY-lastY)*0.008; lastX=t.clientX; lastY=t.clientY; }
-      function onUp(){ pointerDown=false; }
-      wrap.onpointerdown=onDown; wrap.onpointermove=onMove; window.onpointerup=onUp;
-
-      window.addEventListener('resize',()=>{
-        if(!wrap||!renderer||!camera) return;
-        const w=wrap.clientWidth||320;
-        renderer.setSize(w,220,false); camera.aspect=w/220; camera.updateProjectionMatrix();
-        renderer.render(scene,camera);
-      });
-
-      (function animate(){
-        if(myToken!==renderToken) return;
-        requestAnimationFrame(animate);
-        if(autoRotate&&group) group.rotation.y+=0.006;
-        if(renderer&&scene&&camera) renderer.render(scene,camera);
-      })();
-
-      applyColors();
-    }catch(err){
-      // FIX #5: WebGL init failed — show fallback instead of blank/broken state
-      dbg('initSTLViewer error:', err.message);
-      showErrorToast('3D viewer error: '+err.message);
-      renderer=null; scene=null; camera=null; group=null;
-      if(loading) loading.classList.add('hidden');
-      if(canvas) canvas.style.display='none';
-      const existing=wrap.querySelector('.stl-webgl-fallback');
-      if(!existing){
-        const fb=document.createElement('div');
-        fb.className='stl-webgl-fallback';
-        fb.innerHTML='<div class="fallback-icon">⚠️</div><b>3D preview failed to load</b><div style="margin-top:6px;font-size:12px;opacity:.7">Use the 2D preview to choose your colors.<br>Ordering still works normally!</div>';
-        wrap.appendChild(fb);
-      }
-      applyColors();
+    }catch(e){
+      if(loading) loading.textContent="3D preview unavailable.\n(WebGL init failed)\n2D preview still works."; return;
     }
+
+    scene=new THREE.Scene();
+    camera=new THREE.PerspectiveCamera(42,W/H,0.1,1000);
+    camera.position.set(0,0.3,5.5); camera.lookAt(0,0,0);
+    scene.add(new THREE.AmbientLight(0xffffff,0.60));
+    const d1=new THREE.DirectionalLight(0xffffff,1.1); d1.position.set(3,4,3); scene.add(d1);
+    const d2=new THREE.DirectionalLight(0xffffff,0.40); d2.position.set(-3,-1,-2); scene.add(d2);
+    const d3=new THREE.DirectionalLight(0xffffff,0.25); d3.position.set(0,-3,2); scene.add(d3);
+
+    group=new THREE.Group(); scene.add(group);
+    try{ buildProceduralPlate(); }catch(e){
+      if(loading) loading.textContent="3D preview unavailable.\n2D preview still works."; return;
+    }
+    if(loading) loading.classList.add('hidden');
+
+    function onDown(e){ pointerDown=true; autoRotate=false; const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY; }
+    function onMove(e){ if(!pointerDown||!group) return; const t=e.touches?e.touches[0]:e; group.rotation.y+=(t.clientX-lastX)*0.012; group.rotation.x+=(t.clientY-lastY)*0.008; lastX=t.clientX; lastY=t.clientY; }
+    function onUp(){ pointerDown=false; }
+    wrap.addEventListener("pointerdown",onDown); wrap.addEventListener("pointermove",onMove); window.addEventListener("pointerup",onUp);
+
+    window.addEventListener('resize',()=>{
+      try{ if(!wrap||!renderer||!camera) return; const w=wrap.clientWidth||320; renderer.setSize(w,220,false); camera.aspect=w/220; camera.updateProjectionMatrix(); renderer.render(scene,camera); }catch(e){}
+    });
+
+    (function animate(){
+      if(myToken!==renderToken) return;
+      requestAnimationFrame(animate);
+      if(autoRotate&&group) group.rotation.y+=0.006;
+      if(renderer&&scene&&camera) renderer.render(scene,camera);
+    })();
+    applyColors();
+  };
+
+  // ===== CUSTOMIZE HTML =====
+  function buildCustomizeHTML(){
+    return `
+      <div id="stl-viewer-wrap" class="stl-viewer-wrap">
+        <canvas id="stl-canvas"></canvas>
+        <div class="stl-loading" id="stl-loading">
+          <div class="stl-load-spinner"></div>
+          Loading 3D Preview…
+        </div>
+        <div class="stl-hint">Drag to rotate</div>
+      </div>
+
+      <div class="plate-preview-block">
+        <div class="plate-preview-label">
+          <span class="preview-live-dot"></span>
+          Live Preview
+        </div>
+        <div class="plate-canvas-outer">
+          <canvas id="plate2DCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="plate-input-block">
+        <div class="plate-input-label">
+          <span>Your Registration Number</span>
+          <span class="plate-meta">
+            <span class="plate-warn" id="plateWarn"><span class="dot"></span>Cleaned</span>
+            <span class="plate-char-count" id="plateCharCount">${plateText.length}/${MAX_LEN}</span>
+          </span>
+        </div>
+        <div class="plate-input-row">
+          <input
+            type="text"
+            id="plateTextInput"
+            class="plate-text-input"
+            maxlength="${MAX_LEN}"
+            placeholder="MH 01 AB 1234"
+            value="${plateText}"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            oninput="updatePlateText(this.value)"
+          >
+        </div>
+        <div class="plate-hint-chips">
+          <span class="plate-hint-chip" onclick="setExamplePlate('MH 01 AB 1234')">MH 01 AB 1234</span>
+          <span class="plate-hint-chip" onclick="setExamplePlate('DL 4C AZ 0001')">DL 4C AZ 0001</span>
+          <span class="plate-hint-chip" onclick="setExamplePlate('KA 09 MF 9999')">KA 09 MF 9999</span>
+        </div>
+        <p style="margin:8px 2px 0;font-size:11px;color:rgba(255,255,255,0.25);line-height:1.55;">
+          Allowed: A–Z, 0–9, space, hyphen. Unsupported characters are cleaned automatically.
+        </p>
+      </div>
+
+      <div class="stl-color-panel">
+        <div class="color-group">
+          <div class="color-group-header">
+            <div class="color-group-title">Base / Background</div>
+            <div class="color-active-badge"><span class="color-active-dot" id="baseDot" style="background:${getBaseCss()}"></span><span id="baseActiveLbl">${customBaseHex?'CUSTOM':currentBaseKey.toUpperCase()}</span></div>
+          </div>
+          <div class="color-swatches">
+            ${Object.entries(BASE_COLORS).map(([k,v])=>`<button class="swatch-btn ${currentBaseKey===k&&!customBaseHex?'active':''}" data-base-key="${k}" style="background:${v.css}" data-label="${v.label}" onclick="setBaseColor('${k}')" title="${v.label}"></button>`).join('')}
+            <div class="swatch-custom" title="Custom color"><span>+</span><input type="color" value="${customBaseHex||getBaseCss()}" oninput="setCustomBaseColor(this.value)"></div>
+          </div>
+        </div>
+
+        <div class="color-group">
+          <div class="color-group-header">
+            <div class="color-group-title">Characters (Top Surface)</div>
+            <div class="color-active-badge"><span class="color-active-dot" id="charDot" style="background:${getCharCss()}"></span><span id="charActiveLbl">${customCharHex?'CUSTOM':currentCharKey.toUpperCase()}</span></div>
+          </div>
+          <div class="color-swatches">
+            ${Object.entries(CHAR_COLORS).map(([k,v])=>`<button class="swatch-btn ${currentCharKey===k&&!customCharHex?'active':''}" data-char-key="${k}" style="background:${v.css}" data-label="${v.label}" onclick="setCharColor('${k}')" title="${v.label}"></button>`).join('')}
+            <div class="swatch-custom" title="Custom color"><span>+</span><input type="color" value="${customCharHex||getCharCss()}" oninput="setCustomCharColor(this.value)"></div>
+          </div>
+        </div>
+
+        <div class="color-group">
+          <div class="color-group-header">
+            <div class="color-group-title">Boundary-Height (Edge Walls)</div>
+            <div class="color-active-badge"><span class="color-active-dot" id="boundaryDot" style="background:${getBoundaryCss()}"></span><span id="boundaryActiveLbl">${customBoundaryHex?'CUSTOM':currentBoundaryKey.toUpperCase()}</span></div>
+          </div>
+          <div class="color-swatches">
+            ${Object.entries(BOUNDARY_COLORS).map(([k,v])=>`<button class="swatch-btn ${currentBoundaryKey===k&&!customBoundaryHex?'active':''}" data-boundary-key="${k}" style="background:${v.css}" data-label="${v.label}" onclick="setBoundaryColor('${k}')" title="${v.label}"></button>`).join('')}
+            <div class="swatch-custom" title="Custom color"><span>+</span><input type="color" value="${customBoundaryHex||getBoundaryCss()}" oninput="setCustomBoundaryColor(this.value)"></div>
+          </div>
+        </div>
+
+        <div class="color-summary">
+          <div class="cs-item"><div class="cs-dot" id="sumBaseDot" style="background:${getBaseCss()}"></div>Base: <span class="cs-val" id="sumBaseVal">${customBaseHex?'Custom':BASE_COLORS[currentBaseKey].label}</span></div>
+          <div class="cs-sep">·</div>
+          <div class="cs-item"><div class="cs-dot" id="sumCharDot" style="background:${getCharCss()}"></div>Chars: <span class="cs-val" id="sumCharVal">${customCharHex?'Custom':CHAR_COLORS[currentCharKey].label}</span></div>
+          <div class="cs-sep">·</div>
+          <div class="cs-item"><div class="cs-dot" id="sumBoundaryDot" style="background:${getBoundaryCss()}"></div>Border: <span class="cs-val" id="sumBoundaryVal">${customBoundaryHex?'Custom':BOUNDARY_COLORS[currentBoundaryKey].label}</span></div>
+        </div>
+
+        <div class="contrast-badge" aria-live="polite">
+          <div class="contrast-left">
+            <div class="contrast-title">Readability Check</div>
+            <div class="contrast-msg" id="contrastMsg">—</div>
+          </div>
+          <div class="contrast-score warn" id="contrastScore">—</div>
+        </div>
+      </div>
+
+      <button class="wa-cta" onclick="orderOnWhatsApp()" style="margin-top:4px;">
+        <div class="wa-pulse"></div>
+        <span class="wa-icon">📲</span>
+        <div class="wa-text">
+          Order on WhatsApp
+          <span class="wa-sub">Tap to send your specs instantly</span>
+        </div>
+        <span class="wa-arr">→</span>
+      </button>
+
+      <p style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.25);line-height:1.6;text-align:center;">
+        Tap any colour or use + to pick a custom shade. Preview updates live.
+      </p>
+    `;
+  }
+
+  // ===== ORDER =====
+  window.orderOnWhatsApp=function(){
+    const msg=`Hi! I want to order the 3D Numberplate.
+
+Plate Number: ${plateText}
+
+Selected Colors:
+- Base: ${customBaseHex?'Custom ('+customBaseHex+')':currentBaseKey.toUpperCase()}
+- Characters: ${customCharHex?'Custom ('+customCharHex+')':currentCharKey.toUpperCase()}
+- Boundary-height: ${customBoundaryHex?'Custom ('+customBoundaryHex+')':currentBoundaryKey.toUpperCase()}
+
+(Please share next steps + pricing.)`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
   };
 
   // ===== CONTENT =====
-  const SECTIONS = [
+  const SECTIONS=[
     {
-      name:"INTRO", kicker:"CUSTOM NUMBERPLATE",
-      title:{ en:"A numberplate that looks like <span class='r'>design</span>—not plastic.", hi:"ऐसी numberplate जो <span class='r'>design</span> लगे — प्लास्टिक नहीं।" },
+      name:"INTRO", kicker:"CUSTOM 3D NUMBERPLATE",
+      title:{en:"A plate that looks like <span class='r'>design</span> — not plastic.",hi:"ऐसी numberplate जो <span class='r'>design</span> लगे — प्लास्टिक नहीं।"},
       html:{
         en:()=>`
           <p class="big">Clean type. Sharp edges. <span class="r">Two-tone</span> finish.</p>
           <p class="lead">A 3D printed numberplate for people who want their vehicle details to look engineered — not generic.</p>
-          <div class="qt">Pick character color + boundary-height color. Preview it in 3D. Then order.</div>
+          <div class="qt">Pick your colors. Preview in 3D. Order on WhatsApp.</div>
           <ul class="ul">
             <li><b>Two-tone control:</b> Characters and boundary-height can be different colors.</li>
             <li><b>Readable:</b> Clean separation keeps digits crisp in real life.</li>
             <li><b>Practical:</b> Designed to survive day-to-day use.</li>
-          </ul>`,
+          </ul>
+          <div class="social-proof">
+            <div class="sp-avatars">
+              <div class="sp-avatar" style="--c1:#ff6b6b;--c2:#b80000">R</div>
+              <div class="sp-avatar" style="--c1:#6b9eff;--c2:#1a6bd1">A</div>
+              <div class="sp-avatar" style="--c1:#6bff9e;--c2:#22c55e">K</div>
+            </div>
+            <div class="sp-text"><b>47 orders</b> placed this month via WhatsApp</div>
+          </div>
+          <button class="wa-cta" onclick="scrollToSectionByName('CUSTOMIZE')">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">🎛</span>
+            <div class="wa-text">Customize Your Plate <span class="wa-sub">Preview colors in real-time</span></div>
+            <span class="wa-arr">→</span>
+          </button>`,
         hi:()=>`
           <p class="big">Clean type. Sharp edges. <span class="r">Two-tone</span> finish.</p>
-          <p class="lead">ये 3D printed numberplate उन लोगों के लिए है जो चाहते हैं कि उनका vehicle detail engineered लगे — generic नहीं।</p>
-          <div class="qt">Character color + boundary-height color चुनें. 3D preview देखें. फिर order करें।</div>
+          <p class="lead">ये 3D printed numberplate उन लोगों के लिए है जो चाहते हैं कि उनका vehicle detail engineered लगे।</p>
+          <div class="qt">Color चुनें. 3D preview देखें. WhatsApp से order करें।</div>
           <ul class="ul">
             <li><b>Two-tone control:</b> Characters और boundary अलग रंग में।</li>
             <li><b>Readable:</b> Digit crisp रहता है।</li>
             <li><b>Practical:</b> Daily use के लिए built।</li>
-          </ul>`
+          </ul>
+          <button class="wa-cta" onclick="scrollToSectionByName('CUSTOMIZE')">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">🎛</span>
+            <div class="wa-text">Customize करें <span class="wa-sub">Live preview के साथ</span></div>
+            <span class="wa-arr">→</span>
+          </button>`
       }
     },
     {
       name:"WHY", kicker:"WHY IT WORKS",
-      title:{ en:"Because contrast is readability.", hi:"क्योंकि contrast = readability." },
+      title:{en:"Because contrast is readability.",hi:"क्योंकि contrast = readability."},
       html:{
         en:()=>`
           <p class="lead">Most numberplates fail for one reason: <b>no visual hierarchy</b>. When everything is the same tone, digits blend into the base.</p>
@@ -1094,22 +1440,19 @@
           <div class="steps">
             <div class="step"><div class="step-num">1</div><div><div class="step-title">Base calm रहता है</div><div class="step-desc">Plate surface background है।</div></div></div>
             <div class="step"><div class="step-num">2</div><div><div class="step-title">Characters pop</div><div class="step-desc">Digit faces अलग color में instantly readable।</div></div></div>
-            <div class="step"><div class="step-num">3</div><div><div class="step-title">Boundary-height edges define करता है</div><div class="step-desc">Side walls digits को crisp "cut" look देता है।</div></div></div>
+            <div class="step"><div class="step-num">3</div><div><div class="step-title">Boundary-height edges define करता है</div><div class="step-desc">Side walls digits को crisp look देता है।</div></div></div>
           </div>
           <div class="qt">आप "more plastic" के लिए नहीं — <b>structure</b> के लिए pay कर रहे हो।</div>`
       }
     },
     {
-      name:"CUSTOMIZE", kicker:"3D PREVIEW + COLORS",
-      title:{ en:"Your plate. Your <span class='r'>colors</span>.", hi:"आपकी plate. आपके <span class='r'>रंग</span>." },
-      html:{
-        en:()=>buildCustomizeHTML(),
-        hi:()=>buildCustomizeHTML()
-      }
+      name:"CUSTOMIZE", kicker:"3D PREVIEW + LIVE COLORS",
+      title:{en:"Your plate. Your <span class='r'>colors</span>.",hi:"आपकी plate. आपके <span class='r'>रंग</span>."},
+      html:{en:()=>buildCustomizeHTML(),hi:()=>buildCustomizeHTML()}
     },
     {
       name:"SPECS", kicker:"SPECS + BUILD",
-      title:{ en:"Made to be <span class='r'>seen</span> and handled.", hi:"दिखने के लिए भी, handle होने के लिए भी." },
+      title:{en:"Made to be <span class='r'>seen</span> and handled.",hi:"दिखने के लिए भी, handle होने के लिए भी."},
       html:{
         en:()=>`
           <div class="sg">
@@ -1118,11 +1461,17 @@
             <div class="sn"><div class="sv">Crisp</div><div class="slbl">Edges</div></div>
           </div>
           <ul class="ul" style="margin-top:14px;">
-            <li><b>Characters:</b> colored by top faces (normal ≈ +Z).</li>
-            <li><b>Boundary-height:</b> colored by vertical/angled faces around raised geometry.</li>
-            <li><b>Base:</b> everything below the raised Z-threshold.</li>
+            <li><b>Characters:</b> colored by top faces.</li>
+            <li><b>Boundary-height:</b> colored by edge walls.</li>
+            <li><b>Base:</b> plate background.</li>
           </ul>
-          <div class="qt">Lab tip: if readability matters, keep Base vs Characters high-contrast.</div>`,
+          <div class="qt">Lab tip: keep Base vs Characters high-contrast for max readability.</div>
+          <button class="wa-cta" onclick="scrollToSectionByName('CUSTOMIZE')" style="margin-top:14px;">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">🎨</span>
+            <div class="wa-text">Try the Customizer <span class="wa-sub">See it in your colors</span></div>
+            <span class="wa-arr">→</span>
+          </button>`,
         hi:()=>`
           <div class="sg">
             <div class="sn"><div class="sv">3-Color</div><div class="slbl">Split Preview</div></div>
@@ -1131,154 +1480,64 @@
           </div>
           <ul class="ul" style="margin-top:14px;">
             <li><b>Characters:</b> top faces से color होता है।</li>
-            <li><b>Boundary-height:</b> raised geometry की side walls से।</li>
-            <li><b>Base:</b> raised threshold के नीचे वाला हिस्सा।</li>
+            <li><b>Boundary-height:</b> edge walls से।</li>
+            <li><b>Base:</b> background।</li>
           </ul>
           <div class="qt">Lab tip: readability के लिए Base vs Characters high-contrast रखें।</div>`
       }
     },
     {
-      name:"ORDER", kicker:"READY?",
-      title:{ en:"Lock the look. <span class='r'>Order</span> it.", hi:"Look fix करें. <span class='r'>Order</span> करें." },
+      name:"ORDER", kicker:"READY TO ORDER?",
+      title:{en:"Lock the look. <span class='r'>Order</span> it.",hi:"Look fix करें. <span class='r'>Order</span> करें."},
       html:{
         en:()=>`
+          <div class="urgency-bar">
+            <span class="urgency-dot"></span>
+            <span class="urgency-text"><b>Custom orders open</b> — ships within 3–5 days after confirmation</span>
+          </div>
           <p class="big">Make it <span class="r">yours</span>.</p>
-          <p class="lead">Want the cleanest look? Keep characters high-contrast vs base.</p>
-          <button class="cp" onclick="scrollToSectionByName('CUSTOMIZE')">
-            <span class="cpulse"></span><div class="ci">🎛 Go to Customizer <div class="ca">→</div></div>
+          <p class="lead">Customize your plate first, then order. Your chosen colors + plate number go directly in the WhatsApp message.</p>
+          <button class="wa-cta" onclick="scrollToSectionByName('CUSTOMIZE')" style="margin-bottom:12px;">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">🎛</span>
+            <div class="wa-text">Go to Customizer <span class="wa-sub">Pick colors + preview your plate</span></div>
+            <span class="wa-arr">→</span>
           </button>
-          <button class="cp" style="margin-top:10px; background:linear-gradient(135deg,#111,#000);" onclick="orderOnWhatsApp()">
-            <span class="cpulse" style="opacity:.2"></span><div class="ci">💬 WhatsApp Order <div class="ca">→</div></div>
-          </button>`,
+          <button class="wa-cta" onclick="orderOnWhatsApp()">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">💬</span>
+            <div class="wa-text">Order on WhatsApp Now <span class="wa-sub">Your specs will be pre-filled</span></div>
+            <span class="wa-arr">→</span>
+          </button>
+          <div class="social-proof" style="margin-top:14px;">
+            <div class="sp-avatars">
+              <div class="sp-avatar" style="--c1:#fbbf24;--c2:#d97706">S</div>
+              <div class="sp-avatar" style="--c1:#a78bfa;--c2:#7c3aed">M</div>
+            </div>
+            <div class="sp-text">Most customers complete their order in <b>under 3 minutes</b></div>
+          </div>`,
         hi:()=>`
+          <div class="urgency-bar">
+            <span class="urgency-dot"></span>
+            <span class="urgency-text"><b>Custom orders open</b> — 3–5 days में ship होता है</span>
+          </div>
           <p class="big"><span class="r">Order</span> ready.</p>
           <p class="lead">Customizer पर colors चुनें और WhatsApp से order करें।</p>
-          <button class="cp" onclick="scrollToSectionByName('CUSTOMIZE')">
-            <span class="cpulse"></span><div class="ci">🎛 Customizer <div class="ca">→</div></div>
+          <button class="wa-cta" onclick="scrollToSectionByName('CUSTOMIZE')" style="margin-bottom:12px;">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">🎛</span>
+            <div class="wa-text">Customizer <span class="wa-sub">Colors + live preview</span></div>
+            <span class="wa-arr">→</span>
+          </button>
+          <button class="wa-cta" onclick="orderOnWhatsApp()">
+            <div class="wa-pulse"></div>
+            <span class="wa-icon">💬</span>
+            <div class="wa-text">WhatsApp Order <span class="wa-sub">Specs pre-filled होंगे</span></div>
+            <span class="wa-arr">→</span>
           </button>`
       }
     }
   ];
-
-  // ===== CUSTOMIZE HTML BUILDER =====
-  function buildCustomizeHTML(){
-    return `
-      <div id="stl-viewer-wrap" class="stl-viewer-wrap">
-        <canvas id="stl-canvas"></canvas>
-        <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
-        <div class="stl-hint">Drag to rotate</div>
-      </div>
-      <div class="plate-preview-block">
-        <div class="plate-preview-label">Live Plate Preview</div>
-        <div class="plate-canvas-wrap"><canvas id="plate2DCanvas"></canvas></div>
-      </div>
-      <div class="plate-input-block">
-        <div class="plate-input-label">
-          <span>Your Plate Number</span>
-          <span class="plate-meta">
-            <span class="plate-warn" id="plateWarn"><span class="dot"></span>Unsupported removed</span>
-            <span class="plate-char-count" id="plateCharCount">${plateText.length}/${MAX_PLATE_LEN}</span>
-          </span>
-        </div>
-        <div class="plate-input-row">
-          <input type="text" id="plateTextInput" class="plate-text-input"
-            maxlength="${MAX_PLATE_LEN}" placeholder="MH 01 AB 1234"
-            value="${plateText}" spellcheck="false" autocomplete="off"
-            autocorrect="off" autocapitalize="characters"
-            oninput="updatePlateText(this.value)">
-        </div>
-        <p style="margin:10px 2px 0;font-size:11px;color:rgba(255,255,255,0.28);line-height:1.55;">
-          Allowed: A–Z, 0–9, space, hyphen. We auto-clean unsupported characters.
-        </p>
-      </div>
-      <div class="stl-color-panel">
-        <div class="color-group">
-          <div class="color-group-header">
-            <div class="color-group-title">Base / Background</div>
-            <div class="color-active-badge">
-              <span class="color-active-dot" id="baseDot" style="background:${getBaseCss()}"></span>
-              <span id="baseActiveLbl">${currentBaseKey.toUpperCase()}</span>
-            </div>
-          </div>
-          <div class="color-swatches">
-            ${Object.entries(BASE_COLORS).map(([key,val])=>`
-              <button class="swatch-btn ${currentBaseKey===key&&!customBaseHex?'active':''}"
-                data-base-key="${key}" style="background:${val.css}" data-label="${val.label}"
-                onclick="setBaseColor('${key}')" title="${val.label}"></button>
-            `).join('')}
-            <div class="swatch-custom" title="Custom color"><span>+</span>
-              <input type="color" value="${customBaseHex||getBaseCss()}" oninput="setCustomBaseColor(this.value)" title="Pick custom base color">
-            </div>
-          </div>
-        </div>
-        <div class="color-group">
-          <div class="color-group-header">
-            <div class="color-group-title">Characters (Top Surface)</div>
-            <div class="color-active-badge">
-              <span class="color-active-dot" id="charDot" style="background:${getCharCss()}"></span>
-              <span id="charActiveLbl">${currentCharKey.toUpperCase()}</span>
-            </div>
-          </div>
-          <div class="color-swatches">
-            ${Object.entries(CHAR_COLORS).map(([key,val])=>`
-              <button class="swatch-btn ${currentCharKey===key&&!customCharHex?'active':''}"
-                data-char-key="${key}" style="background:${val.css}" data-label="${val.label}"
-                onclick="setCharColor('${key}')" title="${val.label}"></button>
-            `).join('')}
-            <div class="swatch-custom" title="Custom color"><span>+</span>
-              <input type="color" value="${customCharHex||getCharCss()}" oninput="setCustomCharColor(this.value)" title="Pick custom character color">
-            </div>
-          </div>
-        </div>
-        <div class="color-group">
-          <div class="color-group-header">
-            <div class="color-group-title">Boundary-Height (Edge Walls)</div>
-            <div class="color-active-badge">
-              <span class="color-active-dot" id="boundaryDot" style="background:${getBoundaryCss()}"></span>
-              <span id="boundaryActiveLbl">${currentBoundaryKey.toUpperCase()}</span>
-            </div>
-          </div>
-          <div class="color-swatches">
-            ${Object.entries(BOUNDARY_COLORS).map(([key,val])=>`
-              <button class="swatch-btn ${currentBoundaryKey===key&&!customBoundaryHex?'active':''}"
-                data-boundary-key="${key}" style="background:${val.css}" data-label="${val.label}"
-                onclick="setBoundaryColor('${key}')" title="${val.label}"></button>
-            `).join('')}
-            <div class="swatch-custom" title="Custom color"><span>+</span>
-              <input type="color" value="${customBoundaryHex||getBoundaryCss()}" oninput="setCustomBoundaryColor(this.value)" title="Pick custom boundary color">
-            </div>
-          </div>
-        </div>
-        <div class="color-summary">
-          <div class="cs-item"><div class="cs-dot" id="sumBaseDot" style="background:${getBaseCss()}"></div>Base: <span class="cs-val" id="sumBaseVal">${BASE_COLORS[currentBaseKey].label}</span></div>
-          <div class="cs-sep">·</div>
-          <div class="cs-item"><div class="cs-dot" id="sumCharDot" style="background:${getCharCss()}"></div>Chars: <span class="cs-val" id="sumCharVal">${CHAR_COLORS[currentCharKey].label}</span></div>
-          <div class="cs-sep">·</div>
-          <div class="cs-item"><div class="cs-dot" id="sumBoundaryDot" style="background:${getBoundaryCss()}"></div>Border: <span class="cs-val" id="sumBoundaryVal">${BOUNDARY_COLORS[currentBoundaryKey].label}</span></div>
-        </div>
-        <div class="contrast-badge" aria-live="polite">
-          <div class="contrast-left">
-            <div class="contrast-title">Readability Check</div>
-            <div class="contrast-msg" id="contrastMsg">Readability: —</div>
-          </div>
-          <div class="contrast-score warn" id="contrastScore">—</div>
-        </div>
-      </div>
-      <button class="cp" style="margin-top:14px;" onclick="orderOnWhatsApp()">
-        <span class="cpulse"></span>
-        <div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
-      </button>
-      <p style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.28);line-height:1.6;">
-        Tip: Use the + button to pick any custom colour. The live preview updates instantly.
-      </p>
-    `;
-  }
-
-  // ===== ORDER =====
-  window.orderOnWhatsApp = function(){
-    const msg=`Hi! I want to order the 3D Numberplate.\n\nPlate Number: ${plateText}\n\nSelected Colors:\n- Base: ${customBaseHex?'Custom ('+customBaseHex+')':currentBaseKey.toUpperCase()}\n- Characters: ${customCharHex?'Custom ('+customCharHex+')':currentCharKey.toUpperCase()}\n- Boundary-height: ${customBoundaryHex?'Custom ('+customBoundaryHex+')':currentBoundaryKey.toUpperCase()}\n\n(Please share next steps + pricing.)`;
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
-  };
 
   // ===== NAV / RENDER =====
   const container  = document.getElementById('scrollContainer');
@@ -1290,27 +1549,33 @@
   const bnCta      = document.getElementById('bnCta');
   const bnCtaText  = document.getElementById('bnCtaText');
   const bnCtaTag   = document.getElementById('bnCtaTag');
+
   const CUSTOMIZE_IDX = SECTIONS.findIndex(s=>s.name==="CUSTOMIZE");
-  let currentSecIndex=0;
+  const ORDER_IDX     = SECTIONS.findIndex(s=>s.name==="ORDER");
+  let currentSecIndex = 0;
+  let currentLang = 'en';
 
   function buildBottomDots(){
     if(!bnDots) return;
     bnDots.innerHTML='';
     for(let i=0;i<SECTIONS.length;i++){
       const d=document.createElement('button');
-      d.type='button'; d.className='bn-dot'; d.setAttribute('aria-label',`Section ${i+1}`);
+      d.type='button'; d.className='bn-dot';
+      d.setAttribute('aria-label',`Section ${i+1}`);
       d.addEventListener('click',()=>scrollToIndex(i));
       bnDots.appendChild(d);
     }
   }
 
   function scrollToIndex(i){
-    i=Math.max(0,Math.min(SECTIONS.length-1,i));
-    const el=container.querySelector(`.section-wrapper[data-index="${i}"]`);
-    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+    try{
+      i=Math.max(0,Math.min(SECTIONS.length-1,i));
+      const el=container.querySelector(`.section-wrapper[data-index="${i}"]`);
+      if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(e){ showErrorToast("Scroll failed"); }
   }
 
-  window.scrollToSectionByName = function(name){
+  window.scrollToSectionByName=function(name){
     const idx=SECTIONS.findIndex(s=>s.name===name);
     if(idx>=0) scrollToIndex(idx);
   };
@@ -1319,157 +1584,147 @@
     if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
     if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
     if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
-    if(bnCtaText&&bnCtaTag){
-      if(currentSecIndex===CUSTOMIZE_IDX){ bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
-      else{ bnCtaText.textContent="Customize"; bnCtaTag.textContent="3D"; }
+
+    const isOrderSec = currentSecIndex===ORDER_IDX;
+    const isCustomSec = currentSecIndex===CUSTOMIZE_IDX;
+
+    if(bnCta){
+      bnCta.classList.toggle('wa-mode', isOrderSec);
+    }
+    if(bnCtaText && bnCtaTag){
+      if(isOrderSec){ bnCtaText.textContent="WhatsApp"; bnCtaTag.textContent="📲"; }
+      else if(isCustomSec){ bnCtaText.textContent="Order"; bnCtaTag.textContent="→"; }
+      else { bnCtaText.textContent="Customize"; bnCtaTag.textContent="3D"; }
     }
   }
 
   function initBottomNav(){
-    buildBottomDots(); updateBottomNav();
+    buildBottomDots();
+    updateBottomNav();
     if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
     if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
     if(bnCta) bnCta.addEventListener('click',()=>{
-      if(currentSecIndex!==CUSTOMIZE_IDX&&CUSTOMIZE_IDX>=0) scrollToIndex(CUSTOMIZE_IDX);
-      else orderOnWhatsApp();
+      if(currentSecIndex===ORDER_IDX) orderOnWhatsApp();
+      else if(currentSecIndex===CUSTOMIZE_IDX) orderOnWhatsApp();
+      else if(CUSTOMIZE_IDX>=0) scrollToIndex(CUSTOMIZE_IDX);
     });
   }
 
-  // FIX #7: IntersectionObserver with lower threshold (0.45 catches scroll-snap reliably)
-  // + fallback scroll listener if IntersectionObserver is unavailable or misfires.
-  let observerActive = false;
+  // ===== ACTIVE SECTION DETECTION =====
+  let observer=null, usingIO=false;
 
-  function onSectionVisible(idx){
-    dbg('Section visible:', idx, SECTIONS[idx]&&SECTIONS[idx].name);
-    const wrapper = container.querySelector(`.section-wrapper[data-index="${idx}"]`);
-    // Mark active / deactivate others
-    container.querySelectorAll('.section-wrapper').forEach((w,i)=>{
-      w.classList.toggle('is-active', i===idx);
-    });
-    currentSecIndex = idx;
-    if(secLabel) secLabel.textContent=`SEC ${idx+1}/${SECTIONS.length}`;
-    if(secName && SECTIONS[idx]) secName.textContent=SECTIONS[idx].name;
+  function activateSectionByIndex(idx){
+    idx=Math.max(0,Math.min(SECTIONS.length-1,idx));
+    currentSecIndex=idx;
+    if(secLabel) secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
+    if(secName) secName.textContent=SECTIONS[currentSecIndex].name;
     updateBottomNav();
-    if(SECTIONS[idx]&&SECTIONS[idx].name==='CUSTOMIZE'){
+
+    if(SECTIONS[currentSecIndex].name==='CUSTOMIZE'){
       setTimeout(()=>{
-        try{ window.initSTLViewer(); }catch(e){ dbg('initSTLViewer threw:', e.message); showErrorToast('3D init: '+e.message); }
-        syncColorUI();
-        draw2DPlate();
+        try{ window.initSTLViewer(); syncColorUI(); draw2DPlate(false); }catch(e){ showErrorToast("Customizer init failed"); }
       },120);
     }
   }
 
-  // Try IntersectionObserver first
-  let observer = null;
-  try{
-    observer = new IntersectionObserver(entries=>{
+  function setupIntersectionObserver(){
+    try{
+      if(typeof IntersectionObserver==="undefined") return null;
+      const io=new IntersectionObserver((entries)=>{
+        try{
+          entries.forEach(entry=>{
+            if(entry.isIntersecting){
+              entry.target.classList.add('is-active');
+              const idx=parseInt(entry.target.getAttribute('data-index'),10);
+              if(!isNaN(idx)) activateSectionByIndex(idx);
+            }else{
+              entry.target.classList.remove('is-active');
+            }
+          });
+        }catch(e){}
+      },{root:container,threshold:0.6});
+      usingIO=true; return io;
+    }catch(e){ return null; }
+  }
+
+  let scrollRAF=0;
+  function onScrollFallback(){
+    if(scrollRAF) return;
+    scrollRAF=requestAnimationFrame(()=>{
+      scrollRAF=0;
       try{
-        entries.forEach(entry=>{
-          if(entry.isIntersecting){
-            observerActive = true;
-            const idx=parseInt(entry.target.getAttribute('data-index'),10);
-            if(!isNaN(idx)) onSectionVisible(idx);
-          }
-        });
-      }catch(e){ dbg('observer callback error:', e.message); showErrorToast('Observer: '+e.message); }
-    // FIX: threshold 0.45 fires reliably during scroll-snap animation on mobile
-    },{root:container, threshold:0.45});
-    dbg('IntersectionObserver created');
-  }catch(e){
-    dbg('IntersectionObserver not available:', e.message);
-    observer=null;
-  }
-
-  // FIX #7: Scroll fallback — fires when observer hasn't triggered yet or isn't available
-  function setupScrollFallback(){
-    let ticking=false;
-    container.addEventListener('scroll',function(){
-      if(ticking) return;
-      ticking=true;
-      requestAnimationFrame(function(){
-        ticking=false;
-        // Find which section is most centered in the viewport
-        const wrappers=container.querySelectorAll('.section-wrapper');
-        const containerMid=container.scrollTop+container.clientHeight/2;
+        const sections=Array.from(container.querySelectorAll(".section-wrapper"));
+        if(!sections.length) return;
+        const viewMid=container.scrollTop+container.clientHeight*0.5;
         let bestIdx=0, bestDist=Infinity;
-        wrappers.forEach((w,i)=>{
-          const top=w.offsetTop, h=w.offsetHeight;
-          const dist=Math.abs((top+h/2)-containerMid);
-          if(dist<bestDist){ bestDist=dist; bestIdx=i; }
-        });
-        if(bestIdx!==currentSecIndex){
-          onSectionVisible(bestIdx);
+        for(const el of sections){
+          const idx=parseInt(el.getAttribute("data-index"),10);
+          if(isNaN(idx)) continue;
+          const dist=Math.abs((el.offsetTop+el.offsetHeight*0.5)-viewMid);
+          if(dist<bestDist){ bestDist=dist; bestIdx=idx; }
         }
-      });
-    },{passive:true});
-    dbg('Scroll fallback listener attached');
+        sections.forEach(s=>{ const idx=parseInt(s.getAttribute("data-index"),10); s.classList.toggle("is-active",idx===bestIdx); });
+        activateSectionByIndex(bestIdx);
+      }catch(e){}
+    });
   }
-  setupScrollFallback();
 
-  let currentLang='en';
   function renderSections(){
-    dbg('renderSections started, lang:', currentLang);
+    if(!container){ showErrorToast("Fatal: scroll container missing."); return; }
     try{
       container.innerHTML='';
-      SECTIONS.forEach((sec,index)=>{
-        try{
-          const w=document.createElement('div');
-          w.className='section-wrapper';
-          w.setAttribute('data-index',index);
-          w.setAttribute('data-name',sec.name);
-          const htmlContent = sec.html[currentLang]();
-          w.innerHTML=`
-            <article class="card">
-              <header class="cardHeader">
-                <div class="kicker">${sec.kicker}</div>
-                <h1 class="h1">${sec.title[currentLang]}</h1>
-              </header>
-              <div class="cardBody">
-                ${htmlContent}
-                <div style="height:85px;"></div>
-              </div>
-            </article>
-            <div class="hint">
-              <span>Scroll for more</span>
-              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-            </div>
-          `;
-          container.appendChild(w);
-          dbg('Section appended:', sec.name, 'index:', index);
-          if(observer) observer.observe(w);
-        }catch(secErr){
-          dbg('Error building section', index, ':', secErr.message);
-          showErrorToast('Section '+index+' error: '+secErr.message);
-          // Still append a minimal placeholder so layout doesn't break
-          const fallback=document.createElement('div');
-          fallback.className='section-wrapper';
-          fallback.setAttribute('data-index',index);
-          fallback.setAttribute('data-name',sec.name||'?');
-          fallback.innerHTML=`<article class="card"><header class="cardHeader"><div class="kicker">${sec.kicker||''}</div><h1 class="h1">Section unavailable</h1></header><div class="cardBody"><p class="lead" style="color:rgba(255,100,100,0.8)">This section failed to render. (${secErr.message})</p></div></article>`;
-          container.appendChild(fallback);
-          if(observer) observer.observe(fallback);
-        }
-      });
-      dbg('renderSections: all', SECTIONS.length, 'sections appended');
+      if(observer&&usingIO){ try{ observer.disconnect(); }catch(e){} }
+      observer=setupIntersectionObserver();
 
-      // Activate the first section immediately so cards are visible on load
+      SECTIONS.forEach((sec,index)=>{
+        const w=document.createElement('div');
+        w.className='section-wrapper';
+        w.setAttribute('data-index',index);
+        w.setAttribute('data-name',sec.name);
+        const title=(sec.title&&sec.title[currentLang])||sec.title.en||"";
+        const bodyHtmlFn=sec.html&&(sec.html[currentLang]||sec.html.en);
+        const bodyHtml=(typeof bodyHtmlFn==="function")?bodyHtmlFn():"";
+        w.innerHTML=`
+          <article class="card">
+            <header class="cardHeader">
+              <div class="kicker">${sec.kicker||""}</div>
+              <h1 class="h1">${title}</h1>
+            </header>
+            <div class="cardBody">
+              ${bodyHtml}
+              <div style="height:85px;"></div>
+            </div>
+          </article>
+          <div class="hint">
+            <span>Scroll for more</span>
+            <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        `;
+        container.appendChild(w);
+        if(observer){ try{ observer.observe(w); }catch(e){} }
+      });
+
       setTimeout(()=>{
-        const firstWrapper=container.querySelector('.section-wrapper[data-index="0"]');
-        if(firstWrapper&&!firstWrapper.classList.contains('is-active')){
-          dbg('renderSections: forcing first section active via timeout');
-          onSectionVisible(0);
-        }
-        if(bnDots&&bnDots.children.length!==SECTIONS.length) buildBottomDots();
-        updateBottomNav();
-        try{ applyColors(); }catch(e){}
-        const warn=document.getElementById("plateWarn");
-        if(warn) warn.classList.remove("show");
-      },80);
+        try{
+          if(bnDots&&bnDots.children.length!==SECTIONS.length) buildBottomDots();
+          updateBottomNav(); applyColors();
+          container.removeEventListener("scroll",onScrollFallback);
+          if(!observer){
+            usingIO=false;
+            container.addEventListener("scroll",onScrollFallback,{passive:true});
+            onScrollFallback();
+          }else{
+            activateSectionByIndex(0);
+          }
+          draw2DPlate(false);
+        }catch(e){ showErrorToast("Post-render init failed"); }
+      },60);
+
     }catch(e){
-      dbg('renderSections fatal error:', e.message);
-      showErrorToast('Render error: '+e.message);
-      // Last-resort: show plain text so page isn't blank
-      container.innerHTML='<div style="padding:80px 24px;color:#fff;font-size:16px;line-height:1.7;"><b style="color:#ff4444">Page render error</b><br>'+e.message+'<br><br>Please reload or try on desktop.</div>';
+      showErrorToast("Render failed: "+(e&&e.message?e.message:e));
+      try{
+        container.innerHTML=`<div class="section-wrapper is-active" data-index="0"><article class="card" style="opacity:1;transform:none;"><header class="cardHeader"><div class="kicker">RECOVERY</div><h1 class="h1">Something went wrong.</h1></header><div class="cardBody"><p class="lead">Please reload.</p><button class="red-cta" onclick="location.reload()"><span class="cpulse"></span><div class="ci">Reload <div class="ca">→</div></div></button></div></article></div>`;
+      }catch(_){}
     }
   }
 
@@ -1482,11 +1737,13 @@
 
   function triggerTranslation(lang){
     currentLang=lang; renderSections();
-    if(toast){ toast.classList.add('is-visible'); }
-    if(toastMsg) toastMsg.textContent=(lang==='hi')?"Translated to Hindi":"Back to English";
-    if(btnUndo) btnUndo.style.display=(lang==='hi')?'block':'none';
-    clearTimeout(toastTimer);
-    toastTimer=setTimeout(()=>{ if(toast) toast.classList.remove('is-visible'); },2200);
+    if(toast&&toastMsg&&btnUndo){
+      toast.classList.add('is-visible');
+      toastMsg.textContent=(lang==='hi')?"Translated to Hindi":"Back to English";
+      btnUndo.style.display=(lang==='hi')?'block':'none';
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200);
+    }
   }
   if(btnTranslate) btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
   if(btnUndo) btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); if(toast) toast.classList.remove('is-visible'); });
@@ -1495,36 +1752,48 @@
   const popup=document.getElementById('rotatePopup');
   const appWrapper=document.getElementById('appWrapper');
   let isForcedLandscape=false, targetRotationAngle=0;
-  window.addEventListener('deviceorientation',e=>{
-    const g=e.gamma;
-    if(g===null||typeof g==='undefined') return;
-    if(!isForcedLandscape){ if(g>45) showRotatePopup(90); else if(g<-45) showRotatePopup(-90); else hideRotatePopup(); }
-    else{ if(Math.abs(g)<25) showRotatePopup(0); else hideRotatePopup(); }
-  });
-  function showRotatePopup(a){ targetRotationAngle=a; if(popup){ popup.classList.add('is-visible'); popup.textContent=(a===0)?"Tap for Portrait":"Tap for Landscape"; } }
+
+  function showRotatePopup(a){ targetRotationAngle=a; if(!popup) return; popup.classList.add('is-visible'); popup.textContent=(a===0)?"Tap for Portrait":"Tap for Landscape"; }
   function hideRotatePopup(){ if(popup) popup.classList.remove('is-visible'); }
+
+  try{
+    window.addEventListener('deviceorientation',(e)=>{
+      const g=e.gamma;
+      if(g===null||typeof g==='undefined') return;
+      if(!isForcedLandscape){ if(g>45) showRotatePopup(90); else if(g<-45) showRotatePopup(-90); else hideRotatePopup(); }
+      else { if(Math.abs(g)<25) showRotatePopup(0); else hideRotatePopup(); }
+    });
+  }catch(e){}
+
   if(popup) popup.addEventListener('click',()=>{
-    if(targetRotationAngle!==0){ appWrapper.classList.add('forced-landscape'); appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`; isForcedLandscape=true; }
-    else{ appWrapper.classList.remove('forced-landscape'); appWrapper.style.transform='none'; isForcedLandscape=false; }
+    try{
+      if(!appWrapper) return;
+      if(targetRotationAngle!==0){ appWrapper.classList.add('forced-landscape'); appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`; isForcedLandscape=true; }
+      else { appWrapper.classList.remove('forced-landscape'); appWrapper.style.transform='none'; isForcedLandscape=false; }
+    }catch(e){}
     hideRotatePopup();
   });
 
-  const backBtnEl=document.getElementById("backBtn");
-  if(backBtnEl) backBtnEl.addEventListener("click",function(e){
-    if(!this.hasAttribute('data-vd-route')){ e.preventDefault(); window.location.href=this.href; }
-  });
+  // ===== BACK BUTTON =====
+  const backBtn=document.getElementById("backBtn");
+  if(backBtn){
+    backBtn.addEventListener("click",function(e){
+      try{
+        if(!this.hasAttribute('data-vd-route')){ e.preventDefault(); window.location.href=this.href; }
+      }catch(_){}
+    });
+  }
 
   // ===== INIT =====
-  (function initPlateText(){
-    const n=normalizePlateInput(plateText);
-    plateText=n.value||plateText;
+  (function init(){
+    try{
+      const n=normalizePlateInput(plateText); plateText=n.value||plateText;
+      initBottomNav(); renderSections(); applyColors();
+    }catch(e){
+      showErrorToast("Init failed: "+(e&&e.message?e.message:e));
+      try{ renderSections(); }catch(_){}
+    }
   })();
-
-  dbg('Starting renderSections + initBottomNav');
-  renderSections();
-  initBottomNav();
-  try{ applyColors(); }catch(e){}
-  dbg('Init complete');
 
 })();
 </script>
