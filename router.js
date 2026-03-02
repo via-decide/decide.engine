@@ -1,24 +1,21 @@
 /**
  * ═══════════════════════════════════════════════════════════
- * viadecide.com — UNIVERSAL ROUTER v2.4 (Main + Store + Pretty URLs)
+ * viadecide.com — UNIVERSAL ROUTER v2.4
+ * - Pretty URLs (/pricing → pricing.html)
+ * - Hash routing (#/pricing)
+ * - 404 session redirect (Netlify/GitHub pages friendly)
+ * - Nav-safe link interception
  * File: router.js
- * Notes:
- * - Works for viadecide.com and store pages inside /printbydd-store/
- * - Supports pretty URLs: /slug/ → mapped HTML file
- * - Safe nav interception (doesn't break external links/assets/hash anchors)
- * - Includes SmartTag Lite (3rd product) routes
  * ═══════════════════════════════════════════════════════════
  */
 (function ViaDecideRouter() {
   "use strict";
 
   // ─────────────────────────────────────────────────────────
-  // ROUTE MAP
-  // key = URL slug (what appears in the browser address bar)
-  // value = actual file path in your site root (case-sensitive on Linux)
+  // ROUTE MAP (slug → actual file path)
   // ─────────────────────────────────────────────────────────
   var ROUTES = {
-    // ── CORE TOOLS ──
+    // Core tools
     alchemist: "alchemist.html",
     swipeos: "SwipeOS.html",
     "engine-deals": "engine-deals.html",
@@ -26,19 +23,14 @@
     "cashback-rules": "cashback-rules.html",
     "engine-license": "engine-license.html",
     "ondc-demo": "ONDC-demo.html",
-
-    // FIX: Linux case-sensitive
     "prompt-alchemy": "prompt-alchemy.html",
     promptalchemy: "prompt-alchemy.html",
-
-    // FIX: Linux case-sensitive
     "student-research": "student-research.html",
-
     contact: "contact.html",
     brief: "brief.html",
     "decision-brief": "decision-brief.html",
 
-    // Missing routes
+    // Main pages
     pricing: "pricing.html",
     discounts: "discounts.html",
     memory: "memory.html",
@@ -50,26 +42,30 @@
     "app-generator": "app-generator.html",
     "cohort-apply-here": "cohort-apply-here.html",
 
-    // ── PRINTBYDD STORE ROUTES ──
+    // Games / sims (add what you have)
+    hexwars: "HexWars.html",
+    "mars-rover-simulator-game": "mars-rover-simulator-game.html",
+    hivaland: "HivaLand.html",
+
+    // Store
     "printbydd-store": "printbydd-store/index.html",
     printbydd: "printbydd-store/index.html",
-
-    // Products
     keychain: "printbydd-store/keychain.html",
     numberplate: "printbydd-store/numberplate.html",
-
-    // ✅ 3rd product (SmartTag Lite)
-    "smarttag-lite": "printbydd-store/smarttag-lite.html",
-    smarttag: "printbydd-store/smarttag-lite.html",
-
-    // Store pages
     products: "printbydd-store/products.html",
     "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more.html",
     gifts: "printbydd-store/gifts-that-mean-more.html",
+
+    // Blog
+    blogs: "Viadecide-blogs.html",
+    "viadecide-blogs": "Viadecide-blogs.html",
+    "decision-infrastructure-india": "decision-infrastructure-india.html",
+    "ondc-for-bharat": "ondc-for-bharat.html",
+    "laptops-under-50000": "laptops-under-50000.html",
   };
 
   // ─────────────────────────────────────────────────────────
-  // ALIAS MAP (old URLs → new slugs, for backwards compat)
+  // Aliases (legacy → new slugs)
   // ─────────────────────────────────────────────────────────
   var ALIASES = {
     SwipeOS: "swipeos",
@@ -78,24 +74,15 @@
     StudentResearch: "student-research",
     "ONDC-demo": "ondc-demo",
     ondc: "ondc-demo",
-
-    // Store convenience aliases
-    SmartTag: "smarttag-lite",
-    SmartTagLite: "smarttag-lite",
-    "smarttaglite": "smarttag-lite",
+    ViaGuide: "viaguide",
+    StudyOS: "studyos",
   };
 
-  // ─────────────────────────────────────────────────────────
-  // ENV DETECTION
-  // ─────────────────────────────────────────────────────────
   function isInAppBrowser() {
     var ua = navigator.userAgent || "";
     return /Instagram|FBAN|FBAV|FB_IAB|Line|Twitter|Snapchat/i.test(ua);
   }
 
-  // ─────────────────────────────────────────────────────────
-  // HELPERS
-  // ─────────────────────────────────────────────────────────
   function normalizeSlug(raw) {
     return String(raw || "")
       .replace(/^\/+/, "")
@@ -121,7 +108,6 @@
         if (String(key).toLowerCase() === lower) return ROUTES[key];
       }
     }
-
     return null;
   }
 
@@ -129,12 +115,11 @@
     var host = window.location.host || "";
     var path = window.location.pathname || "/";
 
-    // GitHub pages support
+    // GitHub Pages: /repo-name/...
     if (/github\.io$/i.test(host)) {
       var seg = path.replace(/^\/+/, "").split("/")[0];
       if (seg) return "/" + seg + "/";
     }
-
     return "/";
   }
 
@@ -148,11 +133,7 @@
 
   function parsePathParts(fullPath) {
     var m = String(fullPath || "/").match(/^([^?#]*)(\?[^#]*)?(#.*)?$/) || [];
-    return {
-      path: m[1] || "/",
-      search: m[2] || "",
-      hash: m[3] || "",
-    };
+    return { path: m[1] || "/", search: m[2] || "", hash: m[3] || "" };
   }
 
   function safeReplace(url) {
@@ -198,8 +179,7 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // STEP 0: Handle Pretty URLs
-  // /slug/ → mapped html file
+  // STEP 0: Pretty URL handler (/pricing → pricing.html)
   // ─────────────────────────────────────────────────────────
   (function handlePrettyURL() {
     var base = getBasePath();
@@ -210,9 +190,8 @@
     var clean = pathname.replace(/^\/+/, "");
     if (!clean || clean === "index.html" || clean === "index.htm") return;
 
-    // If it already looks like a file or asset, do nothing
-    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl|obj|glb|gltf)$/i.test(clean))
-      return;
+    // if it’s a file extension, don’t touch
+    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl)$/i.test(clean)) return;
 
     var slug = normalizeSlug(clean);
     var file = resolveRoute(slug);
@@ -222,8 +201,7 @@
   })();
 
   // ─────────────────────────────────────────────────────────
-  // STEP 1: Check for stored 404 redirects
-  // (optional: your 404.html can store __vd_redirect__ then bounce)
+  // STEP 1: 404 redirect recovery (sessionStorage)
   // ─────────────────────────────────────────────────────────
   var stored = null;
   try {
@@ -242,10 +220,10 @@
 
     var rawSlug = path.replace(/^\//, "").split("/")[0];
     if (rawSlug) {
-      var slug2 = normalizeSlug(rawSlug);
-      var file2 = resolveRoute(slug2);
-      if (file2) {
-        navigateTo(file2, search, hash);
+      var slug = normalizeSlug(rawSlug);
+      var file = resolveRoute(slug);
+      if (file) {
+        navigateTo(file, search, hash);
         return;
       } else {
         renderNotFound(rawSlug);
@@ -255,8 +233,7 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // STEP 2: Hash routing support
-  // #/slug → mapped html file
+  // STEP 2: Hash routing (#/pricing)
   // ─────────────────────────────────────────────────────────
   var currentHash = window.location.hash || "";
   if (currentHash) {
@@ -272,15 +249,15 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // STEP 3: Global router API (public)
+  // STEP 3: Public API
   // ─────────────────────────────────────────────────────────
   window.VDRouter = {
     go: function (slug, options) {
       options = options || {};
 
-      // If slug is actually an external URL, open it directly
+      // external URL? open directly
       if (isLikelyExternalHref(String(slug || ""))) {
-        if (!isInAppBrowser()) window.open(String(slug), "_blank", "noopener,noreferrer");
+        if (!!options.newTab && !isInAppBrowser()) window.open(String(slug), "_blank", "noopener,noreferrer");
         else window.location.href = String(slug);
         return;
       }
@@ -288,7 +265,7 @@
       var norm = normalizeSlug(slug);
       var file = resolveRoute(norm);
 
-      // If unknown slug, go to pretty URL (server may handle)
+      // unknown: fall back to pretty route
       if (!file) {
         var fallback = origin() + joinURL(getBasePath(), norm + "/");
         if (options.newTab && !isInAppBrowser()) window.open(fallback, "_blank", "noopener,noreferrer");
@@ -296,10 +273,8 @@
         return;
       }
 
-      var wantNewTab = !!options.newTab && !isInAppBrowser();
       var url = origin() + joinURL(getBasePath(), file) + (options.search || "") + (options.hash || "");
-
-      if (wantNewTab) window.open(url, "_blank", "noopener,noreferrer");
+      if (options.newTab && !isInAppBrowser()) window.open(url, "_blank", "noopener,noreferrer");
       else safeReplace(url);
     },
 
@@ -327,12 +302,11 @@
           if (e.button && e.button !== 0) return;
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
-          // ── [data-back] universal handler ──
+          // [data-back] handler
           var backEl = e.target && e.target.closest ? e.target.closest("[data-back]") : null;
           if (backEl) {
             var backHref = backEl.getAttribute("href") || "";
             if (backHref && isLikelyExternalHref(backHref)) return;
-
             e.preventDefault();
             if (window.history.length > 1) window.history.back();
             else safeReplace(origin() + joinURL(getBasePath(), "index.html"));
@@ -359,35 +333,33 @@
           var path = stripBasePrefix(url.pathname || "/", base);
           var clean = String(path || "/").replace(/^\/+/, "");
 
-          // If /some/folder/page.html or /some/folder/slug, use last segment
+          // reduce nested links to last segment
           if (clean.indexOf("/") !== -1) {
             var segs = clean.split("/").filter(Boolean);
             var last = segs[segs.length - 1] || "";
-            if (last && (/\.(html?)$/i.test(last) || !/\./.test(last))) {
-              clean = last;
-            }
+            if (last && (/\.(html?)$/i.test(last) || !/\./.test(last))) clean = last;
           }
 
-          // Direct HTML file navigation
+          // direct .html navigation
           if (/\.html?$/i.test(clean)) {
             e.preventDefault();
             navigateTo(clean, url.search || "", url.hash || "");
             return;
           }
 
-          // Slug navigation
-          var slug3 = normalizeSlug(clean);
-          if (!slug3) return;
+          // slug
+          var slug = normalizeSlug(clean);
+          if (!slug) return;
 
-          var file3 = resolveRoute(slug3);
-          if (!file3) {
-            e.preventDefault();
-            safeReplace(origin() + joinURL(base, slug3 + "/") + (url.search || "") + (url.hash || ""));
+          var file = resolveRoute(slug);
+          e.preventDefault();
+
+          if (!file) {
+            safeReplace(origin() + joinURL(base, slug + "/") + (url.search || "") + (url.hash || ""));
             return;
           }
 
-          e.preventDefault();
-          window.VDRouter.go(slug3, { newTab: false, search: url.search || "", hash: url.hash || "" });
+          window.VDRouter.go(slug, { newTab: false, search: url.search || "", hash: url.hash || "" });
         },
         true
       );
@@ -395,19 +367,17 @@
   };
 
   // ─────────────────────────────────────────────────────────
-  // STEP 4: Rewrite relative nav hrefs (optional safety)
+  // STEP 4: Rewrite relative nav hrefs (so nav works on subpages)
   // ─────────────────────────────────────────────────────────
   function fixNavHrefs() {
     var base = getBasePath();
-    var scopeSelectors = ["nav a[href]", "header a[href]", "footer a[href]"];
     var nodes = [];
-
-    for (var i = 0; i < scopeSelectors.length; i++) {
+    ["nav a[href]", "header a[href]", "footer a[href]"].forEach(function (q) {
       try {
-        var list = document.querySelectorAll(scopeSelectors[i]);
-        for (var j = 0; j < list.length; j++) nodes.push(list[j]);
+        var list = document.querySelectorAll(q);
+        for (var i = 0; i < list.length; i++) nodes.push(list[i]);
       } catch (e) {}
-    }
+    });
 
     for (var k = 0; k < nodes.length; k++) {
       var a = nodes[k];
@@ -420,23 +390,20 @@
       if (isAssetHref(href)) continue;
 
       var parts = parsePathParts(href);
-      var p = parts.path || "";
+      var p = (parts.path || "").replace(/^\.\//, "");
       var s = parts.search || "";
       var h = parts.hash || "";
 
-      p = p.replace(/^\.\//, "");
       if (p.indexOf("/") !== -1) {
         var segs = p.split("/").filter(Boolean);
         p = segs[segs.length - 1] || p;
       }
 
-      // slug-style href
       if (p && !/\./.test(p)) {
         a.setAttribute("href", joinURL(base, normalizeSlug(p) + "/") + s + h);
         continue;
       }
 
-      // html file href
       if (/\.html?$/i.test(p)) {
         a.setAttribute("href", joinURL(base, p.replace(/^\/+/, "")) + s + h);
         continue;
@@ -444,37 +411,37 @@
     }
   }
 
-  try {
-    var bindNow = function () {
-      try {
-        fixNavHrefs();
-      } catch (e) {}
-      try {
-        window.VDRouter.bindLinks("a.subpage-card, nav a, header a, footer a, a[data-vd-route]");
-      } catch (e) {}
-    };
+  function bindNow() {
+    try {
+      fixNavHrefs();
+    } catch (e) {}
+    try {
+      window.VDRouter.bindLinks("a.subpage-card, nav a, header a, footer a, a[data-vd-route]");
+    } catch (e) {}
+  }
 
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindNow);
-    else bindNow();
-  } catch (e) {}
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindNow);
+  else bindNow();
 
   // ─────────────────────────────────────────────────────────
-  // INLINE 404 PAGE (if you land on unknown slug via redirect flow)
+  // Inline 404 Page
   // ─────────────────────────────────────────────────────────
   function renderNotFound(slug) {
     document.addEventListener("DOMContentLoaded", function () {
       document.body.style.cssText =
-        "margin:0;background:#04080f;color:#e8edf5;font-family:Syne,system-ui,-apple-system,sans-serif;" +
-        "display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;" +
-        "text-align:center;padding:20px";
+        "margin:0;background:#04080f;color:#e8edf5;font-family:Outfit,system-ui,-apple-system,sans-serif;" +
+        "display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:14px;" +
+        "text-align:center;padding:22px";
 
       document.body.innerHTML = [
-        "<h1>404</h1>",
-        "<p>Page not found</p>",
-        "<p>No subpage registered for: <strong>" + String(slug) + "</strong></p>",
+        "<h1 style='font-size:54px;letter-spacing:-.03em;margin:0;'>404</h1>",
+        "<p style='margin:0;color:rgba(232,237,245,.75)'>Page not found</p>",
+        "<p style='margin:0;color:rgba(232,237,245,.65)'>No subpage registered for: <strong style='color:#fff'>" +
+          String(slug) +
+          "</strong></p>",
         '<a href="' +
           joinURL(getBasePath(), "") +
-          '" style="color:#ff671f;text-decoration:none;margin-top:16px;border:1px solid #ff671f;padding:10px 20px;border-radius:50px;">← Back to Home</a>',
+          '" style="color:#ff671f;text-decoration:none;margin-top:10px;border:1px solid #ff671f;padding:10px 18px;border-radius:50px;">← Back to Home</a>',
       ].join("");
     });
   }
