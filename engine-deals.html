@@ -1,24 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>| decide.engine |</title>
-
-  <!-- IMPORTANT:
-       If the browser is *downloading* this URL, that behavior is controlled by SERVER HEADERS
-       (Content-Type / Content-Disposition). Client-side code cannot prevent a download *before*
-       the HTML is rendered.
-       This file includes best-effort canonical routing for /engine-deals -> /engine-deals/ and
-       sets a <base> for folder hosting, but you must ensure the server serves this file as:
-         Content-Type: text/html
-         (and NOT Content-Disposition: attachment)
-  -->
-
-  <!-- If hosting under https://viadecide.com/engine-deals/ as a folder, keep this base. -->
-  <base href="/engine-deals/" />
+  <title>Engine Deals | decide.engine</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0a0a0a" />
@@ -188,29 +174,6 @@
        KUTCH AUTOMATION | UNIVERSAL OS v67.3 (AFFILIATE EDITION)
        ========================================= */
 
-    // ✅ CANONICAL ROUTE FIX
-    (function enforceCanonicalEngineDeals() {
-      try {
-        const path = window.location.pathname || "";
-        const lower = path.toLowerCase();
-
-        if (lower.endsWith("/engine-deals")) {
-          const qs = window.location.search || "";
-          const hash = window.location.hash || "";
-          window.location.replace(path + "/" + qs + hash);
-          return;
-        }
-
-        if (lower.endsWith("/engine-deals/index") || lower.endsWith("/engine-deals/index.html")) {
-          const fixed = path.replace(/\/index(\.html)?$/i, "/");
-          const qs = window.location.search || "";
-          const hash = window.location.hash || "";
-          window.location.replace(fixed + qs + hash);
-          return;
-        }
-      } catch (e) {}
-    })();
-
     // 🔴 CONFIGURATION
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxxh1ZwNRwqsSW1Lf62eh2wiwaNKzHWX8Icq472NQVj7-yEvOYuTDuiEGmelW_DG2Zs/exec";
     const YOUTUBE_CHANNEL = "https://www.youtube.com/@decide.engine";
@@ -223,7 +186,7 @@
     const EARBUD_REVIEW_URL = "https://youtu.be/ceuEz96MMEY";
     const WINNER_VIDEO = "https://static.videezy.com/system/resources/previews/000/012/628/original/Abstract_Blue_Background.mp4";
 
-    // ✅ Subpage file (put cashback-rules.html in same folder as this index.html)
+    // ✅ Subpage file — same folder as engine-deals.html
     const CASHBACK_RULES_PAGE = "cashback-rules.html";
 
     const PHONE_DB = {
