@@ -80,9 +80,12 @@
       font-size: 20px; cursor: pointer;
     }
 
-    /* ── Nav install button ── */
+    /* ── Nav install button ──
+       Always visible by default (inline-flex).
+       JS hides it ONLY when app is running in standalone mode. ── */
     #install-pwa-nav {
       display: inline-flex;
+      align-items: center;
       font-size: 12px; font-weight: 800;
       color: var(--accent);
       padding: 6px 14px;
@@ -150,11 +153,52 @@
     .dev-inst strong { display: block; font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
     .dev-inst ol { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
     .dev-inst li strong { display: inline; }
-    @media (max-width: 640px) {
-      #install-section { padding: 24px 20px; }
-      .install-btns { flex-direction: column; }
-      .install-btns button { width: 100%; text-align: center; }
+
+    /* ── Install Fallback Bottom Sheet ── */
+    #install-fallback-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 3998;
+      background: rgba(0,0,0,.40);
     }
+    #install-fallback-overlay.active { display: block; }
+    #install-fallback-sheet {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 3999;
+      background: var(--surface, #fff);
+      border-top: 1px solid rgba(0,0,0,.10);
+      border-radius: 20px 20px 0 0;
+      padding: 28px 24px 36px;
+      box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+      animation: ifsSlideUp .28s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    #install-fallback-sheet.active { display: block; }
+    @keyframes ifsSlideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);   opacity: 1; }
+    }
+    #install-fallback-sheet h3 {
+      font-size: 18px; font-weight: 900; letter-spacing: -0.02em;
+      color: var(--text-main, #111); margin: 0 0 10px;
+    }
+    #install-fallback-sheet p {
+      font-size: 14px; color: var(--text-muted, #666);
+      line-height: 1.6; margin: 0 0 22px;
+    }
+    .ifs-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ifs-btns button {
+      flex: 1; min-width: 100px; padding: 11px 14px;
+      border-radius: 999px; font-size: 13px; font-weight: 800;
+      cursor: pointer; border: 1.5px solid var(--accent, #ff2a2a);
+      background: transparent; color: var(--accent, #ff2a2a);
+      transition: background .18s, color .18s; font-family: inherit;
+    }
+    .ifs-btns button:hover { background: var(--accent, #ff2a2a); color: #fff; }
+    .ifs-btns button.ifs-primary { background: var(--accent, #ff2a2a); color: #fff; }
+    .ifs-btns button.ifs-primary:hover { opacity: .88; }
+
+    /* ══════════════════════════════════════
+       CORE DESIGN TOKENS & BASE
+    ══════════════════════════════════════ */
     :root {
       --bg: #fafafa;
       --surface: #ffffff;
@@ -180,11 +224,14 @@
     a { text-decoration: none; color: inherit; cursor: pointer; }
     button { background: none; border: none; cursor: pointer; font: inherit; }
 
-    /* Dark Mode */
+    /* ── Dark Mode (invert filter method) ── */
     body.invert-mode { background-color: #050505; }
     body.invert-mode #appWrapper,
     body.invert-mode .site-header,
-    body.invert-mode .auth-modal { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode .auth-modal,
+    body.invert-mode #install-banner,
+    body.invert-mode #ios-hint,
+    body.invert-mode #install-fallback-sheet { filter: invert(1) hue-rotate(180deg); }
     body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
 
     #appWrapper {
@@ -273,21 +320,13 @@
       margin-bottom: 32px;
     }
 
-    /* ── Portal CTA Block ── */
-    .portal-cta {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    /* ── Portal CTA ── */
+    .portal-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
     .btn-primary {
-      background: var(--text-main);
-      color: var(--surface);
-      font-weight: 800;
-      font-size: 14px;
-      padding: 14px 24px;
-      border-radius: 999px;
+      background: var(--text-main); color: var(--surface);
+      font-weight: 800; font-size: 14px;
+      padding: 14px 24px; border-radius: 999px;
       letter-spacing: 0.02em;
       transition: transform 0.2s, background 0.2s;
     }
@@ -295,134 +334,71 @@
     .btn-primary:active { transform: scale(0.97); }
 
     .btn-secondary {
-      background: transparent;
-      color: var(--text-main);
-      font-weight: 800;
-      font-size: 14px;
-      padding: 14px 24px;
-      border-radius: 999px;
+      background: transparent; color: var(--text-main);
+      font-weight: 800; font-size: 14px;
+      padding: 14px 24px; border-radius: 999px;
       border: 1px solid var(--border);
       transition: transform 0.2s, border-color 0.2s;
     }
     .btn-secondary:hover { border-color: var(--text-main); }
     .btn-secondary:active { transform: scale(0.97); }
 
-    /* ── Auth Modal Overlay ── */
+    /* ── Auth Modal ── */
     .modal-overlay {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
       z-index: 2000;
-      opacity: 0;
-      pointer-events: none;
+      opacity: 0; pointer-events: none;
       transition: opacity 0.3s ease;
     }
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
     .auth-modal {
-      background: var(--surface);
-      width: 90%;
-      max-width: 400px;
-      border-radius: 20px;
-      padding: 32px;
+      background: var(--surface); width: 90%; max-width: 400px;
+      border-radius: 20px; padding: 32px;
       box-shadow: 0 24px 60px rgba(0,0,0,0.15);
       border: 1px solid var(--border);
       transform: translateY(20px);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .modal-overlay.active .auth-modal {
-      transform: translateY(0);
-    }
-
-    .auth-modal h2 {
-      font-size: 22px;
-      font-weight: 900;
-      margin-bottom: 8px;
-      color: var(--text-main);
-      letter-spacing: -0.02em;
-    }
-    .auth-modal p {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
+    .modal-overlay.active .auth-modal { transform: translateY(0); }
+    .auth-modal h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; color: var(--text-main); letter-spacing: -0.02em; }
+    .auth-modal p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
 
     .code-input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 20px;
+      width: 100%; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; font-size: 20px;
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      letter-spacing: 3px;
-      text-align: center;
-      text-transform: uppercase;
-      color: var(--text-main);
-      outline: none;
+      letter-spacing: 3px; text-align: center; text-transform: uppercase;
+      color: var(--text-main); outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
       margin-bottom: 16px;
     }
-    .code-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(255, 42, 42, 0.1);
-    }
+    .code-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,42,42,0.1); }
 
-    .auth-error {
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-    }
+    .auth-error { color: var(--accent); font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 16px; display: none; }
+    .modal-actions { display: flex; gap: 12px; }
     .modal-actions button { flex: 1; }
 
     /* ── Section header ── */
     .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
+      display: flex; justify-content: space-between; align-items: flex-end;
       margin-bottom: 26px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border); padding-bottom: 14px;
     }
     .section-header h2 {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-weight: 800;
-      color: var(--text-muted);
+      font-size: 14px; text-transform: uppercase;
+      letter-spacing: 0.1em; font-weight: 800; color: var(--text-muted);
     }
 
     /* ── Grid ── */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 40px;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
 
     /* ── Cards ── */
-    .card {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      cursor: pointer;
-    }
+    .card { display: flex; flex-direction: column; position: relative; cursor: pointer; }
     .card:hover .card-image-wrap,
     .card:hover .carousel-container {
       transform: translateY(-4px);
@@ -430,115 +406,61 @@
     }
 
     .card-image-wrap {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      overflow: hidden;
-      background: #f0f0f0;
+      width: 100%; aspect-ratio: 4 / 3;
+      border-radius: 14px; margin-bottom: 20px;
+      overflow: hidden; background: #f0f0f0;
       box-shadow: 0 8px 28px rgba(0,0,0,0.06);
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-                  box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
+      display: flex; align-items: center; justify-content: center;
     }
-
-    .card-image-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-      display: block;
-    }
+    .card-image-wrap img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; }
 
     /* ── Carousel ── */
     .carousel-container {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      overflow: hidden;
-      position: relative;
+      width: 100%; aspect-ratio: 4 / 3;
+      border-radius: 14px; margin-bottom: 20px;
+      overflow: hidden; position: relative;
       background: #f0f0f0;
       box-shadow: 0 8px 28px rgba(0,0,0,0.06);
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-                  box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
     }
-
     .carousel-track {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      display: flex; width: 100%; height: 100%;
+      overflow-x: auto; scroll-snap-type: x mandatory;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
     .carousel-track::-webkit-scrollbar { display: none; }
-
     .carousel-track img {
-      flex: 0 0 100%;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-      background: #f0f0f0;
-      scroll-snap-align: center;
-      display: block;
+      flex: 0 0 100%; width: 100%; height: 100%;
+      object-fit: contain; object-position: center;
+      background: #f0f0f0; scroll-snap-align: center; display: block;
     }
-
     .swipe-hint {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.60);
-      backdrop-filter: blur(4px);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 999px;
-      pointer-events: none;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      white-space: nowrap;
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.60); backdrop-filter: blur(4px);
+      color: #fff; font-size: 10px; font-weight: 700;
+      padding: 6px 14px; border-radius: 999px;
+      pointer-events: none; letter-spacing: 0.1em;
+      text-transform: uppercase; white-space: nowrap;
     }
 
     /* ── Card text ── */
     .card .kicker {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
+      font-size: 11px; font-weight: 800; color: var(--accent);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
     }
     .card h3 {
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-      color: var(--text-main);
+      font-size: 24px; font-weight: 800; line-height: 1.2;
+      letter-spacing: -0.02em; margin-bottom: 12px; color: var(--text-main);
     }
     .card p {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 24px;
-      flex-grow: 1;
+      font-size: 15px; color: var(--text-muted);
+      line-height: 1.6; margin-bottom: 24px; flex-grow: 1;
     }
     .card-link {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text-main);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 13px; font-weight: 800; color: var(--text-main);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      display: inline-flex; align-items: center; gap: 6px;
     }
     .card-link::after { content: '→'; transition: transform 0.2s; color: var(--accent); }
     .card:hover .card-link::after { transform: translateX(4px); }
@@ -553,45 +475,10 @@
       main { padding-left: 4vw; padding-right: 4vw; }
       .portal-cta { flex-direction: column; align-items: stretch; }
       .portal-cta button { width: 100%; text-align: center; }
+      #install-section { padding: 24px 20px; }
+      .install-btns { flex-direction: column; }
+      .install-btns button { width: 100%; text-align: center; }
     }
-
-    /* ── Install Fallback Bottom Sheet ── */
-    #install-fallback-sheet {
-      display: none;
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
-      background: var(--surface, #fff);
-      border-top: 1px solid rgba(0,0,0,.12);
-      border-radius: 20px 20px 0 0;
-      padding: 24px 20px 32px;
-      box-shadow: 0 -6px 32px rgba(0,0,0,.18);
-      animation: slideUp .28s ease;
-    }
-    #install-fallback-sheet.active { display: block; }
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to   { transform: translateY(0);   opacity: 1; }
-    }
-    #install-fallback-sheet h3 {
-      margin: 0 0 8px; font-size: 17px; font-weight: 800; color: var(--text, #111);
-    }
-    #install-fallback-sheet p {
-      margin: 0 0 18px; font-size: 14px; color: var(--text-muted, #666); line-height: 1.55;
-    }
-    .ifs-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-    .ifs-btns button {
-      flex: 1; min-width: 110px; padding: 10px 14px; border-radius: 10px;
-      font-size: 13px; font-weight: 700; cursor: pointer;
-      border: 1.5px solid var(--accent, #4f46e5);
-      background: transparent; color: var(--accent, #4f46e5);
-      transition: background .18s, color .18s;
-    }
-    .ifs-btns button:hover { background: var(--accent, #4f46e5); color: #fff; }
-    .ifs-btns button.ifs-primary { background: var(--accent, #4f46e5); color: #fff; }
-    .ifs-btns button.ifs-primary:hover { opacity: .88; }
-    #install-fallback-overlay {
-      display: none; position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,.35);
-    }
-    #install-fallback-overlay.active { display: block; }
   </style>
 </head>
 <body>
@@ -602,8 +489,11 @@
       <a href="./index.html" class="active">Home</a>
       <a href="./keychain.html">Products</a>
       <a href="./gifts-that-mean-more.html">Blog</a>
-      <button id="install-pwa-nav" aria-label="Install app">📲 Install</button>
-      <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
+
+      <!-- ✅ ALWAYS VISIBLE — JS hides it only when running as installed standalone app -->
+      <button id="install-pwa-nav" aria-label="Install app" type="button">📲 Install</button>
+
+      <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme" type="button">☾</button>
     </nav>
   </header>
 
@@ -613,7 +503,6 @@
       <div class="hero">
         <h1>Physical concepts,<br>built in <span>3D.</span></h1>
         <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
-        
         <div class="portal-cta" id="portalCtaContainer">
           <button class="btn-primary" onclick="openAuthModal()">Enter Portal</button>
           <button class="btn-secondary" onclick="requestNewCode()">Request Access</button>
@@ -662,14 +551,14 @@
           <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy instant access</strong> — PrintByDD lives on your homescreen</div></div>
         </div>
         <div class="install-btns">
-          <button id="install-pwa-section" class="btn-primary" style="display:none">📲 Install Now</button>
-          <button id="ios-trigger-section" class="btn-secondary" style="display:none">🍎 iPhone Instructions</button>
+          <button id="install-pwa-section" class="btn-primary" style="display:none" type="button">📲 Install Now</button>
+          <button id="ios-trigger-section" class="btn-secondary" style="display:none" type="button">🍎 iPhone Instructions</button>
         </div>
         <div class="dev-tabs-wrap">
           <div class="dev-tabs">
-            <button class="dev-tab active" data-tab="android">Android</button>
-            <button class="dev-tab" data-tab="ios">iPhone / iPad</button>
-            <button class="dev-tab" data-tab="desktop">Desktop</button>
+            <button class="dev-tab active" data-tab="android" type="button">Android</button>
+            <button class="dev-tab" data-tab="ios" type="button">iPhone / iPad</button>
+            <button class="dev-tab" data-tab="desktop" type="button">Desktop</button>
           </div>
           <div id="tab-android" class="dev-inst">
             <strong>📱 Android — Chrome</strong>
@@ -704,7 +593,7 @@
     </main>
   </div>
 
-  <!-- Install Banner -->
+  <!-- ── Install Banner (Android / Chrome / Edge — auto-shown after 3.5s) ── -->
   <div id="install-banner">
     <div class="ib-inner">
       <div class="ib-icon">P</div>
@@ -713,19 +602,32 @@
         <span>Add to homescreen — works offline, loads instantly</span>
       </div>
       <div class="ib-acts">
-        <button class="ib-btn" id="install-banner-btn">Install</button>
-        <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss">✕</button>
+        <button class="ib-btn" id="install-banner-btn" type="button">Install</button>
+        <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss" type="button">✕</button>
       </div>
     </div>
   </div>
 
-  <!-- iOS Hint -->
+  <!-- ── iOS Hint Panel (Safari / iPhone) ── -->
   <div id="ios-hint">
-    <button id="ios-hint-close" aria-label="Close">✕</button>
+    <button id="ios-hint-close" aria-label="Close" type="button">✕</button>
     <strong>Install on iPhone / iPad</strong>
     <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari,<br>then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
   </div>
 
+  <!-- ── Fallback Bottom Sheet (Firefox / Samsung / unsupported browsers) ── -->
+  <div id="install-fallback-overlay"></div>
+  <div id="install-fallback-sheet" role="dialog" aria-modal="true" aria-labelledby="ifs-title">
+    <h3 id="ifs-title">📲 Install PrintByDD</h3>
+    <p id="ifs-body"></p>
+    <div class="ifs-btns">
+      <button id="ifs-ok" class="ifs-primary" type="button">OK</button>
+      <button id="ifs-copy" type="button">🔗 Copy Link</button>
+      <button id="ifs-how" type="button">📖 How to Install</button>
+    </div>
+  </div>
+
+  <!-- ── Auth Modal ── -->
   <div class="modal-overlay" id="authModalOverlay">
     <div class="auth-modal">
       <h2>Client Login</h2>
@@ -733,8 +635,8 @@
       <input type="text" id="accessCodeInput" class="code-input" placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
       <div class="auth-error" id="authErrorMsg">Invalid code. Please check your WhatsApp.</div>
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeAuthModal()">Cancel</button>
-        <button class="btn-primary" onclick="verifyCode()">Unlock</button>
+        <button class="btn-secondary" onclick="closeAuthModal()" type="button">Cancel</button>
+        <button class="btn-primary" onclick="verifyCode()" type="button">Unlock</button>
       </div>
     </div>
   </div>
@@ -743,25 +645,22 @@
     (function(){
       "use strict";
 
-      // ── Store URL canonicalization ──
-      // If accessed via store.viadecide.com (any path), fix internal links to stay on subdomain
+      // ══════════════════════════════════════════════════
+      // ROUTER — Store URL canonicalization
+      // Ensures /printbydd redirects to /printbydd/
+      // DO NOT modify this block.
+      // ══════════════════════════════════════════════════
       (function fixStoreLinks(){
         const isStoreDomain = location.hostname === 'store.viadecide.com';
         if (!isStoreDomain) return;
-        // Update all internal href links to use the store subdomain path
-        document.querySelectorAll('a[href]').forEach(a => {
-          const h = a.getAttribute('href');
-          if (h && (h.startsWith('./') || h.startsWith('../'))) {
-            // keep relative — they resolve correctly when at /printbydd/
-          }
-        });
-        // Update canonical URL in address bar if at /printbydd without trailing slash
         if (location.pathname === '/printbydd') {
           history.replaceState(null, '', '/printbydd/');
         }
       })();
 
-      // ── THEME LOGIC ──
+      // ══════════════════════════════════════════════════
+      // THEME — invert-mode toggle with localStorage
+      // ══════════════════════════════════════════════════
       const THEME_KEY = "VD_INVERT_THEME";
       const btnTheme  = document.getElementById("btnTheme");
       function setInvert(on){
@@ -778,24 +677,28 @@
         setInvert(!document.body.classList.contains("invert-mode"));
       });
 
-      // ── AUTHENTICATION LOGIC ──
-      const AUTH_KEY = "PBD_USER_VERIFIED";
+      // ══════════════════════════════════════════════════
+      // AUTHENTICATION
+      // ══════════════════════════════════════════════════
+      const AUTH_KEY  = "PBD_USER_VERIFIED";
       const WA_NUMBER = "916351537770";
+
       (function checkAuthStatus() {
         if (localStorage.getItem(AUTH_KEY) === "true") showLoggedInState();
       })();
+
       window.requestNewCode = function() {
         const text = `✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._`;
         window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
       };
-      const modal = document.getElementById("authModalOverlay");
-      const input = document.getElementById("accessCodeInput");
+
+      const modal    = document.getElementById("authModalOverlay");
+      const input    = document.getElementById("accessCodeInput");
       const errorMsg = document.getElementById("authErrorMsg");
-      window.openAuthModal = function() {
-        modal.classList.add("active"); input.value = ""; errorMsg.style.display = "none"; input.focus();
-      };
+
+      window.openAuthModal  = function() { modal.classList.add("active"); input.value = ""; errorMsg.style.display = "none"; input.focus(); };
       window.closeAuthModal = function() { modal.classList.remove("active"); };
-      window.verifyCode = function() {
+      window.verifyCode     = function() {
         const code = input.value.trim().toUpperCase();
         if (code.startsWith("VIA-") && code.length >= 8) {
           localStorage.setItem(AUTH_KEY, "true"); closeAuthModal(); showLoggedInState();
@@ -804,147 +707,197 @@
         }
       };
       function showLoggedInState() {
-        const ctaContainer = document.getElementById("portalCtaContainer");
-        ctaContainer.innerHTML = `
+        document.getElementById("portalCtaContainer").innerHTML = `
           <button class="btn-primary" onclick="alert('Portal Dashboard Coming Soon!')">Access Dashboard</button>
           <button class="btn-secondary" onclick="logout()" style="border:none;text-decoration:underline">Sign Out</button>`;
       }
       window.logout = function() { localStorage.removeItem(AUTH_KEY); location.reload(); };
 
-      // ── DEVICE TABS ──
-      document.querySelectorAll('.dev-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+      // ══════════════════════════════════════════════════
+      // DEVICE TABS (Install section)
+      // ══════════════════════════════════════════════════
+      document.querySelectorAll('.dev-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('.dev-tab').forEach(function(t){ t.classList.remove('active'); });
           tab.classList.add('active');
-          document.querySelectorAll('.dev-inst').forEach(d => d.style.display = 'none');
+          document.querySelectorAll('.dev-inst').forEach(function(d){ d.style.display = 'none'; });
           const t = document.getElementById('tab-' + tab.dataset.tab);
           if (t) t.style.display = 'block';
         });
       });
 
-      // ── PWA INSTALL ──
-      var dP = null;
-      var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
-      var isStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone === true;
-      var banner    = document.getElementById('install-banner');
-      var bannerBtn = document.getElementById('install-banner-btn');
-      var bannerDis = document.getElementById('install-banner-dismiss');
-      var iosHint   = document.getElementById('ios-hint');
-      var iosClose  = document.getElementById('ios-hint-close');
-      var navBtn    = document.getElementById('install-pwa-nav');
-      var secBtn    = document.getElementById('install-pwa-section');
-      var iosTrigger = document.getElementById('ios-trigger-section');
+      // ══════════════════════════════════════════════════
+      // PWA INSTALL
+      //
+      // Strategy:
+      //   • Nav button (#install-pwa-nav) is ALWAYS visible (CSS default).
+      //     It is hidden only when isStandalone === true.
+      //   • Section button (#install-pwa-section) is hidden by default;
+      //     shown only when beforeinstallprompt fires.
+      //   • doInstall() has 4 branches — zero alert() calls:
+      //     1. standalone  → calm "already installed" bottom sheet
+      //     2. dP exists   → native browser prompt (Chrome/Edge)
+      //     3. isIOS       → existing ios-hint panel
+      //     4. other       → "try Chrome/Edge" bottom sheet
+      // ══════════════════════════════════════════════════
+      let dP = null;
+      const isIOS        = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone === true;
 
-      // ── Fallback bottom sheet elements ──
-      var ifsSheet   = document.getElementById('install-fallback-sheet');
-      var ifsOverlay = document.getElementById('install-fallback-overlay');
-      var ifsTitle   = document.getElementById('ifs-title');
-      var ifsBody    = document.getElementById('ifs-body');
+      // Element refs — install controls
+      const banner     = document.getElementById('install-banner');
+      const bannerBtn  = document.getElementById('install-banner-btn');
+      const bannerDis  = document.getElementById('install-banner-dismiss');
+      const iosHint    = document.getElementById('ios-hint');
+      const iosClose   = document.getElementById('ios-hint-close');
+      const navBtn     = document.getElementById('install-pwa-nav');
+      const secBtn     = document.getElementById('install-pwa-section');
+      const iosTrigger = document.getElementById('ios-trigger-section');
 
+      // Element refs — fallback bottom sheet
+      const ifsOverlay = document.getElementById('install-fallback-overlay');
+      const ifsSheet   = document.getElementById('install-fallback-sheet');
+      const ifsTitle   = document.getElementById('ifs-title');
+      const ifsBody    = document.getElementById('ifs-body');
+      const ifsOk      = document.getElementById('ifs-ok');
+      const ifsCopy    = document.getElementById('ifs-copy');
+      const ifsHow     = document.getElementById('ifs-how');
+
+      /* ── Fallback sheet helpers ── */
       function openFallbackSheet(mode) {
         if (!ifsSheet) return;
-        if (mode === 'ios') {
-          ifsTitle.textContent = '📲 Install PrintByDD';
-          ifsBody.innerHTML = 'On Safari: tap the <strong>Share button (□↑)</strong> at the bottom of the screen, then tap <strong>"Add to Home Screen"</strong>.';
+        if (mode === 'standalone') {
+          ifsTitle.textContent = '✅ Already Installed';
+          ifsBody.innerHTML    = 'PrintByDD is already installed on your device. Open it from your homescreen!';
+        } else if (mode === 'ios') {
+          ifsTitle.textContent = '📲 Install on iPhone / iPad';
+          ifsBody.innerHTML    = 'In Safari, tap the <strong>Share button (□↑)</strong> at the bottom, then tap <strong>"Add to Home Screen"</strong>.';
         } else {
           ifsTitle.textContent = '📲 Install PrintByDD';
-          ifsBody.innerHTML = 'Install works best in <strong>Chrome</strong> or <strong>Edge</strong>. Open this page in one of those browsers to install.';
+          ifsBody.innerHTML    = 'Install works best in <strong>Chrome</strong> or <strong>Edge</strong>. Open this page in one of those browsers to add PrintByDD to your homescreen.';
         }
         ifsSheet.classList.add('active');
         if (ifsOverlay) ifsOverlay.classList.add('active');
       }
 
       function closeFallbackSheet() {
-        if (ifsSheet) ifsSheet.classList.remove('active');
+        if (ifsSheet)   ifsSheet.classList.remove('active');
         if (ifsOverlay) ifsOverlay.classList.remove('active');
       }
 
+      // Wire up fallback sheet buttons
       if (ifsOverlay) ifsOverlay.addEventListener('click', closeFallbackSheet);
-      document.getElementById('ifs-ok') && document.getElementById('ifs-ok').addEventListener('click', closeFallbackSheet);
-      var ifsCopy = document.getElementById('ifs-copy');
+      if (ifsOk)      ifsOk.addEventListener('click', closeFallbackSheet);
       if (ifsCopy) {
         ifsCopy.addEventListener('click', function() {
-          try { navigator.clipboard.writeText(location.href); ifsCopy.textContent = '✓ Copied!'; setTimeout(function(){ ifsCopy.textContent = '🔗 Copy Link'; }, 2000); } catch(e) {}
+          try {
+            navigator.clipboard.writeText(location.href);
+            ifsCopy.textContent = '✓ Copied!';
+            setTimeout(function(){ ifsCopy.textContent = '🔗 Copy Link'; }, 2200);
+          } catch(e) {}
         });
       }
-      var ifsHow = document.getElementById('ifs-how');
       if (ifsHow) {
         ifsHow.addEventListener('click', function() {
-          var sec = document.getElementById('install-section');
-          if (sec) { closeFallbackSheet(); setTimeout(function(){ sec.scrollIntoView({behavior:'smooth'}); }, 200); }
+          const sec = document.getElementById('install-section');
+          if (sec) { closeFallbackSheet(); setTimeout(function(){ sec.scrollIntoView({ behavior: 'smooth' }); }, 200); }
         });
       }
 
+      /* ── Show / hide section install button ── */
       function showInstallBtns() {
-        if (navBtn) navBtn.style.display = 'inline-flex';
+        // Nav button stays at its CSS default (always visible).
+        // Only the in-page section button toggles with prompt availability.
         if (secBtn) secBtn.style.display = 'inline-flex';
       }
       function hideInstallBtns() {
-        if (navBtn) navBtn.style.display = 'none';
         if (secBtn) secBtn.style.display = 'none';
         if (banner) banner.classList.remove('show');
       }
 
-      // If already installed as standalone — hide install UI entirely
-      if (isStandalone) {
-        hideInstallBtns();
-      }
+      // Hide nav button if app is already installed
+      if (isStandalone && navBtn) navBtn.style.display = 'none';
 
+      /* ── Core install handler ── */
       function doInstall() {
-        if (isStandalone) return;
-        if (dP) {
-          // Native prompt available (Chrome/Edge Android/Desktop)
-          dP.prompt();
-          dP.userChoice.then(function(r) { if (r.outcome === 'accepted') { dP = null; hideInstallBtns(); } });
-        } else if (isIOS) {
-          // iOS Safari — show in-page hint
-          if (iosHint) {
-            iosHint.classList.add('show');
-          } else {
-            openFallbackSheet('ios');
-          }
-        } else {
-          // Unsupported browser — calm inline bottom sheet, NO alert()
-          openFallbackSheet('other');
+        // 1. Already installed
+        if (isStandalone) {
+          openFallbackSheet('standalone');
+          return;
         }
+        // 2. Native prompt available (Chrome / Edge — Android & Desktop)
+        if (dP) {
+          dP.prompt();
+          dP.userChoice.then(function(result) {
+            if (result.outcome === 'accepted') {
+              dP = null;
+              hideInstallBtns();
+              if (navBtn) navBtn.style.display = 'none';
+            }
+          });
+          return;
+        }
+        // 3. iOS Safari — show in-page hint panel
+        if (isIOS) {
+          if (iosHint) { iosHint.classList.add('show'); } else { openFallbackSheet('ios'); }
+          return;
+        }
+        // 4. Everything else (Firefox, Samsung Browser, Opera, etc.)
+        //    → calm bottom sheet, NO alert()
+        openFallbackSheet('other');
       }
 
-      // Android / Chrome / Edge — native prompt
+      /* ── beforeinstallprompt — Chrome / Edge ── */
       window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault(); dP = e;
+        e.preventDefault();
+        dP = e;
         showInstallBtns();
+        // Auto-show install banner after 3.5 s (if user hasn't dismissed it)
         setTimeout(function() {
           try {
-            var dismissed = sessionStorage.getItem('pbd-install-dismissed');
+            const dismissed = sessionStorage.getItem('pbd-install-dismissed');
             if (!dismissed && !isStandalone && banner) banner.classList.add('show');
           } catch(ex) {}
         }, 3500);
       });
 
-      if (navBtn) navBtn.addEventListener('click', doInstall);
-      if (secBtn) secBtn.addEventListener('click', doInstall);
-      if (bannerBtn) bannerBtn.addEventListener('click', function() { doInstall(); banner.classList.remove('show'); });
+      // Button wiring
+      if (navBtn)    navBtn.addEventListener('click', doInstall);
+      if (secBtn)    secBtn.addEventListener('click', doInstall);
+      if (bannerBtn) bannerBtn.addEventListener('click', function() { doInstall(); if (banner) banner.classList.remove('show'); });
       if (bannerDis) bannerDis.addEventListener('click', function() {
-        banner.classList.remove('show');
+        if (banner) banner.classList.remove('show');
         try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(e) {}
       });
 
-      // iOS auto-hint (existing flow)
+      /* ── iOS: show section trigger + auto-hint ── */
       if (isIOS && !isStandalone) {
-        if (iosTrigger) iosTrigger.style.display = 'inline-flex';
-        if (iosTrigger) iosTrigger.addEventListener('click', function() { if (iosHint) iosHint.classList.add('show'); });
+        if (iosTrigger) {
+          iosTrigger.style.display = 'inline-flex';
+          iosTrigger.addEventListener('click', function() { if (iosHint) iosHint.classList.add('show'); });
+        }
         setTimeout(function() {
-          try { var d = sessionStorage.getItem('pbd-ios-dismissed'); if (!d && iosHint) iosHint.classList.add('show'); } catch(e) {}
+          try {
+            const d = sessionStorage.getItem('pbd-ios-dismissed');
+            if (!d && iosHint) iosHint.classList.add('show');
+          } catch(e) {}
         }, 4500);
       }
       if (iosClose) iosClose.addEventListener('click', function() {
-        iosHint.classList.remove('show');
+        if (iosHint) iosHint.classList.remove('show');
         try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(e) {}
       });
 
-      window.addEventListener('appinstalled', function() { dP = null; hideInstallBtns(); });
+      /* ── After install completes ── */
+      window.addEventListener('appinstalled', function() {
+        dP = null;
+        hideInstallBtns();
+        if (navBtn) navBtn.style.display = 'none';
+      });
 
-      // ── SERVICE WORKER ──
+      // ══════════════════════════════════════════════════
+      // SERVICE WORKER
+      // ══════════════════════════════════════════════════
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('./sw.js').catch(function() {});
@@ -952,17 +905,6 @@
       }
 
     })();
-  </script>  <!-- ── Install Fallback Bottom Sheet ── -->
-  <div id="install-fallback-overlay"></div>
-  <div id="install-fallback-sheet" role="dialog" aria-modal="true" aria-labelledby="ifs-title">
-    <h3 id="ifs-title">📲 Install PrintByDD</h3>
-    <p id="ifs-body"></p>
-    <div class="ifs-btns">
-      <button id="ifs-ok" class="ifs-primary">OK</button>
-      <button id="ifs-copy">🔗 Copy Link</button>
-      <button id="ifs-how">📖 How to Install</button>
-    </div>
-  </div>
-
+  </script>
 </body>
 </html>
