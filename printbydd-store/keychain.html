@@ -399,12 +399,12 @@
     <div class="bg-glow"></div>
 
     <header class="site-header">
-      <a href="/printbydd-store" class="logo">PrintByDD</a>
+      <a id="kcHomeLink" class="logo">PrintByDD</a>
       <div class="nav-container">
         <nav>
-          <a href="/printbydd-store">Home</a>
-          <a href="/printbydd-store/keychain" class="active">Products</a>
-          <a href="/gifts-that-mean-more">Blog</a>
+          <a id="kcNavHome">Home</a>
+          <a id="kcNavProducts">Products</a>
+          <a href="/printbydd-store/gifts-that-mean-more">Blog</a>
         </nav>
         <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
            target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
@@ -456,6 +456,22 @@
   <script>
 (function(){
   "use strict";
+
+  // ========= ROUTING HELPER =========
+  function routeTo(pathHtml, pathRoute){
+    return location.hostname === 'store.viadecide.com' ? pathRoute : pathHtml;
+  }
+  // Set nav links based on environment
+  (function(){
+    var homeLink = document.getElementById('kcHomeLink');
+    var navHome  = document.getElementById('kcNavHome');
+    var navProd  = document.getElementById('kcNavProducts');
+    if(homeLink) homeLink.href = routeTo('./index.html', '/printbydd-store/');
+    if(navHome)  navHome.href  = routeTo('./index.html', '/printbydd-store/');
+    if(navProd){
+      navProd.href = routeTo('./products.html', '/printbydd-store/products/');
+    }
+  })();
 
   // ========= CONFIG =========
   const STL_URL = "keychain.stl";
