@@ -82,7 +82,7 @@
 
     /* ── Nav install button ── */
     #install-pwa-nav {
-      display: none;
+      display: none; /* shown only when install available OR iOS hint is relevant */
       font-size: 12px; font-weight: 800;
       color: var(--accent);
       padding: 6px 14px;
@@ -155,6 +155,7 @@
       .install-btns { flex-direction: column; }
       .install-btns button { width: 100%; text-align: center; }
     }
+
     :root {
       --bg: #fafafa;
       --surface: #ffffff;
@@ -564,7 +565,10 @@
       <a href="./index.html" class="active">Home</a>
       <a href="./keychain.html">Products</a>
       <a href="./gifts-that-mean-more.html">Blog</a>
-      <button id="install-pwa-nav" aria-label="Install app">📲 Install</button>
+
+      <!-- ✅ Install App Button (Nav) -->
+      <button id="install-pwa-nav" aria-label="Install app" title="Install App">📲 Install</button>
+
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
     </nav>
   </header>
@@ -575,7 +579,7 @@
       <div class="hero">
         <h1>Physical concepts,<br>built in <span>3D.</span></h1>
         <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
-        
+
         <div class="portal-cta" id="portalCtaContainer">
           <button class="btn-primary" onclick="openAuthModal()">Enter Portal</button>
           <button class="btn-secondary" onclick="requestNewCode()">Request Access</button>
@@ -617,7 +621,7 @@
       <!-- ── Install App Section ── -->
       <div id="install-section">
         <h2>Get PrintByDD on<br>any <span>device.</span></h2>
-        <p>Install our store as a Progressive Web App — works on Android, iPhone, Windows, Mac, and Linux. Browse and order offline, loads instantly from your homescreen.</p>
+        <p>Install our store as a Progressive Web App — works on Android, iPhone, Windows, Mac, and Linux. Loads instantly from your homescreen.</p>
         <div class="install-steps">
           <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, or Edge</div></div>
           <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser menu</div></div>
@@ -655,7 +659,7 @@
             <strong>💻 Desktop — Chrome / Edge</strong>
             <ol>
               <li>Open <strong>store.viadecide.com/printbydd</strong> in Chrome or Edge</li>
-              <li>Look for the <strong>install icon ⊕</strong> in the address bar (right side)</li>
+              <li>Look for the <strong>install icon</strong> in the address bar</li>
               <li>Or open <strong>3-dot menu → "Install PrintByDD"</strong></li>
               <li>Click <strong>Install</strong> — opens as its own app window!</li>
             </ol>
@@ -672,7 +676,7 @@
       <div class="ib-icon">P</div>
       <div class="ib-txt">
         <strong>Install PrintByDD Store</strong>
-        <span>Add to homescreen — works offline, loads instantly</span>
+        <span>Add to homescreen — loads instantly</span>
       </div>
       <div class="ib-acts">
         <button class="ib-btn" id="install-banner-btn">Install</button>
@@ -705,24 +709,6 @@
     (function(){
       "use strict";
 
-      // ── Store URL canonicalization ──
-      // If accessed via store.viadecide.com (any path), fix internal links to stay on subdomain
-      (function fixStoreLinks(){
-        const isStoreDomain = location.hostname === 'store.viadecide.com';
-        if (!isStoreDomain) return;
-        // Update all internal href links to use the store subdomain path
-        document.querySelectorAll('a[href]').forEach(a => {
-          const h = a.getAttribute('href');
-          if (h && (h.startsWith('./') || h.startsWith('../'))) {
-            // keep relative — they resolve correctly when at /printbydd/
-          }
-        });
-        // Update canonical URL in address bar if at /printbydd without trailing slash
-        if (location.pathname === '/printbydd') {
-          history.replaceState(null, '', '/printbydd/');
-        }
-      })();
-
       // ── THEME LOGIC ──
       const THEME_KEY = "VD_INVERT_THEME";
       const btnTheme  = document.getElementById("btnTheme");
@@ -736,9 +722,7 @@
         try{ saved = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
         setInvert(saved === "1");
       })();
-      btnTheme.addEventListener("click", () => {
-        setInvert(!document.body.classList.contains("invert-mode"));
-      });
+      btnTheme.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode")));
 
       // ── AUTHENTICATION LOGIC ──
       const AUTH_KEY = "PBD_USER_VERIFIED";
@@ -784,74 +768,119 @@
         });
       });
 
-      // ── PWA INSTALL ──
-      var dP = null;
-      var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
-      var isStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone === true;
-      var banner    = document.getElementById('install-banner');
-      var bannerBtn = document.getElementById('install-banner-btn');
-      var bannerDis = document.getElementById('install-banner-dismiss');
-      var iosHint   = document.getElementById('ios-hint');
-      var iosClose  = document.getElementById('ios-hint-close');
-      var navBtn    = document.getElementById('install-pwa-nav');
-      var secBtn    = document.getElementById('install-pwa-section');
-      var iosTrigger = document.getElementById('ios-trigger-section');
+      // ── PWA INSTALL (Nav button enabled) ──
+      let deferredPrompt = null;
 
-      function showInstallBtns() {
+      const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone =
+        window.matchMedia('(display-mode:standalone)').matches ||
+        (typeof navigator.standalone !== "undefined" && navigator.standalone === true);
+
+      const banner     = document.getElementById('install-banner');
+      const bannerBtn  = document.getElementById('install-banner-btn');
+      const bannerDis  = document.getElementById('install-banner-dismiss');
+
+      const iosHint    = document.getElementById('ios-hint');
+      const iosClose   = document.getElementById('ios-hint-close');
+
+      const navBtn     = document.getElementById('install-pwa-nav');
+      const secBtn     = document.getElementById('install-pwa-section');
+      const iosTrigger = document.getElementById('ios-trigger-section');
+
+      function showInstallButtons() {
         if (navBtn) navBtn.style.display = 'inline-flex';
         if (secBtn) secBtn.style.display = 'inline-flex';
       }
-      function hideInstallBtns() {
+      function hideInstallButtons() {
         if (navBtn) navBtn.style.display = 'none';
         if (secBtn) secBtn.style.display = 'none';
         if (banner) banner.classList.remove('show');
       }
-      function doInstall() {
-        if (dP) { dP.prompt(); dP.userChoice.then(r => { if (r.outcome === 'accepted') { dP = null; hideInstallBtns(); } }); }
+
+      function openIOSHint() {
+        if (iosHint) iosHint.classList.add('show');
       }
 
-      // Android / Chrome / Edge
-      window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault(); dP = e;
-        showInstallBtns();
-        setTimeout(function() {
+      async function doInstall() {
+        // iOS: show instruction sheet
+        if (isIOS && !isStandalone) {
+          openIOSHint();
+          return;
+        }
+        // Chrome/Edge/etc
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        try {
+          await deferredPrompt.userChoice;
+        } catch(_) {}
+        deferredPrompt = null;
+        hideInstallButtons();
+      }
+
+      // If already installed: hide everything
+      if (isStandalone) hideInstallButtons();
+
+      // Chrome/Edge install available
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!isStandalone) showInstallButtons();
+
+        // Optional banner after a delay (only once per session)
+        setTimeout(() => {
           try {
-            var dismissed = sessionStorage.getItem('pbd-install-dismissed');
+            const dismissed = sessionStorage.getItem('pbd-install-dismissed');
             if (!dismissed && !isStandalone && banner) banner.classList.add('show');
-          } catch(ex) {}
-        }, 3500);
+          } catch(_) {}
+        }, 2500);
       });
 
       if (navBtn) navBtn.addEventListener('click', doInstall);
       if (secBtn) secBtn.addEventListener('click', doInstall);
-      if (bannerBtn) bannerBtn.addEventListener('click', function() { doInstall(); banner.classList.remove('show'); });
-      if (bannerDis) bannerDis.addEventListener('click', function() {
-        banner.classList.remove('show');
-        try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(e) {}
+
+      if (bannerBtn) bannerBtn.addEventListener('click', () => {
+        doInstall();
+        if (banner) banner.classList.remove('show');
       });
 
-      // iOS
+      if (bannerDis) bannerDis.addEventListener('click', () => {
+        if (banner) banner.classList.remove('show');
+        try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(_) {}
+      });
+
+      // iOS: show the instruction button + optionally show hint once
       if (isIOS && !isStandalone) {
         if (iosTrigger) iosTrigger.style.display = 'inline-flex';
-        if (iosTrigger) iosTrigger.addEventListener('click', function() { if (iosHint) iosHint.classList.add('show'); });
-        setTimeout(function() {
-          try { var d = sessionStorage.getItem('pbd-ios-dismissed'); if (!d && iosHint) iosHint.classList.add('show'); } catch(e) {}
+
+        // Show nav install even on iOS so user can tap it → instructions
+        if (navBtn) navBtn.style.display = 'inline-flex';
+
+        if (iosTrigger) iosTrigger.addEventListener('click', openIOSHint);
+
+        setTimeout(() => {
+          try {
+            const d = sessionStorage.getItem('pbd-ios-dismissed');
+            if (!d && iosHint) iosHint.classList.add('show');
+          } catch(_) {}
         }, 4500);
       }
-      if (iosClose) iosClose.addEventListener('click', function() {
-        iosHint.classList.remove('show');
-        try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(e) {}
+
+      if (iosClose) iosClose.addEventListener('click', () => {
+        if (iosHint) iosHint.classList.remove('show');
+        try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(_) {}
       });
 
-      window.addEventListener('appinstalled', function() { dP = null; hideInstallBtns(); });
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        hideInstallButtons();
+      });
 
       // ── SERVICE WORKER ──
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('./sw.js').catch(function() {});
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
         });
       }
-
     })();
   </script>
 </body>
