@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><!-- REPLACE: BLOG_TITLE --> | ViaDecide</title>
-  <meta name="description" content="<!-- REPLACE: BLOG_TITLE -->" />
-  <!-- REPLACE: BLOG_SLUG -->
+  <title>| ViaDecide</title>
+  <meta name="description" content="" />
   <script>window.__MAIN_WEBSITE__ = "https://viadecide.com/";</script>
   <script src="./router.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,20 +14,21 @@
     /* ── RESET & TOKENS ──────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:        #050505;
-      --bg2:       #0d0d0d;
-      --bg3:       #141414;
-      --border:    rgba(255,255,255,.08);
-      --border-hi: rgba(255,103,31,.35);
+      /* Deepened for a more cinematic, "Netflix" feel */
+      --bg:        #000000;
+      --bg2:       #0f0f0f;
+      --bg3:       #1a1a1a;
+      --border:    rgba(255,255,255,.04);
+      --border-hi: rgba(255,103,31,.5);
       --acc:       #ff671f;
       --acc2:      #ff8c4b;
-      --txt:       #e8e8e8;
-      --txt2:      #888;
-      --txt3:      #555;
-      --card:      rgba(255,255,255,.03);
-      --card-h:    rgba(255,103,31,.06);
-      --r:         14px;
-      --r-sm:      8px;
+      --txt:       #ffffff;
+      --txt2:      #a0a0a0;
+      --txt3:      #666666;
+      --card:      rgba(255,255,255,.02);
+      --card-h:    rgba(255,103,31,.08);
+      --r:         12px; /* Slightly sharper radii for a modern tech feel */
+      --r-sm:      6px;
       --font-head: 'DM Serif Display', Georgia, serif;
       --font-ui:   'Syne', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
@@ -46,11 +46,9 @@
       height: 100dvh;
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
-      scrollbar-width: thin;
-      scrollbar-color: var(--acc) transparent;
+      scrollbar-width: none; /* Hidden for cleaner UI */
     }
-    .snap-root::-webkit-scrollbar { width: 4px; }
-    .snap-root::-webkit-scrollbar-thumb { background: var(--acc); border-radius: 2px; }
+    .snap-root::-webkit-scrollbar { display: none; }
 
     /* ── SECTIONS ────────────────────────────────────────────── */
     .section {
@@ -76,10 +74,11 @@
     .section.infographics-section {
       min-height: auto;
       align-items: flex-start;
-      padding: 100px 20px 60px;
+      padding: 100px 0 60px 20px; /* Adjusted padding to let carousels bleed to the edge */
       scroll-snap-align: none;
     }
-    .section.infographics-section .section-inner { max-width: 1100px; }
+    .section.infographics-section .section-inner { max-width: 100%; padding-right: 20px; }
+    .infographics-header { max-width: 780px; margin: 0 auto 56px auto; }
 
     /* ── FIXED TOP BAR ───────────────────────────────────────── */
     .top-bar {
@@ -90,9 +89,8 @@
       align-items: center;
       gap: 12px;
       padding: 10px 20px;
-      background: rgba(5,5,5,.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
+      border-bottom: none;
     }
     .top-bar .back {
       font-family: var(--font-mono);
@@ -103,36 +101,34 @@
       transition: color .2s;
       white-space: nowrap;
     }
-    .top-bar .back:hover { color: var(--acc); }
+    .top-bar .back:hover { color: var(--txt); }
     .sec-pill {
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--txt3);
-      background: var(--bg3);
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
       border-radius: 20px;
-      padding: 3px 10px;
+      padding: 4px 12px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 240px;
-      transition: color .3s;
     }
-    .sec-pill span { color: var(--acc); font-weight: 600; }
+    .sec-pill span { color: var(--txt); font-weight: 600; }
     .translate-btn {
       margin-left: auto;
       font-family: var(--font-mono);
       font-size: 12px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      border: none;
       color: var(--txt2);
       border-radius: var(--r-sm);
-      padding: 4px 10px;
+      padding: 6px 12px;
       cursor: pointer;
-      transition: border-color .2s, color .2s;
-      white-space: nowrap;
+      transition: background .2s, color .2s;
     }
-    .translate-btn:hover { border-color: var(--acc); color: var(--acc); }
+    .translate-btn:hover { background: rgba(255,255,255,0.1); color: var(--txt); }
 
     /* ── SITE TOP NAV ────────────────────────────────────────── */
     .site-nav {
@@ -141,22 +137,21 @@
       gap: 6px;
       flex-wrap: wrap;
       margin-bottom: 32px;
-      padding: 10px 14px;
+      padding: 12px 16px;
       background: var(--bg2);
-      border: 1px solid var(--border);
       border-radius: var(--r);
     }
     .site-nav .brand {
       font-family: var(--font-head);
-      font-size: 18px;
+      font-size: 20px;
       color: var(--acc);
       text-decoration: none;
-      margin-right: 8px;
+      margin-right: 12px;
       letter-spacing: -.02em;
     }
     .site-nav .nav-links {
       display: flex;
-      gap: 2px;
+      gap: 4px;
       flex-wrap: wrap;
       flex: 1;
     }
@@ -165,15 +160,14 @@
       font-weight: 600;
       color: var(--txt2);
       text-decoration: none;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: var(--r-sm);
-      transition: background .2s, color .2s;
-      letter-spacing: .02em;
+      transition: color .2s;
     }
-    .site-nav a.nav-link:hover { background: var(--card-h); color: var(--acc); }
+    .site-nav a.nav-link:hover { color: var(--txt); }
     .site-nav .nav-actions {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       align-items: center;
       margin-left: auto;
     }
@@ -181,37 +175,29 @@
       font-size: 12px;
       font-weight: 600;
       color: var(--txt2);
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 5px 12px;
       text-decoration: none;
-      transition: border-color .2s, color .2s;
-      white-space: nowrap;
+      transition: color .2s;
     }
-    .btn-yt:hover { border-color: var(--border-hi); color: var(--acc); }
+    .btn-yt:hover { color: var(--txt); }
     .btn-cta {
       font-size: 13px;
       font-weight: 700;
-      color: #fff;
-      background: var(--acc);
-      border: none;
+      color: var(--bg);
+      background: var(--txt);
       border-radius: var(--r-sm);
-      padding: 6px 14px;
+      padding: 8px 16px;
       text-decoration: none;
-      transition: background .2s, transform .15s;
-      white-space: nowrap;
-      cursor: pointer;
+      transition: transform .2s, background .2s;
     }
-    .btn-cta:hover { background: var(--acc2); transform: translateY(-1px); }
+    .btn-cta:hover { background: var(--acc); color: #fff; transform: scale(1.02); }
 
-    /* ── SECTION LABELS ──────────────────────────────────────── */
+    /* ── SECTION LABELS & HEADINGS ───────────────────────────── */
     .sec-label {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: var(--acc);
+      color: var(--txt2);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -220,26 +206,23 @@
     .sec-label::before {
       content: '';
       display: inline-block;
-      width: 20px; height: 2px;
+      width: 16px; height: 2px;
       background: var(--acc);
-      border-radius: 1px;
     }
-
-    /* ── HEADINGS ────────────────────────────────────────────── */
     h1, h2 {
       font-family: var(--font-head);
       line-height: 1.1;
       letter-spacing: -.02em;
     }
-    h1 { font-size: clamp(36px, 6vw, 68px); }
-    h2 { font-size: clamp(28px, 4vw, 48px); }
+    h1 { font-size: clamp(40px, 7vw, 76px); }
+    h2 { font-size: clamp(32px, 5vw, 54px); }
     h3 { font-family: var(--font-ui); font-size: 20px; font-weight: 700; }
 
     /* ── BODY TEXT ───────────────────────────────────────────── */
     .lead {
-      font-size: clamp(16px, 2vw, 20px);
+      font-size: clamp(17px, 2.5vw, 22px);
       color: var(--txt2);
-      line-height: 1.65;
+      line-height: 1.6;
       margin-top: 16px;
     }
     .body-text {
@@ -251,935 +234,407 @@
     strong { color: var(--txt); font-weight: 700; }
     em { font-style: italic; color: var(--acc); }
 
-    /* ── CARDS ───────────────────────────────────────────────── */
+    /* ── CARDS (Vertical list style) ─────────────────────────── */
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: transparent;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      transition: transform .2s;
+    }
+    .card:last-child { border-bottom: none; }
+    .card:hover { transform: translateX(8px); }
+
+    /* ── MODULAR HORIZONTAL CAROUSELS ("NETFLIX" STYLE) ──────── */
+    /* Instead of wrapping grids, we use horizontal scrolling */
+    .carousel-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 16px;
+      padding: 10px 0 30px 0; /* Padding for hover shadows */
+      scrollbar-width: none;
+    }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    
+    .carousel-card {
+      background: var(--bg2);
       border-radius: var(--r);
-      padding: 20px 22px;
-      transition: border-color .25s, background .25s, transform .2s;
-    }
-    .card:hover {
-      border-color: var(--border-hi);
-      background: var(--card-h);
-      transform: translateY(-2px);
-    }
-
-    /* ── GRID LAYOUTS ────────────────────────────────────────── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-
-    /* ── PROBLEM SECTION ─────────────────────────────────────── */
-    .problem-list {
-      margin-top: 24px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-    .problem-item {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      padding: 14px 18px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--acc);
-      border-radius: var(--r-sm);
-    }
-    .problem-item .icon { font-size: 20px; flex-shrink: 0; }
-    .problem-item p { font-size: 15px; color: var(--txt2); line-height: 1.5; }
-
-    /* ── FRAMEWORK STEPS ─────────────────────────────────────── */
-    .steps {
-      margin-top: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .step {
-      display: flex;
-      gap: 18px;
-      position: relative;
-    }
-    .step-num {
+      gap: 10px;
+      min-width: 260px;
+      max-width: 260px;
+      scroll-snap-align: start;
       flex-shrink: 0;
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: var(--acc);
-      color: #fff;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      z-index: 1;
-    }
-    .step-line {
-      position: absolute;
-      left: 17px;
-      top: 36px;
-      width: 2px;
-      height: calc(100% - 8px);
-      background: var(--border);
-    }
-    .step-body {
-      padding-bottom: 28px;
-    }
-    .step-body h4 {
-      font-weight: 700;
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
-    .step-body p { font-size: 14px; color: var(--txt2); line-height: 1.6; }
-
-    /* ── CHECKLIST ───────────────────────────────────────────── */
-    .checklist { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
-    .check-item {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      padding: 12px 16px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      font-size: 15px;
-      color: var(--txt);
-    }
-    .check-item::before {
-      content: '✓';
-      color: var(--acc);
-      font-weight: 800;
-      font-size: 14px;
-      flex-shrink: 0;
-      width: 22px; height: 22px;
-      background: rgba(255,103,31,.12);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    /* ── CTA SECTION ─────────────────────────────────────────── */
-    .cta-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 32px;
-    }
-    .cta-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 24px 20px;
-      text-align: center;
       text-decoration: none;
-      color: var(--txt);
-      transition: border-color .25s, transform .2s, background .2s;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      transition: transform .3s cubic-bezier(.25,.8,.25,1), background .3s;
+      position: relative;
     }
-    .cta-card:hover {
-      border-color: var(--border-hi);
-      background: var(--card-h);
-      transform: translateY(-3px);
-    }
-    .cta-card .cta-icon { font-size: 28px; }
-    .cta-card h4 { font-size: 16px; font-weight: 700; }
-    .cta-card p { font-size: 13px; color: var(--txt2); }
-    .cta-card .cta-arrow {
-      margin-top: 6px;
-      font-size: 12px;
-      color: var(--acc);
-      font-weight: 700;
-      letter-spacing: .05em;
+    .carousel-card:hover { 
+      transform: scale(1.04); 
+      background: var(--bg3);
+      z-index: 10;
     }
 
-    /* ─────────────────────────────────────────────────────────── */
-    /*  INFOGRAPHICS SECTION                                      */
-    /* ─────────────────────────────────────────────────────────── */
-    .infographics-header {
-      text-align: center;
-      margin-bottom: 56px;
-    }
-    .infographics-header h2 { font-size: clamp(32px, 5vw, 56px); }
-    .infographics-header p {
-      margin-top: 12px;
-      font-size: 17px;
-      color: var(--txt2);
-    }
-
-    /* Infographic block wrapper */
-    .info-block {
-      margin-bottom: 64px;
-    }
-    .info-block-label {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--txt3);
+    /* Thumbnail block inside cards to simulate video UI */
+    .card-thumb {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+      border-radius: var(--r-sm);
       margin-bottom: 8px;
     }
-    .info-block-title {
-      font-family: var(--font-head);
-      font-size: clamp(22px, 3vw, 32px);
-      margin-bottom: 24px;
-      color: var(--txt);
-    }
 
-    /* 1. Tools Grid */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+    .carousel-card h4 { font-size: 15px; font-weight: 700; color: var(--txt); line-height: 1.3; }
+    .carousel-card p { font-size: 13px; color: var(--txt2); line-height: 1.5; flex: 1; }
+    .carousel-card a, .carousel-card .cta-link {
+      font-size: 12px; font-weight: 700; color: var(--txt); margin-top: auto;
     }
-    .tool-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 18px 16px;
+    .carousel-card:hover a { color: var(--acc); }
+
+    /* ── PROBLEM SECTION & CHECKLIST ─────────────────────────── */
+    .problem-list, .checklist {
+      margin-top: 24px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      transition: border-color .25s, transform .2s;
     }
-    .tool-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
-    .tool-card h4 { font-size: 14px; font-weight: 700; color: var(--txt); }
-    .tool-card p { font-size: 12px; color: var(--txt2); line-height: 1.5; flex: 1; }
-    .tool-card a {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--acc);
-      text-decoration: none;
-      letter-spacing: .03em;
-    }
-    .tool-card a:hover { text-decoration: underline; }
-
-    /* 2. Guides cards */
-    .guides-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .guide-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 22px 20px;
-      display: flex; flex-direction: column; gap: 10px;
-      text-decoration: none;
-      color: var(--txt);
-      transition: border-color .25s, transform .2s;
-    }
-    .guide-card:hover { border-color: var(--border-hi); transform: translateY(-3px); }
-    .guide-tag {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--acc);
-      background: rgba(255,103,31,.1);
-      border-radius: 4px;
-      padding: 3px 8px;
-    }
-    .guide-card h4 { font-size: 16px; font-weight: 700; line-height: 1.35; }
-    .guide-meta { font-size: 12px; color: var(--txt3); font-family: var(--font-mono); }
-
-    /* 3. Audience cards */
-    .audience-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .audience-card {
-      background: linear-gradient(135deg, var(--bg2), var(--bg3));
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px;
-      display: flex; flex-direction: column; gap: 8px;
-      transition: border-color .25s;
-    }
-    .audience-card:hover { border-color: var(--border-hi); }
-    .audience-icon { font-size: 26px; }
-    .audience-card h4 { font-size: 14px; font-weight: 700; }
-    .audience-card p { font-size: 12px; color: var(--txt2); line-height: 1.5; }
-
-    /* 4. Trust grid */
-    .trust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .trust-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 18px 20px;
-      display: flex; flex-direction: column; gap: 6px;
-      transition: border-color .25s;
-    }
-    .trust-card:hover { border-color: var(--border-hi); }
-    .trust-card h4 { font-size: 14px; font-weight: 700; }
-    .trust-card p { font-size: 13px; color: var(--txt2); line-height: 1.5; }
-    .trust-card a { font-size: 11px; color: var(--txt3); text-decoration: none; }
-    .trust-card a:hover { color: var(--acc); }
-
-    /* 5. Footer nav infographic */
-    .footer-nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .footer-col h5 {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--txt3);
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .footer-col ul a {
-      font-size: 14px;
-      color: var(--txt2);
-      text-decoration: none;
-      transition: color .2s;
-    }
-    .footer-col ul a:hover { color: var(--acc); }
-
-    /* ── TOAST ───────────────────────────────────────────────── */
-    .toast {
-      position: fixed;
-      bottom: 28px; left: 50%;
-      transform: translateX(-50%) translateY(12px);
-      background: var(--bg3);
-      border: 1px solid var(--border-hi);
-      color: var(--acc);
-      font-size: 13px;
-      font-family: var(--font-mono);
-      padding: 10px 20px;
-      border-radius: 30px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .3s, transform .3s;
-      z-index: 200;
-      white-space: nowrap;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* ── DIVIDERS & EXTRAS ───────────────────────────────────── */
-    .sec-divider {
-      width: 40px; height: 3px;
-      background: linear-gradient(90deg, var(--acc), transparent);
-      border-radius: 2px;
-      margin: 20px 0;
-    }
-    .all-blogs-btn {
-      display: inline-flex;
+    .problem-item, .check-item {
+      display: flex;
+      gap: 16px;
       align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 700;
+      padding: 16px 20px;
+      background: var(--bg2);
+      border-radius: var(--r);
+      font-size: 15px;
       color: var(--txt2);
-      text-decoration: none;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
-      transition: border-color .2s, color .2s;
-      margin-top: 24px;
+      transition: background .2s;
     }
-    .all-blogs-btn:hover { border-color: var(--border-hi); color: var(--acc); }
+    .problem-item:hover, .check-item:hover { background: var(--bg3); color: var(--txt); }
+    .problem-item .icon { font-size: 20px; }
+    .check-item::before {
+      content: '✓';
+      color: var(--bg);
+      background: var(--txt);
+      font-weight: 800; font-size: 12px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
 
-    /* Hook section decoration */
+    /* ── FRAMEWORK STEPS ─────────────────────────────────────── */
+    .steps { margin-top: 32px; display: flex; flex-direction: column; }
+    .step { display: flex; gap: 24px; position: relative; }
+    .step-num {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--bg2);
+      color: var(--acc);
+      font-family: var(--font-mono);
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+    .step-line {
+      position: absolute; left: 19px; top: 40px;
+      width: 2px; height: calc(100% - 10px);
+      background: var(--bg2);
+    }
+    .step-body { padding-bottom: 32px; }
+    .step-body h4 { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
+    .step-body p { font-size: 15px; color: var(--txt2); line-height: 1.6; }
+
+    /* ── INFO BLOCKS (For Infographics) ──────────────────────── */
+    .info-block { margin-bottom: 48px; }
+    .info-block-label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--txt3);
+      margin-bottom: 8px; padding-left: 20px; /* Aligns with section padding */
+    }
+    .info-block-title {
+      font-family: var(--font-ui); font-size: 20px; font-weight: 700;
+      margin-bottom: 16px; color: var(--txt); padding-left: 20px;
+    }
+
+    /* ── FOOTER NAV ──────────────────────────────────────────── */
+    .footer-nav-grid { 
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; 
+      padding-left: 20px; max-width: 780px;
+    }
+    .footer-col h5 {
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--txt3);
+      margin-bottom: 16px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-col ul a {
+      font-size: 14px; color: var(--txt2); text-decoration: none; transition: color .2s;
+    }
+    .footer-col ul a:hover { color: var(--txt); }
+
+    /* ── EXTRAS ──────────────────────────────────────────────── */
+    .sec-divider {
+      width: 100%; height: 1px; background: var(--border);
+      margin: 32px 0;
+    }
     .hook-bg {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,103,31,.07) 0%, transparent 70%);
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,255,255,.03) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    /* ── RESPONSIVE ──────────────────────────────────────────── */
-    @media (max-width: 900px) {
-      .tools-grid { grid-template-columns: repeat(2, 1fr); }
-      .guides-grid, .audience-grid, .cta-grid { grid-template-columns: repeat(2, 1fr); }
-      .footer-nav-grid { grid-template-columns: 1fr 1fr; }
-    }
     @media (max-width: 600px) {
       .site-nav .nav-links { display: none; }
-      .tools-grid, .guides-grid, .audience-grid, .cta-grid,
-      .trust-grid, .footer-nav-grid { grid-template-columns: 1fr; }
       .section { padding: 76px 16px 32px; }
-      .infographics-section { padding: 90px 16px 48px; }
-      .sec-pill { max-width: 120px; }
+      .footer-nav-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── FIXED TOP BAR ──────────────────────────────────────────── -->
 <header class="top-bar" role="banner">
   <a class="back" href="#" data-back>← Back</a>
-  <div class="sec-pill" id="secPill"><span id="secNum">1</span>/<span id="secTotal">?</span> • <span id="secName">Intro</span></div>
+  <div class="sec-pill" id="secPill"><span id="secNum">1</span>/<span id="secTotal">?</span></div>
   <button class="translate-btn" id="translateBtn" aria-label="Toggle language">A / अ</button>
 </header>
 
-<!-- ── TOAST ─────────────────────────────────────────────────── -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- ── SNAP ROOT ──────────────────────────────────────────────── -->
 <div class="snap-root" id="snapRoot">
 
-  <!-- ══ SEC 1: HOOK ══════════════════════════════════════════ -->
   <section class="section" data-sec="1" data-name="Intro">
     <div class="hook-bg"></div>
     <div class="section-inner">
-
-      <!-- Site top nav rendered from TOP_NAV + TOP_ACTIONS -->
       <nav class="site-nav" id="siteNav" aria-label="Site navigation"></nav>
-
-      <div class="sec-label"><!-- REPLACE: BLOG_SLUG --> · <!-- REPLACE: BLOG_TITLE --></div>
-      <h1 id="hookTitle"><!-- REPLACE: BLOG_TITLE --></h1>
-      <!-- REPLACE: SECTION_CONTENT — hook subtitle -->
+      <div class="sec-label">· </div>
+      <h1 id="hookTitle"></h1>
       <p class="lead" id="hookLead">Most buying decisions are made on vibes, ads, and top-ranked results that someone paid to be there. There's a better way — and it's been hiding in plain sight.</p>
-
       <div class="sec-divider"></div>
-
-      <a class="all-blogs-btn" href="guides">All Blogs →</a>
+      <a class="btn-cta" href="guides">Start Reading</a>
     </div>
   </section>
 
-  <!-- ══ SEC 2: PROBLEM ════════════════════════════════════════ -->
   <section class="section" data-sec="2" data-name="Problem">
     <div class="section-inner">
       <div class="sec-label">The Problem</div>
       <h2 id="problemTitle">Why product research is broken</h2>
-      <!-- REPLACE: SECTION_CONTENT -->
-      <p class="body-text">The internet is flooded with reviews that exist to rank high and convert clicks — not to actually help you decide. Here's what's working against you:</p>
-
+      <p class="body-text">The internet is flooded with reviews that exist to rank high and convert clicks — not to actually help you decide.</p>
       <div class="problem-list">
-        <div class="problem-item">
-          <span class="icon">💸</span>
-          <p><strong>Pay-to-rank</strong> — Sponsored placements masquerade as organic recommendations on nearly every major review site.</p>
-        </div>
-        <div class="problem-item">
-          <span class="icon">📊</span>
-          <p><strong>Opaque scoring</strong> — "Editor's Pick" badges appear with zero methodology behind them. How was the winner chosen?</p>
-        </div>
-        <div class="problem-item">
-          <span class="icon">📅</span>
-          <p><strong>Outdated data</strong> — Articles published in 2021 rank on page one today. Prices, specs, and availability have all changed.</p>
-        </div>
-        <div class="problem-item">
-          <span class="icon">🎭</span>
-          <p><strong>Hidden conflicts</strong> — Affiliate commissions influence rankings, and most sites never tell you this.</p>
-        </div>
+        <div class="problem-item"><span class="icon">💸</span><p><strong>Pay-to-rank</strong> — Sponsored placements masquerade as organic recommendations.</p></div>
+        <div class="problem-item"><span class="icon">📊</span><p><strong>Opaque scoring</strong> — "Editor's Pick" badges appear with zero methodology behind them.</p></div>
+        <div class="problem-item"><span class="icon">📅</span><p><strong>Outdated data</strong> — Articles published in 2021 rank on page one today.</p></div>
+        <div class="problem-item"><span class="icon">🎭</span><p><strong>Hidden conflicts</strong> — Affiliate commissions influence rankings, silently.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ══ SEC 3: INSIGHT ════════════════════════════════════════ -->
   <section class="section" data-sec="3" data-name="Insight">
     <div class="section-inner">
       <div class="sec-label">The Insight</div>
-      <h2 id="insightTitle">Decisions need a <em>system</em>, not a list</h2>
-      <!-- REPLACE: SECTION_CONTENT -->
-      <p class="body-text">The best decisions aren't made by reading more articles. They're made by applying a consistent framework — weighting criteria that <strong>matter to you</strong>, not to the reviewer.</p>
-
-      <div class="sec-divider"></div>
-
-      <p class="body-text">Think of it this way: a ₹45,000 laptop is a very different purchase if you're editing video vs. attending Zoom calls. The specs that matter are completely different. Yet every top-10 list treats every buyer the same.</p>
-
-      <div style="margin-top:28px; padding:20px 24px; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--r); border-left: 4px solid var(--acc);">
-        <p style="font-size:18px; font-family:var(--font-head); line-height:1.4; color:var(--txt);" id="insightQuote">
-          <!-- REPLACE: SECTION_CONTENT — pull quote -->
+      <h2 id="insightTitle">Decisions need a <em>system</em></h2>
+      <p class="body-text">The best decisions aren't made by reading more articles. They're made by applying a consistent framework — weighting criteria that <strong>matter to you</strong>.</p>
+      <div style="margin-top:40px; border-left: 2px solid var(--acc); padding-left: 24px;">
+        <p style="font-size:20px; font-family:var(--font-head); line-height:1.4; color:var(--txt);" id="insightQuote">
           "The question isn't which laptop is best. It's which laptop is best <em>for you</em> — and that requires a decision engine, not a listicle."
         </p>
       </div>
     </div>
   </section>
 
-  <!-- ══ SEC 4: FRAMEWORK ══════════════════════════════════════ -->
   <section class="section" data-sec="4" data-name="Framework">
     <div class="section-inner">
       <div class="sec-label">The Framework</div>
-      <h2 id="frameworkTitle">How the Decide Engine works</h2>
-      <!-- REPLACE: SECTION_CONTENT -->
+      <h2 id="frameworkTitle">How the Engine works</h2>
       <div class="steps">
         <div class="step">
           <div style="display:flex;flex-direction:column;align-items:center;">
-            <div class="step-num">1</div>
-            <div class="step-line"></div>
+            <div class="step-num">1</div><div class="step-line"></div>
           </div>
           <div class="step-body">
-            <h4>Define your requirements</h4>
-            <p>Budget, use-case, deal-breakers. The Requirements Builder turns your priorities into weighted criteria automatically.</p>
+            <h4>Define requirements</h4>
+            <p>Budget, use-case, deal-breakers turned into weighted criteria.</p>
           </div>
         </div>
         <div class="step">
           <div style="display:flex;flex-direction:column;align-items:center;">
-            <div class="step-num">2</div>
-            <div class="step-line"></div>
+            <div class="step-num">2</div><div class="step-line"></div>
           </div>
           <div class="step-body">
-            <h4>Run a transparent comparison</h4>
-            <p>Every data point is sourced and cited. Weighted scores are calculated openly — you can audit every number.</p>
+            <h4>Transparent comparison</h4>
+            <p>Every data point is sourced. Weighted scores are calculated openly.</p>
           </div>
         </div>
         <div class="step">
           <div style="display:flex;flex-direction:column;align-items:center;">
             <div class="step-num">3</div>
-            <div class="step-line"></div>
-          </div>
-          <div class="step-body">
-            <h4>Check for red flags</h4>
-            <p>Hidden caveats, misleading specs, and inflated prices — surfaced before you commit. Not after.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div style="display:flex;flex-direction:column;align-items:center;">
-            <div class="step-num">4</div>
           </div>
           <div class="step-body" style="padding-bottom:0">
-            <h4>Decide with confidence</h4>
-            <p>Community signals + your personalised score = a decision you can stand behind six months later.</p>
+            <h4>Check for red flags</h4>
+            <p>Hidden caveats and misleading specs surfaced before you commit.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ══ SEC 5: EXAMPLES ══════════════════════════════════════ -->
   <section class="section" data-sec="5" data-name="Examples">
     <div class="section-inner">
       <div class="sec-label">In Practice</div>
       <h2 id="examplesTitle">Decisions made smarter</h2>
-      <!-- REPLACE: SECTION_CONTENT -->
-      <p class="body-text">Here's what the Decide Engine looks like applied to real buying categories:</p>
-
-      <div style="display:flex;flex-direction:column;gap:14px;margin-top:24px;">
+      <div style="display:flex;flex-direction:column;margin-top:32px;">
         <div class="card">
-          <div style="display:flex;gap:16px;align-items:flex-start;">
-            <div style="flex-shrink:0;font-size:28px;">💻</div>
-            <div>
-              <h3 style="font-size:16px;margin-bottom:4px;">Laptops Under ₹50,000</h3>
-              <p class="body-text" style="margin-top:0;font-size:14px;">We score across 11 weighted criteria: performance-per-rupee, thermals, display, port selection, build quality, battery life, upgrade-ability, software bloat, brand support, community sentiment, and price fairness. <a href="laptops-under-50000" style="color:var(--acc);">See the comparison →</a></p>
-            </div>
-          </div>
+          <h3 style="font-size:18px;margin-bottom:8px;">Laptops Under ₹50,000</h3>
+          <p class="body-text" style="margin-top:0;font-size:15px;">Scored across 11 weighted criteria: performance, thermals, display, build quality, and more. <a href="laptops-under-50000" style="color:var(--txt);font-weight:600;margin-left:8px;">Compare →</a></p>
         </div>
         <div class="card">
-          <div style="display:flex;gap:16px;align-items:flex-start;">
-            <div style="flex-shrink:0;font-size:28px;">🎧</div>
-            <div>
-              <h3 style="font-size:16px;margin-bottom:4px;">Wireless Earbuds Under ₹3,000</h3>
-              <p class="body-text" style="margin-top:0;font-size:14px;">ANC quality, latency, touch controls, app support, and call quality — all independently tested, all cited. <a href="earbuds-under-3000" style="color:var(--acc);">See the comparison →</a></p>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div style="display:flex;gap:16px;align-items:flex-start;">
-            <div style="flex-shrink:0;font-size:28px;">📱</div>
-            <div>
-              <h3 style="font-size:16px;margin-bottom:4px;">Mid-Range Smartphones 2025</h3>
-              <p class="body-text" style="margin-top:0;font-size:14px;">Camera system, chipset longevity, software update policy, and real-world battery drain. No marketing specs. <a href="mid-range-phones-2025" style="color:var(--acc);">See the comparison →</a></p>
-            </div>
-          </div>
+          <h3 style="font-size:18px;margin-bottom:8px;">Wireless Earbuds Under ₹3,000</h3>
+          <p class="body-text" style="margin-top:0;font-size:15px;">ANC quality, latency, touch controls, and app support independently tested. <a href="earbuds-under-3000" style="color:var(--txt);font-weight:600;margin-left:8px;">Compare →</a></p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ══ SEC 6: INFOGRAPHICS (FULL SECTION) ═══════════════════ -->
   <section class="section infographics-section" data-sec="6" data-name="Infographics">
     <div class="section-inner">
       <div class="infographics-header">
-        <div class="sec-label" style="justify-content:center;">Visual Guide</div>
-        <h2>Decide Engine, visualised</h2>
-        <p>The full system — tools, guides, audience, trust, and navigation — in one scroll.</p>
+        <div class="sec-label">Visual Guide</div>
+        <h2>Explore the Ecosystem</h2>
       </div>
 
-      <!-- ── INFOGRAPHIC 1: TOOLS GRID ───────────────────────── -->
       <div class="info-block">
-        <div class="info-block-label">Block 01 / Tools</div>
-        <h3 class="info-block-title">8 tools inside the Decide Engine</h3>
-        <div class="tools-grid" id="toolsGrid"></div>
+        <div class="info-block-label">01 / Engine Tools</div>
+        <h3 class="info-block-title">Powering your research</h3>
+        <div class="carousel-track" id="toolsGrid"></div>
       </div>
 
-      <!-- ── INFOGRAPHIC 2: LATEST GUIDES ───────────────────── -->
       <div class="info-block">
-        <div class="info-block-label">Block 02 / Latest Guides</div>
-        <h3 class="info-block-title">Start with these guides</h3>
-        <div class="guides-grid" id="guidesGrid"></div>
+        <div class="info-block-label">02 / Latest Guides</div>
+        <h3 class="info-block-title">Trending categories</h3>
+        <div class="carousel-track" id="guidesGrid"></div>
       </div>
 
-      <!-- ── INFOGRAPHIC 3: AUDIENCE ─────────────────────────── -->
       <div class="info-block">
-        <div class="info-block-label">Block 03 / Audience</div>
+        <div class="info-block-label">03 / Built For</div>
         <h3 class="info-block-title">Who is this for?</h3>
-        <div class="audience-grid" id="audienceGrid"></div>
+        <div class="carousel-track" id="audienceGrid"></div>
       </div>
 
-      <!-- ── INFOGRAPHIC 4: TRUST ────────────────────────────── -->
       <div class="info-block">
-        <div class="info-block-label">Block 04 / Trust</div>
-        <h3 class="info-block-title">Why you can trust this site</h3>
-        <div class="trust-grid" id="trustGrid"></div>
-      </div>
-
-      <!-- ── INFOGRAPHIC 5: FOOTER NAV ───────────────────────── -->
-      <div class="info-block">
-        <div class="info-block-label">Block 05 / Navigation</div>
-        <h3 class="info-block-title">Everything on ViaDecide</h3>
+        <div class="info-block-label">04 / Directory</div>
+        <h3 class="info-block-title">Platform Map</h3>
         <div class="footer-nav-grid" id="footerNavGrid"></div>
       </div>
-
-    </div><!-- /section-inner -->
+    </div>
   </section>
 
-  <!-- ══ SEC 7: CHECKLIST ══════════════════════════════════════ -->
   <section class="section" data-sec="7" data-name="Checklist">
     <div class="section-inner">
-      <div class="sec-label">Your Action Plan</div>
-      <h2 id="checklistTitle">Before your next purchase</h2>
-      <!-- REPLACE: SECTION_CONTENT -->
-      <p class="body-text">Run through this checklist before spending money. Five minutes of structured thinking beats two hours of tab-switching.</p>
-
+      <div class="sec-label">Action Plan</div>
+      <h2 id="checklistTitle">Before you buy</h2>
       <div class="checklist">
         <div class="check-item">Write down your top 3 requirements — not features, but outcomes.</div>
-        <div class="check-item">Set a hard budget ceiling and a realistic budget. Treat them as separate.</div>
-        <div class="check-item">Check the price fairness score — are you paying above or below market?</div>
+        <div class="check-item">Set a hard budget ceiling. Treat it as separate from your ideal spend.</div>
         <div class="check-item">Run the Red Flag Detector on your shortlist before committing.</div>
-        <div class="check-item">Verify the review date on any guide you use. Outdated data = bad decisions.</div>
-        <div class="check-item">Look for affiliate disclosures. If there aren't any, be sceptical of rankings.</div>
-        <div class="check-item">Check community signals — what are actual buyers saying 6 months post-purchase?</div>
+        <div class="check-item">Verify the review date. Outdated data = bad decisions.</div>
       </div>
     </div>
   </section>
 
-  <!-- ══ SEC 8: CTA / NEXT ═════════════════════════════════════ -->
-  <section class="section" data-sec="8" data-name="What's Next">
-    <div class="section-inner" style="text-align:center;">
-      <div class="sec-label" style="justify-content:center;">Next Steps</div>
-      <h2 id="ctaTitle">Ready to decide smarter?</h2>
-      <!-- REPLACE: SECTION_CONTENT -->
-      <p class="lead" style="max-width:520px;margin-left:auto;margin-right:auto;">Skip the noise. Use a system built to help you — not to convert you.</p>
+</div>
 
-      <div class="cta-grid">
-        <a href="guides" class="cta-card">
-          <span class="cta-icon">📚</span>
-          <h4>Read all blogs</h4>
-          <p>Browse every guide and comparison</p>
-          <span class="cta-arrow">All Guides →</span>
-        </a>
-        <a href="<!-- REPLACE: START_RESEARCH_ROUTE -->" class="cta-card">
-          <span class="cta-icon">⚡</span>
-          <h4>Try Decide Engine</h4>
-          <p>Start your first research session</p>
-          <span class="cta-arrow">Launch →</span>
-        </a>
-        <a href="keychain" class="cta-card">
-          <span class="cta-icon">🎬</span>
-          <h4>Product demo</h4>
-          <p>See the engine in action, live</p>
-          <span class="cta-arrow">Watch →</span>
-        </a>
-      </div>
-
-      <p style="margin-top:40px;font-size:13px;color:var(--txt3);font-family:var(--font-mono);">
-        © 2025 ViaDecide · <a href="methodology" style="color:var(--txt3);text-decoration:none;">Methodology</a> · <a href="affiliate-disclosure" style="color:var(--txt3);text-decoration:none;">Affiliate Disclosure</a>
-      </p>
-    </div>
-  </section>
-
-</div><!-- /snap-root -->
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!--  DATA + RENDER SCRIPT                                      -->
-<!-- ═══════════════════════════════════════════════════════════ -->
 <script>
-/* ── DATA CONSTANTS (hardcoded as required) ─────────────────── */
 const TOP_NAV = [
   { label: "Compare", route: "compare" },
   { label: "Tools", route: "tools" },
-  { label: "Guides", route: "guides" },
-  { label: "How It Works", route: "how-it-works" },
-  { label: "About", route: "about" }
+  { label: "Guides", route: "guides" }
 ];
 
-const TOP_ACTIONS = {
-  youtubeLabel: "YouTube",
-  youtubeUrlPlaceholder: "<YOUTUBE_URL>", /* REPLACE: YOUTUBE_URL */
-  startResearchLabel: "Start Research →",
-  startResearchRoute: "<START_RESEARCH_ROUTE>" /* REPLACE: START_RESEARCH_ROUTE */
-};
-
 const TOOLS_GRID = [
-  { title: "Deep Comparisons", desc: "Side-by-side analysis with weighted scoring. Every data point is cited.", route: "compare", cta: "Explore →" },
-  { title: "Decision Guides", desc: "Guided frameworks that adapt to your budget and priorities.", route: "guides", cta: "Browse →" },
-  { title: "Score Breakdowns", desc: "Transparent weighted scoring — see exactly how ratings are calculated.", route: "methodology", cta: "See How →" },
-  { title: "Price Fairness", desc: "Know if you're paying above or below fair value before you commit.", route: "price-fairness", cta: "Check →" },
-  { title: "Red Flag Detector", desc: "Surfaces hidden caveats and misleading specs before you buy.", route: "red-flag-detector", cta: "Learn More →" },
-  { title: "Community Signals", desc: "Aggregated real-world scores from actual buyers.", route: "community-signals", cta: "View →" },
-  { title: "Category Digests", desc: "Monthly summaries so you're always working with current data.", route: "category-digests", cta: "Read →" },
-  { title: "Requirements Builder", desc: "Define your needs and let logic narrow the field for you.", route: "requirements-builder", cta: "Build →" }
+  { title: "Deep Comparisons", desc: "Side-by-side analysis with weighted scoring.", route: "compare", cta: "Explore" },
+  { title: "Decision Guides", desc: "Frameworks that adapt to your budget.", route: "guides", cta: "Browse" },
+  { title: "Price Fairness", desc: "Know if you're paying above fair value.", route: "price-fairness", cta: "Check" },
+  { title: "Red Flag Detector", desc: "Surfaces hidden caveats before you buy.", route: "red-flag-detector", cta: "Learn More" }
 ];
 
 const LATEST_GUIDES = [
-  { tag: "Laptops", title: "Best Laptops Under ₹50,000 in 2025", minutes: 8, route: "laptops-under-50000" },
-  { tag: "Audio", title: "Best Wireless Earbuds Under ₹3,000", minutes: 6, route: "earbuds-under-3000" },
-  { tag: "Phones", title: "Mid-Range Smartphone Guide 2025", minutes: 10, route: "mid-range-phones-2025" }
+  { tag: "Laptops", title: "Laptops Under ₹50,000", minutes: 8, route: "laptops-under-50000" },
+  { tag: "Audio", title: "Wireless Earbuds Under ₹3,000", minutes: 6, route: "earbuds-under-3000" },
+  { tag: "Phones", title: "Mid-Range Smartphone Guide", minutes: 10, route: "mid-range-phones-2025" }
 ];
 
-const TRUST_BLOCKS = [
-  { title: "Full Disclosure, Always", desc: "Every affiliate link is labelled — not buried.", route: "affiliate-disclosure" },
-  { title: "Commission-Agnostic Rankings", desc: "Higher commission won't outrank a better product. Scores are independent.", route: "methodology" },
-  { title: "Open Methodology", desc: "Weighting criteria are published. Audit the scoring anytime.", route: "methodology" },
-  { title: "No Pay-to-Play", desc: "Brands cannot buy rankings, badges, or editorial placement.", route: "about" },
-  { title: "Living Research", desc: "Guides show last review date. We flag when things may be outdated.", route: "guides" },
-  { title: "Reader-First Corrections", desc: "Verified corrections are applied publicly with a change log.", route: "corrections" }
+const AUDIENCE = [
+  { title: 'First-time buyers', desc: 'Navigating a category for the very first time.' },
+  { title: 'Professionals', desc: 'Need reliable tools, not the cheapest option.' },
+  { title: 'Budget-conscious', desc: 'Every rupee counts. Maximum value required.' },
+  { title: 'Busy decision-makers', desc: 'Need a trustworthy shortlist in under 10 minutes.' }
 ];
 
 const FOOTER = {
-  tools: [
-    { label: "Compare Products", route: "compare" },
-    { label: "All Tools", route: "tools" },
-    { label: "Requirements Builder", route: "requirements-builder" },
-    { label: "Price Fairness Check", route: "price-fairness" },
-    { label: "Red Flag Detector", route: "red-flag-detector" }
-  ],
-  guides: [
-    { label: "Laptops Under ₹50k", route: "laptops-under-50000" },
-    { label: "Earbuds Under ₹3k", route: "earbuds-under-3000" },
-    { label: "Mid-Range Phones", route: "mid-range-phones-2025" },
-    { label: "All Guides →", route: "guides" }
-  ],
-  company: [
-    { label: "About Us", route: "about" },
-    { label: "Methodology", route: "methodology" },
-    { label: "Affiliate Disclosure", route: "affiliate-disclosure" },
-    { label: "YouTube Channel", route: "<YOUTUBE_URL>" }, /* REPLACE: YOUTUBE_URL */
-    { label: "Instagram", route: "instagram" },
-    { label: "Contact", route: "contact" }
-  ]
+  tools: [ { label: "Compare Products", route: "compare" }, { label: "All Tools", route: "tools" } ],
+  guides: [ { label: "Laptops Under ₹50k", route: "laptops-under-50000" }, { label: "All Guides →", route: "guides" } ],
+  company: [ { label: "About Us", route: "about" }, { label: "Methodology", route: "methodology" } ]
 };
 
-/* ── HINDI TRANSLATIONS (placeholder) ──────────────────────── */
-/* REPLACE: HINDI_TRANSLATIONS */
-const HINDI = null; /* Set to object with translated strings when available */
-
-/* ─────────────────────────────────────────────────────────────
-   RENDER: SITE TOP NAV
-───────────────────────────────────────────────────────────── */
 (function renderSiteNav() {
   const nav = document.getElementById('siteNav');
   if (!nav) return;
-
-  const brand = document.createElement('a');
-  brand.href = window.__MAIN_WEBSITE__ || '/';
-  brand.className = 'brand';
-  brand.textContent = 'ViaDecide';
-  nav.appendChild(brand);
-
-  const links = document.createElement('div');
-  links.className = 'nav-links';
-  TOP_NAV.forEach(item => {
-    const a = document.createElement('a');
-    a.href = item.route;
-    a.className = 'nav-link';
-    a.textContent = item.label;
-    links.appendChild(a);
-  });
-  nav.appendChild(links);
-
-  const actions = document.createElement('div');
-  actions.className = 'nav-actions';
-
-  // YouTube — absolute URL placeholder, target blank, not intercepted by router
-  const yt = document.createElement('a');
-  const ytHref = TOP_ACTIONS.youtubeUrlPlaceholder;
-  const isAbsYT = ytHref.startsWith('http');
-  yt.href = isAbsYT ? ytHref : '#';
-  yt.className = 'btn-yt';
-  yt.textContent = TOP_ACTIONS.youtubeLabel;
-  if (isAbsYT) {
-    yt.setAttribute('target', '_blank');
-    yt.setAttribute('rel', 'noopener nofollow sponsored');
-    yt.setAttribute('data-no-aff', '');
-  }
-  actions.appendChild(yt);
-
-  const cta = document.createElement('a');
-  cta.href = TOP_ACTIONS.startResearchRoute;
-  cta.className = 'btn-cta';
-  cta.textContent = TOP_ACTIONS.startResearchLabel;
-  actions.appendChild(cta);
-
-  nav.appendChild(actions);
+  nav.innerHTML = `<a class="brand" href="/">ViaDecide</a><div class="nav-links"></div>`;
+  const links = nav.querySelector('.nav-links');
+  TOP_NAV.forEach(item => links.innerHTML += `<a class="nav-link" href="${item.route}">${item.label}</a>`);
 })();
 
-/* ─────────────────────────────────────────────────────────────
-   RENDER: TOOLS GRID
-───────────────────────────────────────────────────────────── */
-(function renderToolsGrid() {
-  const el = document.getElementById('toolsGrid');
-  if (!el) return;
-  TOOLS_GRID.forEach(tool => {
-    const card = document.createElement('div');
-    card.className = 'tool-card';
-    card.innerHTML = `
-      <h4>${tool.title}</h4>
-      <p>${tool.desc}</p>
-      <a href="${tool.route}">${tool.cta}</a>
-    `;
-    el.appendChild(card);
-  });
+(function renderCarousels() {
+  const tGrid = document.getElementById('toolsGrid');
+  if (tGrid) TOOLS_GRID.forEach(t => tGrid.innerHTML += `
+    <a href="${t.route}" class="carousel-card">
+      <div class="card-thumb"></div>
+      <h4>${t.title}</h4><p>${t.desc}</p>
+      <span class="cta-link">${t.cta} →</span>
+    </a>`);
+
+  const gGrid = document.getElementById('guidesGrid');
+  if (gGrid) LATEST_GUIDES.forEach(g => gGrid.innerHTML += `
+    <a href="${g.route}" class="carousel-card">
+      <div class="card-thumb"></div>
+      <div style="font-size:11px;color:var(--acc);letter-spacing:.05em;">${g.tag.toUpperCase()}</div>
+      <h4>${g.title}</h4>
+      <p style="font-family:var(--font-mono);font-size:11px;">⏱ ${g.minutes} min read</p>
+    </a>`);
+
+  const aGrid = document.getElementById('audienceGrid');
+  if (aGrid) AUDIENCE.forEach(a => aGrid.innerHTML += `
+    <div class="carousel-card" style="justify-content:center;">
+      <h4>${a.title}</h4><p>${a.desc}</p>
+    </div>`);
 })();
 
-/* ─────────────────────────────────────────────────────────────
-   RENDER: GUIDES GRID
-───────────────────────────────────────────────────────────── */
-(function renderGuidesGrid() {
-  const el = document.getElementById('guidesGrid');
-  if (!el) return;
-  LATEST_GUIDES.forEach(guide => {
-    const card = document.createElement('a');
-    card.href = guide.route;
-    card.className = 'guide-card';
-    card.innerHTML = `
-      <span class="guide-tag">${guide.tag}</span>
-      <h4>${guide.title}</h4>
-      <span class="guide-meta">⏱ ${guide.minutes} min read</span>
-    `;
-    el.appendChild(card);
-  });
-})();
-
-/* ─────────────────────────────────────────────────────────────
-   RENDER: AUDIENCE GRID (invented labels, consistent style)
-───────────────────────────────────────────────────────────── */
-(function renderAudienceGrid() {
-  const el = document.getElementById('audienceGrid');
-  if (!el) return;
-  const AUDIENCE = [
-    { icon: '🎓', title: 'First-time buyers', desc: 'Navigating a category for the very first time, with no idea what specs actually matter.' },
-    { icon: '💼', title: 'Professionals', desc: 'Need reliable tools, not the cheapest option — willing to pay for the right fit.' },
-    { icon: '💰', title: 'Budget-conscious shoppers', desc: 'Every rupee counts. Want maximum value, zero compromise on essentials.' },
-    { icon: '📐', title: 'Spec-obsessed researchers', desc: 'Already deep in datasheets — need a way to weight and compare objectively.' },
-    { icon: '⚡', title: 'Busy decision-makers', desc: 'No time to read 14 tabs. Need a trustworthy shortlist in under 10 minutes.' },
-    { icon: '🔄', title: 'Repeat upgraders', desc: 'Upgrading something they already own — want to know if the new model is actually worth it.' }
-  ];
-  AUDIENCE.forEach(a => {
-    const card = document.createElement('div');
-    card.className = 'audience-card';
-    card.innerHTML = `
-      <span class="audience-icon">${a.icon}</span>
-      <h4>${a.title}</h4>
-      <p>${a.desc}</p>
-    `;
-    el.appendChild(card);
-  });
-})();
-
-/* ─────────────────────────────────────────────────────────────
-   RENDER: TRUST GRID
-───────────────────────────────────────────────────────────── */
-(function renderTrustGrid() {
-  const el = document.getElementById('trustGrid');
-  if (!el) return;
-  TRUST_BLOCKS.forEach(t => {
-    const card = document.createElement('div');
-    card.className = 'trust-card';
-    card.innerHTML = `
-      <h4>✦ ${t.title}</h4>
-      <p>${t.desc}</p>
-      <a href="${t.route}">Read more →</a>
-    `;
-    el.appendChild(card);
-  });
-})();
-
-/* ─────────────────────────────────────────────────────────────
-   RENDER: FOOTER NAV GRID
-───────────────────────────────────────────────────────────── */
 (function renderFooterNav() {
   const el = document.getElementById('footerNavGrid');
   if (!el) return;
-
-  const cols = [
-    { heading: 'Tools', items: FOOTER.tools },
-    { heading: 'Guides', items: FOOTER.guides },
-    { heading: 'Company', items: FOOTER.company }
-  ];
-
-  cols.forEach(col => {
-    const div = document.createElement('div');
-    div.className = 'footer-col';
-    const h5 = document.createElement('h5');
-    h5.textContent = col.heading;
-    div.appendChild(h5);
-    const ul = document.createElement('ul');
-    col.items.forEach(item => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      const isAbsolute = item.route.startsWith('http');
-      a.href = item.route;
-      if (isAbsolute) {
-        a.setAttribute('target', '_blank');
-        a.setAttribute('rel', 'noopener nofollow sponsored');
-        a.setAttribute('data-no-aff', '');
-      }
-      a.textContent = item.label;
-      li.appendChild(a);
-      ul.appendChild(li);
-    });
-    div.appendChild(ul);
-    el.appendChild(div);
+  [{ h: 'Tools', i: FOOTER.tools }, { h: 'Guides', i: FOOTER.guides }, { h: 'Company', i: FOOTER.company }].forEach(col => {
+    let lis = col.i.map(item => `<li><a href="${item.route}">${item.label}</a></li>`).join('');
+    el.innerHTML += `<div class="footer-col"><h5>${col.h}</h5><ul>${lis}</ul></div>`;
   });
 })();
 
-/* ─────────────────────────────────────────────────────────────
-   INTERSECTION OBSERVER — animate sections in
-───────────────────────────────────────────────────────────── */
 const sections = Array.from(document.querySelectorAll('.section'));
-const secPillEl   = document.getElementById('secPill');
-const secNumEl    = document.getElementById('secNum');
-const secTotalEl  = document.getElementById('secTotal');
-const secNameEl   = document.getElementById('secName');
-const SNAP_SECTIONS = sections.filter(s => !s.classList.contains('infographics-section'));
-const ALL_SECTIONS  = sections;
-
-secTotalEl.textContent = ALL_SECTIONS.length;
+const secNumEl = document.getElementById('secNum');
+const secTotalEl = document.getElementById('secTotal');
+secTotalEl.textContent = sections.length;
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     const inner = entry.target.querySelector('.section-inner');
-    if (!inner) return;
-    if (entry.isIntersecting) {
+    if (entry.isIntersecting && inner) {
       inner.classList.add('visible');
-      const secN = entry.target.dataset.sec;
-      const name = entry.target.dataset.name;
-      if (secN) {
-        secNumEl.textContent = secN;
-        secNameEl.textContent = name || '';
-      }
+      if (entry.target.dataset.sec) secNumEl.textContent = entry.target.dataset.sec;
     }
   });
 }, { threshold: 0.15 });
-
-ALL_SECTIONS.forEach(sec => observer.observe(sec));
-
-/* ─────────────────────────────────────────────────────────────
-   TOAST HELPER
-───────────────────────────────────────────────────────────── */
-function showToast(msg, duration = 3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), duration);
-}
-
-/* ─────────────────────────────────────────────────────────────
-   TRANSLATE TOGGLE
-───────────────────────────────────────────────────────────── */
-let isHindi = false;
-document.getElementById('translateBtn').addEventListener('click', () => {
-  if (!HINDI) {
-    showToast('Hindi version coming soon 🇮🇳');
-    return;
-  }
-  isHindi = !isHindi;
-  /* REPLACE: HINDI_TRANSLATIONS — swap titles/leads using HINDI object */
-  showToast(isHindi ? 'Hindi mode on' : 'English mode on');
-});
-
+sections.forEach(sec => observer.observe(sec));
 </script>
 </body>
 </html>
