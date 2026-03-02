@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════
- * viadecide.com — UNIVERSAL ROUTER v2.2 (Nav-safe everywhere)
+ * viadecide.com — UNIVERSAL ROUTER v2.3 (Nav-safe everywhere)
  * File: router.js
  * ═══════════════════════════════════════════════════════════
  */
@@ -10,29 +10,45 @@
   // ─────────────────────────────────────────────────────────
   // ROUTE MAP
   // key = URL slug (what appears in the browser address bar)
-  // value = actual file path in your site root (or repo root on GH Pages)
+  // value = actual file path in your site root (case-sensitive on Linux)
   // ─────────────────────────────────────────────────────────
   var ROUTES = {
     // Core tools
     alchemist: "alchemist.html",
-    swipeos: "swipeos/index.html",
+    swipeos: "SwipeOS.html",
     "engine-deals": "engine-deals.html",
     "cashback-claim": "cashback-claim.html",
     "cashback-rules": "cashback-rules.html",
     "engine-license": "engine-license.html",
     "ondc-demo": "ONDC-demo.html",
-    promptalchemy: "PromptAlchemy.html",
-    "student-research": "StudentResearch.html",
+    // FIX: was PromptAlchemy.html (Windows) — Linux is case-sensitive
+    "prompt-alchemy": "prompt-alchemy.html",
+    promptalchemy: "prompt-alchemy.html",
+    // FIX: was StudentResearch.html — Linux is case-sensitive
+    "student-research": "student-research.html",
     contact: "contact.html",
     brief: "brief.html",
     "decision-brief": "decision-brief.html",
+    // FIX: missing routes that were 404-ing
+    pricing: "pricing.html",
+    discounts: "discounts.html",
+    memory: "memory.html",
+    founder: "founder.html",
+    privacy: "privacy.html",
+    terms: "terms.html",
+    "decision-brief-guide": "decision-brief-guide.html",
+    "decide-service": "decide-service.html",
+    "app-generator": "app-generator.html",
+    "cohort-apply-here": "cohort-apply-here.html",
 
-    // ── PRINTBYDD STORE ROUTES (Fixed with exact names) ──
+    // ── PRINTBYDD STORE ROUTES ──
     "printbydd-store": "printbydd-store/index.html",
-    "printbydd": "printbydd-store/index.html", // Alias just in case
-    "keychain": "printbydd-store/keychain.html",
+    printbydd: "printbydd-store/index.html",
+    keychain: "printbydd-store/keychain.html",
+    numberplate: "printbydd-store/numberplate.html",
+    products: "printbydd-store/products.html",
     "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more.html",
-    "gifts": "printbydd-store/gifts-that-mean-more.html" // Alias just in case
+    gifts: "printbydd-store/gifts-that-mean-more.html",
   };
 
   // ─────────────────────────────────────────────────────────
@@ -41,10 +57,10 @@
   var ALIASES = {
     SwipeOS: "swipeos",
     "swipeos?": "swipeos",
-    PromptAlchemy: "promptalchemy",
+    PromptAlchemy: "prompt-alchemy",
     StudentResearch: "student-research",
     "ONDC-demo": "ondc-demo",
-    ondc: "ondc-demo"
+    ondc: "ondc-demo",
   };
 
   // ─────────────────────────────────────────────────────────
@@ -60,13 +76,13 @@
   // ─────────────────────────────────────────────────────────
   function normalizeSlug(raw) {
     return String(raw || "")
-      .replace(/^\/+/, "") // leading slashes
-      .replace(/\/+$/, "") // trailing slashes
-      .replace(/^\.\//, "") // leading ./
-      .replace(/\.html?$/i, "") // .html / .htm
+      .replace(/^\/+/, "")
+      .replace(/\/+$/, "")
+      .replace(/^\.\//, "")
+      .replace(/\.html?$/i, "")
       .trim()
       .toLowerCase()
-      .split("/")[0]; // first segment only
+      .split("/")[0];
   }
 
   function resolveRoute(slug) {
@@ -138,7 +154,7 @@
   }
 
   function isAssetHref(href) {
-    return /\.(js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf)$/i.test(
+    return /\.(js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl|obj|glb|gltf)$/i.test(
       href || ""
     );
   }
@@ -170,7 +186,7 @@
     var clean = pathname.replace(/^\/+/, "");
     if (!clean || clean === "index.html" || clean === "index.htm") return;
 
-    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf)$/i.test(clean))
+    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl)$/i.test(clean))
       return;
 
     var slug = normalizeSlug(clean);
@@ -274,6 +290,20 @@
           if (e.defaultPrevented) return;
           if (e.button && e.button !== 0) return;
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+          // ── [data-back] universal handler ──
+          var backEl = e.target && e.target.closest ? e.target.closest("[data-back]") : null;
+          if (backEl) {
+            e.preventDefault();
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              var base = getBasePath();
+              var homeHref = origin() + joinURL(base, "index.html");
+              safeReplace(homeHref);
+            }
+            return;
+          }
 
           var a = e.target && e.target.closest ? e.target.closest(sel) : null;
           if (!a) return;
