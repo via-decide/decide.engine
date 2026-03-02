@@ -10,7 +10,6 @@
 <meta name="apple-mobile-web-app-title" content="ViaDecide"/>
 <meta name="description" content="India's Decision Engine — structured AI tools, ONDC integration, and decision frameworks built for Bharat."/>
 <link rel="manifest" href="manifest.json"/>
-<script src="router.js"></script>
 <title>ViaDecide — India's Decision Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
@@ -35,6 +34,13 @@
   --teal2:#22b4a0;
   --teal3:rgba(34,180,160,0.12);
   --r:1.5rem;
+  /* ── Category Tokens (Phase 3 ready) ── */
+  --ct:#22b4a0;      /* tools */
+  --cc:#c8932a;      /* commerce */
+  --cg:#e06090;      /* games */
+  --cs:#4a90d9;      /* services */
+  --cst:#f07040;     /* store */
+  --cb:#9b6dff;      /* blog */
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
@@ -44,7 +50,7 @@ img{max-width:100%;display:block}
 button{font-family:inherit;cursor:none;border:none;background:none}
 
 /* ─── CURSOR ─── */
-#cur{position:fixed;width:10px;height:10px;background:var(--gold2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .15s;mix-blend-mode:normal}
+#cur{position:fixed;width:10px;height:10px;background:var(--gold2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .15s}
 #cur-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(200,147,42,0.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .35s,height .35s,border-color .35s}
 body:has(a:hover) #cur,body:has(button:hover) #cur,body:has([onclick]:hover) #cur{width:6px;height:6px}
 body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:hover) #cur-ring{width:52px;height:52px;border-color:rgba(200,147,42,0.7)}
@@ -54,13 +60,19 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 
 /* ─── NAV ─── */
 #nav{position:fixed;top:0;left:0;right:0;z-index:700;padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
-#nav.solid{background:rgba(8,10,15,0.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);padding:.85rem 2.5rem}
+#nav.solid{background:rgba(8,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.85rem 2.5rem}
 .nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:.5rem;cursor:none}
 .brand-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;flex-shrink:0;animation:pdot 2s infinite}
 @keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(200,147,42,.4)}50%{box-shadow:0 0 0 7px rgba(200,147,42,0)}}
-.nav-links{display:flex;align-items:center;gap:1.75rem}
-.nav-links a{font-size:.82rem;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--tx2);transition:color .2s;cursor:none}
-.nav-links a:hover{color:var(--tx)}
+.nav-mid{display:flex;align-items:center;gap:.35rem}
+.nav-chip{font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:.3rem .75rem;border-radius:99px;border:1px solid transparent;color:var(--tx3);transition:all .2s;cursor:none}
+.nav-chip:hover{color:var(--tx2);border-color:var(--bd2)}
+.nav-chip.nc-t:hover{color:var(--ct);background:rgba(34,180,160,.08);border-color:rgba(34,180,160,.2)}
+.nav-chip.nc-c:hover{color:var(--cc);background:rgba(200,147,42,.08);border-color:rgba(200,147,42,.2)}
+.nav-chip.nc-g:hover{color:var(--cg);background:rgba(224,96,144,.08);border-color:rgba(224,96,144,.2)}
+.nav-chip.nc-s:hover{color:var(--cs);background:rgba(74,144,217,.08);border-color:rgba(74,144,217,.2)}
+.nav-chip.nc-st:hover{color:var(--cst);background:rgba(240,112,64,.08);border-color:rgba(240,112,64,.2)}
+.nav-chip.nc-b:hover{color:var(--cb);background:rgba(155,109,255,.08);border-color:rgba(155,109,255,.2)}
 .nav-right{display:flex;align-items:center;gap:.5rem}
 .nav-cta{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.3rem;background:var(--gold);color:#fff;border-radius:99px;cursor:none;transition:all .22s;display:inline-flex;align-items:center;gap:.4rem}
 .nav-cta:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,147,42,.35)}
@@ -76,205 +88,273 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 section{position:relative;z-index:10}
 
 /* ─── HERO ─── */
-#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:8rem 2.5rem 5rem;max-width:1280px;margin:0 auto;overflow:hidden}
-.hero-kicker{display:inline-flex;align-items:center;gap:.6rem;border:1px solid rgba(200,147,42,.3);background:rgba(200,147,42,.07);color:var(--gold2);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.32rem .9rem;border-radius:99px;margin-bottom:2.2rem;opacity:0;animation:riseUp .8s .1s forwards}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8rem 2.5rem 5rem;text-align:center;overflow:hidden}
+.hero-kicker{display:inline-flex;align-items:center;gap:.6rem;border:1px solid rgba(200,147,42,.3);background:rgba(200,147,42,.07);color:var(--gold2);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.32rem .9rem;border-radius:99px;margin-bottom:2rem;opacity:0;animation:riseUp .8s .1s forwards}
 .live-dot{width:6px;height:6px;background:var(--teal2);border-radius:50%;animation:pdot 1.8s infinite}
-.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(3.8rem,9vw,9.5rem);font-weight:300;line-height:.95;letter-spacing:-.03em;color:var(--tx);margin-bottom:2.4rem}
+.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(3.8rem,9vw,10rem);font-weight:300;line-height:.93;letter-spacing:-.03em;color:var(--tx);margin-bottom:2.8rem;text-align:center}
 .hero-h1 .line{display:block;overflow:hidden}
 .hero-h1 .line span{display:block;opacity:0;transform:translateY(100%);animation:lineUp .9s cubic-bezier(.16,1,.3,1) forwards}
 .hero-h1 .line:nth-child(1) span{animation-delay:.25s}
 .hero-h1 .line:nth-child(2) span{animation-delay:.4s}
 .hero-h1 .line:nth-child(3) span{animation-delay:.55s}
 .hero-h1 .em{font-style:italic;color:var(--gold)}
-.hero-row{display:flex;align-items:flex-end;justify-content:space-between;gap:3rem;flex-wrap:wrap;opacity:0;animation:riseUp .9s .9s forwards}
-.hero-sub{font-size:1.05rem;color:var(--tx2);max-width:480px;line-height:1.75}
-.hero-acts{display:flex;gap:.85rem;align-items:center;flex-shrink:0}
-.btn-p{display:inline-flex;align-items:center;gap:.55rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--gold);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
-.btn-p:hover{background:var(--gold2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(200,147,42,.38)}
-.btn-g{display:inline-flex;align-items:center;gap:.55rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--sf2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;cursor:none;transition:all .25s}
-.btn-g:hover{background:rgba(255,255,255,.1);transform:translateY(-3px)}
-.btn-t{display:inline-flex;align-items:center;gap:.55rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--teal);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
-.btn-t:hover{background:var(--teal2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(26,140,125,.35)}
-.hero-scroll{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);opacity:0;animation:riseUp .8s 1.4s forwards}
+
+/* ─── ORB (Command Input — Phase 1 ready) ─── */
+.orb-wrap{opacity:0;animation:riseUp .9s .8s forwards;width:100%;max-width:640px}
+.orb-bar{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;padding:.2rem .2rem .2rem 1.2rem;box-shadow:0 0 0 0 rgba(34,180,160,0);transition:box-shadow .3s,border-color .3s;position:relative}
+.orb-bar:focus-within{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 4px rgba(34,180,160,.07),0 8px 32px rgba(0,0,0,.4)}
+.orb-pulse-dot{width:8px;height:8px;background:var(--teal2);border-radius:50%;flex-shrink:0;animation:pdot 1.6s infinite;margin-right:.75rem}
+#orb-input{flex:1;background:none;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:1rem;color:var(--tx);padding:.8rem 0;cursor:none}
+#orb-input::placeholder{color:var(--tx3)}
+.orb-go{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--teal);color:#fff;border-radius:12px;font-size:1.1rem;flex-shrink:0;cursor:none;transition:all .2s}
+.orb-go:hover{background:var(--teal2);transform:scale(1.06)}
+/* data-intent attribute ready for Phase 1 NLP hookup */
+.orb-go[data-intent]{background:var(--gold)}
+.orb-chips{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1rem;flex-wrap:wrap;padding:0 .5rem}
+.orb-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:.32rem .85rem;border-radius:99px;border:1px solid var(--bd);background:var(--sf);color:var(--tx3);cursor:none;transition:all .2s}
+/* Each chip targets its section on click (enhanced in Phase 1 for NLP routing) */
+.orb-chip[data-cat="tools"]:hover{color:var(--ct);border-color:rgba(34,180,160,.35);background:rgba(34,180,160,.08)}
+.orb-chip[data-cat="commerce"]:hover{color:var(--cc);border-color:rgba(200,147,42,.35);background:rgba(200,147,42,.08)}
+.orb-chip[data-cat="games"]:hover{color:var(--cg);border-color:rgba(224,96,144,.35);background:rgba(224,96,144,.08)}
+.orb-chip[data-cat="services"]:hover{color:var(--cs);border-color:rgba(74,144,217,.35);background:rgba(74,144,217,.08)}
+.orb-chip[data-cat="store"]:hover{color:var(--cst);border-color:rgba(240,112,64,.35);background:rgba(240,112,64,.08)}
+.orb-chip[data-cat="blog"]:hover{color:var(--cb);border-color:rgba(155,109,255,.35);background:rgba(155,109,255,.08)}
+.hero-scroll{display:flex;flex-direction:column;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);opacity:0;animation:riseUp .8s 1.4s forwards;margin-top:3.5rem}
 .scroll-mouse{width:22px;height:34px;border:1.5px solid var(--tx3);border-radius:99px;display:flex;justify-content:center;padding-top:5px}
 .scroll-mouse::after{content:'';width:4px;height:7px;background:var(--gold);border-radius:99px;animation:scrollDown 1.6s ease-in-out infinite}
 @keyframes scrollDown{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
 
 /* ─── MARQUEE ─── */
-.marquee-wrap{position:relative;z-index:10;overflow:hidden;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:var(--bg1);padding:1rem 0}
-.marquee-track{display:flex;gap:2rem;width:max-content;animation:marquee 30s linear infinite}
-.marquee-item{display:flex;align-items:center;gap:.75rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;padding:0 1.5rem}
-.marquee-item .sep{color:var(--gold);font-size:.5rem}
+.marquee-wrap{position:relative;z-index:10;overflow:hidden;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:var(--bg1);padding:.9rem 0}
+.marquee-track{display:flex;gap:2rem;width:max-content;animation:marquee 35s linear infinite}
+.marquee-item{display:flex;align-items:center;gap:.6rem;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;padding:0 1.2rem}
+.marquee-item .sep{color:var(--gold);font-size:.4rem}
+.marquee-item .cat-tag{font-size:.58rem;padding:.1rem .45rem;border-radius:3px;font-weight:800;letter-spacing:.06em}
+.marquee-item .cat-tag.t{background:rgba(34,180,160,.1);color:var(--ct)}
+.marquee-item .cat-tag.c{background:rgba(200,147,42,.1);color:var(--cc)}
+.marquee-item .cat-tag.g{background:rgba(224,96,144,.1);color:var(--cg)}
+.marquee-item .cat-tag.s{background:rgba(74,144,217,.1);color:var(--cs)}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* ─── SECTIONS ─── */
-.sec-kicker{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:1.2rem}
-.sec-kicker::before{content:'';width:24px;height:1px;background:var(--tx3)}
-.sec-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:300;line-height:1.05;letter-spacing:-.02em;margin-bottom:.6rem}
-.sec-h2 em{font-style:italic;color:var(--gold)}
-.sec-sub{font-size:.95rem;color:var(--tx2);max-width:460px;line-height:1.7;margin-bottom:4rem}
+/* ─── CATEGORY SECTIONS ─── */
+.cat-section{padding:6rem 0 5rem;border-top:1px solid var(--bd);position:relative}
+.cat-section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;opacity:0.6}
+.cat-section[data-cat="tools"]::before{background:linear-gradient(180deg,var(--ct) 0%,transparent 100%)}
+.cat-section[data-cat="commerce"]::before{background:linear-gradient(180deg,var(--cc) 0%,transparent 100%)}
+.cat-section[data-cat="games"]::before{background:linear-gradient(180deg,var(--cg) 0%,transparent 100%)}
+.cat-section[data-cat="services"]::before{background:linear-gradient(180deg,var(--cs) 0%,transparent 100%)}
+.cat-section[data-cat="store"]::before{background:linear-gradient(180deg,var(--cst) 0%,transparent 100%)}
+.cat-section[data-cat="blog"]::before{background:linear-gradient(180deg,var(--cb) 0%,transparent 100%)}
+.cat-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
+.cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
+.cat-header-l{display:flex;align-items:center;gap:2rem}
+.cat-num{font-family:'Cormorant Garamond',serif;font-size:clamp(4rem,8vw,7rem);font-weight:300;line-height:1;color:rgba(255,255,255,0.04);letter-spacing:-.04em;flex-shrink:0;user-select:none}
+.cat-info{}
+.cat-label{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
+.cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cat-section[data-cat="tools"] .cat-dot{background:var(--ct)}
+.cat-section[data-cat="commerce"] .cat-dot{background:var(--cc)}
+.cat-section[data-cat="games"] .cat-dot{background:var(--cg)}
+.cat-section[data-cat="services"] .cat-dot{background:var(--cs)}
+.cat-section[data-cat="store"] .cat-dot{background:var(--cst)}
+.cat-section[data-cat="blog"] .cat-dot{background:var(--cb)}
+.cat-name{font-size:1.4rem;font-weight:700;color:var(--tx);letter-spacing:-.01em}
+.cat-desc{font-size:.88rem;color:var(--tx3);line-height:1.6;max-width:380px}
+.cat-header-r{flex-shrink:0;margin-top:.5rem}
+/* category color for CTA buttons */
+.cat-section[data-cat="tools"] .cat-cta{background:rgba(34,180,160,.12);color:var(--ct);border:1px solid rgba(34,180,160,.25)}
+.cat-section[data-cat="commerce"] .cat-cta{background:rgba(200,147,42,.12);color:var(--cc);border:1px solid rgba(200,147,42,.25)}
+.cat-section[data-cat="games"] .cat-cta{background:rgba(224,96,144,.12);color:var(--cg);border:1px solid rgba(224,96,144,.25)}
+.cat-section[data-cat="services"] .cat-cta{background:rgba(74,144,217,.12);color:var(--cs);border:1px solid rgba(74,144,217,.25)}
+.cat-section[data-cat="store"] .cat-cta{background:rgba(240,112,64,.12);color:var(--cst);border:1px solid rgba(240,112,64,.25)}
+.cat-section[data-cat="blog"] .cat-cta{background:rgba(155,109,255,.12);color:var(--cb);border:1px solid rgba(155,109,255,.25)}
+.cat-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:8px;cursor:none;transition:all .2s}
+.cat-cta:hover{filter:brightness(1.15);transform:translateY(-1px)}
 
-/* ─── TOOLS ─── */
-#tools{padding:7rem 2.5rem;max-width:1280px;margin:0 auto}
-.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:1rem}
+/* ─── BENTO GRID ─── */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:.9rem}
 .tc{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:1.75rem;cursor:none;transition:transform .35s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;position:relative;overflow:hidden;opacity:0;transform:translateY(40px)}
 .tc.vis{animation:cardUp .7s cubic-bezier(.16,1,.3,1) forwards}
 .tc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transform:scaleX(0);transform-origin:left;transition:transform .35s}
-.tc:hover{transform:translateY(-6px);border-color:var(--bd2);background:rgba(255,255,255,.06);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.tc:hover{transform:translateY(-5px);border-color:var(--bd2);background:rgba(255,255,255,.06);box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .tc:hover::before{transform:scaleX(1)}
 .tc:hover .tc-arr{opacity:1;transform:translate(3px,-3px)}
-.tc-gold::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
-.tc-teal::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
-.tc-pink::before{background:linear-gradient(90deg,#9b2457,#e06090)}
-.tc-blue::before{background:linear-gradient(90deg,#1e4db7,#4a90d9)}
-.tc-pur::before{background:linear-gradient(90deg,#5b2ea6,#9b6dff)}
+/* category color applied via data-cat on parent section */
+.cat-section[data-cat="tools"] .tc::before{background:linear-gradient(90deg,var(--ct),rgba(34,180,160,.4))}
+.cat-section[data-cat="tools"] .tc:hover{border-color:rgba(34,180,160,.25)}
+.cat-section[data-cat="commerce"] .tc::before{background:linear-gradient(90deg,var(--cc),rgba(200,147,42,.4))}
+.cat-section[data-cat="commerce"] .tc:hover{border-color:rgba(200,147,42,.25)}
+.cat-section[data-cat="games"] .tc::before{background:linear-gradient(90deg,var(--cg),rgba(224,96,144,.4))}
+.cat-section[data-cat="games"] .tc:hover{border-color:rgba(224,96,144,.25)}
+.cat-section[data-cat="services"] .tc::before{background:linear-gradient(90deg,var(--cs),rgba(74,144,217,.4))}
+.cat-section[data-cat="services"] .tc:hover{border-color:rgba(74,144,217,.25)}
+.cat-section[data-cat="store"] .tc::before{background:linear-gradient(90deg,var(--cst),rgba(240,112,64,.4))}
+.cat-section[data-cat="store"] .tc:hover{border-color:rgba(240,112,64,.25)}
+.cat-section[data-cat="blog"] .tc::before{background:linear-gradient(90deg,var(--cb),rgba(155,109,255,.4))}
+.cat-section[data-cat="blog"] .tc:hover{border-color:rgba(155,109,255,.25)}
+/* Featured card override */
+.tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.12),rgba(200,147,42,.05));border-color:rgba(26,140,125,.18)}
+/* sizes */
 .tc-s4{grid-column:span 4}
 .tc-s3{grid-column:span 3}
 .tc-s6{grid-column:span 6}
 .tc-s8{grid-column:span 8}
-.tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.14),rgba(200,147,42,.06));border-color:rgba(26,140,125,.2)}
-.tc-feat:hover{border-color:rgba(26,140,125,.45)}
-.tc-vis{height:120px;background:linear-gradient(135deg,var(--teal3),var(--gold3));border-radius:10px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:center;font-size:2.8rem;border:1px solid var(--bd);overflow:hidden;position:relative}
-.tc-vis::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,255,255,.02) 12px,rgba(255,255,255,.02) 13px)}
-.tc-icon{font-size:2rem;margin-bottom:1rem;display:block}
-.tc-name{font-size:.95rem;font-weight:700;color:var(--tx);margin-bottom:.3rem}
-.tc-name-lg{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;margin-bottom:.5rem}
-.tc-desc{font-size:.77rem;color:var(--tx3);line-height:1.55}
-.tc-desc-lg{font-size:.88rem;color:var(--tx2);line-height:1.65;max-width:380px}
-.tc-st{display:inline-flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.22rem .65rem;border-radius:99px;margin-top:.9rem}
+.tc-s12{grid-column:span 12}
+/* card internals */
+.tc-vis{height:100px;background:linear-gradient(135deg,var(--teal3),var(--gold3));border-radius:10px;margin-bottom:1.1rem;display:flex;align-items:center;justify-content:center;font-size:2.5rem;border:1px solid var(--bd);overflow:hidden;position:relative}
+.tc-vis::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,255,255,.015) 12px,rgba(255,255,255,.015) 13px)}
+.tc-icon{font-size:1.9rem;margin-bottom:.85rem;display:block}
+.tc-name{font-size:.92rem;font-weight:700;color:var(--tx);margin-bottom:.3rem}
+.tc-name-lg{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;margin-bottom:.4rem}
+.tc-desc{font-size:.76rem;color:var(--tx3);line-height:1.55}
+.tc-desc-lg{font-size:.86rem;color:var(--tx2);line-height:1.65;max-width:360px}
+.tc-st{display:inline-flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .6rem;border-radius:99px;margin-top:.8rem}
 .tc-st.live{background:var(--teal3);color:var(--teal2)}
-.tc-st.live::before{content:'';width:5px;height:5px;background:var(--teal2);border-radius:50%}
 .tc-st.beta{background:var(--gold3);color:var(--gold2)}
 .tc-st.wip{background:rgba(255,255,255,.05);color:var(--tx3)}
-.tc-arr{position:absolute;top:1.4rem;right:1.4rem;font-size:1rem;color:var(--tx3);opacity:0;transition:all .25s}
-.tc:nth-child(1).vis{animation-delay:.05s}
-.tc:nth-child(2).vis{animation-delay:.1s}
-.tc:nth-child(3).vis{animation-delay:.15s}
-.tc:nth-child(4).vis{animation-delay:.2s}
-.tc:nth-child(5).vis{animation-delay:.25s}
-.tc:nth-child(6).vis{animation-delay:.3s}
-.tc:nth-child(7).vis{animation-delay:.35s}
-.tc:nth-child(8).vis{animation-delay:.4s}
+.tc-st.svc{background:rgba(74,144,217,.1);color:#6aaee8}
+.tc-arr{position:absolute;top:1.3rem;right:1.3rem;font-size:1rem;color:var(--tx3);opacity:0;transition:all .25s}
+/* stagger per section */
+.tc:nth-child(1).vis{animation-delay:.04s}
+.tc:nth-child(2).vis{animation-delay:.09s}
+.tc:nth-child(3).vis{animation-delay:.14s}
+.tc:nth-child(4).vis{animation-delay:.19s}
+.tc:nth-child(5).vis{animation-delay:.24s}
+.tc:nth-child(6).vis{animation-delay:.29s}
+.tc:nth-child(7).vis{animation-delay:.34s}
+.tc:nth-child(8).vis{animation-delay:.39s}
 
-/* ─── FEATURE ─── */
-#feature{padding:5rem 0;background:var(--bg1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);position:relative;z-index:10}
-.feat-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
-.feat-l,.feat-r{opacity:0}
-.feat-l.vis{animation:riseUp .9s forwards}
-.feat-r.vis{animation:riseUp .9s .15s forwards}
-.feat-eye{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem}
-.feat-eye::after{content:'';flex:1;height:1px;background:rgba(34,180,160,.25);max-width:80px}
-.feat-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4.5vw,4.2rem);font-weight:300;line-height:1.08;letter-spacing:-.02em;margin-bottom:1.2rem}
-.feat-h2 em{font-style:italic;color:var(--teal2)}
-.feat-p{font-size:.92rem;color:var(--tx2);line-height:1.8;margin-bottom:2rem}
-.feat-tags{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2.2rem}
-.feat-tag{font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:.35rem .85rem;border-radius:99px;background:var(--teal3);color:var(--teal2);border:1px solid rgba(34,180,160,.2)}
-.mockup{background:var(--bg2);border:1px solid var(--bd2);border-radius:18px;padding:1.5rem;box-shadow:0 40px 80px rgba(0,0,0,.6)}
-.mockup-hd{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
-.m-dot{width:10px;height:10px;border-radius:50%}
+/* ─── DIVIDER ─── */
+.sec-rule{display:flex;align-items:center;gap:1rem;max-width:1280px;margin:0 auto;padding:0 2.5rem}
+.sec-rule::before,.sec-rule::after{content:'';flex:1;height:1px;background:var(--bd)}
+
+/* ─── FEATURED ONDC STRIP ─── */
+.ondc-strip{background:var(--bg1);border:1px solid rgba(26,140,125,.18);border-radius:20px;padding:2rem 2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:2rem}
+.ondc-l .feat-eye{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
+.ondc-l .feat-eye::after{content:'';flex:1;height:1px;background:rgba(34,180,160,.2);max-width:60px}
+.ondc-l h3{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3.5vw,3rem);font-weight:300;line-height:1.1;letter-spacing:-.02em;margin-bottom:.9rem}
+.ondc-l h3 em{font-style:italic;color:var(--teal2)}
+.ondc-l p{font-size:.88rem;color:var(--tx2);line-height:1.75;margin-bottom:1.4rem;max-width:360px}
+.feat-tags{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.feat-tag{font-size:.7rem;font-weight:600;letter-spacing:.03em;padding:.28rem .7rem;border-radius:99px;background:var(--teal3);color:var(--teal2);border:1px solid rgba(34,180,160,.18)}
+.mockup{background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;padding:1.25rem;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.mockup-hd{display:flex;align-items:center;gap:.4rem;margin-bottom:1rem}
+.m-dot{width:9px;height:9px;border-radius:50%}
 .m-dot:nth-child(1){background:#ff5f57}
 .m-dot:nth-child(2){background:#ffbd2e}
 .m-dot:nth-child(3){background:#28ca41}
-.m-title{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--tx3);margin-left:auto}
-.m-row{display:flex;align-items:center;gap:.75rem;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.85rem 1rem;margin-bottom:.6rem}
-.m-icon{font-size:1.2rem}
+.m-title{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--tx3);margin-left:auto}
+.m-row{display:flex;align-items:center;gap:.65rem;background:var(--sf);border:1px solid var(--bd);border-radius:9px;padding:.75rem .9rem;margin-bottom:.5rem}
+.m-icon-sm{font-size:1.1rem}
 .m-info{flex:1}
-.m-name{font-size:.82rem;font-weight:600;color:var(--tx)}
-.m-meta{font-size:.7rem;color:var(--tx3)}
-.m-price{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;color:var(--gold2)}
-.m-badge{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:99px;background:var(--teal3);color:var(--teal2)}
+.m-name-sm{font-size:.8rem;font-weight:600;color:var(--tx)}
+.m-meta{font-size:.68rem;color:var(--tx3)}
+.m-price{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;color:var(--gold2)}
+.m-badge{font-size:.56rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .5rem;border-radius:99px;background:var(--teal3);color:var(--teal2)}
 
-/* ─── ABOUT ─── */
-#about{max-width:1280px;margin:0 auto;padding:7rem 2.5rem}
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start}
-.about-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5vw,5rem);font-weight:300;line-height:1.05;letter-spacing:-.02em;margin-bottom:1.5rem}
+/* ─── ABOUT (simplified) ─── */
+#about{max-width:1280px;margin:0 auto;padding:5rem 2.5rem;border-top:1px solid var(--bd)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+.about-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4.5vw,4.5rem);font-weight:300;line-height:1.05;letter-spacing:-.02em;margin-bottom:1.3rem}
 .about-h2 em{font-style:italic;color:var(--gold)}
-.about-p{font-size:.92rem;color:var(--tx2);line-height:1.85;margin-bottom:1rem}
-.stat-row{display:flex;gap:2.5rem;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--bd)}
-.a-stat .num{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:600;color:var(--tx);line-height:1}
+.about-p{font-size:.9rem;color:var(--tx2);line-height:1.85;margin-bottom:.9rem}
+.stat-row{display:flex;gap:2.5rem;margin-top:2.5rem;padding-top:1.8rem;border-top:1px solid var(--bd)}
+.a-stat .num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:600;color:var(--tx);line-height:1}
 .a-stat .num span{color:var(--gold)}
-.a-stat .lbl{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-top:.3rem}
+.a-stat .lbl{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-top:.25rem}
 .pillars{display:flex;flex-direction:column}
-.pillar{display:flex;gap:1.5rem;align-items:flex-start;padding:1.6rem 0;border-bottom:1px solid var(--bd);opacity:0}
+.pillar{display:flex;gap:1.4rem;align-items:flex-start;padding:1.4rem 0;border-bottom:1px solid var(--bd);opacity:0}
 .pillar.vis{animation:riseUp .7s forwards}
 .pillar:nth-child(1).vis{animation-delay:0s}
 .pillar:nth-child(2).vis{animation-delay:.1s}
 .pillar:nth-child(3).vis{animation-delay:.2s}
 .pillar:nth-child(4).vis{animation-delay:.3s}
-.p-icon{width:44px;height:44px;border-radius:10px;background:var(--sf2);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
-.p-txt h4{font-size:.9rem;font-weight:700;color:var(--tx);margin-bottom:.3rem}
-.p-txt p{font-size:.8rem;color:var(--tx3);line-height:1.6}
+.p-icon{width:42px;height:42px;border-radius:10px;background:var(--sf2);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.p-txt h4{font-size:.88rem;font-weight:700;color:var(--tx);margin-bottom:.25rem}
+.p-txt p{font-size:.78rem;color:var(--tx3);line-height:1.6}
 
-/* ─── MORE TOOLS ─── */
-#extra{padding:5rem 0;background:var(--bg1);border-top:1px solid var(--bd);position:relative;z-index:10}
-#extra .inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
-.extra-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2.5rem;gap:2rem;flex-wrap:wrap}
-.extra-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.6rem);font-weight:300;letter-spacing:-.02em}
-.extra-h2 em{font-style:italic;color:var(--gold)}
-.extra-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem}
-
-/* ─── INSTALL SECTION ─── */
-#install{padding:6rem 2.5rem;max-width:1280px;margin:0 auto}
+/* ─── INSTALL ─── */
+#install{padding:5rem 2.5rem;max-width:1280px;margin:0 auto}
 .install-inner{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
-.install-l{}
 .install-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--teal3);color:var(--teal2);font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.28rem .75rem;border-radius:99px;border:1px solid rgba(34,180,160,.25);margin-bottom:1.2rem}
 .install-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.4rem);font-weight:300;line-height:1.1;letter-spacing:-.02em;margin-bottom:.9rem}
 .install-h2 em{font-style:italic;color:var(--teal2)}
-.install-sub{font-size:.92rem;color:var(--tx2);line-height:1.75;margin-bottom:1.75rem;max-width:440px}
-.install-steps{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.75rem}
-.install-step{display:flex;align-items:flex-start;gap:.85rem}
-.step-n{width:28px;height:28px;border-radius:50%;background:var(--teal3);color:var(--teal2);font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem}
-.step-txt{font-size:.86rem;color:var(--tx2);line-height:1.5}
+.install-sub{font-size:.9rem;color:var(--tx2);line-height:1.75;margin-bottom:1.5rem;max-width:440px}
+.install-steps{display:flex;flex-direction:column;gap:.7rem;margin-bottom:1.5rem}
+.install-step{display:flex;align-items:flex-start;gap:.75rem}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--teal3);color:var(--teal2);font-weight:700;font-size:.78rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem}
+.step-txt{font-size:.85rem;color:var(--tx2);line-height:1.5}
 .step-txt strong{color:var(--tx)}
 .install-btns{display:flex;gap:.75rem;flex-wrap:wrap}
 #install-pwa-section{display:none}
-
-/* Device tabs */
+.btn-p{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--gold);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
+.btn-p:hover{background:var(--gold2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(200,147,42,.38)}
+.btn-g{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--sf2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;cursor:none;transition:all .25s}
+.btn-g:hover{background:rgba(255,255,255,.1);transform:translateY(-3px)}
+.btn-t{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--teal);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
+.btn-t:hover{background:var(--teal2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(26,140,125,.35)}
 .install-r{background:var(--sf);border:1px solid var(--bd2);border-radius:20px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.dev-tabs{display:flex;gap:.35rem;justify-content:center;margin-bottom:1.5rem;background:var(--bg2);padding:.3rem;border-radius:10px}
+.dev-tabs{display:flex;gap:.3rem;justify-content:center;margin-bottom:1.5rem;background:var(--bg2);padding:.3rem;border-radius:10px}
 .dev-tab{padding:.4rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;color:var(--tx3);cursor:none;transition:all .2s}
 .dev-tab.active{background:var(--sf);color:var(--tx);box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.dev-instructions{font-size:.88rem;color:var(--tx2);line-height:1.7}
-.dev-instructions strong{display:block;font-size:.9rem;color:var(--tx);margin-bottom:.75rem}
+.dev-instructions{font-size:.87rem;color:var(--tx2);line-height:1.7}
+.dev-instructions strong{display:block;font-size:.88rem;color:var(--tx);margin-bottom:.75rem}
 .dev-instructions ol{padding-left:1.2rem;display:flex;flex-direction:column;gap:.4rem}
 .dev-instructions li{color:var(--tx2)}
 .dev-instructions li strong{display:inline;font-size:inherit;color:var(--tx)}
 
 /* ─── FOOTER CTA ─── */
-#footer-cta{padding:8rem 2.5rem;text-align:center;position:relative;overflow:hidden;background:var(--bg);z-index:10}
-#footer-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(200,147,42,.12) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 20% 100%,rgba(26,140,125,.1) 0%,transparent 60%);pointer-events:none}
-.footer-inner{position:relative;max-width:720px;margin:0 auto}
-.footer-eye{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:1.5rem}
-.footer-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,7vw,7rem);font-weight:300;line-height:.95;letter-spacing:-.03em;margin-bottom:1.8rem}
+#footer-cta{padding:7rem 2.5rem;text-align:center;position:relative;overflow:hidden;background:var(--bg);z-index:10}
+#footer-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(200,147,42,.1) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 20% 100%,rgba(26,140,125,.08) 0%,transparent 60%);pointer-events:none}
+.footer-inner{position:relative;max-width:680px;margin:0 auto}
+.footer-eye{display:inline-flex;align-items:center;gap:.5rem;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:1.4rem}
+.footer-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,6.5rem);font-weight:300;line-height:.93;letter-spacing:-.03em;margin-bottom:1.6rem}
 .footer-h2 em{font-style:italic;color:var(--gold);display:block}
-.footer-sub{font-size:1rem;color:var(--tx2);line-height:1.75;margin-bottom:2.5rem}
-.footer-acts{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
-.footer-links{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;font-size:.78rem;color:var(--tx3);padding-top:2rem;border-top:1px solid var(--bd)}
+.footer-sub{font-size:.95rem;color:var(--tx2);line-height:1.75;margin-bottom:2.2rem}
+.footer-acts{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.8rem}
+.footer-links{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;font-size:.77rem;color:var(--tx3);padding-top:2rem;border-top:1px solid var(--bd)}
 .footer-links a,.footer-links span{transition:color .2s;cursor:none}
 .footer-links a:hover{color:var(--tx2)}
 
-/* ─── INSTALL BANNER ─── */
+/* ─── INSTALL BANNER / IOS HINT ─── */
 #install-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:850;background:var(--bg2);border-top:1px solid var(--bd2);padding:.9rem 1.25rem;box-shadow:0 -8px 32px rgba(0,0,0,.4)}
 #install-banner.show{display:block}
 .ib-inner{display:flex;align-items:center;gap:1rem;max-width:640px;margin:0 auto}
-.ib-icon{width:44px;height:44px;border-radius:10px;background:var(--gold3);border:1px solid rgba(200,147,42,.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.ib-icon{width:42px;height:42px;border-radius:10px;background:var(--gold3);border:1px solid rgba(200,147,42,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
 .ib-txt{flex:1}
-.ib-txt strong{display:block;font-size:.9rem;font-weight:600;color:var(--tx);line-height:1.2}
-.ib-txt span{font-size:.78rem;color:var(--tx3)}
+.ib-txt strong{display:block;font-size:.88rem;font-weight:600;color:var(--tx)}
+.ib-txt span{font-size:.76rem;color:var(--tx3)}
 .ib-acts{display:flex;gap:.5rem;align-items:center;flex-shrink:0}
 .ib-btn{display:inline-flex;align-items:center;font-size:.8rem;font-weight:700;padding:.5rem 1.1rem;background:var(--gold);color:#fff;border-radius:8px;cursor:none;transition:all .2s}
 .ib-btn:hover{background:var(--gold2)}
 .ib-dismiss{background:none;border:none;color:var(--tx3);font-size:1.2rem;cursor:none;padding:.2rem .4rem;border-radius:6px;transition:color .2s}
 .ib-dismiss:hover{color:var(--tx)}
-
-/* ─── IOS HINT ─── */
 #ios-hint{display:none;position:fixed;bottom:0;left:0;right:0;z-index:850;background:var(--bg2);border-top:1px solid var(--bd2);padding:1.25rem 1.5rem 1.75rem;text-align:center;box-shadow:0 -8px 32px rgba(0,0,0,.4)}
 #ios-hint.show{display:block}
 #ios-hint strong{display:block;color:var(--tx);margin-bottom:.5rem;font-size:.95rem}
-#ios-hint p{font-size:.84rem;color:var(--tx2)}
+#ios-hint p{font-size:.83rem;color:var(--tx2)}
 #ios-hint p strong{display:inline;color:var(--tx)}
 #ios-hint-close{position:absolute;top:.85rem;right:1.1rem;background:none;border:none;color:var(--tx3);font-size:1.1rem;cursor:none;transition:color .2s}
 #ios-hint-close:hover{color:var(--tx)}
+
+/* ─── THREAD PANEL (Phase 2 structural placeholder) ─── */
+/* These styles are structural — Phase 2 fills the panel with real content */
+#thread-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:600;display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:rgba(34,180,160,.12);border:1px solid rgba(34,180,160,.25);border-right:none;border-radius:10px 0 0 10px;cursor:none;transition:all .25s;writing-mode:vertical-rl;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2);gap:.4rem}
+#thread-toggle:hover{background:rgba(34,180,160,.2);width:42px}
+#thread-toggle .tt-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:pdot 2s infinite;flex-shrink:0}
+#thread-panel{position:fixed;top:0;right:-340px;width:340px;height:100vh;z-index:650;background:var(--bg1);border-left:1px solid var(--bd2);transition:right .4s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
+#thread-panel.open{right:0}
+.thread-hd{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.25rem;border-bottom:1px solid var(--bd);background:var(--bg2)}
+.thread-title{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:700;color:var(--tx)}
+.thread-badge{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:pdot 2s infinite}
+.thread-close{width:28px;height:28px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:none;transition:all .2s}
+.thread-close:hover{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.25);color:#ff6b6b}
+.thread-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:2rem 1.5rem}
+.thread-empty-icon{font-size:2.5rem;opacity:.3}
+.thread-empty-title{font-size:.9rem;font-weight:600;color:var(--tx2)}
+.thread-empty-sub{font-size:.78rem;color:var(--tx3);text-align:center;line-height:1.55}
+.thread-coming{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .65rem;border-radius:99px;background:var(--teal3);color:var(--teal2);border:1px solid rgba(34,180,160,.2)}
+.thread-ft{padding:1.1rem 1.25rem;border-top:1px solid var(--bd);font-size:.72rem;color:var(--tx3);text-align:center;line-height:1.5}
 
 /* ─── MODAL ─── */
 #modal{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .35s}
@@ -282,24 +362,23 @@ section{position:relative;z-index:10}
 #modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #modal-sheet{position:relative;z-index:1;margin:2.5vh auto;width:96vw;max-width:1100px;height:95vh;background:var(--bg1);border:1px solid var(--bd2);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;transform:scale(.95) translateY(20px);transition:transform .4s cubic-bezier(.34,1.4,.64,1),opacity .35s;opacity:0}
 #modal.open #modal-sheet{transform:scale(1) translateY(0);opacity:1;transition-delay:.05s}
-#modal-top{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--bd);flex-shrink:0}
+#modal-top{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.2rem;background:var(--bg2);border-bottom:1px solid var(--bd);flex-shrink:0}
 .m-title-wrap{display:flex;align-items:center;gap:.6rem}
-.m-t-icon{font-size:1.25rem}
-.m-t-name{font-size:.9rem;font-weight:600;color:var(--tx)}
+.m-t-icon{font-size:1.2rem}
+.m-t-name{font-size:.88rem;font-weight:600;color:var(--tx)}
 .m-acts{display:flex;gap:.5rem;align-items:center}
-.m-act{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:600;padding:.4rem .9rem;border-radius:8px;cursor:none;transition:all .2s;border:1px solid var(--bd2);color:var(--tx2);background:var(--sf2)}
-.m-act:hover{background:rgba(200,147,42,.12);border-color:rgba(200,147,42,.35);color:var(--gold2)}
-#modal-close{width:32px;height:32px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:none;font-size:.9rem;transition:all .2s;flex-shrink:0}
-#modal-close:hover{background:rgba(255,80,80,.15);border-color:rgba(255,80,80,.3);color:#ff6b6b}
+.m-act{display:inline-flex;align-items:center;gap:.35rem;font-size:.74rem;font-weight:600;padding:.38rem .85rem;border-radius:8px;cursor:none;transition:all .2s;border:1px solid var(--bd2);color:var(--tx2);background:var(--sf2)}
+.m-act:hover{background:rgba(200,147,42,.1);border-color:rgba(200,147,42,.3);color:var(--gold2)}
+#modal-close{width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:none;font-size:.85rem;transition:all .2s;flex-shrink:0}
+#modal-close:hover{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.25);color:#ff6b6b}
 #modal-frame{flex:1;border:none;background:#fff;width:100%}
-/* Error state in modal */
 #modal-err{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:3rem}
 #modal-err.show{display:flex}
 #modal-err .err-icon{font-size:3rem}
 #modal-err h3{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--tx)}
-#modal-err p{font-size:.92rem;color:var(--tx2);text-align:center;max-width:400px;line-height:1.7}
-#modal-err .err-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.75rem 1.5rem;background:var(--gold);color:#fff;border-radius:10px;cursor:none;transition:all .2s}
-#modal-err .err-btn:hover{background:var(--gold2)}
+#modal-err p{font-size:.9rem;color:var(--tx2);text-align:center;max-width:400px;line-height:1.7}
+.err-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.75rem 1.5rem;background:var(--gold);color:#fff;border-radius:10px;cursor:none;transition:all .2s}
+.err-btn:hover{background:var(--gold2)}
 
 /* ─── KEYFRAMES ─── */
 @keyframes riseUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
@@ -307,57 +386,67 @@ section{position:relative;z-index:10}
 @keyframes cardUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── RESPONSIVE ─── */
+@media(max-width:1024px){
+  .ondc-strip{grid-template-columns:1fr}
+  .about-grid{grid-template-columns:1fr;gap:3rem}
+  .install-inner{grid-template-columns:1fr;gap:2.5rem}
+}
 @media(max-width:960px){
   .bento{grid-template-columns:repeat(6,1fr)}
   .tc-s4{grid-column:span 3}
   .tc-s3{grid-column:span 3}
   .tc-s6{grid-column:span 6}
   .tc-s8{grid-column:span 6}
-  .about-grid{grid-template-columns:1fr;gap:3rem}
-  .feat-inner{grid-template-columns:1fr;gap:3rem}
-  .extra-grid{grid-template-columns:1fr 1fr}
-  .install-inner{grid-template-columns:1fr;gap:2.5rem}
+  .tc-s12{grid-column:span 6}
+  .nav-mid{display:none}
+  #thread-toggle{display:none}
 }
 @media(max-width:640px){
-  #nav .nav-links{display:none}
+  #nav .nav-mid{display:none}
   .bento{grid-template-columns:1fr 1fr}
-  .tc-s4,.tc-s3,.tc-s6,.tc-s8{grid-column:span 1}
-  .extra-grid{grid-template-columns:1fr 1fr}
-  .hero-h1{font-size:clamp(2.8rem,9vw,5rem)}
+  .tc-s4,.tc-s3,.tc-s6,.tc-s8,.tc-s12{grid-column:span 2}
+  .hero-h1{font-size:clamp(2.8rem,10vw,5rem)}
+  .orb-wrap{max-width:100%}
   #cur,#cur-ring{display:none}
   body{cursor:auto}
   button,a,[onclick]{cursor:pointer}
+  .cat-num{display:none}
+  #thread-toggle{display:none}
 }
 </style>
 </head>
-<body>
+<body data-depth="surface">
+<!-- data-depth="surface" → Phase 4: Depth Navigation will set this to "flow" or "verdict" -->
 
-<!-- Custom Cursor -->
+<!-- ── Cursor ── -->
 <div id="cur"></div>
 <div id="cur-ring"></div>
 <div class="noise"></div>
 <canvas id="bg-canvas"></canvas>
 <div id="prog"></div>
 
-<!-- NAV -->
+<!-- ── NAV ── -->
 <nav id="nav">
-  <div class="nav-brand">
+  <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <div class="brand-dot"></div>
     ViaDecide
   </div>
-  <div class="nav-links">
-    <a href="#tools">Tools</a>
-    <a href="#feature">ONDC</a>
-    <a href="#about">About</a>
-    <a href="#install">Install App</a>
+  <!-- Category chips — Phase 3 Constellation will transform these into orbit controls -->
+  <div class="nav-mid">
+    <a class="nav-chip nc-t" href="#cat-tools">🛠 Tools</a>
+    <a class="nav-chip nc-c" href="#cat-commerce">🛒 Commerce</a>
+    <a class="nav-chip nc-g" href="#cat-games">🎮 Games</a>
+    <a class="nav-chip nc-s" href="#cat-services">🎯 Services</a>
+    <a class="nav-chip nc-st" href="#cat-store">🛍 Store</a>
+    <a class="nav-chip nc-b" href="#cat-blog">✍️ Blog</a>
   </div>
   <div class="nav-right">
-    <button id="install-pwa-nav">📲 Install App</button>
-    <button class="nav-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Try Live Demo ↗</button>
+    <button id="install-pwa-nav">📲 Install</button>
+    <button class="nav-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Try ONDC ↗</button>
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- ── HERO ── -->
 <section id="hero">
   <div class="hero-kicker">
     <div class="live-dot"></div>
@@ -368,218 +457,489 @@ section{position:relative;z-index:10}
     <div class="line"><span><em>Smarter.</em></span></div>
     <div class="line"><span>Choose Better.</span></div>
   </h1>
-  <div class="hero-row">
-    <p class="hero-sub">Structured AI tools, ONDC integration, and decision frameworks — purpose-built for the Indian buyer. No gut instinct. No influencer noise. Just clarity.</p>
-    <div class="hero-acts">
-      <button class="btn-p" onclick="document.getElementById('tools').scrollIntoView({behavior:'smooth'})">Explore Tools ↓</button>
-      <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')">Try Alchemist ✨</button>
+
+  <!-- ORB COMMAND INPUT — Phase 1 will add NLP intent routing here -->
+  <!-- id="orb-input" | data-cat chips trigger section scroll now, Phase 1 triggers AI routing -->
+  <div class="orb-wrap" id="orb-wrap">
+    <div class="orb-bar">
+      <div class="orb-pulse-dot"></div>
+      <input type="text" id="orb-input" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
+      <button class="orb-go" id="orb-go" title="Find the right tool" data-phase1-hook="nlp-route">→</button>
+    </div>
+    <div class="orb-chips">
+      <button class="orb-chip" data-cat="tools" onclick="document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'})">🛠 Tools</button>
+      <button class="orb-chip" data-cat="commerce" onclick="document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'})">🛒 Commerce</button>
+      <button class="orb-chip" data-cat="services" onclick="document.getElementById('cat-services').scrollIntoView({behavior:'smooth'})">🎯 Services</button>
+      <button class="orb-chip" data-cat="store" onclick="document.getElementById('cat-store').scrollIntoView({behavior:'smooth'})">🛍 Store</button>
+      <button class="orb-chip" data-cat="games" onclick="document.getElementById('cat-games').scrollIntoView({behavior:'smooth'})">🎮 Sims</button>
+      <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
     </div>
   </div>
+
   <div class="hero-scroll">
     <div class="scroll-mouse"></div>
     scroll to explore
   </div>
 </section>
 
-<!-- MARQUEE -->
+<!-- ── MARQUEE ── -->
 <div class="marquee-wrap">
   <div class="marquee-track">
-    <div class="marquee-item"><span>🛒</span>ONDC Demo<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>✨</span>Alchemist<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>⚗️</span>Prompt Alchemy<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>📚</span>ViaGuide<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🧠</span>Memory Engine<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🚀</span>Mars Rover<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>⬡</span>HexWars<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>📖</span>StudyOS<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🌍</span>HivaLand<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🔧</span>App Generator<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🛒</span>ONDC Demo<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>✨</span>Alchemist<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>⚗️</span>Prompt Alchemy<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>📚</span>ViaGuide<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🧠</span>Memory Engine<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🚀</span>Mars Rover<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>⬡</span>HexWars<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>📖</span>StudyOS<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🌍</span>HivaLand<span class="sep">◆</span></div>
-    <div class="marquee-item"><span>🔧</span>App Generator<span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag c">Commerce</span> ONDC Demo <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> Memory Engine <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag s">Service</span> Decide.Service <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag g">Game</span> HexWars <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag c">Commerce</span> Engine Deals <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> Prompt Alchemy <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag s">Service</span> Food · Rajkot <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag g">Sim</span> Mars Rover <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> ViaGuide <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
+    <!-- duplicate for seamless loop -->
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag c">Commerce</span> ONDC Demo <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> Memory Engine <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag s">Service</span> Decide.Service <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag g">Game</span> HexWars <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag c">Commerce</span> Engine Deals <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> Prompt Alchemy <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag s">Service</span> Food · Rajkot <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag g">Sim</span> Mars Rover <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> ViaGuide <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
   </div>
 </div>
 
-<!-- TOOLS BENTO -->
-<section id="tools">
-  <div class="sec-kicker">Platform Tools</div>
-  <h2 class="sec-h2">Every tool you need<br>to decide with <em>clarity</em></h2>
-  <p class="sec-sub">Eight fully working modules. Click any card to launch it inline.</p>
-  <div class="bento">
-
-    <div class="tc tc-feat tc-teal tc-s8" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')">
-      <div class="tc-arr">↗</div>
-      <div class="tc-vis">🛒</div>
-      <div class="tc-name-lg">ONDC Demo</div>
-      <div class="tc-desc-lg">India's Open Network for Digital Commerce — live product discovery, real seller data, ONDC-native flow. The most ambitious tool in the stack.</div>
-      <div class="tc-st live">● Live &amp; Working</div>
+<!-- ═══════════════════════════════════════════════════
+  [01] TOOLS — AI Decision Instruments
+═══════════════════════════════════════════════════ -->
+<section id="cat-tools" data-cat="tools" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l">
+        <div class="cat-num">01</div>
+        <div class="cat-info">
+          <div class="cat-label">
+            <div class="cat-dot"></div>
+            <span class="cat-name">Decision Tools</span>
+          </div>
+          <p class="cat-desc">AI-powered instruments to structure your thinking, build prompts, and decide with clarity.</p>
+        </div>
+      </div>
+      <button class="cat-cta" onclick="openModal('alchemist.html','✨','Alchemist')">Try Alchemist ✨</button>
     </div>
 
-    <div class="tc tc-gold tc-s4" onclick="openModal('alchemist.html','✨','Alchemist')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">✨</span>
-      <div class="tc-name">Alchemist</div>
-      <div class="tc-desc">AI-powered decision alchemy. Transform fuzzy requirements into structured choices.</div>
-      <div class="tc-st live">● Live</div>
-    </div>
+    <div class="bento">
+      <!-- Featured: Alchemist -->
+      <div class="tc tc-feat tc-s8" onclick="openModal('alchemist.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose">
+        <div class="tc-arr">↗</div>
+        <div class="tc-vis">✨</div>
+        <div class="tc-name-lg">Alchemist</div>
+        <div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices — the flagship tool of the ViaDecide engine.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
 
-    <div class="tc tc-gold tc-s4" onclick="openModal('memory.html','🧠','Memory Engine')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">🧠</span>
-      <div class="tc-name">Memory Engine</div>
-      <div class="tc-desc">Persistent decision history. Your past choices inform your next ones.</div>
-      <div class="tc-st live">● Live</div>
-    </div>
+      <div class="tc tc-s4" onclick="openModal('memory.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🧠</span>
+        <div class="tc-name">Memory Engine</div>
+        <div class="tc-desc">Persistent decision history. Past choices inform your next ones. Never start from scratch again.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
 
-    <div class="tc tc-teal tc-s4" onclick="openModal('prompt-alchemy.html','⚗️','Prompt Alchemy')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">⚗️</span>
-      <div class="tc-name">Prompt Alchemy</div>
-      <div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div>
-      <div class="tc-st live">● Live</div>
-    </div>
+      <div class="tc tc-s4" onclick="openModal('prompt-alchemy.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">⚗️</span>
+        <div class="tc-name">Prompt Alchemy</div>
+        <div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview. Turn vague ideas into precise instructions.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
 
-    <div class="tc tc-pink tc-s3" onclick="openModal('mars-rover-simulator-game.html','🚀','Mars Rover Simulator')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">🚀</span>
-      <div class="tc-name">Mars Rover</div>
-      <div class="tc-desc">Interactive simulation. Engineering meets game design.</div>
-      <div class="tc-st live">● Live</div>
-    </div>
+      <div class="tc tc-s4" onclick="openModal('app-generator.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🔧</span>
+        <div class="tc-name">App Generator</div>
+        <div class="tc-desc">Generate custom decision apps from requirements on the fly. Describe what you need, get a working tool.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
 
-    <div class="tc tc-blue tc-s3" onclick="openModal('HexWars.html','⬡','HexWars')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">⬡</span>
-      <div class="tc-name">HexWars</div>
-      <div class="tc-desc">Strategic hex-grid game for decision simulation and tactical thinking.</div>
-      <div class="tc-st live">● Live</div>
-    </div>
+      <div class="tc tc-s3" onclick="openModal('ViaGuide.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">📚</span>
+        <div class="tc-name">ViaGuide</div>
+        <div class="tc-desc">Structured buying guides with transparent affiliate disclosures. No paid placements.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
 
-    <div class="tc tc-gold tc-s3" onclick="openModal('ViaGuide.html','📚','ViaGuide')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">📚</span>
-      <div class="tc-name">ViaGuide</div>
-      <div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div>
-      <div class="tc-st live">● Live</div>
-    </div>
+      <div class="tc tc-s3" onclick="openModal('StudyOS.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">📖</span>
+        <div class="tc-name">StudyOS</div>
+        <div class="tc-desc">Smart student research OS with structured learning pathways and multi-source aggregation.</div>
+        <div class="tc-st beta">◆ Beta</div>
+      </div>
 
-    <div class="tc tc-teal tc-s3" onclick="openModal('StudyOS.html','📖','StudyOS')">
-      <div class="tc-arr">↗</div>
-      <span class="tc-icon">📖</span>
-      <div class="tc-name">StudyOS</div>
-      <div class="tc-desc">Smart student research OS with structured learning pathways.</div>
-      <div class="tc-st beta">◆ Beta</div>
-    </div>
+      <div class="tc tc-s3" onclick="openModal('brief.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">📋</span>
+        <div class="tc-name">Decision Brief</div>
+        <div class="tc-desc">Generate a structured, shareable decision brief from your research session.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
 
+      <div class="tc tc-s3" onclick="openModal('student-research.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🔬</span>
+        <div class="tc-name">Student Research</div>
+        <div class="tc-desc">Deep research tool for academic and project work. Multiple source types, structured output.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s3" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,quick">
+        <div class="tc-arr" style="opacity:.3">↗</div>
+        <span class="tc-icon">👆</span>
+        <div class="tc-name">SwipeOS</div>
+        <div class="tc-desc">Swipe-driven interface for rapid product comparison. Tinder-like decisions at scale.</div>
+        <div class="tc-st wip">◌ Coming</div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- FEATURE: ONDC -->
-<section id="feature">
-  <div class="feat-inner">
-    <div class="feat-l">
-      <div class="feat-eye">Featured Module</div>
-      <h2 class="feat-h2">The future of commerce<br>is <em>open.</em></h2>
-      <p class="feat-p">ONDC is India's answer to the walled-garden commerce problem. ViaDecide's ONDC Demo is a live, working integration — discover real products from real sellers on the open network, right in your browser.</p>
-      <div class="feat-tags">
-        <span class="feat-tag">Live Seller Data</span>
-        <span class="feat-tag">Real-time Discovery</span>
-        <span class="feat-tag">ONDC Protocol</span>
-        <span class="feat-tag">Made in India 🇮🇳</span>
+<!-- ═══════════════════════════════════════════════════
+  [02] COMMERCE — Deals, Discovery & ONDC
+═══════════════════════════════════════════════════ -->
+<section id="cat-commerce" data-cat="commerce" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l">
+        <div class="cat-num">02</div>
+        <div class="cat-info">
+          <div class="cat-label">
+            <div class="cat-dot"></div>
+            <span class="cat-name">Commerce & Deals</span>
+          </div>
+          <p class="cat-desc">India's open commerce layer — real prices, real sellers, real cashback. No walled gardens.</p>
+        </div>
       </div>
-      <button class="btn-t" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
+      <button class="cat-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
     </div>
-    <div class="feat-r">
+
+    <!-- ONDC featured strip -->
+    <div class="ondc-strip">
+      <div class="ondc-l">
+        <div class="feat-eye">Featured Module</div>
+        <h3>The future of commerce<br>is <em>open.</em></h3>
+        <p>A live, working ONDC integration — discover real products from real sellers on the open network, right in your browser. No middlemen.</p>
+        <div class="feat-tags">
+          <span class="feat-tag">Live Seller Data</span>
+          <span class="feat-tag">Real-time Discovery</span>
+          <span class="feat-tag">ONDC Protocol</span>
+          <span class="feat-tag">Made in India 🇮🇳</span>
+        </div>
+        <button class="btn-t" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
+      </div>
       <div class="mockup">
         <div class="mockup-hd">
           <div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div>
           <div class="m-title">ONDC · Live Feed</div>
         </div>
-        <div class="m-row">
-          <div class="m-icon">📱</div>
-          <div class="m-info"><div class="m-name">OnePlus Nord CE 4</div><div class="m-meta">Reliance Digital · ONDC Verified</div></div>
-          <div><div class="m-price">₹24,999</div><div class="m-badge">Best Value</div></div>
-        </div>
-        <div class="m-row">
-          <div class="m-icon">💻</div>
-          <div class="m-info"><div class="m-name">HP Pavilion 14</div><div class="m-meta">Croma · ONDC Network</div></div>
-          <div><div class="m-price">₹48,490</div><div class="m-badge" style="background:var(--gold3);color:var(--gold2)">Top Pick</div></div>
-        </div>
-        <div class="m-row">
-          <div class="m-icon">🎧</div>
-          <div class="m-info"><div class="m-name">Sony WH-1000XM5</div><div class="m-meta">Brand Store · ONDC</div></div>
-          <div><div class="m-price">₹26,990</div></div>
-        </div>
-        <div style="text-align:center;padding-top:1rem;font-size:.7rem;color:var(--tx3)">Powered by ONDC · 200+ sellers · Live pricing</div>
+        <div class="m-row"><div class="m-icon-sm">📱</div><div class="m-info"><div class="m-name-sm">OnePlus Nord CE 4</div><div class="m-meta">Reliance Digital · ONDC</div></div><div><div class="m-price">₹24,999</div><div class="m-badge">Best Value</div></div></div>
+        <div class="m-row"><div class="m-icon-sm">💻</div><div class="m-info"><div class="m-name-sm">HP Pavilion 14</div><div class="m-meta">Croma · ONDC Network</div></div><div><div class="m-price">₹48,490</div><div class="m-badge" style="background:var(--gold3);color:var(--gold2)">Top Pick</div></div></div>
+        <div class="m-row"><div class="m-icon-sm">🎧</div><div class="m-info"><div class="m-name-sm">Sony WH-1000XM5</div><div class="m-meta">Brand Store · ONDC</div></div><div><div class="m-price">₹26,990</div></div></div>
+        <div style="text-align:center;padding-top:.8rem;font-size:.68rem;color:var(--tx3)">Powered by ONDC · 200+ sellers · Live pricing</div>
+      </div>
+    </div>
+
+    <div class="bento" style="margin-top:1.2rem">
+      <div class="tc tc-s4" onclick="openModal('engine-deals.html','🤝','Engine Deals')" data-cat="commerce" data-orbit="engine-deals" data-intent="deal,phone,buy,compare">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🤝</span>
+        <div class="tc-name">Engine Deals</div>
+        <div class="tc-desc">AI-scored product comparisons with live Amazon pricing. Phones, earbuds, laptops — all categories.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s4" onclick="openModal('discounts.html','🏷️','Discounts Hub')" data-cat="commerce" data-orbit="discounts" data-intent="cashback,discount,offer,save">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🏷️</span>
+        <div class="tc-name">Discounts Hub</div>
+        <div class="tc-desc">Verified cashback offers and deals curated for Indian buyers. HDFC, SBI, Axis bank offers tracked.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s4" onclick="openModal('cashback-rules.html','💸','Cashback Rules')" data-cat="commerce" data-orbit="cashback" data-intent="cashback,rules,how">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">💸</span>
+        <div class="tc-name">Cashback Rules</div>
+        <div class="tc-desc">Understand exactly how to maximize bank cashback. Decoded for Bharat's card users.</div>
+        <div class="tc-st live">● Live</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ABOUT -->
+<!-- ═══════════════════════════════════════════════════
+  [03] GAMES & SIMS — Decision Simulations
+═══════════════════════════════════════════════════ -->
+<section id="cat-games" data-cat="games" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l">
+        <div class="cat-num">03</div>
+        <div class="cat-info">
+          <div class="cat-label">
+            <div class="cat-dot"></div>
+            <span class="cat-name">Simulations & Games</span>
+          </div>
+          <p class="cat-desc">Decision-making at play. Strategy games and immersive sims that sharpen your thinking.</p>
+        </div>
+      </div>
+    </div>
+    <div class="bento">
+      <div class="tc tc-s4" onclick="openModal('HexWars.html','⬡','HexWars')" data-cat="games" data-orbit="hexwars" data-intent="game,strategy,play">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">⬡</span>
+        <div class="tc-name">HexWars</div>
+        <div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control. Decision-making under pressure.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s4" onclick="openModal('mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" data-cat="games" data-orbit="mars-rover" data-intent="simulation,space,engineering">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🚀</span>
+        <div class="tc-name">Mars Rover</div>
+        <div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decision-making.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s4" onclick="openModal('HivaLand.html','🌍','HivaLand')" data-cat="games" data-orbit="hivaland" data-intent="world,build,simulate">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🌍</span>
+        <div class="tc-name">HivaLand</div>
+        <div class="tc-desc">Immersive world-building decision simulation. Build civilizations, make strategic resource decisions.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+  [04] SERVICES — Real-world offerings
+═══════════════════════════════════════════════════ -->
+<section id="cat-services" data-cat="services" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l">
+        <div class="cat-num">04</div>
+        <div class="cat-info">
+          <div class="cat-label">
+            <div class="cat-dot"></div>
+            <span class="cat-name">Services</span>
+          </div>
+          <p class="cat-desc">Real-world offerings — human-assisted decision research, local services, and platform access for builders.</p>
+        </div>
+      </div>
+      <button class="cat-cta" onclick="openModal('decide-service.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
+    </div>
+    <div class="bento">
+      <!-- Featured service -->
+      <div class="tc tc-feat tc-s6" onclick="openModal('decide-service.html','🎯','Decide.Service')" data-cat="services" data-orbit="decide-service" data-intent="hire,research,help,service">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🎯</span>
+        <div class="tc-name-lg">Decide.Service</div>
+        <div class="tc-desc-lg">White-glove decision research for complex, high-value purchases. We research so you can choose with confidence — TVs, laptops, appliances, anything.</div>
+        <div class="tc-st svc">⊕ Paid Service</div>
+      </div>
+
+      <div class="tc tc-s6" onclick="openModal('decide-foodrajkot.html','🍽️','Decide Food · Rajkot')" data-cat="services" data-orbit="food-rajkot" data-intent="food,rajkot,order,local,delivery">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🍽️</span>
+        <div class="tc-name-lg">Decide Food · Rajkot</div>
+        <div class="tc-desc-lg">Zero-commission local food delivery in Rajkot. Smart restaurant suggestions based on your area, urgency, and taste. Pay after delivery.</div>
+        <div class="tc-st svc">⊕ Local Service</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('engine-license.html','⚙️','Engine License')" data-cat="services" data-orbit="engine-license" data-intent="license,api,white-label,embed">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">⚙️</span>
+        <div class="tc-name">Engine License</div>
+        <div class="tc-desc">White-label the ViaDecide engine for your product. API access, embedded modules, custom builds.</div>
+        <div class="tc-st svc">⊕ License</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('cohort-apply-here.html','🧪','Cohort Program')" data-cat="services" data-orbit="cohort" data-intent="cohort,apply,join,program">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🧪</span>
+        <div class="tc-name">Cohort Program</div>
+        <div class="tc-desc">Join the decide.cohort — a structured program for builders who want to think better and build smarter.</div>
+        <div class="tc-st beta">◆ Apply Now</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('CustomSwipeEngineForm.html','👆','Custom Swipe Engine')" data-cat="services" data-orbit="custom-swipe" data-intent="custom,build,swipe,comparison">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">👆</span>
+        <div class="tc-name">Custom Swipe Engine</div>
+        <div class="tc-desc">Request a custom swipe-based comparison engine for your product category or business.</div>
+        <div class="tc-st svc">⊕ Custom Build</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('pricing.html','💰','Pricing')" data-cat="services" data-orbit="pricing" data-intent="price,cost,plan,tier">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">💰</span>
+        <div class="tc-name">Pricing</div>
+        <div class="tc-desc">Transparent tiers for ViaDecide engine access. Free to explore. Paid for power users and businesses.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+  [05] STORE — PrintByDD
+═══════════════════════════════════════════════════ -->
+<section id="cat-store" data-cat="store" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l">
+        <div class="cat-num">05</div>
+        <div class="cat-info">
+          <div class="cat-label">
+            <div class="cat-dot"></div>
+            <span class="cat-name">Store · PrintByDD</span>
+          </div>
+          <p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts that mean more.</p>
+        </div>
+      </div>
+      <a class="cat-cta" href="printbydd-store/index.html">Open Store ↗</a>
+    </div>
+    <div class="bento">
+      <div class="tc tc-feat tc-s4" onclick="location.href='printbydd-store/numberplate.html'" data-cat="store" data-orbit="numberplate" data-intent="numberplate,plate,3d,print">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🚗</span>
+        <div class="tc-name">Numberplates</div>
+        <div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview. Built for Bharat's roads.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s4" onclick="location.href='printbydd-store/keychain.html'" data-cat="store" data-orbit="keychain" data-intent="keychain,nfc,gift,personalised">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🔑</span>
+        <div class="tc-name">NFC Keychains</div>
+        <div class="tc-desc">Personalised NFC-enabled keychains with custom engraving. Tap to share anything — contact, link, message.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+
+      <div class="tc tc-s4" onclick="location.href='printbydd-store/gifts-that-mean-more.html'" data-cat="store" data-orbit="gifts" data-intent="gift,personal,meaningful,special">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🎁</span>
+        <div class="tc-name">Gifts That Mean More</div>
+        <div class="tc-desc">Curated personalised gift experiences. Not generic. Not mass-produced. Made for the person, not the market.</div>
+        <div class="tc-st live">● Live</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+  [06] BLOG & CONTENT
+═══════════════════════════════════════════════════ -->
+<section id="cat-blog" data-cat="blog" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l">
+        <div class="cat-num">06</div>
+        <div class="cat-info">
+          <div class="cat-label">
+            <div class="cat-dot"></div>
+            <span class="cat-name">Blog & Content</span>
+          </div>
+          <p class="cat-desc">Long-form thinking on decisions, commerce, AI, and India's digital future. No clickbait. No fluff.</p>
+        </div>
+      </div>
+      <button class="cat-cta" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')">All Posts ↗</button>
+    </div>
+    <div class="bento">
+      <div class="tc tc-s6" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')" data-cat="blog" data-orbit="blogs">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">✍️</span>
+        <div class="tc-name">ViaDecide Blog</div>
+        <div class="tc-desc">Essays on decision-making, consumer tech in India, ONDC, AI tools, and the infrastructure of smart choices.</div>
+        <div class="tc-st live">● Active</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('decision-infrastructure-india.html','🏗️','Decision Infrastructure')" data-cat="blog">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🏗️</span>
+        <div class="tc-name">Decision Infrastructure</div>
+        <div class="tc-desc">Why India needs a decision layer and how ViaDecide is building it.</div>
+        <div class="tc-st live">● Article</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('ondc-for-bharat.html','🛒','ONDC for Bharat')" data-cat="blog">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🇮🇳</span>
+        <div class="tc-name">ONDC for Bharat</div>
+        <div class="tc-desc">A deep-dive into India's Open Network for Digital Commerce and what it means for you.</div>
+        <div class="tc-st live">● Article</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('laptops-under-50000.html','💻','Laptops Under 50k')" data-cat="blog">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">💻</span>
+        <div class="tc-name">Laptops Under ₹50k</div>
+        <div class="tc-desc">Structured buying guide with scoring matrix. The only laptop article that shows its work.</div>
+        <div class="tc-st live">● Guide</div>
+      </div>
+
+      <div class="tc tc-s3" onclick="openModal('founder.html','👤','Founder')" data-cat="blog" data-orbit="founder">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">👤</span>
+        <div class="tc-name">Founder</div>
+        <div class="tc-desc">The story and mission behind India's decision engine. Why this exists and where it's going.</div>
+        <div class="tc-st live">● About</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
 <section id="about">
   <div class="about-grid">
-    <div class="about-l">
-      <div class="sec-kicker">Our Philosophy</div>
+    <div>
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="display:block;width:24px;height:1px;background:var(--tx3)"></span>Our Philosophy</div>
       <h2 class="about-h2">Decisions deserve<br><em>infrastructure.</em></h2>
       <p class="about-p">Most Indian buyers make expensive, life-impacting decisions with incomplete information. We're building the layer that changes that — structured, transparent, AI-native.</p>
-      <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide.</p>
+      <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide. Six categories. One engine.</p>
       <div class="stat-row">
-        <div class="a-stat"><div class="num">10<span>+</span></div><div class="lbl">Live Modules</div></div>
-        <div class="a-stat"><div class="num">1<span>st</span></div><div class="lbl">In India</div></div>
+        <div class="a-stat"><div class="num">20<span>+</span></div><div class="lbl">Live Modules</div></div>
+        <div class="a-stat"><div class="num">6</div><div class="lbl">Categories</div></div>
         <div class="a-stat"><div class="num">∞</div><div class="lbl">Decisions</div></div>
       </div>
     </div>
     <div class="pillars">
-      <div class="pillar"><div class="p-icon">🔍</div><div class="p-txt"><h4>Multi-Source Research</h4><p>We aggregate from multiple sources — not just one seller's catalog — so you see the full picture before committing.</p></div></div>
-      <div class="pillar"><div class="p-icon">🤖</div><div class="p-txt"><h4>AI That Structures, Not Hypes</h4><p>Alchemist and PromptAlchemy use structured AI reasoning. Not chatbot fluff — deliberate, framework-driven analysis.</p></div></div>
+      <div class="pillar"><div class="p-icon">🔍</div><div class="p-txt"><h4>Multi-Source Research</h4><p>Aggregate from multiple sources — not one seller's catalog — so you see the full picture before committing.</p></div></div>
+      <div class="pillar"><div class="p-icon">🤖</div><div class="p-txt"><h4>AI That Structures, Not Hypes</h4><p>Structured AI reasoning. Not chatbot fluff — deliberate, framework-driven analysis built for real decisions.</p></div></div>
       <div class="pillar"><div class="p-icon">🇮🇳</div><div class="p-txt"><h4>Built for Bharat</h4><p>ONDC integration, INR pricing, regional market awareness — every tool knows the Indian consumer's reality.</p></div></div>
-      <div class="pillar"><div class="p-icon">🔓</div><div class="p-txt"><h4>Radical Transparency</h4><p>Affiliate links always disclosed. Editorial rankings are always independent. No paid placements. Ever.</p></div></div>
+      <div class="pillar"><div class="p-icon">🔓</div><div class="p-txt"><h4>Radical Transparency</h4><p>Affiliate links always disclosed. Editorial rankings always independent. No paid placements. Ever.</p></div></div>
     </div>
   </div>
 </section>
 
-<!-- MORE TOOLS -->
-<section id="extra">
-  <div class="inner">
-    <div class="extra-hdr">
-      <div>
-        <div class="sec-kicker">More Modules</div>
-        <h2 class="extra-h2">The full <em>ecosystem</em></h2>
-      </div>
-      <button class="btn-g" style="flex-shrink:0" onclick="openModal('Viadecide-blogs.html','✍️','Blogs')">Read Blog ↗</button>
-    </div>
-    <div class="extra-grid">
-      <div class="tc tc-teal" onclick="openModal('app-generator.html','🔧','App Generator')"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-pink" onclick="openModal('HivaLand.html','🌍','HivaLand')"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation environment.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-gold" onclick="openModal('discounts.html','🏷️','Discounts Hub')"><div class="tc-arr">↗</div><span class="tc-icon">🏷️</span><div class="tc-name">Discounts Hub</div><div class="tc-desc">Verified cashback offers and deals curated for Indian buyers.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-blue" onclick="openModal('pricing.html','💰','Pricing')"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-teal" onclick="openModal('decide-service.html','🎯','Decide Service')"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name">Decide Service</div><div class="tc-desc">White-glove decision research for complex high-value purchases.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-gold" onclick="openModal('SwipeOS.html','👆','SwipeOS')"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st wip">◌ Coming</div></div>
-      <div class="tc tc-gold" onclick="openModal('engine-deals.html','🤝','Engine Deals')"><div class="tc-arr">↗</div><span class="tc-icon">🤝</span><div class="tc-name">Engine Deals</div><div class="tc-desc">Exclusive partner deals through the ViaDecide network.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-pur" onclick="openModal('founder.html','👤','Founder')"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● Live</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- INSTALL APP -->
-<section id="install">
+<!-- ── INSTALL ── -->
+<section id="install" style="border-top:1px solid var(--bd)">
   <div class="install-inner">
-    <div class="install-l">
-      <div class="install-badge">📲 Install App</div>
+    <div>
+      <div class="install-badge">📲 Progressive Web App</div>
       <h2 class="install-h2">Get ViaDecide on<br>any <em>device.</em></h2>
-      <p class="install-sub">Install our Progressive Web App — works on Android, iPhone, Windows, Mac, and Linux. No app store needed. Works offline too.</p>
+      <p class="install-sub">Install our PWA — works on Android, iPhone, Windows, Mac, Linux. No app store needed. Works offline too.</p>
       <div class="install-steps">
         <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, Edge, or Firefox</div></div>
         <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser's menu</div></div>
-        <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy offline access</strong> — fast, native-like experience on your homescreen</div></div>
+        <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy offline access</strong> — fast, native-like on your homescreen</div></div>
       </div>
       <div class="install-btns">
         <button id="install-pwa-section" class="btn-t">📲 Install Now</button>
@@ -589,49 +949,34 @@ section{position:relative;z-index:10}
     <div class="install-r">
       <div class="dev-tabs">
         <button class="dev-tab active" data-tab="android">Android</button>
-        <button class="dev-tab" data-tab="ios">iPhone / iPad</button>
+        <button class="dev-tab" data-tab="ios">iPhone</button>
         <button class="dev-tab" data-tab="desktop">Desktop</button>
       </div>
       <div id="tab-android" class="dev-instructions">
         <strong>📱 Android — Chrome</strong>
-        <ol>
-          <li>Open <strong>viadecide.com</strong> in Chrome</li>
-          <li>Tap the <strong>3-dot menu</strong> (⋮) at the top-right</li>
-          <li>Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong></li>
-          <li>Tap <strong>Install</strong> — done! Icon appears on your homescreen.</li>
-        </ol>
+        <ol><li>Open <strong>viadecide.com</strong> in Chrome</li><li>Tap <strong>⋮ → "Add to Home screen"</strong></li><li>Tap <strong>Install</strong> — done!</li></ol>
       </div>
       <div id="tab-ios" class="dev-instructions" style="display:none">
         <strong>🍎 iPhone / iPad — Safari</strong>
-        <ol>
-          <li>Open <strong>viadecide.com</strong> in <strong>Safari</strong> (not Chrome)</li>
-          <li>Tap the <strong>Share button</strong> (□↑) at the bottom of the screen</li>
-          <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-          <li>Tap <strong>Add</strong> — the ViaDecide icon appears on your homescreen!</li>
-        </ol>
+        <ol><li>Open in <strong>Safari</strong> (not Chrome)</li><li>Tap the <strong>Share button (□↑)</strong></li><li>Tap <strong>"Add to Home Screen"</strong> → Add</li></ol>
       </div>
       <div id="tab-desktop" class="dev-instructions" style="display:none">
         <strong>💻 Desktop — Chrome / Edge</strong>
-        <ol>
-          <li>Open <strong>viadecide.com</strong> in <strong>Chrome or Edge</strong></li>
-          <li>Look for the <strong>install icon ⊕</strong> in the address bar (right side)</li>
-          <li>Or open the <strong>3-dot menu → "Install ViaDecide"</strong></li>
-          <li>Click <strong>Install</strong> — opens as its own app window!</li>
-        </ol>
+        <ol><li>Open in <strong>Chrome or Edge</strong></li><li>Look for the <strong>⊕ install icon</strong> in the address bar</li><li>Click <strong>Install</strong></li></ol>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER CTA -->
+<!-- ── FOOTER CTA ── -->
 <section id="footer-cta">
   <div class="footer-inner">
     <div class="footer-eye">Ready to decide smarter?</div>
     <h2 class="footer-h2">Start with clarity.<em>Not confusion.</em></h2>
     <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.<br>India's decision infrastructure — for everyone.</p>
     <div class="footer-acts">
-      <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:1rem;padding:1rem 2.2rem">Try ONDC Demo ↗</button>
-      <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:1rem;padding:1rem 2.2rem">Open Alchemist</button>
+      <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
+      <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
     </div>
     <div class="footer-links">
       <a onclick="openModal('contact.html','✉️','Contact')">Contact</a>
@@ -645,13 +990,13 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- INSTALL BANNER -->
+<!-- ── INSTALL BANNER ── -->
 <div id="install-banner">
   <div class="ib-inner">
     <div class="ib-icon">⚡</div>
     <div class="ib-txt">
       <strong>Install ViaDecide App</strong>
-      <span>Add to your homescreen — works offline, loads instantly</span>
+      <span>Add to homescreen — works offline, loads instantly</span>
     </div>
     <div class="ib-acts">
       <button id="install-banner-btn" class="ib-btn">Install</button>
@@ -660,14 +1005,36 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
-<!-- IOS HINT -->
+<!-- ── IOS HINT ── -->
 <div id="ios-hint">
   <button id="ios-hint-close">✕</button>
   <strong>Install on iPhone / iPad</strong>
-  <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
+  <p>Tap the <strong>Share button (□↑)</strong> in Safari, then tap <strong>"Add to Home Screen"</strong> → Add.</p>
 </div>
 
-<!-- MODAL -->
+<!-- ── DECISION THREAD PANEL (Phase 2 structural placeholder) ── -->
+<!-- Phase 2 will fill #thread-body with real session entries and the Synthesize button -->
+<button id="thread-toggle" onclick="toggleThread()" title="Decision Thread — Phase 2 coming soon">
+  <div class="tt-dot"></div>
+  Thread
+</button>
+<div id="thread-panel">
+  <div class="thread-hd">
+    <div class="thread-title"><div class="thread-badge"></div>Decision Thread</div>
+    <button class="thread-close" onclick="toggleThread()">✕</button>
+  </div>
+  <div class="thread-body" id="thread-body">
+    <div class="thread-empty-icon">🧵</div>
+    <div class="thread-empty-title">No decisions yet</div>
+    <p class="thread-empty-sub">As you explore tools and research products, your session will be chronicled here.</p>
+    <span class="thread-coming">Phase 2 · Coming Soon</span>
+  </div>
+  <div class="thread-ft">
+    Decision Thread · Every tool you use, one connected story.
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
 <div id="modal">
   <div id="modal-bd" onclick="closeModal()"></div>
   <div id="modal-sheet">
@@ -684,13 +1051,15 @@ section{position:relative;z-index:10}
     <div id="modal-err">
       <div class="err-icon">🔒</div>
       <h3>Can't load in iframe</h3>
-      <p>This page has security restrictions that prevent embedding. Open it in a new tab to use it fully.</p>
+      <p>This page has security restrictions that prevent embedding. Open it in a new tab.</p>
       <a id="err-open-link" href="#" target="_blank" class="err-btn">Open in New Tab ↗</a>
     </div>
-    <iframe id="modal-frame" src="about:blank" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
+    <iframe id="modal-frame" src="about:blank" allowfullscreen
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
   </div>
 </div>
 
+<script src="router.js"></script>
 <script>
 /* ─── CURSOR ─── */
 const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
@@ -705,6 +1074,8 @@ function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
 resize();window.addEventListener('resize',resize);
 function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,o:Math.random()*.4+.1,c:Math.random()>.5?'rgba(200,147,42,':'rgba(34,180,160,'}}
 for(let i=0;i<90;i++)particles.push(mkP());
+/* ─── Ambient Intelligence hook (Phase 7) ─── */
+/* window.VD_PARTICLE_PRESET = 'tech'|'organic'|'financial'|'strategy' → morphs field */
 function drawCanvas(){
   ctx.clearRect(0,0,W,H);
   ctx.strokeStyle='rgba(255,255,255,0.018)';ctx.lineWidth=1;
@@ -731,14 +1102,14 @@ window.addEventListener('scroll',()=>{
   const s=window.scrollY,max=document.body.scrollHeight-innerHeight;
   prog.style.width=(s/max*100)+'%';
   nav.classList.toggle('solid',s>80);
-  if(heroH1) heroH1.style.transform=`translateY(${s*.22}px)`;
+  if(heroH1)heroH1.style.transform=`translateY(${s*.18}px)`;
 });
 
 /* ─── INTERSECTION OBSERVER ─── */
 const io=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
-},{threshold:.1});
-document.querySelectorAll('.tc,.pillar,.feat-l,.feat-r').forEach(el=>io.observe(el));
+},{threshold:.08});
+document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
 
 /* ─── DEVICE TABS ─── */
 document.querySelectorAll('.dev-tab').forEach(tab=>{
@@ -751,14 +1122,39 @@ document.querySelectorAll('.dev-tab').forEach(tab=>{
   });
 });
 
+/* ─── ORB INPUT ─── */
+/* Phase 1 will replace this with full NLP routing → tool constellation navigation */
+/* For now: Enter key scrolls to tools section; orb chips scroll to specific categories */
+document.getElementById('orb-go').addEventListener('click',function(){
+  const v=(document.getElementById('orb-input').value||'').trim();
+  if(!v){document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});return;}
+  // Keyword → category mapping (basic, Phase 1 will replace with real NLP)
+  const lv=v.toLowerCase();
+  if(/food|rajkot|deliver|order|eat/i.test(lv)){document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});}
+  else if(/game|play|sim|mars|hex|war/i.test(lv)){document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});}
+  else if(/deal|price|buy|ondc|cashback|discount/i.test(lv)){document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});}
+  else if(/print|plate|keychain|gift|store/i.test(lv)){document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});}
+  else if(/blog|article|read|guide|learn/i.test(lv)){document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});}
+  else if(/service|hire|license|cohort/i.test(lv)){document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});}
+  else{document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});}
+});
+document.getElementById('orb-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter')document.getElementById('orb-go').click();
+});
+
+/* ─── THREAD PANEL ─── */
+/* Phase 2 will fill this with real session entries and AI synthesis */
+var threadOpen=false;
+function toggleThread(){
+  threadOpen=!threadOpen;
+  document.getElementById('thread-panel').classList.toggle('open',threadOpen);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleThread();});
+
 /* ─── MODAL ─── */
 let currentFile='';
 function openModal(file,icon,name){
-  // If target is an external URL, open in new tab — never load in sandboxed iframe
-  if (/^https?:\/\//i.test(file)) {
-    window.open(file, '_blank', 'noopener,noreferrer');
-    return;
-  }
+  if(/^https?:\/\//i.test(file)){window.open(file,'_blank','noopener,noreferrer');return;}
   currentFile=file;
   document.getElementById('m-icon').textContent=icon;
   document.getElementById('m-name').textContent=name;
@@ -771,26 +1167,16 @@ function openModal(file,icon,name){
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
-
-// Detect iframe load failure / X-Frame-Options
 document.getElementById('modal-frame').addEventListener('load',function(){
   try{
-    // If we can access the frame's document, it loaded fine
-    // (will throw if blocked by X-Frame-Options)
     const d=this.contentDocument||this.contentWindow.document;
-    if(!d||d.body===null||d.body.innerHTML===''){
-      showModalError();
-    }
-  }catch(e){
-    showModalError();
-  }
+    if(!d||d.body===null||d.body.innerHTML===''){showModalError();}
+  }catch(e){showModalError();}
 });
-
 function showModalError(){
   document.getElementById('modal-frame').style.display='none';
   document.getElementById('modal-err').classList.add('show');
 }
-
 function closeModal(){
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow='';
@@ -800,63 +1186,40 @@ function closeModal(){
     document.getElementById('modal-err').classList.remove('show');
   },400);
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeModal();});
 
 /* ─── PWA INSTALL ─── */
 var dP=null;
 var isIOS=/iP(ad|hone|od)/.test(navigator.userAgent)&&!window.MSStream;
 var isInStandaloneMode=window.matchMedia('(display-mode:standalone)').matches||(window.navigator.standalone===true);
-
-var allInstallBtns=[
-  document.getElementById('install-pwa-nav'),
-  document.getElementById('install-pwa-section')
-];
+var allInstallBtns=[document.getElementById('install-pwa-nav'),document.getElementById('install-pwa-section')];
 var banner=document.getElementById('install-banner');
 var bannerBtn=document.getElementById('install-banner-btn');
 var bannerDismiss=document.getElementById('install-banner-dismiss');
 var iosHint=document.getElementById('ios-hint');
 var iosHintClose=document.getElementById('ios-hint-close');
 var iosTriggerSection=document.getElementById('ios-trigger-section');
-
-function showInstallBtns(){
-  allInstallBtns.forEach(b=>{if(b){b.style.display='inline-flex';}});
-}
-function hideInstallBtns(){
-  allInstallBtns.forEach(b=>{if(b){b.style.display='none';}});
-  if(banner)banner.classList.remove('show');
-}
-function doInstall(){
-  if(dP){dP.prompt();dP.userChoice.then(r=>{if(r.outcome==='accepted'){dP=null;hideInstallBtns();}});}
-}
-
-// Android / Chrome / Edge
+function showInstallBtns(){allInstallBtns.forEach(b=>{if(b)b.style.display='inline-flex';});}
+function hideInstallBtns(){allInstallBtns.forEach(b=>{if(b)b.style.display='none';});if(banner)banner.classList.remove('show');}
+function doInstall(){if(dP){dP.prompt();dP.userChoice.then(r=>{if(r.outcome==='accepted'){dP=null;hideInstallBtns();}});}}
 window.addEventListener('beforeinstallprompt',function(e){
-  e.preventDefault();dP=e;
-  showInstallBtns();
-  setTimeout(function(){
-    try{var dismissed=sessionStorage.getItem('de-install-dismissed');if(!dismissed&&!isInStandaloneMode&&banner)banner.classList.add('show');}catch(ex){}
-  },3500);
+  e.preventDefault();dP=e;showInstallBtns();
+  setTimeout(function(){try{var d=sessionStorage.getItem('de-install-dismissed');if(!d&&!isInStandaloneMode&&banner)banner.classList.add('show');}catch(ex){}},3500);
 });
-
 allInstallBtns.forEach(b=>{if(b)b.addEventListener('click',doInstall)});
-if(bannerBtn)bannerBtn.addEventListener('click',function(){doInstall();if(banner)banner.classList.remove('show')});
+if(bannerBtn)bannerBtn.addEventListener('click',function(){doInstall();if(banner)banner.classList.remove('show');});
 if(bannerDismiss)bannerDismiss.addEventListener('click',function(){if(banner)banner.classList.remove('show');try{sessionStorage.setItem('de-install-dismissed','1');}catch(e){}});
-
-// iOS
 if(isIOS&&!isInStandaloneMode){
   if(iosTriggerSection)iosTriggerSection.style.display='inline-flex';
-  if(iosTriggerSection)iosTriggerSection.addEventListener('click',function(){if(iosHint)iosHint.classList.add('show')});
+  if(iosTriggerSection)iosTriggerSection.addEventListener('click',function(){if(iosHint)iosHint.classList.add('show');});
   setTimeout(function(){try{var d=sessionStorage.getItem('de-ios-dismissed');if(!d&&iosHint)iosHint.classList.add('show');}catch(e){}},4500);
 }
 if(iosHintClose)iosHintClose.addEventListener('click',function(){if(iosHint)iosHint.classList.remove('show');try{sessionStorage.setItem('de-ios-dismissed','1');}catch(e){}});
-
-window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns()});
+window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns();});
 
 /* ─── SERVICE WORKER ─── */
 if('serviceWorker'in navigator){
-  window.addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js').catch(function(){});
-  });
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 }
 </script>
 </body>
