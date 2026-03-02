@@ -481,19 +481,15 @@
     }
   </style>
 </head>
+
 <body>
 
   <header class="site-header">
     <a href="./index.html" class="logo">PrintByDD</a>
     <nav>
       <a href="./index.html" class="active">Home</a>
-
-      <!-- ✅ Keep keychain exactly as before -->
-      <a href="./keychain.html">Keychain</a>
-
-      <!-- ✅ NEW: add Numberplate nav item (same style as keychain) -->
-      <a href="./numberplate.html">Numberplate</a>
-
+      <!-- keep existing nav logic: Products still points to keychain.html -->
+      <a href="./keychain.html">Products</a>
       <a href="./gifts-that-mean-more.html">Blog</a>
 
       <!-- ✅ ALWAYS VISIBLE — JS hides it only when running as installed standalone app -->
@@ -515,13 +511,14 @@
         </div>
       </div>
 
+      <!-- ✅ NEW: Separate Products section -->
       <div class="section-header">
-        <h2>Featured Perspectives</h2>
+        <h2>Products</h2>
       </div>
 
       <div class="grid">
 
-        <!-- Keychain -->
+        <!-- Product 1: Keychain -->
         <a href="./keychain.html" class="card">
           <div class="card-image-wrap">
             <img src="./1000217293.jpg" alt="Hardcore NFC Keychain" />
@@ -532,19 +529,32 @@
           <span class="card-link">View Product</span>
         </a>
 
-        <!-- ✅ NEW: Numberplate product card -->
+        <!-- Product 2: Numberplate -->
         <a href="./numberplate.html" class="card">
           <div class="card-image-wrap">
-            <!-- Put any preview image here (example filename). -->
-            <img src="./numberplate-preview.png" alt="3D Numberplate" />
+            <!-- IMPORTANT:
+              Put this image file next to index.html
+              Filename used here:
+              a_digital_3d_rendered_close_up_showcases_a_custom.png
+              If you rename it, update src accordingly.
+            -->
+            <img src="./a_digital_3d_rendered_close_up_showcases_a_custom.png" alt="3D Numberplate" />
           </div>
-          <div class="kicker">Custom Vehicle Detail</div>
-          <h3>3D Numberplate</h3>
-          <p>Two-tone control: change the character face color and the boundary-height color. Preview it in 3D, then order on WhatsApp.</p>
+          <div class="kicker">Custom Vehicle ID</div>
+          <h3>3D Two-Tone Numberplate</h3>
+          <p>Pick character color + boundary-height color, preview in 3D, then order. Designed for crisp readability and an engineered finish.</p>
           <span class="card-link">View Product</span>
         </a>
 
-        <!-- Blog -->
+      </div>
+
+      <!-- keep your original “Featured Perspectives” section too -->
+      <div class="section-header" style="margin-top:56px;">
+        <h2>Featured Perspectives</h2>
+      </div>
+
+      <div class="grid">
+
         <a href="./gifts-that-mean-more.html" class="card">
           <div class="carousel-container" aria-label="Image gallery">
             <div class="carousel-track">
@@ -748,6 +758,17 @@
 
       // ══════════════════════════════════════════════════
       // PWA INSTALL
+      //
+      // Strategy:
+      //   • Nav button (#install-pwa-nav) is ALWAYS visible (CSS default).
+      //     It is hidden only when isStandalone === true.
+      //   • Section button (#install-pwa-section) is hidden by default;
+      //     shown only when beforeinstallprompt fires.
+      //   • doInstall() has 4 branches — zero alert() calls:
+      //     1. standalone  → calm "already installed" bottom sheet
+      //     2. dP exists   → native browser prompt (Chrome/Edge)
+      //     3. isIOS       → existing ios-hint panel
+      //     4. other       → "try Chrome/Edge" bottom sheet
       // ══════════════════════════════════════════════════
       let dP = null;
       const isIOS        = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
@@ -815,6 +836,8 @@
 
       /* ── Show / hide section install button ── */
       function showInstallBtns() {
+        // Nav button stays at its CSS default (always visible).
+        // Only the in-page section button toggles with prompt availability.
         if (secBtn) secBtn.style.display = 'inline-flex';
       }
       function hideInstallBtns() {
@@ -827,10 +850,12 @@
 
       /* ── Core install handler ── */
       function doInstall() {
+        // 1. Already installed
         if (isStandalone) {
           openFallbackSheet('standalone');
           return;
         }
+        // 2. Native prompt available (Chrome / Edge — Android & Desktop)
         if (dP) {
           dP.prompt();
           dP.userChoice.then(function(result) {
@@ -842,10 +867,13 @@
           });
           return;
         }
+        // 3. iOS Safari — show in-page hint panel
         if (isIOS) {
           if (iosHint) { iosHint.classList.add('show'); } else { openFallbackSheet('ios'); }
           return;
         }
+        // 4. Everything else (Firefox, Samsung Browser, Opera, etc.)
+        //    → calm bottom sheet, NO alert()
         openFallbackSheet('other');
       }
 
@@ -854,6 +882,7 @@
         e.preventDefault();
         dP = e;
         showInstallBtns();
+        // Auto-show install banner after 3.5 s (if user hasn't dismissed it)
         setTimeout(function() {
           try {
             const dismissed = sessionStorage.getItem('pbd-install-dismissed');
@@ -908,4 +937,4 @@
     })();
   </script>
 </body>
-</html>
+  </html>
