@@ -1,0 +1,6 @@
+# store.viadecide.com/printbydd → printbydd-store/
+/printbydd           /printbydd-store/index.html   200
+/printbydd/          /printbydd-store/index.html   200
+/printbydd/keychain  /printbydd-store/keychain.html 200
+/printbydd/gifts     /printbydd-store/gifts-that-mean-more.html 200
+/printbydd/*         /printbydd-store/:splat        200
