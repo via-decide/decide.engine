@@ -404,7 +404,7 @@
         <nav>
           <a id="kcNavHome">Home</a>
           <a id="kcNavProducts">Products</a>
-          <a href="/printbydd-store/gifts-that-mean-more">Blog</a>
+          <a id="kcNavBlog">Blog</a>
         </nav>
         <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
            target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
@@ -426,7 +426,7 @@
     </header>
 
     <div class="top">
-      <a class="back" href="/printbydd-store" id="backBtn">← Back</a>
+      <a class="back" id="backBtn">← Back</a>
       <div class="top-actions">
         <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
@@ -463,14 +463,17 @@
   }
   // Set nav links based on environment
   (function(){
-    var homeLink = document.getElementById('kcHomeLink');
-    var navHome  = document.getElementById('kcNavHome');
-    var navProd  = document.getElementById('kcNavProducts');
-    if(homeLink) homeLink.href = routeTo('./index.html', '/printbydd-store/');
-    if(navHome)  navHome.href  = routeTo('./index.html', '/printbydd-store/');
-    if(navProd){
-      navProd.href = routeTo('./products.html', '/printbydd-store/products/');
-    }
+    var links = {
+      'kcHomeLink':   ['./index.html',               '/printbydd/'],
+      'kcNavHome':    ['./index.html',               '/printbydd/'],
+      'kcNavProducts':['./products.html',            '/printbydd/products'],
+      'kcNavBlog':    ['./gifts-that-mean-more.html','/printbydd/gifts'],
+      'backBtn':      ['./index.html',               '/printbydd/'],
+    };
+    Object.keys(links).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.href = routeTo(links[id][0], links[id][1]);
+    });
   })();
 
   // ========= CONFIG =========
