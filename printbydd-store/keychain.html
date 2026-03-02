@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0a0a0a" />
   <title>Hardcore NFC Keychain • PrintByDD</title>
+
+  <!-- Three.js (same as your current setup) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
     :root{
       --bg:#050505;
@@ -17,10 +20,12 @@
       --accent-glow: rgba(232, 40, 40, 0.15);
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
       --radius: 24px;
+
       --safeTop: env(safe-area-inset-top, 0px);
       --safeBottom: env(safe-area-inset-bottom, 0px);
       --safeLeft: env(safe-area-inset-left, 0px);
       --safeRight: env(safe-area-inset-right, 0px);
+
       --maxw: 860px;
       --header-height: 60px;
     }
@@ -35,6 +40,8 @@
     }
     a{ color:inherit; text-decoration:none; }
     button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; -webkit-tap-highlight-color: transparent; }
+    /* Optional: prevent selection like your blog pages */
+    body{ -webkit-user-select:none; user-select:none; }
 
     /* ===== Site Header ===== */
     .site-header{
@@ -69,6 +76,7 @@
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
 
+    /* Invert theme (your method) */
     body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
@@ -78,23 +86,54 @@
 
     .bg-glow{ position:absolute; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index:0; }
 
-    .top{ position:absolute; top:var(--header-height); left:0; right:0; padding:calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft)); z-index:50; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; background:linear-gradient(180deg,rgba(5,5,5,0.95) 0%,rgba(5,5,5,0) 100%); }
+    .top{
+      position:absolute; top:var(--header-height); left:0; right:0;
+      padding:calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
+      z-index:50; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      pointer-events:none;
+      background:linear-gradient(180deg,rgba(5,5,5,0.95) 0%,rgba(5,5,5,0) 100%);
+    }
     .top > *{ pointer-events:auto; }
     .top-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 
-    .back, .pill, .btn-icon{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,15,15,0.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); transition:all 0.2s ease; user-select:none; }
+    .back, .pill, .btn-icon{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,0.08);
+      background:rgba(15,15,15,0.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      transition:all 0.2s ease;
+      user-select:none;
+    }
     .btn-icon{ padding:10px; font-weight:900; color:var(--accent); width:38px; height:38px; }
     .btn-icon:active, .back:active{ transform:scale(0.96); }
     .back{ color:rgba(255,255,255,0.92); font-weight:700; font-size:14px; cursor: pointer;}
     .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
     .pill b{ color:#fff; letter-spacing:0.1em; font-weight:900; }
 
-    .scroll-container{ position:absolute; top:var(--header-height); bottom:0; left:0; right:0; overflow-y:auto; overflow-x:hidden; scroll-snap-type:y mandatory; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; z-index:10; }
+    .scroll-container{
+      position:absolute; top:var(--header-height); bottom:0; left:0; right:0;
+      overflow-y:auto; overflow-x:hidden;
+      scroll-snap-type:y mandatory; scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch; z-index:10;
+    }
     .scroll-container::-webkit-scrollbar{ display:none; }
 
-    .section-wrapper{ height:100%; width:100%; scroll-snap-align:start; scroll-snap-stop:always; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(120px + var(--safeBottom)) calc(16px + var(--safeLeft)); position:relative; }
+    .section-wrapper{
+      height:100%; width:100%;
+      scroll-snap-align:start; scroll-snap-stop:always;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      padding:calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(120px + var(--safeBottom)) calc(16px + var(--safeLeft));
+      position:relative;
+    }
 
-    .card{ width:100%; max-width:var(--maxw); flex:1; min-height:0; border-radius:var(--radius); border:1px solid var(--card-border); background:var(--card-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:var(--shadow); display:flex; flex-direction:column; overflow:hidden; opacity:0.3; transform:scale(0.92) translateY(30px); transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+    .card{
+      width:100%; max-width:var(--maxw); flex:1; min-height:0;
+      border-radius:var(--radius); border:1px solid var(--card-border);
+      background:var(--card-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      box-shadow:var(--shadow);
+      display:flex; flex-direction:column; overflow:hidden;
+      opacity:0.3; transform:scale(0.92) translateY(30px);
+      transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
     .section-wrapper.is-active .card{ opacity:1; transform:scale(1) translateY(0); }
 
     .cardHeader{ padding:24px 24px 20px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.3); flex-shrink:0; }
@@ -127,14 +166,26 @@
     .sv{ font-size:22px; font-weight:950; color:#fff; line-height:1.1; letter-spacing:-0.02em; }
     .slbl{ font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin-top:6px; }
 
-    .cp{ display:flex; align-items:center; justify-content:center; border:none; border-radius:16px; background:linear-gradient(135deg,#ff4444,#cc0000); cursor:pointer; overflow:hidden; position:relative; box-shadow:0 8px 28px rgba(232,40,40,0.4); transition:transform .2s,filter .2s; min-height:54px; width:100%; padding:0; }
+    .cp{
+      display:flex; align-items:center; justify-content:center;
+      border:none; border-radius:16px;
+      background:linear-gradient(135deg,#ff4444,#cc0000);
+      cursor:pointer; overflow:hidden; position:relative;
+      box-shadow:0 8px 28px rgba(232,40,40,0.4);
+      transition:transform .2s,filter .2s;
+      min-height:54px; width:100%; padding:0;
+    }
     .cp:active{ transform:scale(0.97); }
     .cpulse{ position:absolute; inset:0; background:rgba(255,255,255,0.15); animation:cpa 2s infinite; }
     @keyframes cpa{ 0%,100%{opacity:0} 50%{opacity:1} }
     .ci{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; color:#fff; font-weight:900; font-size:15px; padding:0 24px; }
     .ca{ background:rgba(255,255,255,0.2); border-radius:8px; padding:4px 10px; font-size:14px; }
 
-    .btn-submit, .btn-secondary{ border:none; padding:16px; border-radius:12px; font-weight:900; font-size:15px; transition:transform .2s,filter .2s; display:flex; justify-content:center; align-items:center; gap:8px; width:100%; }
+    .btn-submit, .btn-secondary{
+      border:none; padding:16px; border-radius:12px; font-weight:900; font-size:15px;
+      transition:transform .2s,filter .2s;
+      display:flex; justify-content:center; align-items:center; gap:8px; width:100%;
+    }
     .btn-submit{ background:var(--accent); color:#fff; }
     .btn-secondary{ background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.16); }
     .btn-submit:active, .btn-secondary:active{ transform:scale(0.98); filter:brightness(1.08); }
@@ -178,17 +229,36 @@
       background:#0a0a0a; margin-bottom:14px;
       touch-action:none;
     }
-    .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; object-fit: contain; }
+    .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; }
 
-    .stl-loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,0.4); letter-spacing:0.1em; text-transform:uppercase; pointer-events:none; background:#0a0a0a; transition:opacity 0.4s; padding:16px; text-align:center; z-index: 5; }
+    .stl-loading{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-size:13px; color:rgba(255,255,255,0.4);
+      letter-spacing:0.1em; text-transform:uppercase;
+      pointer-events:none; background:#0a0a0a;
+      transition:opacity 0.4s; padding:16px; text-align:center; z-index: 5;
+      white-space: pre-line;
+    }
     .stl-loading.hidden{ opacity:0; pointer-events:none; }
-    .stl-hint{ position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; pointer-events:none; z-index: 5; }
+    .stl-hint{
+      position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+      font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.08em;
+      text-transform:uppercase; white-space:nowrap; pointer-events:none; z-index: 5;
+    }
 
     /* Color pickers */
     .stl-color-panel{ margin-top:8px; padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.22); }
     .stl-color-title{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.45); font-weight:900; margin:0 0 8px; }
     .stl-color-row{ display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; margin:8px 0 0; }
-    .stl-color-btn{ display:flex; flex-direction:row; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.35); transition:all 0.2s; font-size:12px; font-weight:800; color:rgba(255,255,255,0.7); min-width:108px; }
+    .stl-color-btn{
+      display:flex; flex-direction:row; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.35);
+      transition:all 0.2s;
+      font-size:12px; font-weight:800; color:rgba(255,255,255,0.7);
+      min-width:108px;
+    }
     .stl-color-btn:active{ transform:scale(0.97); }
     .stl-color-btn.active{ border-color:var(--accent); background:var(--accent-glow); color:#fff; }
     .stl-swatch{ width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); flex-shrink:0; }
@@ -203,32 +273,118 @@
     @media (max-width:520px){ .row{ grid-template-columns:1fr; } }
     .input-group{ display:flex; flex-direction:column; gap:8px; }
     .input-group label{ font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); font-weight:800; }
-    .input-group input{ background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px 16px; color:#fff; font-family:inherit; font-size:15px; outline:none; transition:all 0.2s; appearance:none; }
+    .input-group input{
+      background:rgba(0,0,0,0.45);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:12px;
+      padding:14px 16px;
+      color:#fff;
+      font-family:inherit;
+      font-size:15px;
+      outline:none;
+      transition:all 0.2s;
+      appearance:none;
+      -webkit-user-select:text; user-select:text; /* allow typing */
+    }
     .input-group input::placeholder{ color:rgba(255,255,255,0.30); }
     .input-group input:focus{ border-color:var(--accent); background:rgba(0,0,0,0.62); box-shadow:0 0 0 3px var(--accent-glow); }
 
     /* Hint */
-    .hint{ position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px; color:rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; pointer-events:none; animation:pulse 2s infinite; z-index:100; }
+    .hint{
+      position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%;
+      transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      color:rgba(255,255,255,0.4); font-size:11px;
+      text-transform:uppercase; letter-spacing:0.1em;
+      pointer-events:none; animation:pulse 2s infinite; z-index:100;
+    }
     .hint svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; }
     @keyframes pulse{ 0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6} 50%{transform:translateX(-50%) translateY(5px);opacity:1} }
     .section-wrapper:last-child .hint{ display:none; }
 
     /* Overlays */
-    .rotate-popup{ position:fixed; bottom:80px; left:50%; transform:translateX(-50%) scale(0.9); background:var(--accent); color:#fff; padding:12px 24px; border-radius:999px; font-size:14px; font-weight:900; display:flex; align-items:center; gap:10px; box-shadow:0 12px 30px rgba(232,40,40,0.4); opacity:0; pointer-events:none; transition:all 0.3s cubic-bezier(0.16,1,0.3,1); z-index:9999; }
+    .rotate-popup{
+      position:fixed; bottom:80px; left:50%;
+      transform:translateX(-50%) scale(0.9);
+      background:var(--accent); color:#fff;
+      padding:12px 24px; border-radius:999px;
+      font-size:14px; font-weight:900;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 12px 30px rgba(232,40,40,0.4);
+      opacity:0; pointer-events:none;
+      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+      z-index:9999;
+    }
     .rotate-popup.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1); }
-    .translate-toast{ position:fixed; top:calc(80px + var(--safeTop)); left:50%; transform:translateX(-50%) translateY(-20px); background:rgba(20,20,22,0.95); border:1px solid rgba(255,255,255,0.15); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:#fff; padding:10px 16px 10px 20px; border-radius:999px; font-size:14px; display:flex; align-items:center; gap:16px; box-shadow:0 16px 40px rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition:all 0.3s cubic-bezier(0.16,1,0.3,1); z-index:9999; }
+
+    .translate-toast{
+      position:fixed; top:calc(80px + var(--safeTop)); left:50%;
+      transform:translateX(-50%) translateY(-20px);
+      background:rgba(20,20,22,0.95);
+      border:1px solid rgba(255,255,255,0.15);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      color:#fff; padding:10px 16px 10px 20px;
+      border-radius:999px; font-size:14px;
+      display:flex; align-items:center; gap:16px;
+      box-shadow:0 16px 40px rgba(0,0,0,0.5);
+      opacity:0; pointer-events:none;
+      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+      z-index:9999;
+    }
     .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
     .btn-undo{ color:var(--accent); font-weight:900; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(232,40,40,0.15); border-radius:999px; }
 
     /* Bottom Nav */
-    .bottom-nav{ position:fixed; left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight)); bottom:calc(10px + var(--safeBottom)); height:64px; display:flex; align-items:center; gap:10px; padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,0.10); background:rgba(10,10,12,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 18px 60px rgba(0,0,0,0.55); z-index:1200; }
-    .bn-btn{ width:44px; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.92); font-weight:950; display:flex; align-items:center; justify-content:center; transition:transform .2s,opacity .2s; flex-shrink:0; }
+    .bottom-nav{
+      position:fixed;
+      left:max(10px,var(--safeLeft));
+      right:max(10px,var(--safeRight));
+      bottom:calc(10px + var(--safeBottom));
+      height:64px;
+      display:flex; align-items:center; gap:10px;
+      padding:10px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(10,10,12,0.78);
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 18px 60px rgba(0,0,0,0.55);
+      z-index:1200;
+    }
+    .bn-btn{
+      width:44px; height:44px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06);
+      color:rgba(255,255,255,0.92);
+      font-weight:950;
+      display:flex; align-items:center; justify-content:center;
+      transition:transform .2s,opacity .2s;
+      flex-shrink:0;
+    }
     .bn-btn:active{ transform:scale(0.96); }
     .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
-    .bn-dots{ flex:1; display:flex; gap:8px; align-items:center; justify-content:center; min-width:0; overflow:hidden; }
-    .bn-dot{ width:8px; height:8px; border-radius:999px; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.10); transition:background .2s,border-color .2s,width .2s; flex-shrink:0; }
+    .bn-dots{
+      flex:1; display:flex; gap:8px;
+      align-items:center; justify-content:center;
+      min-width:0; overflow:hidden;
+    }
+    .bn-dot{
+      width:8px; height:8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.10);
+      transition:background .2s,border-color .2s,width .2s;
+      flex-shrink:0;
+    }
     .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(232,40,40,0.7); }
-    .bn-cta{ height:44px; padding:0 16px; border-radius:14px; border:none; background:linear-gradient(135deg,#ff4444,#b80000); color:#fff; font-weight:950; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px; box-shadow:0 10px 26px rgba(232,40,40,0.45); transition:transform .2s,filter .2s; white-space:nowrap; flex-shrink:0; }
+    .bn-cta{
+      height:44px; padding:0 16px; border-radius:14px;
+      border:none;
+      background:linear-gradient(135deg,#ff4444,#b80000);
+      color:#fff; font-weight:950; letter-spacing:-0.01em;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 10px 26px rgba(232,40,40,0.45);
+      transition:transform .2s,filter .2s;
+      white-space:nowrap; flex-shrink:0;
+    }
     .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
     .bn-cta .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.18); }
     .cta-focus{ outline:3px solid rgba(232,40,40,0.65); box-shadow:0 0 0 6px rgba(232,40,40,0.18),0 18px 55px rgba(232,40,40,0.25); }
@@ -244,12 +400,12 @@
     <div class="bg-glow"></div>
 
     <header class="site-header">
-      <a href="/printbydd-store" class="logo" data-vd-route>PrintByDD</a>
+      <a href="/printbydd-store" class="logo">PrintByDD</a>
       <div class="nav-container">
         <nav>
-          <a href="/printbydd-store" data-vd-route>Home</a>
-          <a href="/keychain" class="active" data-vd-route>Products</a>
-          <a href="/gifts-that-mean-more" data-vd-route>Blog</a>
+          <a href="/printbydd-store">Home</a>
+          <a href="/printbydd-store/keychain" class="active">Products</a>
+          <a href="/gifts-that-mean-more">Blog</a>
         </nav>
         <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
            target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
@@ -271,7 +427,7 @@
     </header>
 
     <div class="top">
-      <a class="back" href="/printbydd-store" id="backBtn" data-vd-route>← Back</a>
+      <a class="back" href="/printbydd-store" id="backBtn">← Back</a>
       <div class="top-actions">
         <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
@@ -302,13 +458,17 @@
 (function(){
   "use strict";
 
+  // ========= CONFIG =========
+  // Put your uploaded STL next to this HTML OR change path here:
+  const STL_URL = "keychain.stl"; // ✅ uses the file you uploaded
+  const WA_NUMBER = "919999999999"; // replace if needed
   const INSTA = "https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n";
 
   function igIcon(size){
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none"/></svg>`;
   }
 
-  // Theme
+  // ========= THEME (invert) =========
   const THEME_KEY = "VD_INVERT_THEME";
   const btnTheme = document.getElementById("btnTheme");
   function setInvert(on){
@@ -316,52 +476,82 @@
     btnTheme.textContent = on ? "☀" : "☾";
     try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
   }
-  (function(){ let s="0"; try{ s=localStorage.getItem(THEME_KEY)||"0"; }catch(e){} setInvert(s==="1"); })();
+  (function(){
+    let s="0";
+    try{ s=localStorage.getItem(THEME_KEY)||"0"; }catch(e){}
+    setInvert(s==="1");
+  })();
   btnTheme.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode")));
 
-  // Auth
+  // ========= BASIC AUTH STATE (kept simple, like your current buyer flow) =========
   const authState = { email:null, role:null };
-  const WA = "919999999999";
+  (function(){
+    try{
+      const e=localStorage.getItem('PBD_USER'), r=localStorage.getItem('PBD_ROLE');
+      if(e) authState.email=e;
+      if(r) authState.role=r;
+    }catch(e){}
+  })();
 
   function genCode(email){
     let h=0; for(let i=0;i<email.length;i++) h=(h*31+email.charCodeAt(i))>>>0;
     return ("" + (h%9000+1000)).slice(-4);
   }
-  (function(){ try{ const e=localStorage.getItem('PBD_USER'), r=localStorage.getItem('PBD_ROLE'); if(e) authState.email=e; if(r) authState.role=r; }catch(e){} })();
 
   window.requestAccess = function(role){
-    const name  = ((document.getElementById(role==='buyer'?'b-name':'s-name')  ||{}).value||'').trim();
-    const email = ((document.getElementById(role==='buyer'?'b-email':'s-email')||{}).value||'').trim();
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert(currentLang==='hi'?"कृपया सही ईमेल डालें।":"Please enter a valid email."); return; }
-    const msg = `Hi! I want to order the NFC Keychain (₹449).\n\nName: ${name||"-"}\nEmail: ${email}\n\nCode: ${genCode(email)}`;
-    window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
+    const name  = ((document.getElementById('b-name')||{}).value||'').trim();
+    const email = ((document.getElementById('b-email')||{}).value||'').trim();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      alert(currentLang==='hi'?"कृपया सही ईमेल डालें।":"Please enter a valid email.");
+      return;
+    }
+    localStorage.setItem('PBD_USER', email);
+    localStorage.setItem('PBD_ROLE', role);
+    authState.email=email;
+    authState.role=role;
+
+    const msg = `Hi! I want to order the Hardcore NFC Keychain (₹449).\n\nName: ${name||"-"}\nEmail: ${email}\n\nCode: ${genCode(email)}\n\nSelected Colors:\nBody: ${currentBodyKey}\nArms+Ring: ${currentArmKey}`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank');
     renderSections();
   };
 
   window.logoutSession = function(){
     if(confirm(currentLang==='hi'?"लॉग आउट करें?":"End your session?")){
-      localStorage.removeItem('PBD_USER'); localStorage.removeItem('PBD_ROLE'); location.reload();
+      localStorage.removeItem('PBD_USER');
+      localStorage.removeItem('PBD_ROLE');
+      location.reload();
     }
   };
 
   // =============================================================
-  // 3D Viewer — FIXED
+  // 3D Viewer — ACCENT COLOR ONLY ON ARM + RING (improved split)
+  //
+  // KEY CHANGE:
+  // Instead of a fixed Z threshold, we compute a percentile threshold
+  // on TRIANGLE average-Z. That isolates only the highest relief details.
+  // This typically removes the "base under the arm" from the accent mesh.
   // =============================================================
-  const STL_URL = "/printbydd-store/keychain.stl";
   let stlScene=null, stlRenderer=null, stlCamera=null;
-  let stlMeshBody=null, stlMeshArms=null, stlGroup=null;
+  let stlMeshBody=null, stlMeshAccent=null, stlGroup=null;
   let stlPointerDown=false, stlLastX=0, stlLastY=0, stlInited=false;
-  let stlAutoRotate=true; // auto-spin until user touches
+  let stlAutoRotate=true;
 
   const BODY_COLORS = { black:0x111111, white:0xf0f0f0, blue:0x1a6bd1, sand:0xd8c7a6 };
   const ARM_COLORS  = { red:0xe82828, black:0x111111, white:0xf0f0f0, green:0x22c55e };
-  const COLOR_STORAGE_KEY = "PBD_KEYCHAIN_COLORS_V1";
+  const COLOR_STORAGE_KEY = "PBD_KEYCHAIN_COLORS_V2";
   let currentBodyKey="black", currentArmKey="red";
 
-  (function(){ try{ const s=JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY)||"{}"); if(s.body&&BODY_COLORS[s.body]) currentBodyKey=s.body; if(s.arm&&ARM_COLORS[s.arm]) currentArmKey=s.arm; }catch(e){} })();
+  (function(){
+    try{
+      const s=JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY)||"{}");
+      if(s.body&&BODY_COLORS[s.body]) currentBodyKey=s.body;
+      if(s.arm&&ARM_COLORS[s.arm]) currentArmKey=s.arm;
+    }catch(e){}
+  })();
 
-  function persistColors(){ try{ localStorage.setItem(COLOR_STORAGE_KEY,JSON.stringify({body:currentBodyKey,arm:currentArmKey})); }catch(e){} }
-
+  function persistColors(){
+    try{ localStorage.setItem(COLOR_STORAGE_KEY,JSON.stringify({body:currentBodyKey,arm:currentArmKey})); }catch(e){}
+  }
   function syncColorUI(){
     document.querySelectorAll('[data-body-btn]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-body-btn')===currentBodyKey));
     document.querySelectorAll('[data-arm-btn]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-arm-btn')===currentArmKey));
@@ -369,31 +559,42 @@
     if(bl) bl.textContent=currentBodyKey.toUpperCase();
     if(al) al.textContent=currentArmKey.toUpperCase();
   }
-
   function applyKeyColors(){
-    // Guard: only update if meshes exist
     if(stlMeshBody && stlMeshBody.material) stlMeshBody.material.color.setHex(BODY_COLORS[currentBodyKey]);
-    if(stlMeshArms && stlMeshArms.material) stlMeshArms.material.color.setHex(ARM_COLORS[currentArmKey]);
+    if(stlMeshAccent && stlMeshAccent.material) stlMeshAccent.material.color.setHex(ARM_COLORS[currentArmKey]);
     persistColors(); syncColorUI();
   }
 
   window.setBodyColor = function(key,btn){
-    if(!BODY_COLORS[key]) return; currentBodyKey=key; applyKeyColors();
-    if(btn){ document.querySelectorAll('[data-body-btn]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+    if(!BODY_COLORS[key]) return;
+    currentBodyKey=key;
+    applyKeyColors();
+    if(btn){
+      document.querySelectorAll('[data-body-btn]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
   };
-
   window.setArmColor = function(key,btn){
-    if(!ARM_COLORS[key]) return; currentArmKey=key; applyKeyColors();
-    if(btn){ document.querySelectorAll('[data-arm-btn]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+    if(!ARM_COLORS[key]) return;
+    currentArmKey=key;
+    applyKeyColors();
+    if(btn){
+      document.querySelectorAll('[data-arm-btn]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
   };
 
-  // ----- STL Parsers -----
+  // ----- STL parsing (binary + ascii) -----
   function parseBinarySTL(buf){
     const v=new DataView(buf), n=v.getUint32(80,true), pos=[], nor=[];
     let o=84;
     for(let i=0;i<n;i++){
       const nx=v.getFloat32(o,true),ny=v.getFloat32(o+4,true),nz=v.getFloat32(o+8,true); o+=12;
-      for(let j=0;j<3;j++){ pos.push(v.getFloat32(o,true),v.getFloat32(o+4,true),v.getFloat32(o+8,true)); nor.push(nx,ny,nz); o+=12; }
+      for(let j=0;j<3;j++){
+        pos.push(v.getFloat32(o,true),v.getFloat32(o+4,true),v.getFloat32(o+8,true));
+        nor.push(nx,ny,nz);
+        o+=12;
+      }
       o+=2;
     }
     const g=new THREE.BufferGeometry();
@@ -401,13 +602,21 @@
     g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
     return g;
   }
-
   function parseAsciiSTL(txt){
     const pos=[],nor=[],lines=txt.split(/\r?\n/); let cn=[0,0,1],v=[];
     for(const lr of lines){
       const l=lr.trim(); if(!l) continue;
-      if(l.startsWith("facet normal")){ const p=l.split(/\s+/); cn=[parseFloat(p[2]),parseFloat(p[3]),parseFloat(p[4])]; }
-      else if(l.startsWith("vertex")){ const p=l.split(/\s+/); v.push([parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])]); if(v.length===3){ for(const vv of v){pos.push(vv[0],vv[1],vv[2]);nor.push(...cn);} v=[]; } }
+      if(l.startsWith("facet normal")){
+        const p=l.split(/\s+/);
+        cn=[parseFloat(p[2]),parseFloat(p[3]),parseFloat(p[4])];
+      } else if(l.startsWith("vertex")){
+        const p=l.split(/\s+/);
+        v.push([parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])]);
+        if(v.length===3){
+          for(const vv of v){ pos.push(vv[0],vv[1],vv[2]); nor.push(...cn); }
+          v=[];
+        }
+      }
     }
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
@@ -417,10 +626,8 @@
 
   async function loadSTLGeometry(){
     const res=await fetch(STL_URL,{cache:"no-store"});
-    if(!res.ok) throw new Error("Couldn't load keychain.stl ("+res.status+")");
+    if(!res.ok) throw new Error("Couldn't load STL ("+res.status+"). Put keychain.stl next to this HTML.");
     const buf=await res.arrayBuffer();
-    // FIX 1: Reliable ASCII detection — check for "facet" keyword in first 256 bytes,
-    // not just "openscad" which missed all other ASCII STL exporters.
     const headerText = new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(buf.slice(0,256)));
     const isAscii = headerText.trimStart().toLowerCase().startsWith("solid") && headerText.toLowerCase().includes("facet");
     return isAscii
@@ -428,12 +635,86 @@
       : parseBinarySTL(buf);
   }
 
-  // ----- Build a geometry from flat arrays -----
   function buildGeo(ps, ns){
     const g=new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3));
     g.setAttribute('normal',   new THREE.Float32BufferAttribute(ns, 3));
     return g;
+  }
+
+  // Percentile helper on a Float array
+  function percentile(sortedArr, q){
+    if(sortedArr.length===0) return 0;
+    const idx = Math.min(sortedArr.length-1, Math.max(0, Math.floor(q*(sortedArr.length-1))));
+    return sortedArr[idx];
+  }
+
+  // Core split: returns {body:{p,n}, accent:{p,n}}
+  function splitByRelief(geo){
+    const pa = geo.getAttribute('position');
+    const na = geo.getAttribute('normal');
+
+    // Build list of avgZ per triangle (after centering)
+    const triAvgZ = [];
+    for(let i=0;i<pa.count;i+=3){
+      const z0 = pa.array[i*3+2];
+      const z1 = pa.array[(i+1)*3+2];
+      const z2 = pa.array[(i+2)*3+2];
+      triAvgZ.push((z0+z1+z2)/3);
+    }
+
+    // Sort copy for percentile thresholding
+    const sorted = triAvgZ.slice().sort((a,b)=>a-b);
+
+    // Choose a "top relief" threshold.
+    // Start strict at 92% to keep red only on ring+arm,
+    // then relax if accent becomes too small.
+    const totalTris = triAvgZ.length;
+    let q = 0.92;
+    let thr = percentile(sorted, q);
+
+    function countAccent(t){
+      let c=0;
+      for(let i=0;i<triAvgZ.length;i++) if(triAvgZ[i] >= t) c++;
+      return c;
+    }
+
+    // ensure at least ~2% of triangles are accent (so we don't end up with almost nothing)
+    let accentCount = countAccent(thr);
+    while(accentCount < Math.max(80, Math.floor(totalTris*0.02)) && q > 0.70){
+      q -= 0.04;
+      thr = percentile(sorted, q);
+      accentCount = countAccent(thr);
+    }
+
+    const bp=[], bn=[], ap=[], an=[];
+    let triIndex = 0;
+
+    for(let i=0;i<pa.count;i+=3){
+      const avgZ = triAvgZ[triIndex++];
+
+      const tp = [
+        pa.array[i*3],   pa.array[i*3+1],   pa.array[i*3+2],
+        pa.array[(i+1)*3], pa.array[(i+1)*3+1], pa.array[(i+1)*3+2],
+        pa.array[(i+2)*3], pa.array[(i+2)*3+1], pa.array[(i+2)*3+2]
+      ];
+      const tn = [
+        na.array[i*3],   na.array[i*3+1],   na.array[i*3+2],
+        na.array[(i+1)*3], na.array[(i+1)*3+1], na.array[(i+1)*3+2],
+        na.array[(i+2)*3], na.array[(i+2)*3+1], na.array[(i+2)*3+2]
+      ];
+
+      // Accent only on highest relief
+      if(avgZ >= thr){ ap.push(...tp); an.push(...tn); }
+      else           { bp.push(...tp); bn.push(...tn); }
+    }
+
+    // fallback if accent ended up empty
+    if(ap.length === 0){
+      return { body:{p: pa.array.slice(), n: na.array.slice()}, accent:{p:[], n:[]} };
+    }
+
+    return { body:{p:bp, n:bn}, accent:{p:ap, n:an} };
   }
 
   window.initSTLViewer = async function(){
@@ -444,7 +725,6 @@
     if(!wrap || !canvas) return;
     stlInited = true;
 
-    // FIX 2: Use actual clientWidth at init time; fall back to 300 if container is hidden.
     const W = wrap.clientWidth || 300;
     const H = 260;
 
@@ -470,76 +750,35 @@
     try{
       const geo = await loadSTLGeometry();
 
-      // FIX 3: Compute bounding box BEFORE centering to understand Z-extent.
-      // This lets us derive a model-relative threshold instead of a hardcoded 1.0.
-      geo.computeBoundingBox();
-      const preCenterBbox = geo.boundingBox.clone();
-      const preZMin = preCenterBbox.min.z;
-      const preZMax = preCenterBbox.max.z;
-      const preZRange = preZMax - preZMin;
+      // Ensure normals exist
+      try{ geo.computeVertexNormals(); }catch(e){}
 
-      // Center geometry
+      // Center
       geo.center();
 
-      // After centering, Z runs from -preZRange/2 to +preZRange/2.
-      // "Arms" = top 30 % of the Z extent (the raised accent band).
-      // Threshold is relative so it works for any STL, not just one specific size.
-      const zThreshold = (preZRange / 2) * 0.4; // top 30 % of positive-Z half
+      // Split: BODY vs ACCENT (ring + arm)
+      const split = splitByRelief(geo);
 
-      const pa = geo.getAttribute('position');
-      const na = geo.getAttribute('normal');
-      const bp=[], bn=[], ap=[], an=[];
-
-      // FIX 4: Correct per-triangle vertex indexing.
-      // pa is a Float32BufferAttribute with itemSize=3.
-      // Vertex k → pa.array[k*3], pa.array[k*3+1], pa.array[k*3+2]
-      // Loop in steps of 3 (one triangle = vertices i, i+1, i+2).
-      for(let i=0; i<pa.count; i+=3){
-        // Z coordinate of each vertex in the triangle
-        const pz0 = pa.array[i*3+2];
-        const pz1 = pa.array[(i+1)*3+2];
-        const pz2 = pa.array[(i+2)*3+2];
-        const avgZ = (pz0 + pz1 + pz2) / 3;
-
-        // Collect all 9 floats for positions and normals of this triangle
-        const tp = [
-          pa.array[i*3],   pa.array[i*3+1],   pa.array[i*3+2],
-          pa.array[(i+1)*3], pa.array[(i+1)*3+1], pa.array[(i+1)*3+2],
-          pa.array[(i+2)*3], pa.array[(i+2)*3+1], pa.array[(i+2)*3+2]
-        ];
-        const tn = [
-          na.array[i*3],   na.array[i*3+1],   na.array[i*3+2],
-          na.array[(i+1)*3], na.array[(i+1)*3+1], na.array[(i+1)*3+2],
-          na.array[(i+2)*3], na.array[(i+2)*3+1], na.array[(i+2)*3+2]
-        ];
-
-        if(avgZ > zThreshold){ ap.push(...tp); an.push(...tn); }
-        else                  { bp.push(...tp); bn.push(...tn); }
-      }
-
-      // FIX 5: Graceful fallback — if heuristic produced no arm faces,
-      // render everything as body (avoids invisible empty mesh + THREE warnings).
-      const hasArms = ap.length > 0;
-
+      // Create meshes
       stlMeshBody = new THREE.Mesh(
-        buildGeo(bp, bn),
+        buildGeo(split.body.p, split.body.n),
         new THREE.MeshStandardMaterial({color:BODY_COLORS[currentBodyKey], roughness:0.62, metalness:0.08})
       );
       stlGroup.add(stlMeshBody);
 
-      if(hasArms){
-        stlMeshArms = new THREE.Mesh(
-          buildGeo(ap, an),
+      if(split.accent.p.length){
+        stlMeshAccent = new THREE.Mesh(
+          buildGeo(split.accent.p, split.accent.n),
           new THREE.MeshStandardMaterial({color:ARM_COLORS[currentArmKey], roughness:0.56, metalness:0.08})
         );
-        stlGroup.add(stlMeshArms);
+        stlGroup.add(stlMeshAccent);
       }
 
       // Initial orientation
       stlGroup.rotation.x = -0.2;
       stlGroup.rotation.y =  0.9;
 
-      // Scale to fit nicely in view
+      // Scale to fit
       const box = new THREE.Box3().setFromObject(stlGroup);
       const sz  = new THREE.Vector3();
       box.getSize(sz);
@@ -548,10 +787,10 @@
 
       if(loading) loading.classList.add('hidden');
 
-      // ----- Input handlers -----
+      // Input (rotate)
       function onDown(e){
         stlPointerDown = true;
-        stlAutoRotate  = false;   // stop auto-spin on first user interaction
+        stlAutoRotate  = false;
         const t = e.touches ? e.touches[0] : e;
         stlLastX = t.clientX; stlLastY = t.clientY;
       }
@@ -571,7 +810,6 @@
       wrap.addEventListener('touchmove',  onMove, {passive:true});
       wrap.addEventListener('touchend',   onUp,   {passive:true});
 
-      // FIX 6: Resize handler accounts for the rigid 260 px height
       window.addEventListener('resize', ()=>{
         if(!wrap || !stlRenderer || !stlCamera) return;
         const w = wrap.clientWidth || 300, h = 260;
@@ -580,29 +818,26 @@
         stlCamera.updateProjectionMatrix();
       });
 
-      // FIX 7: Render loop with auto-rotation
+      // Render loop
       (function animate(){
         requestAnimationFrame(animate);
-        if(stlAutoRotate) stlGroup.rotation.y += 0.004; // gentle idle spin
+        if(stlAutoRotate) stlGroup.rotation.y += 0.004;
         stlRenderer.render(stlScene, stlCamera);
       })();
 
-      // Apply stored colours now that meshes exist
+      // Apply stored colors after meshes exist
       applyKeyColors();
 
     } catch(err){
       if(loading){
         loading.style.fontSize = "12px";
-        loading.textContent = "3D preview unavailable — place keychain.stl next to this HTML.\n" + (err && err.message ? err.message : "");
+        loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
       }
       console.error("STL viewer error:", err);
     }
   };
-  // =============================================================
-  // End 3D Viewer
-  // =============================================================
 
-  // ===== Sections =====
+  // ========= SECTIONS =========
   const SECTIONS = [
     {
       name:"INTRO", kicker:"HARDCORE NFC KEYCHAIN",
@@ -615,7 +850,7 @@
             <div class="uc active"><span class="uc-icon">📇</span>vCard</div>
             <div class="uc"><span class="uc-icon">🔗</span>Links</div>
             <div class="uc"><span class="uc-icon">💳</span>UPI</div>
-            <div class="uc"><span class="uc-icon">📶</span>Wi‑Fi</div>
+            <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
           </div>
           <div class="qt">One tap. One impression. <b>Forever.</b></div>
           <div class="social-strip">
@@ -624,12 +859,12 @@
           </div>`,
         hi:()=>`
           <p class="big">आपकी <span class="r">digital card</span> — keys पर।</p>
-          <p class="lead">किसी भी phone पर tap करें। Links, portfolio, socials, UPI, menu, Wi‑Fi — जो चाहो। No app.</p>
+          <p class="lead">किसी भी phone पर tap करें। Links, portfolio, socials, UPI, menu, Wi-Fi — जो चाहो। No app.</p>
           <div class="usecases">
             <div class="uc active"><span class="uc-icon">📇</span>vCard</div>
             <div class="uc"><span class="uc-icon">🔗</span>Links</div>
             <div class="uc"><span class="uc-icon">💳</span>UPI</div>
-            <div class="uc"><span class="uc-icon">📶</span>Wi‑Fi</div>
+            <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
           </div>
           <div class="qt">एक tap. एक impression. <b>हमेशा।</b></div>
           <div class="social-strip">
@@ -667,19 +902,19 @@
         en:()=>`
           <ul class="ul">
             <li><b>Portfolio:</b> Behance, Notion, Website, GitHub.</li>
-            <li><b>Instant Wi‑Fi:</b> Guests tap and connect.</li>
+            <li><b>Instant Wi-Fi:</b> Guests tap and connect.</li>
             <li><b>Socials:</b> Instagram, LinkedIn, YouTube, X.</li>
             <li><b>vCard:</b> Full contact card in seconds.</li>
-            <li><b>UPI:</b> Tap‑to‑pay link.</li>
+            <li><b>UPI:</b> Tap-to-pay link.</li>
           </ul>
           <div class="qt">Reprogram anytime. <b>No app required.</b></div>`,
         hi:()=>`
           <ul class="ul">
             <li><b>Portfolio:</b> Behance, Notion, Website, GitHub.</li>
-            <li><b>Instant Wi‑Fi:</b> Guests tap and connect.</li>
+            <li><b>Instant Wi-Fi:</b> Guests tap and connect.</li>
             <li><b>Socials:</b> Instagram, LinkedIn, YouTube, X.</li>
             <li><b>vCard:</b> Full contact card in seconds.</li>
-            <li><b>UPI:</b> Tap‑to‑pay link.</li>
+            <li><b>UPI:</b> Tap-to-pay link.</li>
           </ul>
           <div class="qt">जब चाहो reprogram करो। <b>कोई app नहीं।</b></div>`
       }
@@ -713,12 +948,12 @@
       }
     },
     {
-      name:"BUYER", kicker:"Choose Your Colors • Order Now",
+      name:"BUYER", kicker:"Choose Colors • Order",
       title:{ en:"See it. Pick colors. Own it.", hi:"देखें। Colors चुनें। खरीदें।" },
       html:{
         en:()=>{
           const orderUI = authState.role
-            ? `<button class="cp" style="margin-top:14px;" onclick="window.open('https://wa.me/${WA}?text=${encodeURIComponent("Hi! I want to order the NFC Keychain (₹449). My email: "+(authState.email||""))}','_blank')">
+            ? `<button class="cp" style="margin-top:14px;" onclick="window.open('https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hi! I want to order the Hardcore NFC Keychain (₹449). My email: "+(authState.email||"")+"\\n\\nSelected Colors:\\nBody: "+currentBodyKey+"\\nArms+Ring: "+currentArmKey)}','_blank')">
                  <span class="cpulse"></span><div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
                </button>
                <button class="btn-secondary" style="margin-top:10px;" onclick="logoutSession()">Change Account</button>`
@@ -738,9 +973,11 @@
               <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
               <div class="stl-hint">Drag to rotate</div>
             </div>
+
             <div class="qt" style="margin-top:6px;">
-              Body: <b id="bodyLbl">${currentBodyKey.toUpperCase()}</b> • Arms: <b id="armLbl">${currentArmKey.toUpperCase()}</b>
+              Body: <b id="bodyLbl">${currentBodyKey.toUpperCase()}</b> • Accent (Arm + Ring): <b id="armLbl">${currentArmKey.toUpperCase()}</b>
             </div>
+
             <div class="stl-color-panel">
               <div class="stl-color-title">Body</div>
               <div class="stl-color-row">
@@ -749,7 +986,8 @@
                 <button class="stl-color-btn" data-body-btn="blue"  onclick="setBodyColor('blue',this)"><span class="stl-swatch" style="background:#1a6bd1;"></span> Blue</button>
                 <button class="stl-color-btn" data-body-btn="sand"  onclick="setBodyColor('sand',this)"><span class="stl-swatch" style="background:#d8c7a6;"></span> Sand</button>
               </div>
-              <div class="stl-color-title" style="margin-top:12px;">Arms</div>
+
+              <div class="stl-color-title" style="margin-top:12px;">Accent (Arm + Ring only)</div>
               <div class="stl-color-row">
                 <button class="stl-color-btn" data-arm-btn="red"   onclick="setArmColor('red',this)"><span class="stl-swatch" style="background:#e82828;"></span> Red</button>
                 <button class="stl-color-btn" data-arm-btn="black" onclick="setArmColor('black',this)"><span class="stl-swatch" style="background:#111;"></span> Black</button>
@@ -757,17 +995,21 @@
                 <button class="stl-color-btn" data-arm-btn="green" onclick="setArmColor('green',this)"><span class="stl-swatch" style="background:#22c55e;"></span> Green</button>
               </div>
             </div>
+
             ${orderUI}
+
             <a href="${INSTA}" target="_blank" rel="noopener" class="btn-insta" style="margin-top:12px;">
               ${igIcon(18)} See builds on Instagram
             </a>
+
             <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
-              Made in India · Delivery pan‑India · NFC chip included
+              Made in India · Delivery pan-India · NFC chip included
             </p>`;
         },
         hi:()=>`
-          <p class="lead">Preview + colors + order — ऊपर A/अ से toggle करें।</p>
-          <button class="btn-secondary" onclick="window.scrollToSectionByName('BUYER')">Back</button>`
+          <p class="big">Live 3D <span class="r">preview</span></p>
+          <p class="lead">Body और Accent रंग चुनें — फिर WhatsApp पर order करें।</p>
+          <div class="qt">A/अ से भाषा बदलें। ☾ से mode बदलें।</div>`
       }
     },
     {
@@ -796,27 +1038,80 @@
     }
   ];
 
-  // ===== Nav =====
-  const container=document.getElementById('scrollContainer'), secLabel=document.getElementById('secLabel'), secName=document.getElementById('secName');
-  let currentLang='en';
-  const bnPrev=document.getElementById('bnPrev'), bnNext=document.getElementById('bnNext'), bnDots=document.getElementById('bnDots'), bnCta=document.getElementById('bnCta'), bnCtaText=document.getElementById('bnCtaText'), bnCtaTag=document.getElementById('bnCtaTag');
-  const BUYER_IDX=SECTIONS.findIndex(s=>s.name==='BUYER');
-  let currentSecIndex=0;
+  // ========= NAV + RENDER =========
+  const container=document.getElementById('scrollContainer');
+  const secLabel=document.getElementById('secLabel');
+  const secName=document.getElementById('secName');
 
-  function buildBottomDots(){ if(!bnDots) return; bnDots.innerHTML=''; for(let i=0;i<SECTIONS.length;i++){ const d=document.createElement('button'); d.type='button'; d.className='bn-dot'; d.setAttribute('aria-label',`Section ${i+1}`); d.addEventListener('click',()=>scrollToIndex(i)); bnDots.appendChild(d); } }
-  function scrollToIndex(i){ i=Math.max(0,Math.min(SECTIONS.length-1,i)); const el=container.querySelector(`.section-wrapper[data-index="${i}"]`); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); }
-  function focusPrimaryCTA(){ const a=container.querySelector(`.section-wrapper[data-index="${currentSecIndex}"]`); if(!a) return; const b=a.querySelector('.cp')||a.querySelector('.btn-submit')||a.querySelector('button'); if(!b) return; b.classList.add('cta-focus'); try{b.scrollIntoView({behavior:"smooth",block:"center"});}catch(e){} setTimeout(()=>b.classList.remove('cta-focus'),1200); }
+  const bnPrev=document.getElementById('bnPrev');
+  const bnNext=document.getElementById('bnNext');
+  const bnDots=document.getElementById('bnDots');
+  const bnCta=document.getElementById('bnCta');
+  const bnCtaText=document.getElementById('bnCtaText');
+  const bnCtaTag=document.getElementById('bnCtaTag');
+
+  const BUYER_IDX = SECTIONS.findIndex(s=>s.name==='BUYER');
+  let currentSecIndex=0;
+  let currentLang='en';
+
+  function buildBottomDots(){
+    if(!bnDots) return;
+    bnDots.innerHTML='';
+    for(let i=0;i<SECTIONS.length;i++){
+      const d=document.createElement('button');
+      d.type='button';
+      d.className='bn-dot';
+      d.setAttribute('aria-label',`Section ${i+1}`);
+      d.addEventListener('click',()=>scrollToIndex(i));
+      bnDots.appendChild(d);
+    }
+  }
+
+  function scrollToIndex(i){
+    i=Math.max(0,Math.min(SECTIONS.length-1,i));
+    const el=container.querySelector(`.section-wrapper[data-index="${i}"]`);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function focusPrimaryCTA(){
+    const a=container.querySelector(`.section-wrapper[data-index="${currentSecIndex}"]`);
+    if(!a) return;
+    const b=a.querySelector('.cp')||a.querySelector('.btn-submit')||a.querySelector('button');
+    if(!b) return;
+    b.classList.add('cta-focus');
+    try{b.scrollIntoView({behavior:"smooth",block:"center"});}catch(e){}
+    setTimeout(()=>b.classList.remove('cta-focus'),1200);
+  }
+
   function updateBottomNav(){
     if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
     if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
     if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
-    if(bnCtaText&&bnCtaTag){ if(currentSecIndex===BUYER_IDX){bnCtaText.textContent="Order";bnCtaTag.textContent="Now";}else if(currentSecIndex<BUYER_IDX){bnCtaText.textContent="Go to";bnCtaTag.textContent="Order";}else{bnCtaText.textContent="Order";bnCtaTag.textContent="Now";} }
+    if(bnCtaText && bnCtaTag){
+      if(currentSecIndex===BUYER_IDX){
+        bnCtaText.textContent="Order";
+        bnCtaTag.textContent="Now";
+      } else if(currentSecIndex<BUYER_IDX){
+        bnCtaText.textContent="Go to";
+        bnCtaTag.textContent="Order";
+      } else {
+        bnCtaText.textContent="Order";
+        bnCtaTag.textContent="Now";
+      }
+    }
   }
+
   function initBottomNav(){
-    buildBottomDots(); updateBottomNav();
+    buildBottomDots();
+    updateBottomNav();
     if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
     if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
-    if(bnCta) bnCta.addEventListener('click',()=>{ if(BUYER_IDX>=0&&currentSecIndex!==BUYER_IDX){scrollToIndex(BUYER_IDX);setTimeout(()=>{currentSecIndex=BUYER_IDX;updateBottomNav();focusPrimaryCTA();},650);}else{focusPrimaryCTA();} });
+    if(bnCta) bnCta.addEventListener('click',()=>{
+      if(BUYER_IDX>=0 && currentSecIndex!==BUYER_IDX){
+        scrollToIndex(BUYER_IDX);
+        setTimeout(()=>{ currentSecIndex=BUYER_IDX; updateBottomNav(); focusPrimaryCTA(); },650);
+      } else focusPrimaryCTA();
+    });
   }
 
   const observer=new IntersectionObserver(entries=>{
@@ -828,48 +1123,119 @@
         secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
         secName.textContent=entry.target.getAttribute('data-name');
         updateBottomNav();
-        if(entry.target.getAttribute('data-name')==='BUYER') setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); },120);
-      } else {
-        entry.target.classList.remove('is-active');
-      }
+
+        if(entry.target.getAttribute('data-name')==='BUYER'){
+          setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); },120);
+        }
+      } else entry.target.classList.remove('is-active');
     });
   },{root:container,threshold:0.6});
 
-  document.getElementById("backBtn").addEventListener("click", function(e) {
-    if(!this.hasAttribute('data-vd-route')) {
-       e.preventDefault();
-       window.location.href = this.href;
-    }
-  });
-
-  window.scrollToSectionByName=function(name){ const idx=SECTIONS.findIndex(s=>s.name===name); if(idx<0) return; const el=container.querySelector(`.section-wrapper[data-index="${idx}"]`); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); };
+  window.scrollToSectionByName=function(name){
+    const idx=SECTIONS.findIndex(s=>s.name===name);
+    if(idx<0) return;
+    const el=container.querySelector(`.section-wrapper[data-index="${idx}"]`);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  };
 
   function renderSections(){
     container.innerHTML='';
     SECTIONS.forEach((sec,index)=>{
-      const w=document.createElement('div'); w.className='section-wrapper'; w.setAttribute('data-index',index); w.setAttribute('data-name',sec.name);
-      w.innerHTML=`<article class="card"><header class="cardHeader"><div class="kicker">${sec.kicker}</div><h1 class="h1">${sec.title[currentLang]}</h1></header><div class="cardBody">${sec.html[currentLang]()}<div style="height:85px;"></div></div></article><div class="hint"><span>Scroll for more</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>`;
-      container.appendChild(w); observer.observe(w);
+      const w=document.createElement('div');
+      w.className='section-wrapper';
+      w.setAttribute('data-index',index);
+      w.setAttribute('data-name',sec.name);
+
+      w.innerHTML=`
+        <article class="card">
+          <header class="cardHeader">
+            <div class="kicker">${sec.kicker}</div>
+            <h1 class="h1">${sec.title[currentLang]}</h1>
+          </header>
+          <div class="cardBody">
+            ${sec.html[currentLang]()}
+            <div style="height:85px;"></div>
+          </div>
+        </article>
+        <div class="hint">
+          <span>Scroll for more</span>
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>`;
+      container.appendChild(w);
+      observer.observe(w);
     });
-    setTimeout(()=>{ if(bnDots&&bnDots.children.length!==SECTIONS.length) buildBottomDots(); updateBottomNav(); syncColorUI(); },60);
+
+    setTimeout(()=>{
+      if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots();
+      updateBottomNav();
+      syncColorUI();
+    },60);
   }
 
-  // Translation
-  const btnTranslate=document.getElementById('btnTranslate'), toast=document.getElementById('translationToast'), btnUndo=document.getElementById('btnUndoTranslate'), toastMsg=document.getElementById('toastMsg');
+  // ========= TRANSLATION =========
+  const btnTranslate=document.getElementById('btnTranslate');
+  const toast=document.getElementById('translationToast');
+  const btnUndo=document.getElementById('btnUndoTranslate');
+  const toastMsg=document.getElementById('toastMsg');
   let toastTimer;
-  function triggerTranslation(lang){ currentLang=lang; renderSections(); toast.classList.add('is-visible'); toastMsg.textContent=lang==='hi'?"Translated to Hindi":"Back to English"; btnUndo.style.display=lang==='hi'?'block':'none'; clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200); }
+
+  function triggerTranslation(lang){
+    currentLang=lang;
+    renderSections();
+    toast.classList.add('is-visible');
+    toastMsg.textContent=lang==='hi'?"Translated to Hindi":"Back to English";
+    btnUndo.style.display=lang==='hi'?'block':'none';
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200);
+  }
   btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
   btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); toast.classList.remove('is-visible'); });
 
-  // Rotation popup
-  const popup=document.getElementById('rotatePopup'), appWrapper=document.getElementById('appWrapper');
+  // ========= ROTATION POPUP =========
+  const popup=document.getElementById('rotatePopup');
+  const appWrapper=document.getElementById('appWrapper');
   let isForcedLandscape=false, targetRotationAngle=0;
-  window.addEventListener('deviceorientation',e=>{ const g=e.gamma; if(g===null||typeof g==='undefined') return; if(!isForcedLandscape){if(g>45)showRotatePopup(90);else if(g<-45)showRotatePopup(-90);else hideRotatePopup();}else{if(Math.abs(g)<25)showRotatePopup(0);else hideRotatePopup();} });
-  function showRotatePopup(a){ targetRotationAngle=a; popup.classList.add('is-visible'); popup.textContent=a===0?"Tap for Portrait":"Tap for Landscape"; }
-  function hideRotatePopup(){ popup.classList.remove('is-visible'); }
-  popup.addEventListener('click',()=>{ if(targetRotationAngle!==0){appWrapper.classList.add('forced-landscape');appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`;isForcedLandscape=true;}else{appWrapper.classList.remove('forced-landscape');appWrapper.style.transform='none';isForcedLandscape=false;} hideRotatePopup(); });
 
-  renderSections(); initBottomNav(); syncColorUI();
+  window.addEventListener('deviceorientation',e=>{
+    const g=e.gamma;
+    if(g===null||typeof g==='undefined') return;
+    if(!isForcedLandscape){
+      if(g>45)showRotatePopup(90);
+      else if(g<-45)showRotatePopup(-90);
+      else hideRotatePopup();
+    } else {
+      if(Math.abs(g)<25)showRotatePopup(0);
+      else hideRotatePopup();
+    }
+  });
+  function showRotatePopup(a){
+    targetRotationAngle=a;
+    popup.classList.add('is-visible');
+    popup.textContent=a===0?"Tap for Portrait":"Tap for Landscape";
+  }
+  function hideRotatePopup(){ popup.classList.remove('is-visible'); }
+  popup.addEventListener('click',()=>{
+    if(targetRotationAngle!==0){
+      appWrapper.classList.add('forced-landscape');
+      appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`;
+      isForcedLandscape=true;
+    } else {
+      appWrapper.classList.remove('forced-landscape');
+      appWrapper.style.transform='none';
+      isForcedLandscape=false;
+    }
+    hideRotatePopup();
+  });
+
+  // Back button
+  document.getElementById("backBtn").addEventListener("click", (e)=>{
+    // keep normal navigation (your site handles routes)
+  });
+
+  // Boot
+  renderSections();
+  initBottomNav();
+  syncColorUI();
 
 })();
   </script>
