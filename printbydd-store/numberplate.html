@@ -1037,6 +1037,22 @@
   window.setCustomBoundaryColor=function(hex){ customBoundaryHex=hex; document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.remove('active')); applyColors(); };
 
   // ===== PLATE TEXT UPDATE (improved) =====
+  // ── Structured plate compose ──
+  window.composeStructuredPlate = function() {
+    var state    = (document.getElementById('plateState')    || {value:''}).value.trim().toUpperCase();
+    var district = (document.getElementById('plateDistrict') || {value:''}).value.trim().toUpperCase();
+    var series   = (document.getElementById('plateSeries')   || {value:''}).value.trim().toUpperCase();
+    var number   = (document.getElementById('plateNumber')   || {value:''}).value.trim().toUpperCase();
+    var parts = [state, district, series, number].filter(Boolean);
+    var composed = parts.join(' ');
+    var preview = document.getElementById('structuredPreview');
+    if (preview) preview.textContent = composed || '—';
+    if (composed) {
+      var inp = document.getElementById('plateTextInput');
+      if (inp) { inp.value = composed; window.updatePlateText(composed); }
+    }
+  };
+
   window.updatePlateText=function(val){
     try{
       const n=normalizePlateInput(val);
@@ -1263,6 +1279,44 @@
       </div>
 
       <div class="plate-input-block">
+        <div class="plate-input-block" style="margin-bottom:0;">
+          <div class="plate-input-label" style="margin-bottom:8px;">
+            <span>Enter Plate Parts</span>
+            <span class="plate-meta"><span id="structuredPreviewLabel" style="font-size:11px;color:rgba(255,255,255,0.4);">Live Compose</span></span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div>
+              <label style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-bottom:4px;">State</label>
+              <input type="text" id="plateState" class="plate-text-input" placeholder="MH" maxlength="4"
+                style="font-size:15px;padding:8px 12px;"
+                spellcheck="false" autocomplete="off" autocapitalize="characters"
+                oninput="composeStructuredPlate()">
+            </div>
+            <div>
+              <label style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-bottom:4px;">District</label>
+              <input type="text" id="plateDistrict" class="plate-text-input" placeholder="01" maxlength="4"
+                style="font-size:15px;padding:8px 12px;"
+                spellcheck="false" autocomplete="off" autocapitalize="characters"
+                oninput="composeStructuredPlate()">
+            </div>
+            <div>
+              <label style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-bottom:4px;">Series</label>
+              <input type="text" id="plateSeries" class="plate-text-input" placeholder="AB" maxlength="4"
+                style="font-size:15px;padding:8px 12px;"
+                spellcheck="false" autocomplete="off" autocapitalize="characters"
+                oninput="composeStructuredPlate()">
+            </div>
+            <div>
+              <label style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-bottom:4px;">Number</label>
+              <input type="text" id="plateNumber" class="plate-text-input" placeholder="1234" maxlength="6"
+                style="font-size:15px;padding:8px 12px;"
+                spellcheck="false" autocomplete="off" autocapitalize="characters"
+                oninput="composeStructuredPlate()">
+            </div>
+          </div>
+          <div id="structuredPreview" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 14px;text-align:center;font-size:16px;font-weight:900;letter-spacing:0.18em;color:#fff;margin-bottom:10px;">—</div>
+        </div>
+
         <div class="plate-input-label">
           <span>Your Registration Number</span>
           <span class="plate-meta">
@@ -1364,9 +1418,16 @@
 
   // ===== ORDER =====
   window.orderOnWhatsApp=function(){
+    const stateVal    = (document.getElementById('plateState')    || {value:''}).value.trim().toUpperCase();
+    const districtVal = (document.getElementById('plateDistrict') || {value:''}).value.trim().toUpperCase();
+    const seriesVal   = (document.getElementById('plateSeries')   || {value:''}).value.trim().toUpperCase();
+    const numberVal   = (document.getElementById('plateNumber')   || {value:''}).value.trim().toUpperCase();
+    const structuredLine = (stateVal||districtVal||seriesVal||numberVal)
+      ? `\nState: ${stateVal||'—'} | District: ${districtVal||'—'} | Series: ${seriesVal||'—'} | Number: ${numberVal||'—'}`
+      : '';
     const msg=`Hi! I want to order the 3D Numberplate.
 
-Plate Number: ${plateText}
+Plate Number: ${plateText}${structuredLine}
 
 Selected Colors:
 - Base: ${customBaseHex?'Custom ('+customBaseHex+')':currentBaseKey.toUpperCase()}
@@ -1778,9 +1839,9 @@ Selected Colors:
   const backBtn=document.getElementById("backBtn");
   if(backBtn){
     backBtn.addEventListener("click",function(e){
-      try{
-        if(!this.hasAttribute('data-vd-route')){ e.preventDefault(); window.location.href=this.href; }
-      }catch(_){}
+      e.preventDefault();
+      if(window.history.length>1){ window.history.back(); }
+      else { window.location.href=routeTo('./index.html','/printbydd/'); }
     });
   }
 
