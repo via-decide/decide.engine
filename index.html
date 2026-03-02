@@ -13,6 +13,7 @@
 <title>ViaDecide — India's Decision Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
 <style>
 /* ─── TOKENS ─── */
 :root{
@@ -48,6 +49,31 @@ body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 button{font-family:inherit;cursor:none;border:none;background:none}
+
+/* ─────────────────────────────────────────
+   UX FIXES (NO UI CHANGE)
+   - remove blue tap highlight
+   - disable selection (except inputs)
+───────────────────────────────────────── */
+a, button, .tc, [onclick], .nav-chip, .nav-cta, .cat-cta, .orb-chip{
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  tap-highlight-color: rgba(0,0,0,0);
+}
+body{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+input, textarea, iframe, [contenteditable="true"]{
+  -webkit-user-select:text;
+  user-select:text;
+  -webkit-touch-callout:default;
+}
+a:focus, button:focus{outline:none}
+a:focus-visible, button:focus-visible{
+  outline:2px solid rgba(34,180,160,.35);
+  outline-offset:3px;
+}
 
 /* ─── CURSOR ─── */
 #cur{position:fixed;width:10px;height:10px;background:var(--gold2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .15s}
@@ -99,8 +125,8 @@ section{position:relative;z-index:10}
 .hero-h1 .line:nth-child(3) span{animation-delay:.55s}
 .hero-h1 .em{font-style:italic;color:var(--gold)}
 
-/* ─── ORB (Command Input — Phase 1 ready) ─── */
-.orb-wrap{opacity:0;animation:riseUp .9s .8s forwards;width:100%;max-width:640px}
+/* ─── ORB ─── */
+.orb-wrap{opacity:0;animation:riseUp .9s .8s forwards;width:100%;max-width:640px;position:relative}
 .orb-bar{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;padding:.2rem .2rem .2rem 1.2rem;box-shadow:0 0 0 0 rgba(34,180,160,0);transition:box-shadow .3s,border-color .3s;position:relative}
 .orb-bar:focus-within{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 4px rgba(34,180,160,.07),0 8px 32px rgba(0,0,0,.4)}
 .orb-pulse-dot{width:8px;height:8px;background:var(--teal2);border-radius:50%;flex-shrink:0;animation:pdot 1.6s infinite;margin-right:.75rem}
@@ -108,11 +134,8 @@ section{position:relative;z-index:10}
 #orb-input::placeholder{color:var(--tx3)}
 .orb-go{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--teal);color:#fff;border-radius:12px;font-size:1.1rem;flex-shrink:0;cursor:none;transition:all .2s}
 .orb-go:hover{background:var(--teal2);transform:scale(1.06)}
-/* data-intent attribute ready for Phase 1 NLP hookup */
-.orb-go[data-intent]{background:var(--gold)}
 .orb-chips{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1rem;flex-wrap:wrap;padding:0 .5rem}
 .orb-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:.32rem .85rem;border-radius:99px;border:1px solid var(--bd);background:var(--sf);color:var(--tx3);cursor:none;transition:all .2s}
-/* Each chip targets its section on click (enhanced in Phase 1 for NLP routing) */
 .orb-chip[data-cat="tools"]:hover{color:var(--ct);border-color:rgba(34,180,160,.35);background:rgba(34,180,160,.08)}
 .orb-chip[data-cat="commerce"]:hover{color:var(--cc);border-color:rgba(200,147,42,.35);background:rgba(200,147,42,.08)}
 .orb-chip[data-cat="games"]:hover{color:var(--cg);border-color:rgba(224,96,144,.35);background:rgba(224,96,144,.08)}
@@ -123,6 +146,30 @@ section{position:relative;z-index:10}
 .scroll-mouse{width:22px;height:34px;border:1.5px solid var(--tx3);border-radius:99px;display:flex;justify-content:center;padding-top:5px}
 .scroll-mouse::after{content:'';width:4px;height:7px;background:var(--gold);border-radius:99px;animation:scrollDown 1.6s ease-in-out infinite}
 @keyframes scrollDown{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
+
+/* ─── ORB SUGGEST (appears only when typing) ─── */
+#orb-suggest{
+  position:absolute;left:0;right:0;top:100%;
+  margin-top:10px;
+  background:var(--bg2);
+  border:1px solid var(--bd2);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  display:none;
+  z-index:50;
+}
+.orb-row{
+  padding:12px 14px;
+  border-top:1px solid rgba(255,255,255,.05);
+  cursor:none;
+  transition:background .15s,color .15s;
+}
+.orb-row:first-child{border-top:none}
+.orb-row:hover{background:rgba(255,255,255,.05)}
+.orb-row.active{background:rgba(34,180,160,.12)}
+.orb-row .t{font-size:.86rem;font-weight:600;color:var(--tx)}
+.orb-row .d{font-size:.72rem;color:var(--tx2);margin-top:2px;line-height:1.45}
 
 /* ─── MARQUEE ─── */
 .marquee-wrap{position:relative;z-index:10;overflow:hidden;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:var(--bg1);padding:.9rem 0}
@@ -149,7 +196,6 @@ section{position:relative;z-index:10}
 .cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
 .cat-header-l{display:flex;align-items:center;gap:2rem}
 .cat-num{font-family:'Cormorant Garamond',serif;font-size:clamp(4rem,8vw,7rem);font-weight:300;line-height:1;color:rgba(255,255,255,0.04);letter-spacing:-.04em;flex-shrink:0;user-select:none}
-.cat-info{}
 .cat-label{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
 .cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .cat-section[data-cat="tools"] .cat-dot{background:var(--ct)}
@@ -160,8 +206,6 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"] .cat-dot{background:var(--cb)}
 .cat-name{font-size:1.4rem;font-weight:700;color:var(--tx);letter-spacing:-.01em}
 .cat-desc{font-size:.88rem;color:var(--tx3);line-height:1.6;max-width:380px}
-.cat-header-r{flex-shrink:0;margin-top:.5rem}
-/* category color for CTA buttons */
 .cat-section[data-cat="tools"] .cat-cta{background:rgba(34,180,160,.12);color:var(--ct);border:1px solid rgba(34,180,160,.25)}
 .cat-section[data-cat="commerce"] .cat-cta{background:rgba(200,147,42,.12);color:var(--cc);border:1px solid rgba(200,147,42,.25)}
 .cat-section[data-cat="games"] .cat-cta{background:rgba(224,96,144,.12);color:var(--cg);border:1px solid rgba(224,96,144,.25)}
@@ -179,7 +223,6 @@ section{position:relative;z-index:10}
 .tc:hover{transform:translateY(-5px);border-color:var(--bd2);background:rgba(255,255,255,.06);box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .tc:hover::before{transform:scaleX(1)}
 .tc:hover .tc-arr{opacity:1;transform:translate(3px,-3px)}
-/* category color applied via data-cat on parent section */
 .cat-section[data-cat="tools"] .tc::before{background:linear-gradient(90deg,var(--ct),rgba(34,180,160,.4))}
 .cat-section[data-cat="tools"] .tc:hover{border-color:rgba(34,180,160,.25)}
 .cat-section[data-cat="commerce"] .tc::before{background:linear-gradient(90deg,var(--cc),rgba(200,147,42,.4))}
@@ -192,15 +235,12 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="store"] .tc:hover{border-color:rgba(240,112,64,.25)}
 .cat-section[data-cat="blog"] .tc::before{background:linear-gradient(90deg,var(--cb),rgba(155,109,255,.4))}
 .cat-section[data-cat="blog"] .tc:hover{border-color:rgba(155,109,255,.25)}
-/* Featured card override */
 .tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.12),rgba(200,147,42,.05));border-color:rgba(26,140,125,.18)}
-/* sizes */
 .tc-s4{grid-column:span 4}
 .tc-s3{grid-column:span 3}
 .tc-s6{grid-column:span 6}
 .tc-s8{grid-column:span 8}
 .tc-s12{grid-column:span 12}
-/* card internals */
 .tc-vis{height:100px;background:linear-gradient(135deg,var(--teal3),var(--gold3));border-radius:10px;margin-bottom:1.1rem;display:flex;align-items:center;justify-content:center;font-size:2.5rem;border:1px solid var(--bd);overflow:hidden;position:relative}
 .tc-vis::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,255,255,.015) 12px,rgba(255,255,255,.015) 13px)}
 .tc-icon{font-size:1.9rem;margin-bottom:.85rem;display:block}
@@ -214,7 +254,6 @@ section{position:relative;z-index:10}
 .tc-st.wip{background:rgba(255,255,255,.05);color:var(--tx3)}
 .tc-st.svc{background:rgba(74,144,217,.1);color:#6aaee8}
 .tc-arr{position:absolute;top:1.3rem;right:1.3rem;font-size:1rem;color:var(--tx3);opacity:0;transition:all .25s}
-/* stagger per section */
 .tc:nth-child(1).vis{animation-delay:.04s}
 .tc:nth-child(2).vis{animation-delay:.09s}
 .tc:nth-child(3).vis{animation-delay:.14s}
@@ -223,10 +262,6 @@ section{position:relative;z-index:10}
 .tc:nth-child(6).vis{animation-delay:.29s}
 .tc:nth-child(7).vis{animation-delay:.34s}
 .tc:nth-child(8).vis{animation-delay:.39s}
-
-/* ─── DIVIDER ─── */
-.sec-rule{display:flex;align-items:center;gap:1rem;max-width:1280px;margin:0 auto;padding:0 2.5rem}
-.sec-rule::before,.sec-rule::after{content:'';flex:1;height:1px;background:var(--bd)}
 
 /* ─── FEATURED ONDC STRIP ─── */
 .ondc-strip{background:var(--bg1);border:1px solid rgba(26,140,125,.18);border-radius:20px;padding:2rem 2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:2rem}
@@ -337,8 +372,7 @@ section{position:relative;z-index:10}
 #ios-hint-close{position:absolute;top:.85rem;right:1.1rem;background:none;border:none;color:var(--tx3);font-size:1.1rem;cursor:none;transition:color .2s}
 #ios-hint-close:hover{color:var(--tx)}
 
-/* ─── THREAD PANEL (Phase 2 structural placeholder) ─── */
-/* These styles are structural — Phase 2 fills the panel with real content */
+/* ─── THREAD PANEL ─── */
 #thread-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:600;display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:rgba(34,180,160,.12);border:1px solid rgba(34,180,160,.25);border-right:none;border-radius:10px 0 0 10px;cursor:none;transition:all .25s;writing-mode:vertical-rl;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2);gap:.4rem}
 #thread-toggle:hover{background:rgba(34,180,160,.2);width:42px}
 #thread-toggle .tt-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:pdot 2s infinite;flex-shrink:0}
@@ -415,10 +449,8 @@ section{position:relative;z-index:10}
 }
 </style>
 </head>
-<body data-depth="surface">
-<!-- data-depth="surface" → Phase 4: Depth Navigation will set this to "flow" or "verdict" -->
 
-<!-- ── Cursor ── -->
+<body data-depth="surface">
 <div id="cur"></div>
 <div id="cur-ring"></div>
 <div class="noise"></div>
@@ -431,7 +463,6 @@ section{position:relative;z-index:10}
     <div class="brand-dot"></div>
     ViaDecide
   </div>
-  <!-- Category chips — Phase 3 Constellation will transform these into orbit controls -->
   <div class="nav-mid">
     <a class="nav-chip nc-t" href="#cat-tools">🛠 Tools</a>
     <a class="nav-chip nc-c" href="#cat-commerce">🛒 Commerce</a>
@@ -452,20 +483,23 @@ section{position:relative;z-index:10}
     <div class="live-dot"></div>
     🇮🇳 India's Decision Engine · Built for Bharat
   </div>
+
   <h1 class="hero-h1">
     <div class="line"><span>Research</span></div>
     <div class="line"><span><em>Smarter.</em></span></div>
     <div class="line"><span>Choose Better.</span></div>
   </h1>
 
-  <!-- ORB COMMAND INPUT — Phase 1 will add NLP intent routing here -->
-  <!-- id="orb-input" | data-cat chips trigger section scroll now, Phase 1 triggers AI routing -->
   <div class="orb-wrap" id="orb-wrap">
     <div class="orb-bar">
       <div class="orb-pulse-dot"></div>
       <input type="text" id="orb-input" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
-      <button class="orb-go" id="orb-go" title="Find the right tool" data-phase1-hook="nlp-route">→</button>
+      <button class="orb-go" id="orb-go" title="Find the right tool">→</button>
     </div>
+
+    <!-- suggestions container (hidden unless typing) -->
+    <div id="orb-suggest" aria-label="Search suggestions"></div>
+
     <div class="orb-chips">
       <button class="orb-chip" data-cat="tools" onclick="document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'})">🛠 Tools</button>
       <button class="orb-chip" data-cat="commerce" onclick="document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'})">🛒 Commerce</button>
@@ -497,7 +531,7 @@ section{position:relative;z-index:10}
     <div class="marquee-item"><span class="cat-tag t">Tool</span> ViaGuide <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
-    <!-- duplicate for seamless loop -->
+    <!-- duplicate -->
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> ONDC Demo <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Memory Engine <span class="sep">◆</span></div>
@@ -514,7 +548,7 @@ section{position:relative;z-index:10}
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-  [01] TOOLS — AI Decision Instruments
+  [01] TOOLS
 ═══════════════════════════════════════════════════ -->
 <section id="cat-tools" data-cat="tools" class="cat-section">
   <div class="cat-inner">
@@ -533,7 +567,6 @@ section{position:relative;z-index:10}
     </div>
 
     <div class="bento">
-      <!-- Featured: Alchemist -->
       <div class="tc tc-feat tc-s8" onclick="openModal('alchemist.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose">
         <div class="tc-arr">↗</div>
         <div class="tc-vis">✨</div>
@@ -610,7 +643,7 @@ section{position:relative;z-index:10}
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-  [02] COMMERCE — Deals, Discovery & ONDC
+  [02] COMMERCE
 ═══════════════════════════════════════════════════ -->
 <section id="cat-commerce" data-cat="commerce" class="cat-section">
   <div class="cat-inner">
@@ -628,7 +661,6 @@ section{position:relative;z-index:10}
       <button class="cat-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
     </div>
 
-    <!-- ONDC featured strip -->
     <div class="ondc-strip">
       <div class="ondc-l">
         <div class="feat-eye">Featured Module</div>
@@ -683,7 +715,7 @@ section{position:relative;z-index:10}
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-  [03] GAMES & SIMS — Decision Simulations
+  [03] GAMES
 ═══════════════════════════════════════════════════ -->
 <section id="cat-games" data-cat="games" class="cat-section">
   <div class="cat-inner">
@@ -728,7 +760,7 @@ section{position:relative;z-index:10}
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-  [04] SERVICES — Real-world offerings
+  [04] SERVICES
 ═══════════════════════════════════════════════════ -->
 <section id="cat-services" data-cat="services" class="cat-section">
   <div class="cat-inner">
@@ -745,8 +777,8 @@ section{position:relative;z-index:10}
       </div>
       <button class="cat-cta" onclick="openModal('decide-service.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
     </div>
+
     <div class="bento">
-      <!-- Featured service -->
       <div class="tc tc-feat tc-s6" onclick="openModal('decide-service.html','🎯','Decide.Service')" data-cat="services" data-orbit="decide-service" data-intent="hire,research,help,service">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🎯</span>
@@ -799,7 +831,7 @@ section{position:relative;z-index:10}
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-  [05] STORE — PrintByDD
+  [05] STORE
 ═══════════════════════════════════════════════════ -->
 <section id="cat-store" data-cat="store" class="cat-section">
   <div class="cat-inner">
@@ -816,6 +848,7 @@ section{position:relative;z-index:10}
       </div>
       <a class="cat-cta" href="printbydd-store/index.html">Open Store ↗</a>
     </div>
+
     <div class="bento">
       <div class="tc tc-feat tc-s4" onclick="location.href='printbydd-store/numberplate.html'" data-cat="store" data-orbit="numberplate" data-intent="numberplate,plate,3d,print">
         <div class="tc-arr">↗</div>
@@ -845,7 +878,7 @@ section{position:relative;z-index:10}
 </section>
 
 <!-- ═══════════════════════════════════════════════════
-  [06] BLOG & CONTENT
+  [06] BLOG
 ═══════════════════════════════════════════════════ -->
 <section id="cat-blog" data-cat="blog" class="cat-section">
   <div class="cat-inner">
@@ -862,6 +895,7 @@ section{position:relative;z-index:10}
       </div>
       <button class="cat-cta" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')">All Posts ↗</button>
     </div>
+
     <div class="bento">
       <div class="tc tc-s6" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')" data-cat="blog" data-orbit="blogs">
         <div class="tc-arr">↗</div>
@@ -1012,8 +1046,7 @@ section{position:relative;z-index:10}
   <p>Tap the <strong>Share button (□↑)</strong> in Safari, then tap <strong>"Add to Home Screen"</strong> → Add.</p>
 </div>
 
-<!-- ── DECISION THREAD PANEL (Phase 2 structural placeholder) ── -->
-<!-- Phase 2 will fill #thread-body with real session entries and the Synthesize button -->
+<!-- ── THREAD PANEL ── -->
 <button id="thread-toggle" onclick="toggleThread()" title="Decision Thread — Phase 2 coming soon">
   <div class="tt-dot"></div>
   Thread
@@ -1074,8 +1107,6 @@ function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
 resize();window.addEventListener('resize',resize);
 function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,o:Math.random()*.4+.1,c:Math.random()>.5?'rgba(200,147,42,':'rgba(34,180,160,'}}
 for(let i=0;i<90;i++)particles.push(mkP());
-/* ─── Ambient Intelligence hook (Phase 7) ─── */
-/* window.VD_PARTICLE_PRESET = 'tech'|'organic'|'financial'|'strategy' → morphs field */
 function drawCanvas(){
   ctx.clearRect(0,0,W,H);
   ctx.strokeStyle='rgba(255,255,255,0.018)';ctx.lineWidth=1;
@@ -1089,7 +1120,14 @@ function drawCanvas(){
   });
   for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){
     const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);
-    if(d<120){ctx.beginPath();ctx.strokeStyle='rgba(200,147,42,'+(0.06*(1-d/120))+')';ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}
+    if(d<120){
+      ctx.beginPath();
+      ctx.strokeStyle='rgba(200,147,42,'+(0.06*(1-d/120))+')';
+      ctx.lineWidth=.5;
+      ctx.moveTo(particles[i].x,particles[i].y);
+      ctx.lineTo(particles[j].x,particles[j].y);
+      ctx.stroke();
+    }
   }
   requestAnimationFrame(drawCanvas);
 }
@@ -1122,28 +1160,7 @@ document.querySelectorAll('.dev-tab').forEach(tab=>{
   });
 });
 
-/* ─── ORB INPUT ─── */
-/* Phase 1 will replace this with full NLP routing → tool constellation navigation */
-/* For now: Enter key scrolls to tools section; orb chips scroll to specific categories */
-document.getElementById('orb-go').addEventListener('click',function(){
-  const v=(document.getElementById('orb-input').value||'').trim();
-  if(!v){document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});return;}
-  // Keyword → category mapping (basic, Phase 1 will replace with real NLP)
-  const lv=v.toLowerCase();
-  if(/food|rajkot|deliver|order|eat/i.test(lv)){document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});}
-  else if(/game|play|sim|mars|hex|war/i.test(lv)){document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});}
-  else if(/deal|price|buy|ondc|cashback|discount/i.test(lv)){document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});}
-  else if(/print|plate|keychain|gift|store/i.test(lv)){document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});}
-  else if(/blog|article|read|guide|learn/i.test(lv)){document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});}
-  else if(/service|hire|license|cohort/i.test(lv)){document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});}
-  else{document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});}
-});
-document.getElementById('orb-input').addEventListener('keydown',function(e){
-  if(e.key==='Enter')document.getElementById('orb-go').click();
-});
-
 /* ─── THREAD PANEL ─── */
-/* Phase 2 will fill this with real session entries and AI synthesis */
 var threadOpen=false;
 function toggleThread(){
   threadOpen=!threadOpen;
@@ -1188,6 +1205,181 @@ function closeModal(){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeModal();});
 
+/* ─────────────────────────────────────────
+   ORB SEARCH UPGRADE (NO UI CHANGE)
+   - builds an index from existing .tc cards
+   - shows suggestions only when typing
+   - enter opens best match
+   - arrow keys supported
+   - fallback keeps your category scroll logic
+───────────────────────────────────────── */
+(function(){
+  const input = document.getElementById('orb-input');
+  const go = document.getElementById('orb-go');
+  const suggest = document.getElementById('orb-suggest');
+  if(!input || !go || !suggest) return;
+
+  function txt(el){ return (el && el.textContent || '').trim(); }
+  function norm(s){ return (s||'').toLowerCase().trim(); }
+
+  function parseOpenModal(onclick){
+    const m = (onclick||'').match(/openModal\('([^']+)','([^']*)','([^']*)'\)/);
+    if(!m) return null;
+    return {type:'modal', file:m[1], icon:m[2], name:m[3]};
+  }
+  function parseLocHref(onclick){
+    const m = (onclick||'').match(/location\.href='([^']+)'/);
+    if(!m) return null;
+    return {type:'nav', file:m[1], icon:'↗', name:m[1]};
+  }
+
+  const INDEX = Array.from(document.querySelectorAll('.tc')).map(card=>{
+    const oc = card.getAttribute('onclick') || '';
+    const tgt = parseOpenModal(oc) || parseLocHref(oc);
+    if(!tgt) return null;
+
+    const title =
+      txt(card.querySelector('.tc-name-lg')) ||
+      txt(card.querySelector('.tc-name')) ||
+      tgt.name;
+
+    const desc =
+      txt(card.querySelector('.tc-desc-lg')) ||
+      txt(card.querySelector('.tc-desc')) ||
+      '';
+
+    return {
+      title, desc,
+      cat: norm(card.dataset.cat),
+      orbit: norm(card.dataset.orbit),
+      intent: norm(card.dataset.intent),
+      ...tgt
+    };
+  }).filter(Boolean);
+
+  function tokenScore(q, str){
+    if(!str) return 0;
+    let s = 0;
+    if(str === q) s += 80;
+    if(str.includes(q)) s += 40;
+    const parts = q.split(/\s+/).filter(Boolean);
+    for(const p of parts){
+      if(str.includes(p)) s += 10;
+    }
+    return s;
+  }
+
+  function score(q, item){
+    const qq = norm(q);
+    if(!qq) return 0;
+    let s = 0;
+    s += tokenScore(qq, norm(item.title));
+    s += tokenScore(qq, norm(item.desc)) * 0.35;
+    s += tokenScore(qq, item.intent) * 0.7;
+    s += tokenScore(qq, item.orbit) * 0.8;
+    s += tokenScore(qq, item.cat) * 0.3;
+    return s;
+  }
+
+  let results = [];
+  let active = -1;
+
+  function hideSuggest(){
+    suggest.style.display='none';
+    suggest.innerHTML='';
+    results = [];
+    active = -1;
+  }
+
+  function render(){
+    if(!results.length){ hideSuggest(); return; }
+    suggest.innerHTML = results.map((r,i)=>`
+      <div class="orb-row ${i===active?'active':''}" data-i="${i}">
+        <div class="t">${r.title}</div>
+        <div class="d">${r.desc || ''}</div>
+      </div>
+    `).join('');
+    suggest.style.display='block';
+  }
+
+  function doSearch(){
+    const q = input.value.trim();
+    if(!q){ hideSuggest(); return; }
+    results = INDEX
+      .map(it=>({it, s: score(q,it)}))
+      .filter(x=>x.s > 25)
+      .sort((a,b)=>b.s-a.s)
+      .slice(0,6)
+      .map(x=>x.it);
+
+    active = results.length ? 0 : -1;
+    render();
+  }
+
+  function openItem(item){
+    hideSuggest();
+    if(!item) return;
+    if(item.type === 'modal') openModal(item.file, item.icon, item.title);
+    else location.href = item.file;
+  }
+
+  // Keep your original fallback behavior (category mapping)
+  function fallbackScroll(q){
+    const v = (q||'').trim();
+    if(!v){document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});return;}
+    const lv=v.toLowerCase();
+    if(/food|rajkot|deliver|order|eat/i.test(lv)){document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});}
+    else if(/game|play|sim|mars|hex|war/i.test(lv)){document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});}
+    else if(/deal|price|buy|ondc|cashback|discount/i.test(lv)){document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});}
+    else if(/print|plate|keychain|gift|store/i.test(lv)){document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});}
+    else if(/blog|article|read|guide|learn/i.test(lv)){document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});}
+    else if(/service|hire|license|cohort/i.test(lv)){document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});}
+    else{document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});}
+  }
+
+  input.addEventListener('input', doSearch);
+
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowDown' && results.length){
+      e.preventDefault();
+      active = Math.min(results.length-1, active+1);
+      render();
+    } else if(e.key === 'ArrowUp' && results.length){
+      e.preventDefault();
+      active = Math.max(0, active-1);
+      render();
+    } else if(e.key === 'Enter'){
+      e.preventDefault();
+      if(results.length) openItem(results[active>=0?active:0]);
+      else fallbackScroll(input.value);
+    } else if(e.key === 'Escape'){
+      hideSuggest();
+      input.blur();
+    }
+  });
+
+  go.addEventListener('click', ()=>{
+    if(results.length) openItem(results[0]);
+    else fallbackScroll(input.value);
+  });
+
+  suggest.addEventListener('click', (e)=>{
+    const row = e.target.closest('.orb-row');
+    if(!row) return;
+    const i = Number(row.dataset.i);
+    openItem(results[i]);
+  });
+
+  // close suggestions when clicking outside
+  document.addEventListener('mousedown', (e)=>{
+    const wrap = document.getElementById('orb-wrap');
+    if(!wrap) return;
+    if(!wrap.contains(e.target)) hideSuggest();
+  });
+  input.addEventListener('blur', ()=> setTimeout(hideSuggest, 120));
+
+})();
+
 /* ─── PWA INSTALL ─── */
 var dP=null;
 var isIOS=/iP(ad|hone|od)/.test(navigator.userAgent)&&!window.MSStream;
@@ -1223,4 +1415,4 @@ if('serviceWorker'in navigator){
 }
 </script>
 </body>
-</html>
+        </html>
