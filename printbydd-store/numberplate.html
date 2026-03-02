@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>3D Numberplate • PrintByDD</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
@@ -19,12 +22,10 @@
       --accent-glow: rgba(255, 42, 42, 0.15);
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
       --radius: 24px;
-
       --safeTop: env(safe-area-inset-top, 0px);
       --safeBottom: env(safe-area-inset-bottom, 0px);
       --safeLeft: env(safe-area-inset-left, 0px);
       --safeRight: env(safe-area-inset-right, 0px);
-
       --maxw: 860px;
       --header-height: 60px;
     }
@@ -39,9 +40,7 @@
     }
 
     body, .site-header, .top, .bottom-nav, .card, .cardHeader, .kicker, .h1, .cardBody, .lead, .qt, .ul, .steps, .usecases, .sg, .social-strip {
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
     }
     input, textarea { user-select: text; -webkit-user-select: text; }
 
@@ -64,14 +63,11 @@
     .site-header nav a{ color:var(--text-muted); font-weight:700; font-size:13px; transition:color .2s; text-transform:uppercase; letter-spacing:.05em; }
     .site-header nav a:hover, .site-header nav a.active{ color:var(--text); }
 
-    /* invert theme */
     body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
 
     #appWrapper{ position:relative; width:100vw; height:100dvh; transform-origin:center center; transition:transform 0.4s cubic-bezier(0.25,1,0.5,1); overflow:hidden; }
-    #appWrapper.forced-landscape{ width:100dvh; height:100vw; position:absolute; top:50%; left:50%; margin-top:-50vw; margin-left:-50dvh; }
-
     .bg-glow{ position:absolute; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index:0; }
 
     .top{
@@ -102,8 +98,7 @@
       position:absolute; top:var(--header-height); bottom:0; left:0; right:0;
       overflow-y:auto; overflow-x:hidden;
       scroll-snap-type:y mandatory; scroll-behavior:smooth;
-      -webkit-overflow-scrolling:touch;
-      z-index:10;
+      -webkit-overflow-scrolling:touch; z-index:10;
     }
     .scroll-container::-webkit-scrollbar{ display:none; }
 
@@ -123,10 +118,8 @@
       background:var(--card-bg);
       backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
       box-shadow:var(--shadow);
-      display:flex; flex-direction:column;
-      overflow:hidden;
-      opacity:0.3;
-      transform:scale(0.92) translateY(30px);
+      display:flex; flex-direction:column; overflow:hidden;
+      opacity:0.3; transform:scale(0.92) translateY(30px);
       transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
     }
     .section-wrapper.is-active .card{ opacity:1; transform:scale(1) translateY(0); }
@@ -134,8 +127,7 @@
     .cardHeader{
       padding:24px 24px 20px;
       border-bottom:1px solid rgba(255,255,255,0.06);
-      background:rgba(0,0,0,0.3);
-      flex-shrink:0;
+      background:rgba(0,0,0,0.3); flex-shrink:0;
     }
     .kicker{ font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; font-weight:950; }
     .h1{ margin:0; font-size:clamp(22px,5vw,28px); line-height:1.3; letter-spacing:-0.01em; font-weight:950; }
@@ -176,12 +168,13 @@
     .ci{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; color:#fff; font-weight:950; font-size:15px; padding:0 24px; }
     .ca{ background:rgba(255,255,255,0.2); border-radius:8px; padding:4px 10px; font-size:14px; }
 
+    /* ===== 3D VIEWER ===== */
     .stl-viewer-wrap{
       position:relative; width:100%;
-      height: 280px; min-height: 280px; max-height: 280px;
+      height:220px; min-height:220px; max-height:220px;
       border-radius:16px; overflow:hidden;
       border:1px solid rgba(255,255,255,0.1);
-      background:#0a0a0a; margin-bottom:14px;
+      background:#0a0a0a; margin-bottom:12px;
       touch-action:none;
     }
     .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; object-fit:contain; }
@@ -201,63 +194,177 @@
       pointer-events:none; z-index:5;
     }
 
-    .stl-color-panel{ margin-top:8px; padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.22); }
-    .stl-color-title{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.45); font-weight:950; margin:0 0 8px; }
-    .stl-color-row{ display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; margin:8px 0 0; }
-    .stl-color-btn{
-      display:flex; flex-direction:row; align-items:center; gap:10px;
-      padding:10px 12px; border-radius:14px;
-      border:1px solid rgba(255,255,255,0.12);
-      background:rgba(0,0,0,0.35);
-      transition:all 0.2s;
-      font-size:12px; font-weight:900;
-      color:rgba(255,255,255,0.72);
-      min-width:118px;
+    /* ===== LIVE 2D PLATE PREVIEW ===== */
+    .plate-preview-block{
+      width:100%; margin-bottom:12px;
     }
-    .stl-color-btn:active{ transform:scale(0.97); }
-    .stl-color-btn.active{ border-color:var(--accent); background:var(--accent-glow); color:#fff; }
-    @media (max-width:420px){ .stl-color-btn{ min-width:46%; } }
+    .plate-preview-label{
+      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.35); font-weight:700; margin-bottom:8px;
+    }
+    .plate-canvas-wrap{
+      width:100%; display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,0.3); border-radius:14px; padding:14px;
+      border:1px solid rgba(255,255,255,0.07);
+    }
+    #plate2DCanvas{
+      display:block; border-radius:8px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+      max-width:100%; height:auto;
+    }
 
-    .rotate-popup{
-      position:fixed; bottom:80px; left:50%;
-      transform:translateX(-50%) scale(0.9);
-      background:var(--accent); color:#fff;
-      padding:12px 24px; border-radius:999px;
-      font-size:14px; font-weight:950;
+    /* ===== PLATE TEXT INPUT ===== */
+    .plate-input-block{ margin-bottom:12px; }
+    .plate-input-label{
+      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.35); font-weight:700; margin-bottom:6px;
+    }
+    .plate-input-row{
       display:flex; align-items:center; gap:10px;
-      box-shadow:0 12px 30px rgba(255,42,42,0.35);
-      opacity:0; pointer-events:none;
-      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
-      z-index:9999;
     }
-    .rotate-popup.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1); }
-
-    .translate-toast{
-      position:fixed; top:calc(80px + var(--safeTop)); left:50%;
-      transform:translateX(-50%) translateY(-20px);
-      background:rgba(20,20,22,0.95);
-      border:1px solid rgba(255,255,255,0.15);
-      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    .plate-text-input{
+      flex:1; min-width:0;
+      height:52px;
+      background:rgba(0,0,0,0.45);
+      border:1.5px solid rgba(255,255,255,0.12);
+      border-radius:14px;
       color:#fff;
-      padding:10px 16px 10px 20px;
-      border-radius:999px;
-      font-size:14px;
-      display:flex; align-items:center; gap:16px;
-      box-shadow:0 16px 40px rgba(0,0,0,0.5);
-      opacity:0; pointer-events:none;
-      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
-      z-index:9999;
+      font-family:'Share Tech Mono', 'Courier New', monospace;
+      font-size:20px; font-weight:700;
+      letter-spacing:0.15em;
+      text-align:center;
+      text-transform:uppercase;
+      padding:0 16px;
+      outline:none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance:none;
     }
-    .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
-    .btn-undo{ color:var(--accent); font-weight:950; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(255,42,42,0.15); border-radius:999px; }
+    .plate-text-input::placeholder{ color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-size:16px; }
+    .plate-text-input:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .plate-char-count{
+      font-size:11px; color:rgba(255,255,255,0.3); letter-spacing:0.06em;
+      white-space:nowrap; flex-shrink:0; font-variant-numeric:tabular-nums;
+    }
 
+    /* ===== COLOR PANEL ===== */
+    .stl-color-panel{
+      padding:14px; border-radius:16px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(0,0,0,0.22);
+      margin-bottom:12px;
+    }
+    .color-group{ margin-bottom:14px; }
+    .color-group:last-child{ margin-bottom:0; }
+    .color-group-header{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .color-group-title{
+      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.4); font-weight:900;
+    }
+    .color-active-badge{
+      font-size:11px; font-weight:800;
+      color:#fff; letter-spacing:0.05em;
+      display:flex; align-items:center; gap:6px;
+    }
+    .color-active-dot{
+      width:10px; height:10px; border-radius:50%;
+      border:1.5px solid rgba(255,255,255,0.3);
+      display:inline-block;
+      transition: background 0.25s;
+    }
+
+    .color-swatches{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    }
+    .swatch-btn{
+      position:relative;
+      width:40px; height:40px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,0.12);
+      cursor:pointer;
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), border-color 0.18s, box-shadow 0.18s;
+      flex-shrink:0;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .swatch-btn:active{ transform:scale(0.9) !important; }
+    .swatch-btn.active{
+      border-color: #fff;
+      transform: scale(1.18);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .swatch-btn.active::after{
+      content:'✓';
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:16px; font-weight:900;
+      color:rgba(255,255,255,0.9);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+    .swatch-btn[data-label]::before{
+      content: attr(data-label);
+      position:absolute; top:calc(100% + 5px); left:50%;
+      transform:translateX(-50%);
+      font-size:9px; white-space:nowrap;
+      color:rgba(255,255,255,0.45); font-weight:700;
+      letter-spacing:0.06em; text-transform:uppercase;
+      pointer-events:none;
+    }
+
+    /* custom color picker swatch */
+    .swatch-custom{
+      position:relative;
+      width:40px; height:40px;
+      border-radius:50%;
+      border:2px dashed rgba(255,255,255,0.25);
+      cursor:pointer; overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; color:rgba(255,255,255,0.4);
+      transition:border-color 0.18s, transform 0.18s;
+      flex-shrink:0;
+    }
+    .swatch-custom:hover{ border-color:rgba(255,255,255,0.5); transform:scale(1.08); }
+    .swatch-custom input[type=color]{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      opacity:0; cursor:pointer;
+      border:none; padding:0; margin:0;
+    }
+
+    /* selected summary bar */
+    .color-summary{
+      display:flex; align-items:center; gap:8px;
+      padding:10px 14px;
+      background:rgba(0,0,0,0.3);
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.07);
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    .cs-item{
+      display:flex; align-items:center; gap:5px;
+      font-size:11px; color:rgba(255,255,255,0.5);
+      font-weight:700; letter-spacing:0.04em;
+    }
+    .cs-dot{
+      width:10px; height:10px; border-radius:50%;
+      border:1.5px solid rgba(255,255,255,0.2);
+      flex-shrink:0;
+    }
+    .cs-sep{ color:rgba(255,255,255,0.15); }
+    .cs-val{ color:rgba(255,255,255,0.85); font-weight:900; letter-spacing:0.06em; }
+
+    /* ===== BOTTOM NAV ===== */
     .bottom-nav{
       position:fixed;
       left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
       bottom:calc(10px + var(--safeBottom));
       height:64px;
-      display:flex; align-items:center; gap:10px;
-      padding:10px;
+      display:flex; align-items:center; gap:10px; padding:10px;
       border-radius:18px;
       border:1px solid rgba(255,255,255,0.10);
       background:rgba(10,10,12,0.78);
@@ -266,15 +373,12 @@
       z-index:1200;
     }
     .bn-btn{
-      width:44px; height:44px;
-      border-radius:14px;
+      width:44px; height:44px; border-radius:14px;
       border:1px solid rgba(255,255,255,0.12);
       background:rgba(255,255,255,0.06);
-      color:rgba(255,255,255,0.92);
-      font-weight:950;
+      color:rgba(255,255,255,0.92); font-weight:950;
       display:flex; align-items:center; justify-content:center;
-      transition:transform .2s,opacity .2s;
-      flex-shrink:0;
+      transition:transform .2s,opacity .2s; flex-shrink:0;
     }
     .bn-btn:active{ transform:scale(0.96); }
     .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
@@ -283,22 +387,16 @@
       width:8px; height:8px; border-radius:999px;
       border:1px solid rgba(255,255,255,0.18);
       background:rgba(255,255,255,0.10);
-      transition:background .2s,border-color .2s,width .2s;
-      flex-shrink:0;
+      transition:background .2s,border-color .2s,width .2s; flex-shrink:0;
     }
     .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(255,42,42,0.7); }
     .bn-cta{
-      height:44px; padding:0 16px;
-      border-radius:14px;
-      border:none;
+      height:44px; padding:0 16px; border-radius:14px; border:none;
       background:linear-gradient(135deg,#ff4444,#b80000);
-      color:#fff; font-weight:950;
-      letter-spacing:-0.01em;
+      color:#fff; font-weight:950; letter-spacing:-0.01em;
       display:flex; align-items:center; gap:10px;
       box-shadow:0 10px 26px rgba(255,42,42,0.35);
-      transition:transform .2s,filter .2s;
-      white-space:nowrap;
-      flex-shrink:0;
+      transition:transform .2s,filter .2s; white-space:nowrap; flex-shrink:0;
     }
     .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
     .bn-cta .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.18); }
@@ -307,15 +405,33 @@
       position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%;
       transform:translateX(-50%);
       display:flex; flex-direction:column; align-items:center; gap:6px;
-      color:rgba(255,255,255,0.4);
-      font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
-      pointer-events:none;
-      animation:pulse 2s infinite;
-      z-index:100;
+      color:rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
+      pointer-events:none; animation:pulse 2s infinite; z-index:100;
     }
     .hint svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; }
     @keyframes pulse{ 0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6} 50%{transform:translateX(-50%) translateY(5px);opacity:1} }
     .section-wrapper:last-child .hint{ display:none; }
+
+    .rotate-popup{
+      position:fixed; bottom:80px; left:50%; transform:translateX(-50%) scale(0.9);
+      background:var(--accent); color:#fff; padding:12px 24px; border-radius:999px;
+      font-size:14px; font-weight:950; display:flex; align-items:center; gap:10px;
+      box-shadow:0 12px 30px rgba(255,42,42,0.35);
+      opacity:0; pointer-events:none; transition:all 0.3s cubic-bezier(0.16,1,0.3,1); z-index:9999;
+    }
+    .rotate-popup.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1); }
+
+    .translate-toast{
+      position:fixed; top:calc(80px + var(--safeTop)); left:50%;
+      transform:translateX(-50%) translateY(-20px);
+      background:rgba(20,20,22,0.95); border:1px solid rgba(255,255,255,0.15);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:#fff;
+      padding:10px 16px 10px 20px; border-radius:999px; font-size:14px;
+      display:flex; align-items:center; gap:16px; box-shadow:0 16px 40px rgba(0,0,0,0.5);
+      opacity:0; pointer-events:none; transition:all 0.3s cubic-bezier(0.16,1,0.3,1); z-index:9999;
+    }
+    .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+    .btn-undo{ color:var(--accent); font-weight:950; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(255,42,42,0.15); border-radius:999px; }
 
     @media (max-width: 600px) {
       .site-header nav { display: none; }
@@ -323,10 +439,8 @@
     }
 
     .nav-insta{
-      display:inline-flex; align-items:center; gap:5px;
-      padding: 5px 11px; border-radius:999px;
-      border: 1px solid rgba(255,255,255,0.1);
-      font-size:12px; font-weight:800;
+      display:inline-flex; align-items:center; gap:5px; padding: 5px 11px; border-radius:999px;
+      border: 1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:800;
       background: linear-gradient(135deg,rgba(240,148,51,0.12),rgba(188,24,136,0.12));
       transition: all 0.2s; white-space:nowrap;
     }
@@ -350,25 +464,15 @@
           <a id="npProducts" class="active">Products</a>
           <a id="npBlog">Blog</a>
         </nav>
-
-        <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
-           target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
+        <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n" target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <defs>
-              <linearGradient id="ig-np" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#f09433"/>
-                <stop offset="50%" stop-color="#dc2743"/>
-                <stop offset="100%" stop-color="#bc1888"/>
-              </linearGradient>
-            </defs>
+            <defs><linearGradient id="ig-np" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs>
             <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-np)"/>
             <circle cx="12" cy="12" r="4" stroke="url(#ig-np)"/>
             <circle cx="17.5" cy="6.5" r="1" fill="url(#ig-np)" stroke="none"/>
           </svg>
           <span>@printbydd</span>
         </a>
-
-        <!-- IMPORTANT: no duplicate IDs -->
         <button class="btn-icon theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
       </div>
     </header>
@@ -378,7 +482,7 @@
       <div class="top-actions">
         <button class="btn-icon theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
-        <div class="pill"><b id="secLabel">SEC 1/6</b> • <span id="secName">INTRO</span></div>
+        <div class="pill"><b id="secLabel">SEC 1/5</b> • <span id="secName">INTRO</span></div>
       </div>
     </div>
 
@@ -390,7 +494,7 @@
       <button class="bn-btn" id="bnNext" type="button" aria-label="Next">→</button>
       <button class="bn-cta" id="bnCta" type="button">
         <span id="bnCtaText">Customize</span>
-        <span class="bn-tag" id="bnCtaTag">Now</span>
+        <span class="bn-tag" id="bnCtaTag">3D</span>
       </button>
     </div>
   </div>
@@ -399,14 +503,12 @@
     <span id="toastMsg">Translated to Hindi</span>
     <button id="btnUndoTranslate" class="btn-undo">Undo</button>
   </div>
-
   <div id="rotatePopup" class="rotate-popup"></div>
 
 <script>
 (function(){
   "use strict";
 
-  // ===== ROUTING HELPER =====
   function routeTo(pathHtml, pathStore) {
     return location.hostname === 'store.viadecide.com' ? pathStore : pathHtml;
   }
@@ -424,7 +526,6 @@
     });
   })();
 
-  // ===== CONFIG =====
   const STL_URL = "./numberplate.stl";
   const WA_NUMBER = "916351537770";
 
@@ -445,133 +546,278 @@
   // ===== STL VIEWER STATE =====
   let scene=null, renderer=null, camera=null, group=null;
   let meshBase=null, meshChar=null, meshBoundary=null;
-
   let pointerDown=false, lastX=0, lastY=0, autoRotate=true;
-
-  // IMPORTANT: re-init if canvas changes (translation rerender creates new canvas)
   let initedCanvasEl = null;
-
-  // IMPORTANT: stop old render loops when re-initting
   let renderToken = 0;
 
-  const COLOR_STORAGE_KEY = "PBD_NUMBERPLATE_COLORS_V1";
+  const COLOR_STORAGE_KEY = "PBD_NUMBERPLATE_COLORS_V2";
+  const PLATE_TEXT_KEY = "PBD_PLATE_TEXT_V1";
 
+  // ===== COLOR DEFINITIONS =====
   const BASE_COLORS = {
-    black: 0x101010,
-    white: 0xf3f3f3,
-    gray:  0x2a2a2a,
-    blue:  0x1a6bd1
+    black: { hex: 0x0d0d0d, css: '#0d0d0d', label: 'Black' },
+    white: { hex: 0xf0f0f0, css: '#f0f0f0', label: 'White' },
+    gray:  { hex: 0x2a2a2a, css: '#2a2a2a', label: 'Gray'  },
+    blue:  { hex: 0x1a6bd1, css: '#1a6bd1', label: 'Blue'  }
   };
   const CHAR_COLORS = {
-    red:   0xff2a2a,
-    black: 0x101010,
-    white: 0xf3f3f3,
-    gold:  0xd4af37,
-    neon:  0x22c55e
+    white: { hex: 0xf0f0f0, css: '#f0f0f0', label: 'White' },
+    black: { hex: 0x0d0d0d, css: '#0d0d0d', label: 'Black' },
+    red:   { hex: 0xff2a2a, css: '#ff2a2a', label: 'Red'   },
+    gold:  { hex: 0xd4af37, css: '#d4af37', label: 'Gold'  },
+    neon:  { hex: 0x22c55e, css: '#22c55e', label: 'Neon'  }
   };
   const BOUNDARY_COLORS = {
-    black: 0x101010,
-    white: 0xf3f3f3,
-    red:   0xff2a2a,
-    blue:  0x1a6bd1,
-    steel: 0x9aa4b2
+    red:   { hex: 0xff2a2a, css: '#ff2a2a', label: 'Red'   },
+    black: { hex: 0x0d0d0d, css: '#0d0d0d', label: 'Black' },
+    white: { hex: 0xf0f0f0, css: '#f0f0f0', label: 'White' },
+    blue:  { hex: 0x1a6bd1, css: '#1a6bd1', label: 'Blue'  },
+    steel: { hex: 0x9aa4b2, css: '#9aa4b2', label: 'Steel' }
   };
 
-  let currentBaseKey="black";
-  let currentCharKey="white";
-  let currentBoundaryKey="red";
+  // custom colors override (hex string "xxxxxx")
+  let customBaseHex = null, customCharHex = null, customBoundaryHex = null;
 
-  (function restoreColors(){
+  let currentBaseKey = "black";
+  let currentCharKey = "white";
+  let currentBoundaryKey = "red";
+  let plateText = "MH 01 AB 1234";
+
+  (function restoreState(){
     try{
       const s = JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY)||"{}");
       if(s.base && BASE_COLORS[s.base]) currentBaseKey = s.base;
       if(s.char && CHAR_COLORS[s.char]) currentCharKey = s.char;
       if(s.boundary && BOUNDARY_COLORS[s.boundary]) currentBoundaryKey = s.boundary;
+      if(s.customBaseHex) customBaseHex = s.customBaseHex;
+      if(s.customCharHex) customCharHex = s.customCharHex;
+      if(s.customBoundaryHex) customBoundaryHex = s.customBoundaryHex;
+      const pt = localStorage.getItem(PLATE_TEXT_KEY);
+      if(pt) plateText = pt;
     }catch(e){}
   })();
 
-  function persistColors(){
+  function persistState(){
     try{
       localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify({
-        base: currentBaseKey,
-        char: currentCharKey,
-        boundary: currentBoundaryKey
+        base: currentBaseKey, char: currentCharKey, boundary: currentBoundaryKey,
+        customBaseHex, customCharHex, customBoundaryHex
       }));
+      localStorage.setItem(PLATE_TEXT_KEY, plateText);
     }catch(e){}
   }
 
-  // ===== COLOR COMBINATION LOGIC (fixed) =====
-  // Rule: chars should not equal base; boundary should not equal chars.
+  // ===== COLOR GETTERS =====
+  function getBaseColor(){ return customBaseHex ? parseInt(customBaseHex.replace('#',''), 16) : BASE_COLORS[currentBaseKey].hex; }
+  function getCharColor(){ return customCharHex ? parseInt(customCharHex.replace('#',''), 16) : CHAR_COLORS[currentCharKey].hex; }
+  function getBoundaryColor(){ return customBoundaryHex ? parseInt(customBoundaryHex.replace('#',''), 16) : BOUNDARY_COLORS[currentBoundaryKey].hex; }
+  function getBaseCss(){ return customBaseHex || BASE_COLORS[currentBaseKey].css; }
+  function getCharCss(){ return customCharHex || CHAR_COLORS[currentCharKey].css; }
+  function getBoundaryCss(){ return customBoundaryHex || BOUNDARY_COLORS[currentBoundaryKey].css; }
+
   function enforceColorRules(){
-    if(currentCharKey === currentBaseKey){
-      // pick a default contrast option
-      currentCharKey = (currentBaseKey === "white") ? "black" : "white";
-      if(!CHAR_COLORS[currentCharKey]) currentCharKey = Object.keys(CHAR_COLORS)[0];
-    }
-    if(currentBoundaryKey === currentCharKey){
-      // pick a safe different boundary
-      currentBoundaryKey = (currentCharKey === "red") ? "black" : "red";
-      if(!BOUNDARY_COLORS[currentBoundaryKey]) currentBoundaryKey = Object.keys(BOUNDARY_COLORS)[0];
-    }
+    // no auto-change needed — trust the user's choice
   }
 
+  // ===== 2D PLATE CANVAS RENDERER =====
+  function draw2DPlate(){
+    const canvas = document.getElementById('plate2DCanvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = 520, H = 130;
+    canvas.width = W; canvas.height = H;
+
+    const base = getBaseCss();
+    const charC = getCharCss();
+    const borderC = getBoundaryCss();
+    const r = 18; // corner radius
+    const bw = 10; // border width
+
+    // outer border (boundary color)
+    ctx.clearRect(0,0,W,H);
+    ctx.beginPath();
+    roundRect(ctx, 0, 0, W, H, r);
+    ctx.fillStyle = borderC;
+    ctx.fill();
+
+    // inner plate (base color)
+    ctx.beginPath();
+    roundRect(ctx, bw, bw, W - bw*2, H - bw*2, r - bw*0.7);
+    ctx.fillStyle = base;
+    ctx.fill();
+
+    // subtle inner highlight
+    const grad = ctx.createLinearGradient(bw, bw, bw, H-bw);
+    grad.addColorStop(0, 'rgba(255,255,255,0.06)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.08)');
+    ctx.beginPath();
+    roundRect(ctx, bw, bw, W - bw*2, H - bw*2, r - bw*0.7);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // screw hole decorations
+    drawScrew(ctx, 32, H/2, 7, borderC);
+    drawScrew(ctx, W-32, H/2, 7, borderC);
+
+    // plate text
+    const text = (plateText || 'MH 01 AB 1234').toUpperCase();
+    ctx.font = `bold ${Math.min(58, Math.floor(300 / Math.max(text.length, 4)))}px "Share Tech Mono", "Courier New", monospace`;
+    ctx.fillStyle = charC;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // text shadow for depth
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText(text, W/2, H/2 + 1);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function drawScrew(ctx, x, y, r, color){
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, r*0.65, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    // crosshair
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x - r*0.4, y); ctx.lineTo(x + r*0.4, y);
+    ctx.moveTo(x, y - r*0.4); ctx.lineTo(x, y + r*0.4);
+    ctx.stroke();
+  }
+
+  // ===== UI SYNC =====
   function syncColorUI(){
-    document.querySelectorAll('[data-base-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-base-btn')===currentBaseKey));
-    document.querySelectorAll('[data-char-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-char-btn')===currentCharKey));
-    document.querySelectorAll('[data-boundary-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-boundary-btn')===currentBoundaryKey));
+    // swatch active states
+    document.querySelectorAll('[data-base-key]').forEach(b => b.classList.toggle('active', b.getAttribute('data-base-key') === currentBaseKey && !customBaseHex));
+    document.querySelectorAll('[data-char-key]').forEach(b => b.classList.toggle('active', b.getAttribute('data-char-key') === currentCharKey && !customCharHex));
+    document.querySelectorAll('[data-boundary-key]').forEach(b => b.classList.toggle('active', b.getAttribute('data-boundary-key') === currentBoundaryKey && !customBoundaryHex));
 
-    const bl=document.getElementById("baseLbl"), cl=document.getElementById("charLbl"), sl=document.getElementById("boundaryLbl");
-    if(bl) bl.textContent=currentBaseKey.toUpperCase();
-    if(cl) cl.textContent=currentCharKey.toUpperCase();
-    if(sl) sl.textContent=currentBoundaryKey.toUpperCase();
+    // active dot colors
+    const baseDot = document.getElementById('baseDot');
+    const charDot = document.getElementById('charDot');
+    const boundaryDot = document.getElementById('boundaryDot');
+    if(baseDot) baseDot.style.background = getBaseCss();
+    if(charDot) charDot.style.background = getCharCss();
+    if(boundaryDot) boundaryDot.style.background = getBoundaryCss();
+
+    // active labels
+    const baseLbl = document.getElementById('baseActiveLbl');
+    const charLbl = document.getElementById('charActiveLbl');
+    const boundaryLbl = document.getElementById('boundaryActiveLbl');
+    if(baseLbl) baseLbl.textContent = customBaseHex ? 'CUSTOM' : currentBaseKey.toUpperCase();
+    if(charLbl) charLbl.textContent = customCharHex ? 'CUSTOM' : currentCharKey.toUpperCase();
+    if(boundaryLbl) boundaryLbl.textContent = customBoundaryHex ? 'CUSTOM' : currentBoundaryKey.toUpperCase();
+
+    // summary bar
+    const sumBase = document.getElementById('sumBaseDot');
+    const sumChar = document.getElementById('sumCharDot');
+    const sumBoundary = document.getElementById('sumBoundaryDot');
+    const sumBaseVal = document.getElementById('sumBaseVal');
+    const sumCharVal = document.getElementById('sumCharVal');
+    const sumBoundaryVal = document.getElementById('sumBoundaryVal');
+    if(sumBase){ sumBase.style.background = getBaseCss(); }
+    if(sumChar){ sumChar.style.background = getCharCss(); }
+    if(sumBoundary){ sumBoundary.style.background = getBoundaryCss(); }
+    if(sumBaseVal) sumBaseVal.textContent = customBaseHex ? 'Custom' : BASE_COLORS[currentBaseKey].label;
+    if(sumCharVal) sumCharVal.textContent = customCharHex ? 'Custom' : CHAR_COLORS[currentCharKey].label;
+    if(sumBoundaryVal) sumBoundaryVal.textContent = customBoundaryHex ? 'Custom' : BOUNDARY_COLORS[currentBoundaryKey].label;
+
+    // plate text input
+    const inp = document.getElementById('plateTextInput');
+    if(inp && inp.value.toUpperCase() !== plateText) inp.value = plateText;
+    const cnt = document.getElementById('plateCharCount');
+    if(cnt) cnt.textContent = plateText.length + '/12';
   }
 
-  // ✅ THIS is the critical fix: always update materials + force render if ready
   function applyColors(){
     enforceColorRules();
-    persistColors();
+    persistState();
     syncColorUI();
+    draw2DPlate();
 
-    if(meshBase && meshBase.material) {
-      meshBase.material.color.setHex(BASE_COLORS[currentBaseKey]);
+    if(meshBase && meshBase.material){
+      meshBase.material.color.setHex(getBaseColor());
       meshBase.material.needsUpdate = true;
     }
-    if(meshChar && meshChar.material) {
-      meshChar.material.color.setHex(CHAR_COLORS[currentCharKey]);
+    if(meshChar && meshChar.material){
+      meshChar.material.color.setHex(getCharColor());
       meshChar.material.needsUpdate = true;
     }
-    if(meshBoundary && meshBoundary.material) {
-      meshBoundary.material.color.setHex(BOUNDARY_COLORS[currentBoundaryKey]);
+    if(meshBoundary && meshBoundary.material){
+      meshBoundary.material.color.setHex(getBoundaryColor());
       meshBoundary.material.needsUpdate = true;
     }
 
-    // force immediate repaint (so you SEE it change)
-    if(renderer && scene && camera){
-      renderer.render(scene, camera);
-    }
+    if(renderer && scene && camera) renderer.render(scene, camera);
   }
 
+  // ===== PUBLIC COLOR SETTERS =====
   window.setBaseColor = function(key){
     if(!BASE_COLORS[key]) return;
     currentBaseKey = key;
+    customBaseHex = null;
     applyColors();
-    // if user clicks before viewer fully init, init it
-    if(document.getElementById("stl-canvas")) window.initSTLViewer();
   };
   window.setCharColor = function(key){
     if(!CHAR_COLORS[key]) return;
     currentCharKey = key;
+    customCharHex = null;
     applyColors();
-    if(document.getElementById("stl-canvas")) window.initSTLViewer();
   };
   window.setBoundaryColor = function(key){
     if(!BOUNDARY_COLORS[key]) return;
     currentBoundaryKey = key;
+    customBoundaryHex = null;
     applyColors();
-    if(document.getElementById("stl-canvas")) window.initSTLViewer();
+  };
+  window.setCustomBaseColor = function(hex){
+    customBaseHex = hex;
+    document.querySelectorAll('[data-base-key]').forEach(b => b.classList.remove('active'));
+    applyColors();
+  };
+  window.setCustomCharColor = function(hex){
+    customCharHex = hex;
+    document.querySelectorAll('[data-char-key]').forEach(b => b.classList.remove('active'));
+    applyColors();
+  };
+  window.setCustomBoundaryColor = function(hex){
+    customBoundaryHex = hex;
+    document.querySelectorAll('[data-boundary-key]').forEach(b => b.classList.remove('active'));
+    applyColors();
+  };
+  window.updatePlateText = function(val){
+    plateText = val.toUpperCase().slice(0, 12);
+    const inp = document.getElementById('plateTextInput');
+    if(inp) inp.value = plateText;
+    const cnt = document.getElementById('plateCharCount');
+    if(cnt) cnt.textContent = plateText.length + '/12';
+    draw2DPlate();
+    persistState();
   };
 
-  // ===== STL parsing =====
+  // ===== STL PARSING =====
   function buildGeo(ps, ns){
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3));
@@ -586,8 +832,7 @@
       const nx=v.getFloat32(o,true),ny=v.getFloat32(o+4,true),nz=v.getFloat32(o+8,true); o+=12;
       for(let j=0;j<3;j++){
         pos.push(v.getFloat32(o,true),v.getFloat32(o+4,true),v.getFloat32(o+8,true));
-        nor.push(nx,ny,nz);
-        o+=12;
+        nor.push(nx,ny,nz); o+=12;
       }
       o+=2;
     }
@@ -636,35 +881,28 @@
     return isAscii ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf))) : parseBinarySTL(buf);
   }
 
-  // ===== STL INIT (re-inits if canvas changes) =====
+  // ===== STL INIT =====
   window.initSTLViewer = async function(){
     const wrap    = document.getElementById('stl-viewer-wrap');
     const canvas  = document.getElementById('stl-canvas');
     const loading = document.getElementById('stl-loading');
     if(!wrap || !canvas) return;
 
-    // already initialized for this exact canvas element
-    if(initedCanvasEl === canvas && renderer && scene && camera) {
-      // but still apply current colors (important)
+    if(initedCanvasEl === canvas && renderer && scene && camera){
       applyColors();
       return;
     }
 
-    // stop old render loop(s)
     renderToken++;
     const myToken = renderToken;
 
-    // dispose old renderer if any
     try{ if(renderer) renderer.dispose(); }catch(e){}
-
     scene=null; camera=null; group=null;
-    meshBase=null; meshChar=null; meshBoundary=null;
-    renderer=null;
-
+    meshBase=null; meshChar=null; meshBoundary=null; renderer=null;
     initedCanvasEl = canvas;
 
     const W = wrap.clientWidth || 320;
-    const H = 280;
+    const H = 220;
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
@@ -683,7 +921,6 @@
 
     try{
       const geo = await loadSTLGeometry();
-
       geo.computeBoundingBox();
       geo.center();
 
@@ -691,67 +928,33 @@
       const na = geo.getAttribute('normal');
 
       const zVals = [];
-      for(let i=0;i<pa.count;i++){
-        zVals.push(pa.array[i*3+2]);
-      }
+      for(let i=0;i<pa.count;i++) zVals.push(pa.array[i*3+2]);
       zVals.sort((a,b)=>a-b);
-
       const zCut = percentile(zVals, 0.72);
 
-      const baseP=[], baseN=[];
-      const charP=[], charN=[];
-      const sideP=[], sideN=[];
+      const baseP=[], baseN=[], charP=[], charN=[], sideP=[], sideN=[];
 
       for(let i=0;i<pa.count;i+=3){
         const i0=i, i1=i+1, i2=i+2;
-
-        const z0 = pa.array[i0*3+2], z1 = pa.array[i1*3+2], z2 = pa.array[i2*3+2];
-        const avgZ = (z0+z1+z2)/3;
-
-        const nz0 = na.array[i0*3+2], nz1 = na.array[i1*3+2], nz2 = na.array[i2*3+2];
-        const avgNZ = (nz0+nz1+nz2)/3;
-
-        const tp = [
-          pa.array[i0*3], pa.array[i0*3+1], pa.array[i0*3+2],
-          pa.array[i1*3], pa.array[i1*3+1], pa.array[i1*3+2],
-          pa.array[i2*3], pa.array[i2*3+1], pa.array[i2*3+2]
-        ];
-        const tn = [
-          na.array[i0*3], na.array[i0*3+1], na.array[i0*3+2],
-          na.array[i1*3], na.array[i1*3+1], na.array[i1*3+2],
-          na.array[i2*3], na.array[i2*3+1], na.array[i2*3+2]
-        ];
-
-        if(avgZ < zCut){
-          baseP.push(...tp); baseN.push(...tn);
-        } else {
-          // top faces = chars, side/angled = boundary-height
-          if(avgNZ > 0.55){
-            charP.push(...tp); charN.push(...tn);
-          } else {
-            sideP.push(...tp); sideN.push(...tn);
-          }
-        }
+        const z0=pa.array[i0*3+2], z1=pa.array[i1*3+2], z2=pa.array[i2*3+2];
+        const avgZ=(z0+z1+z2)/3;
+        const nz0=na.array[i0*3+2], nz1=na.array[i1*3+2], nz2=na.array[i2*3+2];
+        const avgNZ=(nz0+nz1+nz2)/3;
+        const tp=[pa.array[i0*3],pa.array[i0*3+1],pa.array[i0*3+2],pa.array[i1*3],pa.array[i1*3+1],pa.array[i1*3+2],pa.array[i2*3],pa.array[i2*3+1],pa.array[i2*3+2]];
+        const tn=[na.array[i0*3],na.array[i0*3+1],na.array[i0*3+2],na.array[i1*3],na.array[i1*3+1],na.array[i1*3+2],na.array[i2*3],na.array[i2*3+1],na.array[i2*3+2]];
+        if(avgZ < zCut){ baseP.push(...tp); baseN.push(...tn); }
+        else if(avgNZ > 0.55){ charP.push(...tp); charN.push(...tn); }
+        else { sideP.push(...tp); sideN.push(...tn); }
       }
 
-      // Materials (colors applied again via applyColors())
-      const matBase = new THREE.MeshStandardMaterial({ color: BASE_COLORS[currentBaseKey], roughness:0.62, metalness:0.06 });
-      const matChar = new THREE.MeshStandardMaterial({ color: CHAR_COLORS[currentCharKey], roughness:0.55, metalness:0.06 });
-      const matSide = new THREE.MeshStandardMaterial({ color: BOUNDARY_COLORS[currentBoundaryKey], roughness:0.58, metalness:0.06 });
+      const matBase = new THREE.MeshStandardMaterial({ color: getBaseColor(), roughness:0.62, metalness:0.06 });
+      const matChar = new THREE.MeshStandardMaterial({ color: getCharColor(), roughness:0.55, metalness:0.06 });
+      const matSide = new THREE.MeshStandardMaterial({ color: getBoundaryColor(), roughness:0.58, metalness:0.06 });
 
-      meshBase = new THREE.Mesh(buildGeo(baseP, baseN), matBase);
-      group.add(meshBase);
+      meshBase = new THREE.Mesh(buildGeo(baseP, baseN), matBase); group.add(meshBase);
+      if(charP.length > 0){ meshChar = new THREE.Mesh(buildGeo(charP, charN), matChar); group.add(meshChar); }
+      if(sideP.length > 0){ meshBoundary = new THREE.Mesh(buildGeo(sideP, sideN), matSide); group.add(meshBoundary); }
 
-      if(charP.length > 0){
-        meshChar = new THREE.Mesh(buildGeo(charP, charN), matChar);
-        group.add(meshChar);
-      }
-      if(sideP.length > 0){
-        meshBoundary = new THREE.Mesh(buildGeo(sideP, sideN), matSide);
-        group.add(meshBoundary);
-      }
-
-      // Fit / initial pose
       group.rotation.x = -0.35;
       group.rotation.y =  0.85;
 
@@ -762,50 +965,28 @@
 
       if(loading) loading.classList.add('hidden');
 
-      // interactions
-      function onDown(e){
-        pointerDown=true; autoRotate=false;
-        const t = e.touches ? e.touches[0] : e;
-        lastX=t.clientX; lastY=t.clientY;
-      }
-      function onMove(e){
-        if(!pointerDown || !group) return;
-        const t = e.touches ? e.touches[0] : e;
-        group.rotation.y += (t.clientX-lastX) * 0.01;
-        group.rotation.x += (t.clientY-lastY) * 0.01;
-        lastX=t.clientX; lastY=t.clientY;
-      }
+      function onDown(e){ pointerDown=true; autoRotate=false; const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY; }
+      function onMove(e){ if(!pointerDown||!group) return; const t=e.touches?e.touches[0]:e; group.rotation.y+=(t.clientX-lastX)*0.01; group.rotation.x+=(t.clientY-lastY)*0.01; lastX=t.clientX; lastY=t.clientY; }
       function onUp(){ pointerDown=false; }
+      wrap.onpointerdown=onDown; wrap.onpointermove=onMove; window.onpointerup=onUp;
 
-      wrap.onpointerdown = onDown;
-      wrap.onpointermove = onMove;
-      window.onpointerup = onUp;
-
-      // resize
-      window.addEventListener('resize', ()=>{
-        if(!wrap || !renderer || !camera) return;
-        const w = wrap.clientWidth || 320, h = 280;
-        renderer.setSize(w, h, false);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.render(scene, camera);
+      window.addEventListener('resize',()=>{
+        if(!wrap||!renderer||!camera) return;
+        const w=wrap.clientWidth||320, h=220;
+        renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.render(scene,camera);
       });
 
-      // render loop (token-guarded)
       (function animate(){
-        if(myToken !== renderToken) return; // stop if re-initted
+        if(myToken !== renderToken) return;
         requestAnimationFrame(animate);
         if(autoRotate && group) group.rotation.y += 0.004;
         if(renderer && scene && camera) renderer.render(scene, camera);
       })();
 
-      // ✅ apply current colors AFTER meshes exist
       applyColors();
 
     } catch(err){
-      if(loading){
-        loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
-      }
+      if(loading) loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
       console.error("Numberplate STL viewer error:", err);
     }
   };
@@ -818,7 +999,7 @@
       html:{
         en:()=>`
           <p class="big">Clean type. Sharp edges. <span class="r">Two-tone</span> finish.</p>
-          <p class="lead">This is a 3D printed numberplate made for people who want their vehicle details to look engineered — not generic.</p>
+          <p class="lead">A 3D printed numberplate for people who want their vehicle details to look engineered — not generic.</p>
           <div class="qt">Pick character color + boundary-height color. Preview it in 3D. Then order.</div>
           <ul class="ul">
             <li><b>Two-tone control:</b> Characters and boundary-height can be different colors.</li>
@@ -845,77 +1026,25 @@
           <div class="steps">
             <div class="step"><div class="step-num">1</div><div><div class="step-title">Base stays quiet</div><div class="step-desc">The plate surface is the background — not the hero.</div></div></div>
             <div class="step"><div class="step-num">2</div><div><div class="step-title">Characters pop</div><div class="step-desc">Digit faces are a different color for instant recognition.</div></div></div>
-            <div class="step"><div class="step-num">3</div><div><div class="step-title">Boundary-height defines edges</div><div class="step-desc">Side walls/outline keeps characters separated and “cut”.</div></div></div>
+            <div class="step"><div class="step-num">3</div><div><div class="step-title">Boundary-height defines edges</div><div class="step-desc">Side walls keep characters separated and crisp.</div></div></div>
           </div>
-          <div class="qt">You’re not paying for “more plastic”. You’re paying for <b>structure</b>.</div>`,
+          <div class="qt">You're not paying for "more plastic". You're paying for <b>structure</b>.</div>`,
         hi:()=>`
-          <p class="lead">ज़्यादातर numberplates एक वजह से fail होती हैं: <b>visual hierarchy नहीं</b>. सब एक tone में हो तो digits blend हो जाते हैं।</p>
+          <p class="lead">ज़्यादातर numberplates एक वजह से fail होती हैं: <b>visual hierarchy नहीं</b>।</p>
           <div class="steps">
             <div class="step"><div class="step-num">1</div><div><div class="step-title">Base calm रहता है</div><div class="step-desc">Plate surface background है।</div></div></div>
             <div class="step"><div class="step-num">2</div><div><div class="step-title">Characters pop</div><div class="step-desc">Digit faces अलग color में instantly readable।</div></div></div>
-            <div class="step"><div class="step-num">3</div><div><div class="step-title">Boundary-height edges define करता है</div><div class="step-desc">Side walls/outline digits को crisp “cut” look देता है।</div></div></div>
+            <div class="step"><div class="step-num">3</div><div><div class="step-title">Boundary-height edges define करता है</div><div class="step-desc">Side walls digits को crisp "cut" look देता है।</div></div></div>
           </div>
-          <div class="qt">आप “more plastic” के लिए नहीं — <b>structure</b> के लिए pay कर रहे हो।</div>`
+          <div class="qt">आप "more plastic" के लिए नहीं — <b>structure</b> के लिए pay कर रहे हो।</div>`
       }
     },
     {
       name:"CUSTOMIZE", kicker:"3D PREVIEW + COLORS",
-      title:{ en:"Pick <span class='r'>Character</span> + <span class='r'>Boundary</span> colors.", hi:"<span class='r'>Character</span> + <span class='r'>Boundary</span> color चुनें।" },
+      title:{ en:"Your plate. Your <span class='r'>colors</span>.", hi:"आपकी plate. आपके <span class='r'>रंग</span>." },
       html:{
-        en:()=>`
-          <div id="stl-viewer-wrap" class="stl-viewer-wrap">
-            <canvas id="stl-canvas"></canvas>
-            <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
-            <div class="stl-hint">Drag to rotate</div>
-          </div>
-
-          <div class="qt" style="margin-top:6px;">
-            Base: <b id="baseLbl">${currentBaseKey.toUpperCase()}</b> •
-            Characters: <b id="charLbl">${currentCharKey.toUpperCase()}</b> •
-            Boundary-height: <b id="boundaryLbl">${currentBoundaryKey.toUpperCase()}</b>
-          </div>
-
-          <div class="stl-color-panel">
-            <div class="stl-color-title">Base</div>
-            <div class="stl-color-row">
-              <button class="stl-color-btn" data-base-btn="black" onclick="setBaseColor('black')"><span class="stl-swatch" style="background:#101010;"></span> Black</button>
-              <button class="stl-color-btn" data-base-btn="white" onclick="setBaseColor('white')"><span class="stl-swatch" style="background:#f3f3f3;"></span> White</button>
-              <button class="stl-color-btn" data-base-btn="gray"  onclick="setBaseColor('gray')"><span class="stl-swatch" style="background:#2a2a2a;"></span> Gray</button>
-              <button class="stl-color-btn" data-base-btn="blue"  onclick="setBaseColor('blue')"><span class="stl-swatch" style="background:#1a6bd1;"></span> Blue</button>
-            </div>
-
-            <div class="stl-color-title" style="margin-top:12px;">Number / Characters (Top Surface)</div>
-            <div class="stl-color-row">
-              <button class="stl-color-btn" data-char-btn="white" onclick="setCharColor('white')"><span class="stl-swatch" style="background:#f3f3f3;"></span> White</button>
-              <button class="stl-color-btn" data-char-btn="black" onclick="setCharColor('black')"><span class="stl-swatch" style="background:#101010;"></span> Black</button>
-              <button class="stl-color-btn" data-char-btn="red"   onclick="setCharColor('red')"><span class="stl-swatch" style="background:#ff2a2a;"></span> Red</button>
-              <button class="stl-color-btn" data-char-btn="gold"  onclick="setCharColor('gold')"><span class="stl-swatch" style="background:#d4af37;"></span> Gold</button>
-              <button class="stl-color-btn" data-char-btn="neon"  onclick="setCharColor('neon')"><span class="stl-swatch" style="background:#22c55e;"></span> Neon</button>
-            </div>
-
-            <div class="stl-color-title" style="margin-top:12px;">Boundary-height (Sides / Outline)</div>
-            <div class="stl-color-row">
-              <button class="stl-color-btn" data-boundary-btn="red"   onclick="setBoundaryColor('red')"><span class="stl-swatch" style="background:#ff2a2a;"></span> Red</button>
-              <button class="stl-color-btn" data-boundary-btn="black" onclick="setBoundaryColor('black')"><span class="stl-swatch" style="background:#101010;"></span> Black</button>
-              <button class="stl-color-btn" data-boundary-btn="white" onclick="setBoundaryColor('white')"><span class="stl-swatch" style="background:#f3f3f3;"></span> White</button>
-              <button class="stl-color-btn" data-boundary-btn="blue"  onclick="setBoundaryColor('blue')"><span class="stl-swatch" style="background:#1a6bd1;"></span> Blue</button>
-              <button class="stl-color-btn" data-boundary-btn="steel" onclick="setBoundaryColor('steel')"><span class="stl-swatch" style="background:#9aa4b2;"></span> Steel</button>
-            </div>
-          </div>
-
-          <button class="cp" style="margin-top:14px;" onclick="orderOnWhatsApp()">
-            <span class="cpulse"></span>
-            <div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
-          </button>
-
-          <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.30);line-height:1.6;">
-            Tip: Boundary-height color = the “edge walls” you see from angles. Characters = top readable face.
-          </p>
-        `,
-        hi:()=>`
-          <p class="lead">3D preview + रंग selection (Base/Characters/Boundary) — नीचे।</p>
-          <div class="qt">BUYER सेक्शन पर आते ही model load होगा।</div>
-        `
+        en:()=>buildCustomizeHTML(),
+        hi:()=>buildCustomizeHTML()
       }
     },
     {
@@ -933,8 +1062,7 @@
             <li><b>Boundary-height:</b> colored by vertical/angled faces around raised geometry.</li>
             <li><b>Base:</b> everything below the raised Z-threshold.</li>
           </ul>
-          <div class="qt">Percentile-based splitting, so it stays stable if STL height changes.</div>
-        `,
+          <div class="qt">Percentile-based splitting keeps it stable if STL height changes.</div>`,
         hi:()=>`
           <div class="sg">
             <div class="sn"><div class="sv">3-Color</div><div class="slbl">Split Preview</div></div>
@@ -942,12 +1070,11 @@
             <div class="sn"><div class="sv">Crisp</div><div class="slbl">Edges</div></div>
           </div>
           <ul class="ul" style="margin-top:14px;">
-            <li><b>Characters:</b> top faces (normal ≈ +Z) से color होता है।</li>
-            <li><b>Boundary-height:</b> raised geometry की side walls से color होता है।</li>
+            <li><b>Characters:</b> top faces से color होता है।</li>
+            <li><b>Boundary-height:</b> raised geometry की side walls से।</li>
             <li><b>Base:</b> raised threshold के नीचे वाला हिस्सा।</li>
           </ul>
-          <div class="qt">STL बदलें तब भी splitter stable रहता है।</div>
-        `
+          <div class="qt">STL बदलें तब भी splitter stable रहता है।</div>`
       }
     },
     {
@@ -962,42 +1089,181 @@
           </button>
           <button class="cp" style="margin-top:10px; background:linear-gradient(135deg,#111,#000);" onclick="orderOnWhatsApp()">
             <span class="cpulse" style="opacity:.2"></span><div class="ci">💬 WhatsApp Order <div class="ca">→</div></div>
-          </button>
-        `,
+          </button>`,
         hi:()=>`
           <p class="big"><span class="r">Order</span> ready.</p>
           <p class="lead">Customizer पर colors चुनें और WhatsApp से order करें।</p>
-        `
+          <button class="cp" onclick="scrollToSectionByName('CUSTOMIZE')">
+            <span class="cpulse"></span><div class="ci">🎛 Customizer <div class="ca">→</div></div>
+          </button>`
       }
     }
   ];
+
+  // ===== CUSTOMIZE HTML BUILDER =====
+  function buildCustomizeHTML(){
+    return `
+      <!-- 3D viewer -->
+      <div id="stl-viewer-wrap" class="stl-viewer-wrap">
+        <canvas id="stl-canvas"></canvas>
+        <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
+        <div class="stl-hint">Drag to rotate</div>
+      </div>
+
+      <!-- 2D plate text preview -->
+      <div class="plate-preview-block">
+        <div class="plate-preview-label">Live Plate Preview</div>
+        <div class="plate-canvas-wrap">
+          <canvas id="plate2DCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Plate number input -->
+      <div class="plate-input-block">
+        <div class="plate-input-label">Your Plate Number</div>
+        <div class="plate-input-row">
+          <input
+            type="text"
+            id="plateTextInput"
+            class="plate-text-input"
+            maxlength="12"
+            placeholder="MH 01 AB 1234"
+            value="${plateText}"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            oninput="updatePlateText(this.value)"
+          >
+          <span class="plate-char-count" id="plateCharCount">${plateText.length}/12</span>
+        </div>
+      </div>
+
+      <!-- Color panel -->
+      <div class="stl-color-panel">
+
+        <!-- BASE -->
+        <div class="color-group">
+          <div class="color-group-header">
+            <div class="color-group-title">Base / Background</div>
+            <div class="color-active-badge">
+              <span class="color-active-dot" id="baseDot" style="background:${getBaseCss()}"></span>
+              <span id="baseActiveLbl">${currentBaseKey.toUpperCase()}</span>
+            </div>
+          </div>
+          <div class="color-swatches">
+            ${Object.entries(BASE_COLORS).map(([key, val]) => `
+              <button class="swatch-btn ${currentBaseKey===key && !customBaseHex ? 'active':''}"
+                      data-base-key="${key}"
+                      style="background:${val.css}"
+                      data-label="${val.label}"
+                      onclick="setBaseColor('${key}')"
+                      title="${val.label}"></button>
+            `).join('')}
+            <div class="swatch-custom" title="Custom color">
+              <span>+</span>
+              <input type="color" value="${customBaseHex||getBaseCss()}" oninput="setCustomBaseColor(this.value)" title="Pick custom base color">
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARACTERS -->
+        <div class="color-group">
+          <div class="color-group-header">
+            <div class="color-group-title">Characters (Top Surface)</div>
+            <div class="color-active-badge">
+              <span class="color-active-dot" id="charDot" style="background:${getCharCss()}"></span>
+              <span id="charActiveLbl">${currentCharKey.toUpperCase()}</span>
+            </div>
+          </div>
+          <div class="color-swatches">
+            ${Object.entries(CHAR_COLORS).map(([key, val]) => `
+              <button class="swatch-btn ${currentCharKey===key && !customCharHex ? 'active':''}"
+                      data-char-key="${key}"
+                      style="background:${val.css}"
+                      data-label="${val.label}"
+                      onclick="setCharColor('${key}')"
+                      title="${val.label}"></button>
+            `).join('')}
+            <div class="swatch-custom" title="Custom color">
+              <span>+</span>
+              <input type="color" value="${customCharHex||getCharCss()}" oninput="setCustomCharColor(this.value)" title="Pick custom character color">
+            </div>
+          </div>
+        </div>
+
+        <!-- BOUNDARY -->
+        <div class="color-group">
+          <div class="color-group-header">
+            <div class="color-group-title">Boundary-Height (Edge Walls)</div>
+            <div class="color-active-badge">
+              <span class="color-active-dot" id="boundaryDot" style="background:${getBoundaryCss()}"></span>
+              <span id="boundaryActiveLbl">${currentBoundaryKey.toUpperCase()}</span>
+            </div>
+          </div>
+          <div class="color-swatches">
+            ${Object.entries(BOUNDARY_COLORS).map(([key, val]) => `
+              <button class="swatch-btn ${currentBoundaryKey===key && !customBoundaryHex ? 'active':''}"
+                      data-boundary-key="${key}"
+                      style="background:${val.css}"
+                      data-label="${val.label}"
+                      onclick="setBoundaryColor('${key}')"
+                      title="${val.label}"></button>
+            `).join('')}
+            <div class="swatch-custom" title="Custom color">
+              <span>+</span>
+              <input type="color" value="${customBoundaryHex||getBoundaryCss()}" oninput="setCustomBoundaryColor(this.value)" title="Pick custom boundary color">
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="color-summary">
+          <div class="cs-item"><div class="cs-dot" id="sumBaseDot" style="background:${getBaseCss()}"></div>Base: <span class="cs-val" id="sumBaseVal">${BASE_COLORS[currentBaseKey].label}</span></div>
+          <div class="cs-sep">·</div>
+          <div class="cs-item"><div class="cs-dot" id="sumCharDot" style="background:${getCharCss()}"></div>Chars: <span class="cs-val" id="sumCharVal">${CHAR_COLORS[currentCharKey].label}</span></div>
+          <div class="cs-sep">·</div>
+          <div class="cs-item"><div class="cs-dot" id="sumBoundaryDot" style="background:${getBoundaryCss()}"></div>Border: <span class="cs-val" id="sumBoundaryVal">${BOUNDARY_COLORS[currentBoundaryKey].label}</span></div>
+        </div>
+      </div>
+
+      <button class="cp" style="margin-top:14px;" onclick="orderOnWhatsApp()">
+        <span class="cpulse"></span>
+        <div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
+      </button>
+
+      <p style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.28);line-height:1.6;">
+        Tip: Use the + button to pick any custom colour. The live preview above updates instantly.
+      </p>
+    `;
+  }
 
   // ===== ORDER =====
   window.orderOnWhatsApp = function(){
     const msg =
 `Hi! I want to order the 3D Numberplate.
 
+Plate Number: ${plateText}
+
 Selected Colors:
-- Base: ${currentBaseKey.toUpperCase()}
-- Characters: ${currentCharKey.toUpperCase()}
-- Boundary-height: ${currentBoundaryKey.toUpperCase()}
+- Base: ${customBaseHex ? 'Custom ('+customBaseHex+')' : currentBaseKey.toUpperCase()}
+- Characters: ${customCharHex ? 'Custom ('+customCharHex+')' : currentCharKey.toUpperCase()}
+- Boundary-height: ${customBoundaryHex ? 'Custom ('+customBoundaryHex+')' : currentBoundaryKey.toUpperCase()}
 
 (Please share next steps + pricing.)`;
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
   // ===== NAV / RENDER =====
-  const container=document.getElementById('scrollContainer');
-  const secLabel=document.getElementById('secLabel');
-  const secName=document.getElementById('secName');
-
-  const bnPrev=document.getElementById('bnPrev');
-  const bnNext=document.getElementById('bnNext');
-  const bnDots=document.getElementById('bnDots');
-  const bnCta=document.getElementById('bnCta');
-  const bnCtaText=document.getElementById('bnCtaText');
-  const bnCtaTag=document.getElementById('bnCtaTag');
-
+  const container  = document.getElementById('scrollContainer');
+  const secLabel   = document.getElementById('secLabel');
+  const secName    = document.getElementById('secName');
+  const bnPrev     = document.getElementById('bnPrev');
+  const bnNext     = document.getElementById('bnNext');
+  const bnDots     = document.getElementById('bnDots');
+  const bnCta      = document.getElementById('bnCta');
+  const bnCtaText  = document.getElementById('bnCtaText');
+  const bnCtaTag   = document.getElementById('bnCtaTag');
   const CUSTOMIZE_IDX = SECTIONS.findIndex(s=>s.name==="CUSTOMIZE");
   let currentSecIndex=0;
 
@@ -1006,9 +1272,7 @@ Selected Colors:
     bnDots.innerHTML='';
     for(let i=0;i<SECTIONS.length;i++){
       const d=document.createElement('button');
-      d.type='button';
-      d.className='bn-dot';
-      d.setAttribute('aria-label',`Section ${i+1}`);
+      d.type='button'; d.className='bn-dot'; d.setAttribute('aria-label',`Section ${i+1}`);
       d.addEventListener('click',()=>scrollToIndex(i));
       bnDots.appendChild(d);
     }
@@ -1021,38 +1285,27 @@ Selected Colors:
   }
 
   window.scrollToSectionByName = function(name){
-    const idx = SECTIONS.findIndex(s=>s.name===name);
-    if(idx<0) return;
-    scrollToIndex(idx);
+    const idx=SECTIONS.findIndex(s=>s.name===name);
+    if(idx>=0) scrollToIndex(idx);
   };
 
   function updateBottomNav(){
     if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
     if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
     if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
-
     if(bnCtaText && bnCtaTag){
-      if(currentSecIndex === CUSTOMIZE_IDX){
-        bnCtaText.textContent="Order";
-        bnCtaTag.textContent="Now";
-      } else {
-        bnCtaText.textContent="Customize";
-        bnCtaTag.textContent="3D";
-      }
+      if(currentSecIndex===CUSTOMIZE_IDX){ bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
+      else { bnCtaText.textContent="Customize"; bnCtaTag.textContent="3D"; }
     }
   }
 
   function initBottomNav(){
-    buildBottomDots();
-    updateBottomNav();
+    buildBottomDots(); updateBottomNav();
     if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
     if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
     if(bnCta) bnCta.addEventListener('click',()=>{
-      if(currentSecIndex !== CUSTOMIZE_IDX && CUSTOMIZE_IDX>=0){
-        scrollToIndex(CUSTOMIZE_IDX);
-      } else {
-        orderOnWhatsApp();
-      }
+      if(currentSecIndex!==CUSTOMIZE_IDX && CUSTOMIZE_IDX>=0) scrollToIndex(CUSTOMIZE_IDX);
+      else orderOnWhatsApp();
     });
   }
 
@@ -1062,15 +1315,15 @@ Selected Colors:
         entry.target.classList.add('is-active');
         const idx=parseInt(entry.target.getAttribute('data-index'),10);
         currentSecIndex=isNaN(idx)?0:idx;
-
         secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
         secName.textContent=entry.target.getAttribute('data-name');
-
         updateBottomNav();
-
-        // init STL when entering CUSTOMIZE
         if(entry.target.getAttribute('data-name')==='CUSTOMIZE'){
-          setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); }, 120);
+          setTimeout(()=>{
+            window.initSTLViewer();
+            syncColorUI();
+            draw2DPlate();
+          }, 120);
         }
       } else {
         entry.target.classList.remove('is-active');
@@ -1086,8 +1339,7 @@ Selected Colors:
       w.className='section-wrapper';
       w.setAttribute('data-index',index);
       w.setAttribute('data-name',sec.name);
-
-      w.innerHTML = `
+      w.innerHTML=`
         <article class="card">
           <header class="cardHeader">
             <div class="kicker">${sec.kicker}</div>
@@ -1107,16 +1359,14 @@ Selected Colors:
       observer.observe(w);
     });
 
-    // IMPORTANT: after rerender, CUSTOMIZE canvas changes -> viewer must be able to re-init.
-    // (we keep initedCanvasEl reference; initSTLViewer compares actual element)
     setTimeout(()=>{
       if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots();
       updateBottomNav();
-      applyColors(); // re-sync labels/buttons
+      applyColors();
     }, 60);
   }
 
-  // ===== TRANSLATION TOGGLE =====
+  // ===== TRANSLATION =====
   const btnTranslate=document.getElementById('btnTranslate');
   const toast=document.getElementById('translationToast');
   const btnUndo=document.getElementById('btnUndoTranslate');
@@ -1124,13 +1374,12 @@ Selected Colors:
   let toastTimer;
 
   function triggerTranslation(lang){
-    currentLang=lang;
-    renderSections();
+    currentLang=lang; renderSections();
     toast.classList.add('is-visible');
-    toastMsg.textContent = (lang==='hi') ? "Translated to Hindi" : "Back to English";
-    btnUndo.style.display = (lang==='hi') ? 'block' : 'none';
+    toastMsg.textContent=(lang==='hi')?"Translated to Hindi":"Back to English";
+    btnUndo.style.display=(lang==='hi')?'block':'none';
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(()=>toast.classList.remove('is-visible'), 2200);
+    toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200);
   }
   btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
   btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); toast.classList.remove('is-visible'); });
@@ -1143,46 +1392,25 @@ Selected Colors:
   window.addEventListener('deviceorientation',e=>{
     const g=e.gamma;
     if(g===null||typeof g==='undefined') return;
-    if(!isForcedLandscape){
-      if(g>45) showRotatePopup(90);
-      else if(g<-45) showRotatePopup(-90);
-      else hideRotatePopup();
-    } else {
-      if(Math.abs(g)<25) showRotatePopup(0);
-      else hideRotatePopup();
-    }
+    if(!isForcedLandscape){ if(g>45) showRotatePopup(90); else if(g<-45) showRotatePopup(-90); else hideRotatePopup(); }
+    else { if(Math.abs(g)<25) showRotatePopup(0); else hideRotatePopup(); }
   });
-  function showRotatePopup(a){
-    targetRotationAngle=a;
-    popup.classList.add('is-visible');
-    popup.textContent = (a===0) ? "Tap for Portrait" : "Tap for Landscape";
-  }
+  function showRotatePopup(a){ targetRotationAngle=a; popup.classList.add('is-visible'); popup.textContent=(a===0)?"Tap for Portrait":"Tap for Landscape"; }
   function hideRotatePopup(){ popup.classList.remove('is-visible'); }
   popup.addEventListener('click',()=>{
-    if(targetRotationAngle!==0){
-      appWrapper.classList.add('forced-landscape');
-      appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`;
-      isForcedLandscape=true;
-    } else {
-      appWrapper.classList.remove('forced-landscape');
-      appWrapper.style.transform='none';
-      isForcedLandscape=false;
-    }
+    if(targetRotationAngle!==0){ appWrapper.classList.add('forced-landscape'); appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`; isForcedLandscape=true; }
+    else { appWrapper.classList.remove('forced-landscape'); appWrapper.style.transform='none'; isForcedLandscape=false; }
     hideRotatePopup();
   });
 
-  // Back button behavior (router-safe)
   document.getElementById("backBtn").addEventListener("click", function(e) {
-    if(!this.hasAttribute('data-vd-route')) {
-      e.preventDefault();
-      window.location.href = this.href;
-    }
+    if(!this.hasAttribute('data-vd-route')){ e.preventDefault(); window.location.href = this.href; }
   });
 
   // ===== INIT =====
   renderSections();
   initBottomNav();
-  applyColors(); // sets labels + active buttons at boot
+  applyColors();
 
 })();
 </script>
