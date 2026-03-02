@@ -526,7 +526,6 @@
     });
   })();
 
-  const STL_URL = "./numberplate.stl";
   const WA_NUMBER = "916351537770";
 
   // ===== THEME =====
@@ -543,9 +542,10 @@
   })();
   themeBtns.forEach(btn => btn.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode"))));
 
-  // ===== STL VIEWER STATE =====
+  // ===== 3D VIEWER STATE =====
   let scene=null, renderer=null, camera=null, group=null;
-  let meshBase=null, meshChar=null, meshBoundary=null;
+  let matBase3D=null, matChar3D=null, matBorder3D=null;
+  let charGroup3D=null;
   let pointerDown=false, lastX=0, lastY=0, autoRotate=true;
   let initedCanvasEl = null;
   let renderToken = 0;
@@ -757,18 +757,9 @@
     syncColorUI();
     draw2DPlate();
 
-    if(meshBase && meshBase.material){
-      meshBase.material.color.setHex(getBaseColor());
-      meshBase.material.needsUpdate = true;
-    }
-    if(meshChar && meshChar.material){
-      meshChar.material.color.setHex(getCharColor());
-      meshChar.material.needsUpdate = true;
-    }
-    if(meshBoundary && meshBoundary.material){
-      meshBoundary.material.color.setHex(getBoundaryColor());
-      meshBoundary.material.needsUpdate = true;
-    }
+    if(matBase3D){ matBase3D.color.setHex(getBaseColor()); matBase3D.needsUpdate = true; }
+    if(matChar3D){ matChar3D.color.setHex(getCharColor()); matChar3D.needsUpdate = true; }
+    if(matBorder3D){ matBorder3D.color.setHex(getBoundaryColor()); matBorder3D.needsUpdate = true; }
 
     if(renderer && scene && camera) renderer.render(scene, camera);
   }
@@ -814,83 +805,193 @@
     const cnt = document.getElementById('plateCharCount');
     if(cnt) cnt.textContent = plateText.length + '/12';
     draw2DPlate();
+    rebuild3DChars();
+    if(renderer && scene && camera) renderer.render(scene, camera);
     persistState();
   };
 
-  // ===== STL PARSING =====
-  function buildGeo(ps, ns){
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3));
-    g.setAttribute('normal',   new THREE.Float32BufferAttribute(ns, 3));
-    return g;
+  // ===== PROCEDURAL 3D PLATE =====
+
+  // Plate dimensions
+  const PW=5.0, PH=1.15, PD=0.18, BW=0.13;  // plate W/H/D, border width
+  const CW=0.27, CH=0.63, ST=0.055, CD=0.10; // char W/H, stroke thickness, char raise depth
+
+  // 7-segment + extras: T M B TL TR BL BR CV(center vertical)
+  function segBoxes(){
+    const hH=(CH-ST)/2, qH=CH/4, armH=CH/2-ST*1.6;
+    return {
+      T:  {x:0,          y:hH,    w:CW-ST*0.7, h:ST},
+      M:  {x:0,          y:0,     w:CW-ST*0.7, h:ST},
+      B:  {x:0,          y:-hH,   w:CW-ST*0.7, h:ST},
+      TL: {x:-(CW-ST)/2, y:qH,   w:ST, h:armH},
+      TR: {x: (CW-ST)/2, y:qH,   w:ST, h:armH},
+      BL: {x:-(CW-ST)/2, y:-qH,  w:ST, h:armH},
+      BR: {x: (CW-ST)/2, y:-qH,  w:ST, h:armH},
+      CV: {x:0,          y:0,     w:ST, h:CH-ST*1.8},
+    };
   }
 
-  function parseBinarySTL(buf){
-    const v=new DataView(buf), n=v.getUint32(80,true), pos=[], nor=[];
-    let o=84;
-    for(let i=0;i<n;i++){
-      const nx=v.getFloat32(o,true),ny=v.getFloat32(o+4,true),nz=v.getFloat32(o+8,true); o+=12;
-      for(let j=0;j<3;j++){
-        pos.push(v.getFloat32(o,true),v.getFloat32(o+4,true),v.getFloat32(o+8,true));
-        nor.push(nx,ny,nz); o+=12;
-      }
-      o+=2;
-    }
-    const g=new THREE.BufferGeometry();
-    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-    g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
-    return g;
+  const CHAR_SEGS = {
+    '0':['T','TL','TR','BL','BR','B'],
+    '1':['TR','BR'],
+    '2':['T','TR','M','BL','B'],
+    '3':['T','TR','M','BR','B'],
+    '4':['TL','M','TR','BR'],
+    '5':['T','TL','M','BR','B'],
+    '6':['T','TL','M','BL','BR','B'],
+    '7':['T','TR','BR'],
+    '8':['T','TL','TR','M','BL','BR','B'],
+    '9':['T','TL','TR','M','BR','B'],
+    'A':['T','TL','TR','M','BL','BR'],
+    'B':['T','TL','TR','M','BL','BR','B'],
+    'C':['T','TL','BL','B'],
+    'D':['TL','TR','BL','BR','B'],
+    'E':['T','TL','M','BL','B'],
+    'F':['T','TL','M','BL'],
+    'G':['T','TL','M','BR','BL','B'],
+    'H':['TL','TR','M','BL','BR'],
+    'I':['T','CV','B'],
+    'J':['TR','BR','BL','B'],
+    'K':['TL','M','BL','TR','BR'],
+    'L':['TL','BL','B'],
+    'M':['T','TL','TR','BL','BR'],
+    'N':['TL','TR','BL','BR'],
+    'O':['T','TL','TR','BL','BR','B'],
+    'P':['T','TL','TR','M'],
+    'Q':['T','TL','TR','BL','BR','B'],
+    'R':['T','TL','TR','M','BL'],
+    'S':['T','TL','M','BR','B'],
+    'T':['T','CV'],
+    'U':['TL','TR','BL','BR','B'],
+    'V':['TL','TR','BL','BR','B'],
+    'W':['TL','TR','M','BL','BR'],
+    'X':['TL','TR','M','BL','BR'],
+    'Y':['TL','TR','M','BR'],
+    'Z':['T','TR','M','BL','B'],
+    '-':['M'],
+    ' ':[]
+  };
+
+  function buildCharMeshes(text){
+    const sb = segBoxes();
+    const chars = text.split('');
+    const GAP = 0.09, SPACE_W = CW*0.6;
+
+    // measure total width
+    let totalW = 0;
+    chars.forEach(c => { totalW += (c===' ') ? SPACE_W : CW + GAP; });
+    totalW -= GAP;
+
+    const grp = new THREE.Group();
+    let x = -totalW/2;
+
+    chars.forEach(c => {
+      if(c === ' '){ x += SPACE_W; return; }
+      const segs = CHAR_SEGS[c] || ['T','TL','TR','BL','BR','B','M']; // fallback = full block
+      segs.forEach(sId => {
+        const s = sb[sId]; if(!s) return;
+        const geo = new THREE.BoxGeometry(s.w, s.h, CD);
+        const mesh = new THREE.Mesh(geo, matChar3D);
+        mesh.position.set(x + CW/2 + s.x, s.y, PD/2 + CD/2);
+        grp.add(mesh);
+      });
+      x += CW + GAP;
+    });
+
+    return grp;
   }
 
-  function parseAsciiSTL(txt){
-    const pos=[],nor=[],lines=txt.split(/\r?\n/); let cn=[0,0,1],v=[];
-    for(const lr of lines){
-      const l=lr.trim(); if(!l) continue;
-      if(l.startsWith("facet normal")){
-        const p=l.split(/\s+/); cn=[parseFloat(p[2]),parseFloat(p[3]),parseFloat(p[4])];
-      } else if(l.startsWith("vertex")){
-        const p=l.split(/\s+/);
-        v.push([parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])]);
-        if(v.length===3){
-          for(const vv of v){ pos.push(vv[0],vv[1],vv[2]); nor.push(...cn); }
-          v=[];
-        }
-      }
-    }
-    const g=new THREE.BufferGeometry();
-    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-    g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
-    return g;
+  function rebuild3DChars(){
+    if(!group || !matChar3D) return;
+    if(charGroup3D){ group.remove(charGroup3D); charGroup3D = null; }
+    charGroup3D = buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
+    group.add(charGroup3D);
   }
 
-  function percentile(sorted, p){
-    if(sorted.length===0) return 0;
-    const idx = (sorted.length - 1) * p;
-    const lo = Math.floor(idx), hi = Math.ceil(idx);
-    if(lo===hi) return sorted[lo];
-    const t = idx - lo;
-    return sorted[lo] * (1 - t) + sorted[hi] * t;
+  function buildProceduralPlate(){
+    // ── clear group ──
+    while(group.children.length) group.remove(group.children[0]);
+    charGroup3D = null;
+
+    // ── shared materials ──
+    matBase3D   = new THREE.MeshStandardMaterial({ color:getBaseColor(),     roughness:0.62, metalness:0.06 });
+    matChar3D   = new THREE.MeshStandardMaterial({ color:getCharColor(),     roughness:0.42, metalness:0.10 });
+    matBorder3D = new THREE.MeshStandardMaterial({ color:getBoundaryColor(), roughness:0.55, metalness:0.12 });
+
+    // ── base plate ──
+    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, PD), matBase3D);
+    group.add(baseMesh);
+
+    // ── border frame (4 bars + corner fills) ──
+    const borderParts = [
+      {w:PW+BW*2, h:BW,      d:PD+0.05, x:0,          y: PH/2+BW/2},
+      {w:PW+BW*2, h:BW,      d:PD+0.05, x:0,          y:-PH/2-BW/2},
+      {w:BW,      h:PH,      d:PD+0.05, x:-PW/2-BW/2, y:0},
+      {w:BW,      h:PH,      d:PD+0.05, x: PW/2+BW/2, y:0},
+    ];
+    borderParts.forEach(p=>{
+      const m = new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d), matBorder3D);
+      m.position.set(p.x, p.y, 0);
+      group.add(m);
+    });
+
+    // ── raised plate edge ridge (thin frame on front face) ──
+    const ridgeParts = [
+      {w:PW-BW*0.5, h:0.045, d:0.04, y: PH/2-0.08},
+      {w:PW-BW*0.5, h:0.045, d:0.04, y:-PH/2+0.08},
+    ];
+    ridgeParts.forEach(p=>{
+      const m = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, p.d), matBorder3D);
+      m.position.set(0, p.y, PD/2+0.02);
+      group.add(m);
+    });
+
+    // ── screw holes (cylinders) ──
+    const screwMat = new THREE.MeshStandardMaterial({ color:0x222222, roughness:0.85, metalness:0.3 });
+    const screwCapMat = new THREE.MeshStandardMaterial({ color:getBoundaryColor(), roughness:0.5, metalness:0.4 });
+    const screwPositions = [[-PW/2+0.28, 0], [PW/2-0.28, 0]];
+    screwPositions.forEach(([sx, sy])=>{
+      // recess
+      const rec = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,PD+0.06,10), screwMat);
+      rec.rotation.x = Math.PI/2;
+      rec.position.set(sx, sy, 0);
+      group.add(rec);
+      // cap (border color)
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.04,10), matBorder3D);
+      cap.rotation.x = Math.PI/2;
+      cap.position.set(sx, sy, PD/2+0.02);
+      group.add(cap);
+      // slot lines
+      const slotMat = new THREE.MeshStandardMaterial({color:0x111111, roughness:0.9});
+      const slot = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.018, 0.05), slotMat);
+      slot.position.set(sx, sy, PD/2+0.045);
+      group.add(slot);
+    });
+
+    // ── characters ──
+    charGroup3D = buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
+    group.add(charGroup3D);
+
+    // initial rotation for a nice angle
+    group.rotation.x = -0.22;
+    group.rotation.y =  0.55;
+
+    // fit to view
+    const box = new THREE.Box3().setFromObject(group);
+    const sz  = new THREE.Vector3(); box.getSize(sz);
+    const maxDim = Math.max(sz.x, sz.y) || 1;
+    group.scale.setScalar(2.6 / maxDim);
   }
 
-  async function loadSTLGeometry(){
-    const res = await fetch(STL_URL, { cache:"no-store" });
-    if(!res.ok) throw new Error("Couldn't load STL ("+res.status+"). Put the STL next to this HTML.");
-    const buf = await res.arrayBuffer();
-    const headerText = new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(buf.slice(0,256)));
-    const isAscii = headerText.trimStart().toLowerCase().startsWith("solid") && headerText.toLowerCase().includes("facet");
-    return isAscii ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf))) : parseBinarySTL(buf);
-  }
-
-  // ===== STL INIT =====
-  window.initSTLViewer = async function(){
+  // ===== 3D VIEWER INIT =====
+  window.initSTLViewer = function(){
     const wrap    = document.getElementById('stl-viewer-wrap');
     const canvas  = document.getElementById('stl-canvas');
     const loading = document.getElementById('stl-loading');
     if(!wrap || !canvas) return;
 
     if(initedCanvasEl === canvas && renderer && scene && camera){
-      applyColors();
-      return;
+      applyColors(); return;
     }
 
     renderToken++;
@@ -898,97 +999,64 @@
 
     try{ if(renderer) renderer.dispose(); }catch(e){}
     scene=null; camera=null; group=null;
-    meshBase=null; meshChar=null; meshBoundary=null; renderer=null;
-    initedCanvasEl = canvas;
+    matBase3D=null; matChar3D=null; matBorder3D=null; charGroup3D=null;
+    renderer=null; initedCanvasEl = canvas;
 
-    const W = wrap.clientWidth || 320;
-    const H = 220;
+    const W = wrap.clientWidth || 320, H = 220;
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
     renderer.setSize(W, H, false);
+    renderer.shadowMap.enabled = true;
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
-    camera.position.set(0, 0, 4.2);
+    camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 1000);
+    camera.position.set(0, 0.3, 5.5);
+    camera.lookAt(0, 0, 0);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-    const d1 = new THREE.DirectionalLight(0xffffff, 0.95); d1.position.set(2.5, 3, 2); scene.add(d1);
-    const d2 = new THREE.DirectionalLight(0xffffff, 0.35); d2.position.set(-2, -1, -2); scene.add(d2);
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.60));
+    const d1 = new THREE.DirectionalLight(0xffffff, 1.1); d1.position.set(3, 4, 3); scene.add(d1);
+    const d2 = new THREE.DirectionalLight(0xffffff, 0.40); d2.position.set(-3, -1, -2); scene.add(d2);
+    const d3 = new THREE.DirectionalLight(0xffffff, 0.25); d3.position.set(0, -3, 2); scene.add(d3);
 
     group = new THREE.Group();
     scene.add(group);
 
-    try{
-      const geo = await loadSTLGeometry();
-      geo.computeBoundingBox();
-      geo.center();
+    buildProceduralPlate();
 
-      const pa = geo.getAttribute('position');
-      const na = geo.getAttribute('normal');
+    if(loading) loading.classList.add('hidden');
 
-      const zVals = [];
-      for(let i=0;i<pa.count;i++) zVals.push(pa.array[i*3+2]);
-      zVals.sort((a,b)=>a-b);
-      const zCut = percentile(zVals, 0.72);
-
-      const baseP=[], baseN=[], charP=[], charN=[], sideP=[], sideN=[];
-
-      for(let i=0;i<pa.count;i+=3){
-        const i0=i, i1=i+1, i2=i+2;
-        const z0=pa.array[i0*3+2], z1=pa.array[i1*3+2], z2=pa.array[i2*3+2];
-        const avgZ=(z0+z1+z2)/3;
-        const nz0=na.array[i0*3+2], nz1=na.array[i1*3+2], nz2=na.array[i2*3+2];
-        const avgNZ=(nz0+nz1+nz2)/3;
-        const tp=[pa.array[i0*3],pa.array[i0*3+1],pa.array[i0*3+2],pa.array[i1*3],pa.array[i1*3+1],pa.array[i1*3+2],pa.array[i2*3],pa.array[i2*3+1],pa.array[i2*3+2]];
-        const tn=[na.array[i0*3],na.array[i0*3+1],na.array[i0*3+2],na.array[i1*3],na.array[i1*3+1],na.array[i1*3+2],na.array[i2*3],na.array[i2*3+1],na.array[i2*3+2]];
-        if(avgZ < zCut){ baseP.push(...tp); baseN.push(...tn); }
-        else if(avgNZ > 0.55){ charP.push(...tp); charN.push(...tn); }
-        else { sideP.push(...tp); sideN.push(...tn); }
-      }
-
-      const matBase = new THREE.MeshStandardMaterial({ color: getBaseColor(), roughness:0.62, metalness:0.06 });
-      const matChar = new THREE.MeshStandardMaterial({ color: getCharColor(), roughness:0.55, metalness:0.06 });
-      const matSide = new THREE.MeshStandardMaterial({ color: getBoundaryColor(), roughness:0.58, metalness:0.06 });
-
-      meshBase = new THREE.Mesh(buildGeo(baseP, baseN), matBase); group.add(meshBase);
-      if(charP.length > 0){ meshChar = new THREE.Mesh(buildGeo(charP, charN), matChar); group.add(meshChar); }
-      if(sideP.length > 0){ meshBoundary = new THREE.Mesh(buildGeo(sideP, sideN), matSide); group.add(meshBoundary); }
-
-      group.rotation.x = -0.35;
-      group.rotation.y =  0.85;
-
-      const box = new THREE.Box3().setFromObject(group);
-      const sz  = new THREE.Vector3(); box.getSize(sz);
-      const maxDim = Math.max(sz.x, sz.y, sz.z) || 1;
-      group.scale.setScalar(2.45 / maxDim);
-
-      if(loading) loading.classList.add('hidden');
-
-      function onDown(e){ pointerDown=true; autoRotate=false; const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY; }
-      function onMove(e){ if(!pointerDown||!group) return; const t=e.touches?e.touches[0]:e; group.rotation.y+=(t.clientX-lastX)*0.01; group.rotation.x+=(t.clientY-lastY)*0.01; lastX=t.clientX; lastY=t.clientY; }
-      function onUp(){ pointerDown=false; }
-      wrap.onpointerdown=onDown; wrap.onpointermove=onMove; window.onpointerup=onUp;
-
-      window.addEventListener('resize',()=>{
-        if(!wrap||!renderer||!camera) return;
-        const w=wrap.clientWidth||320, h=220;
-        renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.render(scene,camera);
-      });
-
-      (function animate(){
-        if(myToken !== renderToken) return;
-        requestAnimationFrame(animate);
-        if(autoRotate && group) group.rotation.y += 0.004;
-        if(renderer && scene && camera) renderer.render(scene, camera);
-      })();
-
-      applyColors();
-
-    } catch(err){
-      if(loading) loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
-      console.error("Numberplate STL viewer error:", err);
+    // ── interaction ──
+    function onDown(e){
+      pointerDown=true; autoRotate=false;
+      const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY;
     }
+    function onMove(e){
+      if(!pointerDown||!group) return;
+      const t=e.touches?e.touches[0]:e;
+      group.rotation.y+=(t.clientX-lastX)*0.012;
+      group.rotation.x+=(t.clientY-lastY)*0.008;
+      lastX=t.clientX; lastY=t.clientY;
+    }
+    function onUp(){ pointerDown=false; }
+    wrap.onpointerdown=onDown; wrap.onpointermove=onMove; window.onpointerup=onUp;
+
+    window.addEventListener('resize',()=>{
+      if(!wrap||!renderer||!camera) return;
+      const w=wrap.clientWidth||320;
+      renderer.setSize(w,220,false); camera.aspect=w/220; camera.updateProjectionMatrix();
+      renderer.render(scene,camera);
+    });
+
+    (function animate(){
+      if(myToken !== renderToken) return;
+      requestAnimationFrame(animate);
+      if(autoRotate && group) group.rotation.y += 0.006;
+      if(renderer && scene && camera) renderer.render(scene, camera);
+    })();
+
+    applyColors();
   };
 
   // ===== CONTENT =====
