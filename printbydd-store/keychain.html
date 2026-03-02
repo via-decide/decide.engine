@@ -1259,9 +1259,14 @@
     hideRotatePopup();
   });
 
-  // Back button
+  // Back button: history.back() if possible, else home via routeTo
   document.getElementById("backBtn").addEventListener("click", (e)=>{
-    // keep normal navigation (your site handles routes)
+    e.preventDefault();
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = routeTo('./index.html', '/printbydd/');
+    }
   });
 
   // Boot
