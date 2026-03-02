@@ -687,7 +687,7 @@ section{position:relative;z-index:10}
       <p>This page has security restrictions that prevent embedding. Open it in a new tab to use it fully.</p>
       <a id="err-open-link" href="#" target="_blank" class="err-btn">Open in New Tab ↗</a>
     </div>
-    <iframe id="modal-frame" src="about:blank" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"></iframe>
+    <iframe id="modal-frame" src="about:blank" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
   </div>
 </div>
 
@@ -754,6 +754,11 @@ document.querySelectorAll('.dev-tab').forEach(tab=>{
 /* ─── MODAL ─── */
 let currentFile='';
 function openModal(file,icon,name){
+  // If target is an external URL, open in new tab — never load in sandboxed iframe
+  if (/^https?:\/\//i.test(file)) {
+    window.open(file, '_blank', 'noopener,noreferrer');
+    return;
+  }
   currentFile=file;
   document.getElementById('m-icon').textContent=icon;
   document.getElementById('m-name').textContent=name;
