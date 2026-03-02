@@ -64,6 +64,7 @@
     .site-header nav a{ color:var(--text-muted); font-weight:700; font-size:13px; transition:color .2s; text-transform:uppercase; letter-spacing:.05em; }
     .site-header nav a:hover, .site-header nav a.active{ color:var(--text); }
 
+    /* invert theme */
     body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
@@ -215,8 +216,6 @@
     }
     .stl-color-btn:active{ transform:scale(0.97); }
     .stl-color-btn.active{ border-color:var(--accent); background:var(--accent-glow); color:#fff; }
-    .stl-color-btn:disabled{ opacity:0.35; pointer-events:none; }
-    .stl-swatch{ width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); flex-shrink:0; }
     @media (max-width:420px){ .stl-color-btn{ min-width:46%; } }
 
     .rotate-popup{
@@ -369,7 +368,7 @@
           <span>@printbydd</span>
         </a>
 
-        <!-- FIX: use class instead of duplicate id -->
+        <!-- IMPORTANT: no duplicate IDs -->
         <button class="btn-icon theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
       </div>
     </header>
@@ -377,7 +376,6 @@
     <div class="top">
       <a class="back" id="backBtn">← Back</a>
       <div class="top-actions">
-        <!-- FIX: use class instead of duplicate id -->
         <button class="btn-icon theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
         <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
         <div class="pill"><b id="secLabel">SEC 1/6</b> • <span id="secName">INTRO</span></div>
@@ -408,6 +406,7 @@
 (function(){
   "use strict";
 
+  // ===== ROUTING HELPER =====
   function routeTo(pathHtml, pathStore) {
     return location.hostname === 'store.viadecide.com' ? pathStore : pathHtml;
   }
@@ -425,13 +424,13 @@
     });
   })();
 
+  // ===== CONFIG =====
   const STL_URL = "./numberplate.stl";
   const WA_NUMBER = "916351537770";
 
-  // ===== THEME (invert) =====
+  // ===== THEME =====
   const THEME_KEY = "VD_INVERT_THEME";
   const themeBtns = Array.from(document.querySelectorAll(".theme-toggle"));
-
   function setInvert(on){
     document.body.classList.toggle("invert-mode", !!on);
     themeBtns.forEach(b => b.textContent = on ? "☀" : "☾");
@@ -443,11 +442,17 @@
   })();
   themeBtns.forEach(btn => btn.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode"))));
 
-  // ===== STL VIEWER =====
+  // ===== STL VIEWER STATE =====
   let scene=null, renderer=null, camera=null, group=null;
   let meshBase=null, meshChar=null, meshBoundary=null;
 
-  let pointerDown=false, lastX=0, lastY=0, inited=false, autoRotate=true;
+  let pointerDown=false, lastX=0, lastY=0, autoRotate=true;
+
+  // IMPORTANT: re-init if canvas changes (translation rerender creates new canvas)
+  let initedCanvasEl = null;
+
+  // IMPORTANT: stop old render loops when re-initting
+  let renderToken = 0;
 
   const COLOR_STORAGE_KEY = "PBD_NUMBERPLATE_COLORS_V1";
 
@@ -495,69 +500,78 @@
     }catch(e){}
   }
 
-  // ====== FIXED COLOR COMBINATION LOGIC ======
-  function hexToRgb(hex){
-    const r = (hex >> 16) & 255;
-    const g = (hex >> 8) & 255;
-    const b = hex & 255;
-    return [r,g,b];
-  }
-  function srgbToLin(c){
-    c /= 255;
-    return (c <= 0.04045) ? (c / 12.92) : Math.pow((c + 0.055)/1.055, 2.4);
-  }
-  function relLuminance(hex){
-    const [r,g,b] = hexToRgb(hex);
-    const R = srgbToLin(r), G = srgbToLin(g), B = srgbToLin(b);
-    return 0.2126*R + 0.7152*G + 0.0722*B;
-  }
-  function contrastRatio(hex1, hex2){
-    const L1 = relLuminance(hex1);
-    const L2 = relLuminance(hex2);
-    const hi = Math.max(L1,L2), lo = Math.min(L1,L2);
-    return (hi + 0.05) / (lo + 0.05);
-  }
-
-  const MIN_CHAR_CONTRAST = 3.0; // tweak if needed (3 is ok for a product preview)
-
-  function pickBestKey(paletteObj, avoidKeys, preferAgainstHex){
-    const keys = Object.keys(paletteObj);
-    let best = keys[0];
-    let bestScore = -Infinity;
-    for(const k of keys){
-      if(avoidKeys && avoidKeys.includes(k)) continue;
-      const score = contrastRatio(paletteObj[k], preferAgainstHex);
-      if(score > bestScore){
-        bestScore = score;
-        best = k;
-      }
+  // ===== COLOR COMBINATION LOGIC (fixed) =====
+  // Rule: chars should not equal base; boundary should not equal chars.
+  function enforceColorRules(){
+    if(currentCharKey === currentBaseKey){
+      // pick a default contrast option
+      currentCharKey = (currentBaseKey === "white") ? "black" : "white";
+      if(!CHAR_COLORS[currentCharKey]) currentCharKey = Object.keys(CHAR_COLORS)[0];
     }
-    return best;
-  }
-
-  function enforceColorRules(changedPart){
-    // 1) Characters must not match Base
-    if(currentCharKey in CHAR_COLORS && currentBaseKey in BASE_COLORS){
-      const charHex = CHAR_COLORS[currentCharKey];
-      const baseHex = BASE_COLORS[currentBaseKey];
-
-      if(currentCharKey === currentBaseKey || contrastRatio(charHex, baseHex) < MIN_CHAR_CONTRAST){
-        currentCharKey = pickBestKey(CHAR_COLORS, [currentBaseKey], baseHex);
-      }
-    }
-
-    // 2) Boundary must not match Characters
-    if(currentBoundaryKey in BOUNDARY_COLORS && currentCharKey in CHAR_COLORS){
-      const boundaryHex = BOUNDARY_COLORS[currentBoundaryKey];
-      const charHex = CHAR_COLORS[currentCharKey];
-
-      if(currentBoundaryKey === currentCharKey || contrastRatio(boundaryHex, charHex) < 1.6){
-        // choose boundary that contrasts with characters (avoid char color)
-        currentBoundaryKey = pickBestKey(BOUNDARY_COLORS, [currentCharKey], charHex);
-      }
+    if(currentBoundaryKey === currentCharKey){
+      // pick a safe different boundary
+      currentBoundaryKey = (currentCharKey === "red") ? "black" : "red";
+      if(!BOUNDARY_COLORS[currentBoundaryKey]) currentBoundaryKey = Object.keys(BOUNDARY_COLORS)[0];
     }
   }
 
+  function syncColorUI(){
+    document.querySelectorAll('[data-base-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-base-btn')===currentBaseKey));
+    document.querySelectorAll('[data-char-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-char-btn')===currentCharKey));
+    document.querySelectorAll('[data-boundary-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-boundary-btn')===currentBoundaryKey));
+
+    const bl=document.getElementById("baseLbl"), cl=document.getElementById("charLbl"), sl=document.getElementById("boundaryLbl");
+    if(bl) bl.textContent=currentBaseKey.toUpperCase();
+    if(cl) cl.textContent=currentCharKey.toUpperCase();
+    if(sl) sl.textContent=currentBoundaryKey.toUpperCase();
+  }
+
+  // ✅ THIS is the critical fix: always update materials + force render if ready
+  function applyColors(){
+    enforceColorRules();
+    persistColors();
+    syncColorUI();
+
+    if(meshBase && meshBase.material) {
+      meshBase.material.color.setHex(BASE_COLORS[currentBaseKey]);
+      meshBase.material.needsUpdate = true;
+    }
+    if(meshChar && meshChar.material) {
+      meshChar.material.color.setHex(CHAR_COLORS[currentCharKey]);
+      meshChar.material.needsUpdate = true;
+    }
+    if(meshBoundary && meshBoundary.material) {
+      meshBoundary.material.color.setHex(BOUNDARY_COLORS[currentBoundaryKey]);
+      meshBoundary.material.needsUpdate = true;
+    }
+
+    // force immediate repaint (so you SEE it change)
+    if(renderer && scene && camera){
+      renderer.render(scene, camera);
+    }
+  }
+
+  window.setBaseColor = function(key){
+    if(!BASE_COLORS[key]) return;
+    currentBaseKey = key;
+    applyColors();
+    // if user clicks before viewer fully init, init it
+    if(document.getElementById("stl-canvas")) window.initSTLViewer();
+  };
+  window.setCharColor = function(key){
+    if(!CHAR_COLORS[key]) return;
+    currentCharKey = key;
+    applyColors();
+    if(document.getElementById("stl-canvas")) window.initSTLViewer();
+  };
+  window.setBoundaryColor = function(key){
+    if(!BOUNDARY_COLORS[key]) return;
+    currentBoundaryKey = key;
+    applyColors();
+    if(document.getElementById("stl-canvas")) window.initSTLViewer();
+  };
+
+  // ===== STL parsing =====
   function buildGeo(ps, ns){
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3));
@@ -622,71 +636,32 @@
     return isAscii ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf))) : parseBinarySTL(buf);
   }
 
-  function applyColors(){
-    // enforce rules BEFORE applying
-    enforceColorRules("apply");
-
-    if(meshBase)     meshBase.material.color.setHex(BASE_COLORS[currentBaseKey]);
-    if(meshChar)     meshChar.material.color.setHex(CHAR_COLORS[currentCharKey]);
-    if(meshBoundary) meshBoundary.material.color.setHex(BOUNDARY_COLORS[currentBoundaryKey]);
-
-    persistColors();
-    syncColorUI();
-  }
-
-  function syncColorUI(){
-    // active states
-    document.querySelectorAll('[data-base-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-base-btn')===currentBaseKey));
-    document.querySelectorAll('[data-char-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-char-btn')===currentCharKey));
-    document.querySelectorAll('[data-boundary-btn]').forEach(b => b.classList.toggle('active', b.getAttribute('data-boundary-btn')===currentBoundaryKey));
-
-    // disable invalid selections (so user sees rule)
-    const baseHex = BASE_COLORS[currentBaseKey];
-    document.querySelectorAll('[data-char-btn]').forEach(b=>{
-      const k = b.getAttribute('data-char-btn');
-      const hex = CHAR_COLORS[k];
-      const invalid = (k === currentBaseKey) || (contrastRatio(hex, baseHex) < MIN_CHAR_CONTRAST);
-      b.disabled = invalid;
-      b.title = invalid ? "Not allowed: characters must strongly contrast with base" : "";
-    });
-
-    document.querySelectorAll('[data-boundary-btn]').forEach(b=>{
-      const k = b.getAttribute('data-boundary-btn');
-      const invalid = (k === currentCharKey);
-      b.disabled = invalid;
-      b.title = invalid ? "Not allowed: boundary can't be same as characters" : "";
-    });
-
-    // labels
-    const bl=document.getElementById("baseLbl"), cl=document.getElementById("charLbl"), sl=document.getElementById("boundaryLbl");
-    if(bl) bl.textContent=currentBaseKey.toUpperCase();
-    if(cl) cl.textContent=currentCharKey.toUpperCase();
-    if(sl) sl.textContent=currentBoundaryKey.toUpperCase();
-  }
-
-  window.setBaseColor = function(key){
-    if(!BASE_COLORS[key]) return;
-    currentBaseKey = key;
-    applyColors();
-  };
-  window.setCharColor = function(key){
-    if(!CHAR_COLORS[key]) return;
-    currentCharKey = key;
-    applyColors();
-  };
-  window.setBoundaryColor = function(key){
-    if(!BOUNDARY_COLORS[key]) return;
-    currentBoundaryKey = key;
-    applyColors();
-  };
-
+  // ===== STL INIT (re-inits if canvas changes) =====
   window.initSTLViewer = async function(){
-    if(inited) return;
     const wrap    = document.getElementById('stl-viewer-wrap');
     const canvas  = document.getElementById('stl-canvas');
     const loading = document.getElementById('stl-loading');
     if(!wrap || !canvas) return;
-    inited = true;
+
+    // already initialized for this exact canvas element
+    if(initedCanvasEl === canvas && renderer && scene && camera) {
+      // but still apply current colors (important)
+      applyColors();
+      return;
+    }
+
+    // stop old render loop(s)
+    renderToken++;
+    const myToken = renderToken;
+
+    // dispose old renderer if any
+    try{ if(renderer) renderer.dispose(); }catch(e){}
+
+    scene=null; camera=null; group=null;
+    meshBase=null; meshChar=null; meshBoundary=null;
+    renderer=null;
+
+    initedCanvasEl = canvas;
 
     const W = wrap.clientWidth || 320;
     const H = 280;
@@ -708,6 +683,7 @@
 
     try{
       const geo = await loadSTLGeometry();
+
       geo.computeBoundingBox();
       geo.center();
 
@@ -749,6 +725,7 @@
         if(avgZ < zCut){
           baseP.push(...tp); baseN.push(...tn);
         } else {
+          // top faces = chars, side/angled = boundary-height
           if(avgNZ > 0.55){
             charP.push(...tp); charN.push(...tn);
           } else {
@@ -757,6 +734,7 @@
         }
       }
 
+      // Materials (colors applied again via applyColors())
       const matBase = new THREE.MeshStandardMaterial({ color: BASE_COLORS[currentBaseKey], roughness:0.62, metalness:0.06 });
       const matChar = new THREE.MeshStandardMaterial({ color: CHAR_COLORS[currentCharKey], roughness:0.55, metalness:0.06 });
       const matSide = new THREE.MeshStandardMaterial({ color: BOUNDARY_COLORS[currentBoundaryKey], roughness:0.58, metalness:0.06 });
@@ -773,6 +751,7 @@
         group.add(meshBoundary);
       }
 
+      // Fit / initial pose
       group.rotation.x = -0.35;
       group.rotation.y =  0.85;
 
@@ -783,13 +762,14 @@
 
       if(loading) loading.classList.add('hidden');
 
+      // interactions
       function onDown(e){
         pointerDown=true; autoRotate=false;
         const t = e.touches ? e.touches[0] : e;
         lastX=t.clientX; lastY=t.clientY;
       }
       function onMove(e){
-        if(!pointerDown) return;
+        if(!pointerDown || !group) return;
         const t = e.touches ? e.touches[0] : e;
         group.rotation.y += (t.clientX-lastX) * 0.01;
         group.rotation.x += (t.clientY-lastY) * 0.01;
@@ -797,28 +777,31 @@
       }
       function onUp(){ pointerDown=false; }
 
-      wrap.addEventListener('pointerdown', onDown);
-      wrap.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      wrap.addEventListener('touchstart', onDown, {passive:true});
-      wrap.addEventListener('touchmove',  onMove, {passive:true});
-      wrap.addEventListener('touchend',   onUp,   {passive:true});
+      wrap.onpointerdown = onDown;
+      wrap.onpointermove = onMove;
+      window.onpointerup = onUp;
 
+      // resize
       window.addEventListener('resize', ()=>{
         if(!wrap || !renderer || !camera) return;
         const w = wrap.clientWidth || 320, h = 280;
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
+        renderer.render(scene, camera);
       });
 
+      // render loop (token-guarded)
       (function animate(){
+        if(myToken !== renderToken) return; // stop if re-initted
         requestAnimationFrame(animate);
         if(autoRotate && group) group.rotation.y += 0.004;
         if(renderer && scene && camera) renderer.render(scene, camera);
       })();
 
+      // ✅ apply current colors AFTER meshes exist
       applyColors();
+
     } catch(err){
       if(loading){
         loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
@@ -950,7 +933,7 @@
             <li><b>Boundary-height:</b> colored by vertical/angled faces around raised geometry.</li>
             <li><b>Base:</b> everything below the raised Z-threshold.</li>
           </ul>
-          <div class="qt">If you ever change the STL height, the splitter still works because it’s percentile-based — not hardcoded.</div>
+          <div class="qt">Percentile-based splitting, so it stays stable if STL height changes.</div>
         `,
         hi:()=>`
           <div class="sg">
@@ -963,35 +946,7 @@
             <li><b>Boundary-height:</b> raised geometry की side walls से color होता है।</li>
             <li><b>Base:</b> raised threshold के नीचे वाला हिस्सा।</li>
           </ul>
-          <div class="qt">STL बदलें तब भी splitter percentile-based है, इसलिए stable रहता है।</div>
-        `
-      }
-    },
-    {
-      name:"BLOG", kicker:"BLOG • WHY OBJECTS STICK",
-      title:{ en:"Why we remember <span class='r'>objects</span> more than ads.", hi:"Humans ads नहीं, <span class='r'>objects</span> याद रखते हैं." },
-      html:{
-        en:()=>`
-          <p class="big">A plate is a label. <span class="r">Design</span> makes it identity.</p>
-          <p class="lead">
-            Most things you buy are “functional.” They do the job, and then they disappear into the background.
-            But the objects you actually remember — and keep — have one thing in common: <b>they become part of a routine</b>.
-          </p>
-          <p class="lead">
-            A numberplate is exactly that kind of object. You see it repeatedly. Other people see it repeatedly.
-            That repetition turns a simple detail into an identity cue — especially when the form is clean and the hierarchy is obvious.
-          </p>
-          <div class="qt">When something is easy to read, it feels trustworthy. That’s not aesthetics. That’s psychology.</div>
-          <p class="lead">
-            Two-tone isn’t “decoration.” It’s a readability system:
-            the base becomes quiet, the characters become dominant, and the boundary-height prevents the digits from bleeding into the surface.
-          </p>
-          <div class="qt">Good design isn’t louder. It’s clearer.</div>
-        `,
-        hi:()=>`
-          <p class="big">Plate label है. <span class="r">Design</span> उसे identity बनाता है.</p>
-          <p class="lead">Two-tone decoration नहीं है। ये readability system है।</p>
-          <div class="qt">Good design loud नहीं — clear होता है।</div>
+          <div class="qt">STL बदलें तब भी splitter stable रहता है।</div>
         `
       }
     },
@@ -1001,16 +956,13 @@
       html:{
         en:()=>`
           <p class="big">Make it <span class="r">yours</span>.</p>
-          <p class="lead">If you want a clean, engineered finish — keep characters high-contrast and boundary-height darker.</p>
+          <p class="lead">Want the cleanest look? Keep characters high-contrast vs base.</p>
           <button class="cp" onclick="scrollToSectionByName('CUSTOMIZE')">
             <span class="cpulse"></span><div class="ci">🎛 Go to Customizer <div class="ca">→</div></div>
           </button>
           <button class="cp" style="margin-top:10px; background:linear-gradient(135deg,#111,#000);" onclick="orderOnWhatsApp()">
             <span class="cpulse" style="opacity:.2"></span><div class="ci">💬 WhatsApp Order <div class="ca">→</div></div>
           </button>
-          <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.30);line-height:1.6;">
-            Your selected colors are saved on this device (localStorage), so you can come back later.
-          </p>
         `,
         hi:()=>`
           <p class="big"><span class="r">Order</span> ready.</p>
@@ -1020,6 +972,7 @@
     }
   ];
 
+  // ===== ORDER =====
   window.orderOnWhatsApp = function(){
     const msg =
 `Hi! I want to order the 3D Numberplate.
@@ -1033,6 +986,7 @@ Selected Colors:
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
+  // ===== NAV / RENDER =====
   const container=document.getElementById('scrollContainer');
   const secLabel=document.getElementById('secLabel');
   const secName=document.getElementById('secName');
@@ -1114,6 +1068,7 @@ Selected Colors:
 
         updateBottomNav();
 
+        // init STL when entering CUSTOMIZE
         if(entry.target.getAttribute('data-name')==='CUSTOMIZE'){
           setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); }, 120);
         }
@@ -1152,9 +1107,16 @@ Selected Colors:
       observer.observe(w);
     });
 
-    setTimeout(()=>{ if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots(); updateBottomNav(); syncColorUI(); }, 60);
+    // IMPORTANT: after rerender, CUSTOMIZE canvas changes -> viewer must be able to re-init.
+    // (we keep initedCanvasEl reference; initSTLViewer compares actual element)
+    setTimeout(()=>{
+      if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots();
+      updateBottomNav();
+      applyColors(); // re-sync labels/buttons
+    }, 60);
   }
 
+  // ===== TRANSLATION TOGGLE =====
   const btnTranslate=document.getElementById('btnTranslate');
   const toast=document.getElementById('translationToast');
   const btnUndo=document.getElementById('btnUndoTranslate');
@@ -1173,6 +1135,7 @@ Selected Colors:
   btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
   btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); toast.classList.remove('is-visible'); });
 
+  // ===== ROTATION POPUP =====
   const popup=document.getElementById('rotatePopup');
   const appWrapper=document.getElementById('appWrapper');
   let isForcedLandscape=false, targetRotationAngle=0;
@@ -1208,6 +1171,7 @@ Selected Colors:
     hideRotatePopup();
   });
 
+  // Back button behavior (router-safe)
   document.getElementById("backBtn").addEventListener("click", function(e) {
     if(!this.hasAttribute('data-vd-route')) {
       e.preventDefault();
@@ -1215,13 +1179,10 @@ Selected Colors:
     }
   });
 
-  // Init
+  // ===== INIT =====
   renderSections();
   initBottomNav();
-
-  // enforce + sync once at boot
-  enforceColorRules("boot");
-  syncColorUI();
+  applyColors(); // sets labels + active buttons at boot
 
 })();
 </script>
