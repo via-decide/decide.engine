@@ -290,7 +290,7 @@
       <nav>
         <a id="navHome">Home</a>
         <a class="active">Products</a>
-        <a href="/printbydd-store/gifts-that-mean-more">Blog</a>
+        <a id="navBlog">Blog</a>
       </nav>
       <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
          target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
@@ -407,10 +407,11 @@
     }
 
     // ── Set nav + CTA links ─────────────────────────────────────
-    document.getElementById('homeLink').href       = routeTo('./index.html',       '/printbydd-store/');
-    document.getElementById('navHome').href        = routeTo('./index.html',       '/printbydd-store/');
-    document.getElementById('cta-keychain').href   = routeTo('./keychain.html',    '/printbydd-store/keychain/');
-    document.getElementById('cta-numberplate').href= routeTo('./numberplate.html', '/printbydd-store/numberplate/');
+    document.getElementById('homeLink').href        = routeTo('./index.html',               '/printbydd/');
+    document.getElementById('navHome').href         = routeTo('./index.html',               '/printbydd/');
+    document.getElementById('navBlog').href         = routeTo('./gifts-that-mean-more.html','/printbydd/gifts');
+    document.getElementById('cta-keychain').href    = routeTo('./keychain.html',            '/printbydd/keychain');
+    document.getElementById('cta-numberplate').href = routeTo('./numberplate.html',         '/printbydd/numberplate');
 
     // Also make the whole card clickable
     function makeCardClickable(cardId, linkId) {
