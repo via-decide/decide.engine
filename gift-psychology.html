@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,7 +8,6 @@
   <meta name="description" content="Why personalized gifts create stronger emotional bonds — psychology, memory and everyday meaning."/>
   <title>Personalized Gifts & Emotional Bonds • The Gift Lab</title>
 
-  <!-- Universal Router — place router.js in same folder -->
   <script src="./router.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -15,6 +15,57 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;0,900;1,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
   <style>
+    /* ══════════════ GLOBAL UX PATCH ══════════════ */
+    /* 1. Remove iOS/Android blue tap highlight on all interactive elements */
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 2. Remove focus outline for pointer/mouse users only; keep for keyboard (accessibility) */
+    *:focus:not(:focus-visible) {
+      outline: none !important;
+    }
+    /* Optional: style keyboard focus for visibility */
+    *:focus-visible {
+      outline: 2px solid rgba(167, 139, 250, 0.6);
+      outline-offset: 2px;
+    }
+
+    /* 3. Suppress blue selection highlight across the page */
+    ::selection {
+      background: rgba(167, 139, 250, 0.22);
+      color: inherit;
+    }
+    ::-moz-selection {
+      background: rgba(167, 139, 250, 0.22);
+      color: inherit;
+    }
+
+    /* 4. Disable text selection globally */
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* 5. Re-enable selection for editable and code elements */
+    input,
+    textarea,
+    [contenteditable="true"],
+    [contenteditable],
+    .allow-select,
+    pre,
+    code {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+    /* ══════════════ END GLOBAL UX PATCH ══════════════ */
+
     /* ══════════════ TOKENS ══════════════ */
     :root {
       --bg:        #070508;
@@ -186,7 +237,8 @@
     .btn,.btn-s{display:flex;justify-content:center;align-items:center;gap:8px;
       width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:14.5px;
       cursor:pointer;border:none;font-family:var(--body);text-decoration:none;
-      transition:transform .18s,filter .18s,box-shadow .18s}
+      transition:transform .18s,filter .18s,box-shadow .18s;
+      -webkit-tap-highlight-color:transparent}
     .btn{background:linear-gradient(135deg,var(--rose),#e11d48);color:#fff;
       box-shadow:0 8px 28px rgba(251,113,133,.28)}
     .btn-s{background:rgba(255,255,255,.05);color:var(--text);
@@ -205,7 +257,7 @@
       border-radius:12px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.06)}
     .av{width:36px;height:36px;border-radius:50%;flex-shrink:0;
       background:linear-gradient(135deg,var(--rose),var(--violet));
-      display:flex;align-items:center;justify-content:center;font-size:15px}
+      display:flex;align-items:center;justify-content:font-size:15px}
     .an{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
     .am{font-size:11px;color:var(--muted)}
 
@@ -236,54 +288,32 @@
     #toast.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
 
     /* ══════════════ SVG ANIMATION KEYFRAMES ══════════════ */
-
-    /* gift box */
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     @keyframes lid-pop{0%,70%{transform:translateY(0) rotate(0deg)}80%{transform:translateY(-16px) rotate(-8deg)}100%{transform:translateY(-14px) rotate(-6deg)}}
     @keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
     @keyframes ribbon-wave{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.04)}}
-
-    /* heart pulse */
     @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.08)}70%{transform:scale(1)}}
     @keyframes ripple{0%{r:20;opacity:.6}100%{r:60;opacity:0}}
     @keyframes glow-pulse{0%,100%{filter:blur(18px);opacity:.5}50%{filter:blur(24px);opacity:.8}}
-
-    /* eye */
     @keyframes blink{0%,94%,100%{transform:scaleY(1)}96%,98%{transform:scaleY(.08)}}
     @keyframes iris-glow{0%,100%{opacity:.7}50%{opacity:1}}
     @keyframes scan-line{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
-
-    /* bars */
     @keyframes bar-grow{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
     @keyframes arrow-up{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-
-    /* brain nodes */
     @keyframes node-pulse{0%,100%{r:5;opacity:.8}50%{r:7;opacity:1}}
     @keyframes edge-dash{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}
     @keyframes brain-glow{0%,100%{opacity:.4}50%{opacity:.8}}
-
-    /* keychain swing */
     @keyframes swing{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
     @keyframes ring-spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-
-    /* scales */
     @keyframes tilt-heart{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(-3deg)}}
     @keyframes tilt-price{0%,100%{transform:rotate(6deg)}50%{transform:rotate(3deg)}}
-
-    /* orbit */
     @keyframes orbit-a{0%{transform:rotate(0deg) translateX(42px) rotate(0deg)}100%{transform:rotate(360deg) translateX(42px) rotate(-360deg)}}
     @keyframes orbit-b{0%{transform:rotate(180deg) translateX(42px) rotate(-180deg)}100%{transform:rotate(540deg) translateX(42px) rotate(-540deg)}}
     @keyframes merge-glow{0%,100%{opacity:.3}50%{opacity:.7}}
-
-    /* dollar fade heart */
     @keyframes dollar-fade{0%,40%{opacity:1}70%,100%{opacity:.1}}
     @keyframes heart-emerge{0%,30%{transform:scale(0);opacity:0}60%,100%{transform:scale(1);opacity:1}}
-
-    /* sun rays */
     @keyframes spin-slow{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
     @keyframes smile-draw{0%{stroke-dashoffset:60}100%{stroke-dashoffset:0}}
-
-    /* bow */
     @keyframes bow-bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
     @keyframes confetti-fall{0%{transform:translateY(-30px) rotate(0deg);opacity:1}100%{transform:translateY(90px) rotate(720deg);opacity:0}}
   </style>
@@ -315,6 +345,49 @@
 (function(){
 "use strict";
 
+/* ══ iOS Safari tap highlight & focus safety patch ══ */
+(function(){
+  // Prevent any focus-triggered outline flash on touchstart
+  // WITHOUT blocking scroll or click behaviour
+  var touchStarted = false;
+  document.addEventListener('touchstart', function(){
+    touchStarted = true;
+  }, {passive: true});
+
+  document.addEventListener('focusin', function(e){
+    if(touchStarted){
+      // Only suppress outline — don't prevent default or stop propagation
+      var el = e.target;
+      if(el && el.style !== undefined){
+        // Temporarily suppress, restore after paint so keyboard nav still works
+        el.style.outline = 'none';
+        requestAnimationFrame(function(){
+          el.style.outline = '';
+        });
+      }
+      touchStarted = false;
+    }
+  }, {passive: true});
+
+  // Re-enable keyboard focus styling when Tab key is used
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Tab'){
+      touchStarted = false;
+    }
+  }, {passive: true});
+})();
+
+/* ══ Keyboard support for any div[role="button"] or div[role="link"] ══ */
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){
+    var el = document.activeElement;
+    if(el && (el.getAttribute('role') === 'button' || el.getAttribute('role') === 'link')){
+      e.preventDefault();
+      el.click();
+    }
+  }
+}, {passive: false});
+
 /* ══ Amazon Affiliate Base ══ */
 const AMZ_TAG = "decideengine-21";
 function amzLink(query){ return `https://www.amazon.in/s?k=${encodeURIComponent(query)}&tag=${AMZ_TAG}`; }
@@ -322,7 +395,6 @@ function amzLink(query){ return `https://www.amazon.in/s?k=${encodeURIComponent(
 /* ══ SVG VISUALS ══ */
 const visuals = {
 
-  /* 0 — Gift box opening */
   intro: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="bgr0" cx="50%" cy="60%" r="55%">
@@ -337,37 +409,28 @@ const visuals = {
       </linearGradient>
     </defs>
     <rect width="400" height="170" fill="url(#bgr0)"/>
-    <!-- glow -->
     <ellipse cx="200" cy="120" rx="70" ry="25" fill="rgba(251,113,133,0.18)" style="animation:glow-pulse 2.5s ease-in-out infinite"/>
-    <!-- box body -->
     <g style="animation:float 3s ease-in-out infinite;transform-origin:200px 100px">
       <rect x="150" y="88" width="100" height="70" rx="4" fill="url(#boxg)"/>
-      <!-- ribbon vertical -->
       <rect x="194" y="88" width="12" height="70" fill="rgba(255,255,255,0.22)"/>
-      <!-- lid -->
       <g style="animation:lid-pop 3s ease-in-out infinite;transform-origin:200px 88px">
         <rect x="144" y="76" width="112" height="18" rx="5" fill="url(#lidg)"/>
-        <!-- bow -->
         <g style="animation:ribbon-wave 2s ease-in-out infinite;transform-origin:200px 76px">
           <ellipse cx="186" cy="71" rx="14" ry="9" fill="rgba(253,164,175,.9)" transform="rotate(-20,186,71)"/>
           <ellipse cx="214" cy="71" rx="14" ry="9" fill="rgba(253,164,175,.9)" transform="rotate(20,214,71)"/>
           <circle cx="200" cy="71" r="7" fill="#fda4af"/>
         </g>
       </g>
-      <!-- shine on box -->
       <line x1="158" y1="98" x2="165" y2="140" stroke="rgba(255,255,255,.18)" stroke-width="3" stroke-linecap="round"/>
     </g>
-    <!-- sparkles -->
     <g style="animation:sparkle 2.2s ease-in-out infinite .2s;transform-origin:260px 55px"><text x="255" y="62" font-size="16" opacity=".9">✦</text></g>
     <g style="animation:sparkle 2.2s ease-in-out infinite .8s;transform-origin:140px 50px"><text x="134" y="57" font-size="12" opacity=".8">✦</text></g>
     <g style="animation:sparkle 2.2s ease-in-out infinite 1.4s;transform-origin:285px 85px"><text x="280" y="90" font-size="10" opacity=".7">✦</text></g>
     <g style="animation:sparkle 2.2s ease-in-out infinite .5s;transform-origin:120px 80px"><text x="115" y="85" font-size="11" opacity=".75">✦</text></g>
     <g style="animation:sparkle 2.2s ease-in-out infinite 1.1s;transform-origin:310px 60px"><text x="304" y="67" font-size="9" opacity=".6">✦</text></g>
-    <!-- label -->
     <text x="200" y="158" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" fill="rgba(253,164,175,0.7)" letter-spacing="3">THE GIFT LAB</text>
   </svg>`,
 
-  /* 1 — Pulsing heart with ripples */
   heart: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="hbg" cx="50%" cy="50%" r="45%">
@@ -379,26 +442,20 @@ const visuals = {
       </linearGradient>
     </defs>
     <rect width="400" height="170" fill="url(#hbg)"/>
-    <!-- ripples -->
     <circle cx="200" cy="82" r="20" fill="none" stroke="rgba(251,113,133,0.5)" stroke-width="1.5" style="animation:ripple 2s ease-out infinite"/>
     <circle cx="200" cy="82" r="20" fill="none" stroke="rgba(251,113,133,0.35)" stroke-width="1" style="animation:ripple 2s ease-out infinite .7s"/>
     <circle cx="200" cy="82" r="20" fill="none" stroke="rgba(251,113,133,0.2)" stroke-width="1" style="animation:ripple 2s ease-out infinite 1.4s"/>
-    <!-- heart -->
     <g style="animation:heartbeat 1.6s ease-in-out infinite;transform-origin:200px 85px">
       <path d="M200 105 C165 88, 155 65, 172 57 C182 52, 193 57, 200 65 C207 57, 218 52, 228 57 C245 65, 235 88, 200 105 Z"
         fill="url(#hg)" filter="drop-shadow(0 0 12px rgba(251,113,133,.6))"/>
     </g>
-    <!-- inner glow -->
     <ellipse cx="200" cy="78" rx="40" ry="28" fill="rgba(251,113,133,0.12)" style="animation:glow-pulse 2s ease-in-out infinite"/>
-    <!-- "VICARIOUS PRIDE" label -->
     <text x="200" y="135" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(253,164,175,0.55)" letter-spacing="4" text-transform="uppercase">VICARIOUS PRIDE</text>
-    <!-- small hearts -->
     <text x="148" y="72" font-size="11" style="animation:sparkle 3s ease-in-out infinite .4s;transform-origin:153px 67px" opacity=".7">♥</text>
     <text x="250" y="68" font-size="9" style="animation:sparkle 3s ease-in-out infinite 1.2s;transform-origin:254px 63px" opacity=".65">♥</text>
     <text x="168" y="48" font-size="8" style="animation:sparkle 3s ease-in-out infinite .9s;transform-origin:172px 43px" opacity=".6">♥</text>
   </svg>`,
 
-  /* 2 — Eye / seen */
   eye: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="ebg" cx="50%" cy="50%" r="50%">
@@ -410,36 +467,26 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#ebg)"/>
-    <!-- eye outer glow -->
     <ellipse cx="200" cy="82" rx="90" ry="42" fill="rgba(99,102,241,0.08)"/>
-    <!-- eye white -->
     <g style="animation:blink 4s ease-in-out infinite;transform-origin:200px 82px">
       <ellipse cx="200" cy="82" rx="80" ry="36" fill="rgba(16,14,22,0.9)" stroke="rgba(139,92,246,0.4)" stroke-width="1.5"/>
-      <!-- iris -->
       <circle cx="200" cy="82" r="24" fill="url(#iris-g)" style="animation:iris-glow 2.5s ease-in-out infinite"/>
-      <!-- pupil -->
       <circle cx="200" cy="82" r="11" fill="#0d0b14"/>
-      <!-- pupil shine -->
       <circle cx="206" cy="77" r="4" fill="rgba(255,255,255,0.3)"/>
-      <!-- iris ring -->
       <circle cx="200" cy="82" r="24" fill="none" stroke="rgba(139,92,246,0.3)" stroke-width="1"/>
       <circle cx="200" cy="82" r="18" fill="none" stroke="rgba(139,92,246,0.2)" stroke-width=".8"/>
     </g>
-    <!-- scan line -->
     <clipPath id="eye-clip"><ellipse cx="200" cy="82" rx="79" ry="35"/></clipPath>
     <rect x="120" y="48" width="60" height="68" fill="rgba(139,92,246,0.07)"
       clip-path="url(#eye-clip)" style="animation:scan-line 3s linear infinite"/>
-    <!-- eyelashes top -->
     <line x1="160" y1="52" x2="157" y2="43" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
     <line x1="180" y1="47" x2="179" y2="38" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
     <line x1="200" y1="46" x2="200" y2="37" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
     <line x1="220" y1="47" x2="221" y2="38" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
     <line x1="240" y1="52" x2="243" y2="43" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
-    <!-- label -->
     <text x="200" y="152" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(139,92,246,0.55)" letter-spacing="4">SELF RECOGNITION</text>
   </svg>`,
 
-  /* 3 — Confidence bars */
   bars: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="bbg" cx="50%" cy="80%" r="55%">
@@ -449,18 +496,13 @@ const visuals = {
       <linearGradient id="bar1" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stop-color="#4ade80"/><stop offset="100%" stop-color="#16a34a"/>
       </linearGradient>
-      <linearGradient id="bar2" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="#86efac"/><stop offset="100%" stop-color="#4ade80"/>
-      </linearGradient>
     </defs>
     <rect width="400" height="170" fill="url(#bbg)"/>
-    <!-- grid lines -->
     <line x1="80" y1="30" x2="320" y2="30" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
     <line x1="80" y1="55" x2="320" y2="55" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
     <line x1="80" y1="80" x2="320" y2="80" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
     <line x1="80" y1="105" x2="320" y2="105" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
     <line x1="80" y1="125" x2="320" y2="125" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-    <!-- bars -->
     <g style="animation:bar-grow .8s cubic-bezier(.16,1,.3,1) .1s both;transform-origin:120px 125px">
       <rect x="100" y="85" width="36" height="40" rx="5" fill="rgba(74,222,128,.4)" stroke="rgba(74,222,128,.3)" stroke-width="1"/>
       <text x="118" y="142" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(74,222,128,.6)">Generic</text>
@@ -473,7 +515,6 @@ const visuals = {
       <rect x="220" y="34" width="36" height="91" rx="5" fill="url(#bar1)" filter="drop-shadow(0 0 8px rgba(74,222,128,.35))"/>
       <text x="238" y="142" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(74,222,128,.75)" font-weight="600">Personal</text>
     </g>
-    <!-- up arrow -->
     <g style="animation:arrow-up 1.8s ease-in-out infinite;transform-origin:280px 70px">
       <path d="M278 80 L284 68 L290 80" fill="none" stroke="rgba(74,222,128,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       <line x1="284" y1="68" x2="284" y2="90" stroke="rgba(74,222,128,.8)" stroke-width="2" stroke-linecap="round"/>
@@ -481,7 +522,6 @@ const visuals = {
     <text x="200" y="158" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(74,222,128,0.5)" letter-spacing="3">SELF-ESTEEM BOOST</text>
   </svg>`,
 
-  /* 4 — Brain nodes */
   brain: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="brain-bg" cx="50%" cy="45%" r="50%">
@@ -490,26 +530,16 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#brain-bg)"/>
-    <!-- brain shape outline -->
     <path d="M148 95 C132 95, 124 82, 130 70 C124 62, 128 50, 140 50 C142 40, 155 36, 165 42 C170 35, 180 32, 190 36 C196 28, 210 28, 218 36 C228 30, 242 34, 246 44 C258 44, 268 56, 264 68 C274 72, 276 84, 268 92 C272 104, 262 114, 250 110 C248 120, 236 124, 226 118 C220 126, 208 128, 200 122 C192 128, 180 126, 175 118 C164 124, 152 118, 150 108 Z"
       fill="none" stroke="rgba(167,139,250,0.35)" stroke-width="1.5"
       style="animation:brain-glow 3s ease-in-out infinite"/>
-    <!-- edges / connections -->
-    <line x1="170" y1="62" x2="200" y2="78" stroke="rgba(167,139,250,0.5)" stroke-width="1.2"
-      stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite"/>
-    <line x1="200" y1="78" x2="230" y2="62" stroke="rgba(45,212,191,0.5)" stroke-width="1.2"
-      stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .5s"/>
-    <line x1="200" y1="78" x2="200" y2="100" stroke="rgba(167,139,250,0.5)" stroke-width="1.2"
-      stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite 1s"/>
-    <line x1="170" y1="62" x2="155" y2="78" stroke="rgba(251,113,133,0.4)" stroke-width="1.2"
-      stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .3s"/>
-    <line x1="230" y1="62" x2="245" y2="78" stroke="rgba(251,113,133,0.4)" stroke-width="1.2"
-      stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .8s"/>
-    <line x1="155" y1="78" x2="170" y2="95" stroke="rgba(45,212,191,0.35)" stroke-width="1"
-      stroke-dasharray="3,3" style="animation:edge-dash 2.5s linear infinite .2s"/>
-    <line x1="245" y1="78" x2="230" y2="95" stroke="rgba(45,212,191,0.35)" stroke-width="1"
-      stroke-dasharray="3,3" style="animation:edge-dash 2.5s linear infinite .6s"/>
-    <!-- nodes -->
+    <line x1="170" y1="62" x2="200" y2="78" stroke="rgba(167,139,250,0.5)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite"/>
+    <line x1="200" y1="78" x2="230" y2="62" stroke="rgba(45,212,191,0.5)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .5s"/>
+    <line x1="200" y1="78" x2="200" y2="100" stroke="rgba(167,139,250,0.5)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite 1s"/>
+    <line x1="170" y1="62" x2="155" y2="78" stroke="rgba(251,113,133,0.4)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .3s"/>
+    <line x1="230" y1="62" x2="245" y2="78" stroke="rgba(251,113,133,0.4)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .8s"/>
+    <line x1="155" y1="78" x2="170" y2="95" stroke="rgba(45,212,191,0.35)" stroke-width="1" stroke-dasharray="3,3" style="animation:edge-dash 2.5s linear infinite .2s"/>
+    <line x1="245" y1="78" x2="230" y2="95" stroke="rgba(45,212,191,0.35)" stroke-width="1" stroke-dasharray="3,3" style="animation:edge-dash 2.5s linear infinite .6s"/>
     <circle cx="200" cy="78" r="5" fill="#a78bfa" style="animation:node-pulse 2s ease-in-out infinite" filter="drop-shadow(0 0 5px #a78bfa)"/>
     <circle cx="170" cy="62" r="4" fill="#fb7185" style="animation:node-pulse 2s ease-in-out infinite .3s" filter="drop-shadow(0 0 4px #fb7185)"/>
     <circle cx="230" cy="62" r="4" fill="#2dd4bf" style="animation:node-pulse 2s ease-in-out infinite .6s" filter="drop-shadow(0 0 4px #2dd4bf)"/>
@@ -521,7 +551,6 @@ const visuals = {
     <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(167,139,250,0.55)" letter-spacing="3">ASSOCIATIVE MEMORY</text>
   </svg>`,
 
-  /* 5 — Keychain swing */
   key: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="kbg" cx="50%" cy="30%" r="55%">
@@ -533,33 +562,24 @@ const visuals = {
       </linearGradient>
     </defs>
     <rect width="400" height="170" fill="url(#kbg)"/>
-    <!-- ring -->
     <g style="animation:swing 3s ease-in-out infinite;transform-origin:200px 28px">
-      <!-- chain link -->
       <ellipse cx="200" cy="28" rx="16" ry="10" fill="none" stroke="rgba(180,180,200,0.6)" stroke-width="3"/>
       <ellipse cx="200" cy="28" rx="10" ry="6" fill="none" stroke="rgba(200,200,220,0.3)" stroke-width="1.5"/>
-      <!-- chain line -->
       <line x1="200" y1="38" x2="200" y2="60" stroke="rgba(180,180,200,0.5)" stroke-width="2.5" stroke-linecap="round"/>
-      <!-- tag body -->
       <rect x="172" y="60" width="56" height="72" rx="10" fill="url(#tag-g)" filter="drop-shadow(0 4px 12px rgba(251,191,36,.35))"/>
       <rect x="172" y="60" width="56" height="72" rx="10" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-      <!-- tag hole -->
       <circle cx="200" cy="60" r="5" fill="rgba(0,0,0,.5)"/>
-      <!-- engraved text -->
       <text x="200" y="90" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(120,60,0,0.9)" font-weight="700" letter-spacing="1.5">FOR</text>
       <text x="200" y="104" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" fill="rgba(90,40,0,0.95)" font-weight="700" font-style="italic">Aarya</text>
       <text x="200" y="118" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="rgba(100,50,0,0.7)" letter-spacing="1">ALWAYS ♥</text>
-      <!-- tag shine -->
       <line x1="178" y1="68" x2="183" y2="115" stroke="rgba(255,255,255,.18)" stroke-width="3" stroke-linecap="round"/>
     </g>
-    <!-- sparkles around -->
     <text x="145" y="82" font-size="12" style="animation:sparkle 2.5s ease-in-out infinite .3s;transform-origin:151px 75px" opacity=".8">✦</text>
     <text x="250" y="78" font-size="10" style="animation:sparkle 2.5s ease-in-out infinite 1s;transform-origin:255px 73px" opacity=".7">✦</text>
     <text x="240" y="115" font-size="8" style="animation:sparkle 2.5s ease-in-out infinite 1.7s;transform-origin:244px 110px" opacity=".6">✦</text>
     <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,191,36,0.5)" letter-spacing="3">DAILY MEMORY TRIGGER</text>
   </svg>`,
 
-  /* 6 — Scales */
   scale: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="sbg" cx="50%" cy="50%" r="50%">
@@ -568,38 +588,29 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#sbg)"/>
-    <!-- pole -->
     <line x1="200" y1="25" x2="200" y2="120" stroke="rgba(200,180,230,0.4)" stroke-width="2.5" stroke-linecap="round"/>
-    <!-- base -->
     <rect x="180" y="118" width="40" height="6" rx="3" fill="rgba(200,180,230,0.25)"/>
     <rect x="170" y="122" width="60" height="5" rx="2.5" fill="rgba(200,180,230,0.15)"/>
-    <!-- beam -->
     <line x1="100" y1="52" x2="300" y2="52" stroke="rgba(200,180,230,0.5)" stroke-width="2" stroke-linecap="round"/>
     <circle cx="200" cy="52" r="5" fill="rgba(200,180,230,0.6)"/>
-    <!-- left pan — heart (heavier, lower) -->
     <g style="animation:tilt-heart 3s ease-in-out infinite;transform-origin:130px 52px">
       <line x1="130" y1="52" x2="130" y2="72" stroke="rgba(200,180,230,0.4)" stroke-width="1.5"/>
       <ellipse cx="130" cy="85" rx="28" ry="9" fill="rgba(251,113,133,0.2)" stroke="rgba(251,113,133,0.35)" stroke-width="1.2"/>
-      <!-- heart on pan -->
       <path d="M130 82 C118 74, 114 63, 120 59 C124 57, 129 59, 130 63 C131 59, 136 57, 140 59 C146 63, 142 74, 130 82 Z"
         fill="rgba(251,113,133,0.9)" filter="drop-shadow(0 0 6px rgba(251,113,133,.5))"/>
       <text x="130" y="100" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(251,113,133,.7)">THOUGHT</text>
     </g>
-    <!-- right pan — price (lighter, higher) -->
     <g style="animation:tilt-price 3s ease-in-out infinite;transform-origin:270px 52px">
       <line x1="270" y1="52" x2="270" y2="64" stroke="rgba(200,180,230,0.4)" stroke-width="1.5"/>
       <ellipse cx="270" cy="77" rx="28" ry="9" fill="rgba(167,139,250,0.15)" stroke="rgba(167,139,250,0.25)" stroke-width="1.2"/>
-      <!-- price tag -->
       <rect x="258" y="60" width="24" height="18" rx="4" fill="rgba(167,139,250,0.35)" stroke="rgba(167,139,250,0.4)" stroke-width="1"/>
       <text x="270" y="72" text-anchor="middle" font-family="Outfit,sans-serif" font-size="11" fill="rgba(167,139,250,.9)" font-weight="700">₹</text>
       <text x="270" y="92" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(167,139,250,.6)">PRICE</text>
     </g>
-    <!-- fulcrum triangle -->
     <polygon points="200,52 192,68 208,68" fill="rgba(200,180,230,0.3)"/>
     <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,113,133,0.5)" letter-spacing="3">THOUGHT WINS</text>
   </svg>`,
 
-  /* 7 — Orbit / bond */
   orbit: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="obg" cx="50%" cy="50%" r="45%">
@@ -608,21 +619,16 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#obg)"/>
-    <!-- merge glow -->
     <ellipse cx="200" cy="82" rx="55" ry="38" fill="rgba(167,139,250,0.1)" style="animation:merge-glow 2.5s ease-in-out infinite"/>
-    <!-- orbit paths -->
     <circle cx="200" cy="82" r="42" fill="none" stroke="rgba(167,139,250,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
-    <!-- person A core -->
     <circle cx="200" cy="82" r="18" fill="rgba(251,113,133,0.18)" stroke="rgba(251,113,133,0.3)" stroke-width="1.5"/>
     <circle cx="200" cy="72" r="7" fill="rgba(251,113,133,0.8)"/>
     <path d="M188 90 C188 80, 212 80, 212 90" fill="rgba(251,113,133,0.5)"/>
-    <!-- person B orbiting -->
     <g style="animation:orbit-a 6s linear infinite;transform-origin:200px 82px">
       <circle r="14" cx="0" cy="0" fill="rgba(45,212,191,0.18)" stroke="rgba(45,212,191,0.3)" stroke-width="1.5"/>
       <circle r="5.5" cx="0" cy="-9" fill="rgba(45,212,191,0.8)"/>
       <path d="M-10 6 C-10 -1, 10 -1, 10 6" fill="rgba(45,212,191,0.5)"/>
     </g>
-    <!-- connection sparks -->
     <g style="animation:sparkle 1.8s ease-in-out infinite .2s;transform-origin:242px 42px">
       <circle cx="242" cy="42" r="2.5" fill="rgba(251,191,36,.8)"/>
     </g>
@@ -632,7 +638,6 @@ const visuals = {
     <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(45,212,191,0.5)" letter-spacing="3">EMOTIONAL BOND</text>
   </svg>`,
 
-  /* 8 — Dollar fades, heart emerges */
   value: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="vbg" cx="50%" cy="50%" r="50%">
@@ -641,17 +646,14 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#vbg)"/>
-    <!-- versus line -->
     <line x1="200" y1="35" x2="200" y2="120" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="3,4"/>
     <text x="200" y="82" text-anchor="middle" font-family="Outfit,sans-serif" font-size="11" fill="rgba(255,255,255,0.3)" font-weight="700">VS</text>
-    <!-- left: big price tag fading -->
     <g style="animation:dollar-fade 3s ease-in-out infinite">
       <rect x="105" y="42" width="60" height="75" rx="10" fill="rgba(100,100,130,0.2)" stroke="rgba(100,100,130,0.3)" stroke-width="1.5"/>
       <circle cx="135" cy="42" r="5" fill="rgba(80,80,110,0.4)"/>
       <text x="135" y="90" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="32" fill="rgba(160,160,200,0.9)" font-weight="700">₹</text>
       <text x="135" y="108" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="rgba(130,130,170,0.7)" letter-spacing="2">EXPENSIVE</text>
     </g>
-    <!-- right: small heart emerging -->
     <g style="animation:heart-emerge 3s ease-in-out infinite;transform-origin:265px 78px">
       <circle cx="265" cy="78" r="32" fill="rgba(251,113,133,0.08)" filter="blur(8px)"/>
       <path d="M265 94 C244 80, 238 60, 250 53 C256 49, 263 53, 265 59 C267 53, 274 49, 280 53 C292 60, 286 80, 265 94 Z"
@@ -661,7 +663,6 @@ const visuals = {
     <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,113,133,0.5)" letter-spacing="3">EMOTIONAL VALUE</text>
   </svg>`,
 
-  /* 9 — Warm sun / smile (happiness) */
   sun: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="sunbg" cx="50%" cy="50%" r="50%">
@@ -673,9 +674,7 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#sunbg)"/>
-    <!-- outer glow -->
     <circle cx="200" cy="80" r="58" fill="rgba(251,191,36,0.07)" style="animation:glow-pulse 2s ease-in-out infinite"/>
-    <!-- rays -->
     <g style="animation:spin-slow 12s linear infinite;transform-origin:200px 80px">
       <line x1="200" y1="22" x2="200" y2="12" stroke="rgba(251,191,36,0.5)" stroke-width="2.5" stroke-linecap="round"/>
       <line x1="200" y1="138" x2="200" y2="148" stroke="rgba(251,191,36,0.5)" stroke-width="2.5" stroke-linecap="round"/>
@@ -686,20 +685,15 @@ const visuals = {
       <line x1="163" y1="117" x2="156" y2="124" stroke="rgba(251,191,36,0.4)" stroke-width="2" stroke-linecap="round"/>
       <line x1="237" y1="117" x2="244" y2="124" stroke="rgba(251,191,36,0.4)" stroke-width="2" stroke-linecap="round"/>
     </g>
-    <!-- sun face -->
     <circle cx="200" cy="80" r="40" fill="url(#sun-core)" filter="drop-shadow(0 0 18px rgba(251,191,36,.5))"/>
-    <!-- eyes -->
     <circle cx="187" cy="72" r="4" fill="rgba(120,60,0,.8)"/>
     <circle cx="213" cy="72" r="4" fill="rgba(120,60,0,.8)"/>
-    <!-- smile -->
     <path d="M183 88 Q200 104 217 88" fill="none" stroke="rgba(120,60,0,.8)" stroke-width="3"
       stroke-linecap="round" stroke-dasharray="50" stroke-dashoffset="50"
       style="animation:smile-draw .8s ease-out .2s forwards"/>
-    <!-- warm glow label -->
     <text x="200" y="157" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,191,36,0.55)" letter-spacing="3">WARM-GLOW EFFECT</text>
   </svg>`,
 
-  /* 10 — Completion bow + confetti */
   bow: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="bowbg" cx="50%" cy="50%" r="50%">
@@ -708,7 +702,6 @@ const visuals = {
       </radialGradient>
     </defs>
     <rect width="400" height="170" fill="url(#bowbg)"/>
-    <!-- confetti -->
     <rect x="150" y="10" width="8" height="8" rx="2" fill="rgba(251,113,133,.7)" style="animation:confetti-fall 2.5s ease-in infinite .1s"/>
     <rect x="230" y="5" width="6" height="6" rx="1.5" fill="rgba(167,139,250,.7)" style="animation:confetti-fall 2.5s ease-in infinite .5s"/>
     <rect x="175" y="8" width="5" height="10" rx="2" fill="rgba(251,191,36,.7)" style="animation:confetti-fall 2.5s ease-in infinite 1s"/>
@@ -716,18 +709,12 @@ const visuals = {
     <rect x="130" y="15" width="7" height="7" rx="1.5" fill="rgba(251,191,36,.6)" style="animation:confetti-fall 2.5s ease-in infinite 1.3s"/>
     <circle cx="310" cy="8" r="3.5" fill="rgba(251,113,133,.6)" style="animation:confetti-fall 2.5s ease-in infinite .3s"/>
     <rect x="270" y="14" width="6" height="6" rx="1" fill="rgba(167,139,250,.65)" style="animation:confetti-fall 2.5s ease-in infinite .9s"/>
-    <!-- bow ribbons -->
     <g style="animation:bow-bounce 2s ease-in-out infinite;transform-origin:200px 75px">
-      <!-- left loop -->
       <path d="M200 75 C185 58, 155 52, 152 65 C149 78, 178 80, 200 75 Z" fill="rgba(251,113,133,.75)" stroke="rgba(253,164,175,.3)" stroke-width="1"/>
       <path d="M200 75 C185 58, 155 52, 152 65 C149 78, 178 80, 200 75 Z" fill="rgba(255,255,255,0.07)"/>
-      <!-- right loop -->
       <path d="M200 75 C215 58, 245 52, 248 65 C251 78, 222 80, 200 75 Z" fill="rgba(251,113,133,.75)" stroke="rgba(253,164,175,.3)" stroke-width="1"/>
-      <!-- left tail -->
       <path d="M200 75 C190 90, 165 100, 162 112" fill="none" stroke="rgba(251,113,133,.6)" stroke-width="4" stroke-linecap="round"/>
-      <!-- right tail -->
       <path d="M200 75 C210 90, 235 100, 238 112" fill="none" stroke="rgba(251,113,133,.6)" stroke-width="4" stroke-linecap="round"/>
-      <!-- center knot -->
       <circle cx="200" cy="75" r="9" fill="#fb7185" stroke="rgba(253,164,175,.5)" stroke-width="1.5" filter="drop-shadow(0 0 8px rgba(251,113,133,.6))"/>
     </g>
     <text x="200" y="155" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="13" fill="rgba(253,164,175,0.7)" letter-spacing="3" font-style="italic">The End & Beginning</text>
@@ -940,6 +927,13 @@ function render(){
       <div class="hint"><span>Scroll</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>`;
     scr.appendChild(w);
   });
+
+  /* Upgrade any div[onclick] to accessible clickable elements */
+  scr.querySelectorAll('div[onclick]').forEach(function(el){
+    if(!el.getAttribute('role')) el.setAttribute('role', 'button');
+    if(!el.getAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  });
+
   document.querySelectorAll('.sw').forEach(el => obs.observe(el));
 }
 
@@ -966,9 +960,7 @@ const obs = new IntersectionObserver(entries => {
 render();
 
 /* ══ ROUTER AWARENESS ══ */
-// If window.Router exists (from router.js), handle nav events
 document.addEventListener('router:navigate', function(e){
-  // Blog page might be re-entered; scroll to top
   if(e.detail && e.detail.slug === 'blog-personalized-gifts'){
     scr.scrollTo({top:0, behavior:'smooth'});
   }
