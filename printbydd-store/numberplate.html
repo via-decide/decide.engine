@@ -28,11 +28,18 @@
       --safeRight: env(safe-area-inset-right, 0px);
       --maxw: 860px;
       --header-height: 60px;
+      --warn:#f59e0b;
+      --ok:#22c55e;
     }
 
     *{ box-sizing:border-box; }
+
+    /* FIX #1: Always provide 100vh BEFORE 100dvh so older Android Chrome
+       gets a real height. Without this fallback, #appWrapper collapses to
+       height:0 → scroll-container gets height:0 → blank page.            */
     html, body{
-      height:100%; height:100dvh; margin:0;
+      height:100vh; height:100dvh;
+      margin:0;
       background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow:hidden; overscroll-behavior-y:none;
@@ -67,7 +74,14 @@
     body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
 
-    #appWrapper{ position:relative; width:100vw; height:100dvh; transform-origin:center center; transition:transform 0.4s cubic-bezier(0.25,1,0.5,1); overflow:hidden; }
+    /* FIX #1 continued: same 100vh → 100dvh fallback on #appWrapper */
+    #appWrapper{
+      position:relative; width:100vw;
+      height:100vh; height:100dvh;
+      transform-origin:center center;
+      transition:transform 0.4s cubic-bezier(0.25,1,0.5,1);
+      overflow:hidden;
+    }
     .bg-glow{ position:absolute; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index:0; }
 
     .top{
@@ -94,16 +108,30 @@
     .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
     .pill b{ color:#fff; letter-spacing:0.1em; font-weight:950; }
 
+    /* FIX #2: Scroll container must have an explicit height so height:100%
+       on children resolves correctly. Use calc(100vh - ...) as the primary
+       value and calc(100dvh - ...) as the preferred value.                */
     .scroll-container{
-      position:absolute; top:var(--header-height); bottom:0; left:0; right:0;
+      position:absolute;
+      top:var(--header-height);
+      left:0; right:0; bottom:0;
+      /* Explicit height fallback — critical for Android Chrome < 108 */
+      height: calc(100vh - var(--header-height));
+      height: calc(100dvh - var(--header-height));
       overflow-y:auto; overflow-x:hidden;
       scroll-snap-type:y mandatory; scroll-behavior:smooth;
       -webkit-overflow-scrolling:touch; z-index:10;
     }
     .scroll-container::-webkit-scrollbar{ display:none; }
 
+    /* FIX #3: section-wrapper also needs vh fallback, and min-height so
+       it never collapses if percentage resolution is broken.              */
     .section-wrapper{
-      height:100%; width:100%;
+      /* Fallback first, then dvh override */
+      height: calc(100vh - var(--header-height));
+      height: calc(100dvh - var(--header-height));
+      min-height: 400px;   /* safety floor so content never vanishes */
+      width:100%;
       scroll-snap-align:start; scroll-snap-stop:always;
       display:flex; flex-direction:column; justify-content:center; align-items:center;
       padding:calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(120px + var(--safeBottom)) calc(16px + var(--safeLeft));
@@ -122,6 +150,8 @@
       opacity:0.3; transform:scale(0.92) translateY(30px);
       transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
     }
+    /* FIX #4: Also show first section card fully on load before observer fires */
+    .section-wrapper:first-child .card,
     .section-wrapper.is-active .card{ opacity:1; transform:scale(1) translateY(0); }
 
     .cardHeader{
@@ -186,6 +216,16 @@
       transition:opacity 0.4s; padding:16px; text-align:center; z-index:5;
     }
     .stl-loading.hidden{ opacity:0; pointer-events:none; }
+    /* FIX #5: WebGL fallback message style */
+    .stl-webgl-fallback{
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:8px;
+      font-size:13px; color:rgba(255,255,255,0.55);
+      letter-spacing:0.06em; padding:20px; text-align:center; z-index:5;
+      background:#0a0a0a;
+    }
+    .stl-webgl-fallback .fallback-icon{ font-size:28px; margin-bottom:4px; }
+    .stl-webgl-fallback b{ color:rgba(255,255,255,0.85); }
     .stl-hint{
       position:absolute; bottom:10px; left:50%;
       transform:translateX(-50%);
@@ -195,9 +235,7 @@
     }
 
     /* ===== LIVE 2D PLATE PREVIEW ===== */
-    .plate-preview-block{
-      width:100%; margin-bottom:12px;
-    }
+    .plate-preview-block{ width:100%; margin-bottom:12px; }
     .plate-preview-label{
       font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
       color:rgba(255,255,255,0.35); font-weight:700; margin-bottom:8px;
@@ -213,170 +251,129 @@
       max-width:100%; height:auto;
     }
 
-    /* ===== PLATE TEXT INPUT ===== */
+    /* ===== PLATE TEXT INPUT + WARNINGS ===== */
     .plate-input-block{ margin-bottom:12px; }
     .plate-input-label{
       font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
       color:rgba(255,255,255,0.35); font-weight:700; margin-bottom:6px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
     }
-    .plate-input-row{
-      display:flex; align-items:center; gap:10px;
-    }
-    .plate-text-input{
-      flex:1; min-width:0;
-      height:52px;
-      background:rgba(0,0,0,0.45);
-      border:1.5px solid rgba(255,255,255,0.12);
-      border-radius:14px;
-      color:#fff;
-      font-family:'Share Tech Mono', 'Courier New', monospace;
-      font-size:20px; font-weight:700;
-      letter-spacing:0.15em;
-      text-align:center;
-      text-transform:uppercase;
-      padding:0 16px;
-      outline:none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      -webkit-appearance:none;
-    }
-    .plate-text-input::placeholder{ color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-size:16px; }
-    .plate-text-input:focus{
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
+    .plate-meta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
     .plate-char-count{
       font-size:11px; color:rgba(255,255,255,0.3); letter-spacing:0.06em;
       white-space:nowrap; flex-shrink:0; font-variant-numeric:tabular-nums;
     }
+    .plate-warn{
+      display:none; font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+      padding:4px 10px; border-radius:999px; border:1px solid rgba(245,158,11,0.35);
+      background:rgba(245,158,11,0.12); color:rgba(255,255,255,0.92);
+      white-space:nowrap; gap:6px; align-items:center;
+    }
+    .plate-warn.show{ display:inline-flex; }
+    .plate-warn .dot{
+      width:8px; height:8px; border-radius:50%; background:var(--warn);
+      box-shadow:0 0 0 3px rgba(245,158,11,0.18);
+    }
+
+    .plate-input-row{ display:flex; align-items:center; gap:10px; }
+    .plate-text-input{
+      flex:1; min-width:0; height:52px;
+      background:rgba(0,0,0,0.45); border:1.5px solid rgba(255,255,255,0.12);
+      border-radius:14px; color:#fff;
+      font-family:'Share Tech Mono', 'Courier New', monospace;
+      font-size:20px; font-weight:700; letter-spacing:0.15em;
+      text-align:center; text-transform:uppercase; padding:0 16px; outline:none;
+      transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance:none;
+    }
+    .plate-text-input::placeholder{ color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-size:16px; }
+    .plate-text-input:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
     /* ===== COLOR PANEL ===== */
     .stl-color-panel{
-      padding:14px; border-radius:16px;
-      border:1px solid rgba(255,255,255,0.08);
-      background:rgba(0,0,0,0.22);
-      margin-bottom:12px;
+      padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.08);
+      background:rgba(0,0,0,0.22); margin-bottom:12px;
     }
     .color-group{ margin-bottom:14px; }
     .color-group:last-child{ margin-bottom:0; }
     .color-group-header{
-      display:flex; align-items:center; justify-content:space-between;
-      margin-bottom:10px;
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
     }
-    .color-group-title{
-      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
-      color:rgba(255,255,255,0.4); font-weight:900;
-    }
-    .color-active-badge{
-      font-size:11px; font-weight:800;
-      color:#fff; letter-spacing:0.05em;
-      display:flex; align-items:center; gap:6px;
-    }
-    .color-active-dot{
-      width:10px; height:10px; border-radius:50%;
-      border:1.5px solid rgba(255,255,255,0.3);
-      display:inline-block;
-      transition: background 0.25s;
-    }
+    .color-group-title{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.4); font-weight:900; }
+    .color-active-badge{ font-size:11px; font-weight:800; color:#fff; letter-spacing:0.05em; display:flex; align-items:center; gap:6px; }
+    .color-active-dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.3); display:inline-block; transition: background 0.25s; }
 
-    .color-swatches{
-      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-    }
+    .color-swatches{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     .swatch-btn{
-      position:relative;
-      width:40px; height:40px;
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,0.12);
-      cursor:pointer;
+      position:relative; width:40px; height:40px; border-radius:50%;
+      border:2px solid rgba(255,255,255,0.12); cursor:pointer;
       transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), border-color 0.18s, box-shadow 0.18s;
-      flex-shrink:0;
-      -webkit-tap-highlight-color:transparent;
+      flex-shrink:0; -webkit-tap-highlight-color:transparent;
     }
     .swatch-btn:active{ transform:scale(0.9) !important; }
     .swatch-btn.active{
-      border-color: #fff;
-      transform: scale(1.18);
+      border-color: #fff; transform: scale(1.18);
       box-shadow: 0 0 0 2px rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.5);
     }
     .swatch-btn.active::after{
-      content:'✓';
-      position:absolute; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      font-size:16px; font-weight:900;
-      color:rgba(255,255,255,0.9);
-      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-size:16px; font-weight:900; color:rgba(255,255,255,0.9); text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
     .swatch-btn[data-label]::before{
-      content: attr(data-label);
-      position:absolute; top:calc(100% + 5px); left:50%;
-      transform:translateX(-50%);
-      font-size:9px; white-space:nowrap;
-      color:rgba(255,255,255,0.45); font-weight:700;
-      letter-spacing:0.06em; text-transform:uppercase;
+      content: attr(data-label); position:absolute; top:calc(100% + 5px); left:50%;
+      transform:translateX(-50%); font-size:9px; white-space:nowrap;
+      color:rgba(255,255,255,0.45); font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
       pointer-events:none;
     }
-
-    /* custom color picker swatch */
     .swatch-custom{
-      position:relative;
-      width:40px; height:40px;
-      border-radius:50%;
-      border:2px dashed rgba(255,255,255,0.25);
-      cursor:pointer; overflow:hidden;
+      position:relative; width:40px; height:40px; border-radius:50%;
+      border:2px dashed rgba(255,255,255,0.25); cursor:pointer; overflow:hidden;
       display:flex; align-items:center; justify-content:center;
       font-size:18px; color:rgba(255,255,255,0.4);
-      transition:border-color 0.18s, transform 0.18s;
-      flex-shrink:0;
+      transition:border-color 0.18s, transform 0.18s; flex-shrink:0;
     }
     .swatch-custom:hover{ border-color:rgba(255,255,255,0.5); transform:scale(1.08); }
     .swatch-custom input[type=color]{
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      opacity:0; cursor:pointer;
-      border:none; padding:0; margin:0;
+      position:absolute; inset:0; width:100%; height:100%;
+      opacity:0; cursor:pointer; border:none; padding:0; margin:0;
     }
 
-    /* selected summary bar */
     .color-summary{
-      display:flex; align-items:center; gap:8px;
-      padding:10px 14px;
-      background:rgba(0,0,0,0.3);
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,0.07);
-      margin-top:8px;
-      flex-wrap:wrap;
+      display:flex; align-items:center; gap:8px; padding:10px 14px;
+      background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.07);
+      margin-top:8px; flex-wrap:wrap;
     }
-    .cs-item{
-      display:flex; align-items:center; gap:5px;
-      font-size:11px; color:rgba(255,255,255,0.5);
-      font-weight:700; letter-spacing:0.04em;
-    }
-    .cs-dot{
-      width:10px; height:10px; border-radius:50%;
-      border:1.5px solid rgba(255,255,255,0.2);
-      flex-shrink:0;
-    }
+    .cs-item{ display:flex; align-items:center; gap:5px; font-size:11px; color:rgba(255,255,255,0.5); font-weight:700; letter-spacing:0.04em; }
+    .cs-dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.2); flex-shrink:0; }
     .cs-sep{ color:rgba(255,255,255,0.15); }
     .cs-val{ color:rgba(255,255,255,0.85); font-weight:900; letter-spacing:0.06em; }
 
+    /* ===== CONTRAST BADGE ===== */
+    .contrast-badge{
+      margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.26);
+    }
+    .contrast-left{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .contrast-title{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.40); font-weight:900; }
+    .contrast-msg{ font-size:13px; line-height:1.45; color:rgba(255,255,255,0.82); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .contrast-score{
+      font-variant-numeric:tabular-nums; font-weight:950; padding:6px 10px; border-radius:999px;
+      white-space:nowrap; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.06); color:#fff;
+    }
+    .contrast-score.ok{ border-color:rgba(34,197,94,0.35); background:rgba(34,197,94,0.12); }
+    .contrast-score.warn{ border-color:rgba(245,158,11,0.35); background:rgba(245,158,11,0.12); }
+
     /* ===== BOTTOM NAV ===== */
     .bottom-nav{
-      position:fixed;
-      left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
-      bottom:calc(10px + var(--safeBottom));
-      height:64px;
+      position:fixed; left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
+      bottom:calc(10px + var(--safeBottom)); height:64px;
       display:flex; align-items:center; gap:10px; padding:10px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,0.10);
-      background:rgba(10,10,12,0.78);
-      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-      box-shadow:0 18px 60px rgba(0,0,0,0.55);
-      z-index:1200;
+      border-radius:18px; border:1px solid rgba(255,255,255,0.10);
+      background:rgba(10,10,12,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 18px 60px rgba(0,0,0,0.55); z-index:1200;
     }
     .bn-btn{
-      width:44px; height:44px; border-radius:14px;
-      border:1px solid rgba(255,255,255,0.12);
-      background:rgba(255,255,255,0.06);
-      color:rgba(255,255,255,0.92); font-weight:950;
+      width:44px; height:44px; border-radius:14px; border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.92); font-weight:950;
       display:flex; align-items:center; justify-content:center;
       transition:transform .2s,opacity .2s; flex-shrink:0;
     }
@@ -384,18 +381,14 @@
     .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
     .bn-dots{ flex:1; display:flex; gap:8px; align-items:center; justify-content:center; min-width:0; overflow:hidden; }
     .bn-dot{
-      width:8px; height:8px; border-radius:999px;
-      border:1px solid rgba(255,255,255,0.18);
-      background:rgba(255,255,255,0.10);
-      transition:background .2s,border-color .2s,width .2s; flex-shrink:0;
+      width:8px; height:8px; border-radius:999px; border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.10); transition:background .2s,border-color .2s,width .2s; flex-shrink:0;
     }
     .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(255,42,42,0.7); }
     .bn-cta{
       height:44px; padding:0 16px; border-radius:14px; border:none;
-      background:linear-gradient(135deg,#ff4444,#b80000);
-      color:#fff; font-weight:950; letter-spacing:-0.01em;
-      display:flex; align-items:center; gap:10px;
-      box-shadow:0 10px 26px rgba(255,42,42,0.35);
+      background:linear-gradient(135deg,#ff4444,#b80000); color:#fff; font-weight:950; letter-spacing:-0.01em;
+      display:flex; align-items:center; gap:10px; box-shadow:0 10px 26px rgba(255,42,42,0.35);
       transition:transform .2s,filter .2s; white-space:nowrap; flex-shrink:0;
     }
     .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
@@ -403,8 +396,7 @@
 
     .hint{
       position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%;
-      transform:translateX(-50%);
-      display:flex; flex-direction:column; align-items:center; gap:6px;
+      transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px;
       color:rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
       pointer-events:none; animation:pulse 2s infinite; z-index:100;
     }
@@ -432,6 +424,19 @@
     }
     .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
     .btn-undo{ color:var(--accent); font-weight:950; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(255,42,42,0.15); border-radius:999px; }
+
+    /* ===== FIX #6: Error toast for mobile debug visibility ===== */
+    #errorToast{
+      position:fixed; bottom:calc(80px + var(--safeBottom)); left:50%;
+      transform:translateX(-50%);
+      max-width:calc(100vw - 32px);
+      background:rgba(180,20,20,0.95); border:1px solid rgba(255,80,80,0.4);
+      backdrop-filter:blur(12px); color:#fff;
+      padding:10px 16px; border-radius:14px; font-size:12px; line-height:1.5;
+      box-shadow:0 8px 30px rgba(0,0,0,0.6); z-index:99999;
+      display:none; word-break:break-word; text-align:center;
+    }
+    #errorToast.visible{ display:block; }
 
     @media (max-width: 600px) {
       .site-header nav { display: none; }
@@ -505,10 +510,49 @@
   </div>
   <div id="rotatePopup" class="rotate-popup"></div>
 
+  <!-- FIX #6: On-screen error toast for mobile visibility -->
+  <div id="errorToast"></div>
+
 <script>
 (function(){
   "use strict";
 
+  // ===== DEBUG MODE =====
+  // Add ?debug=1 to URL to enable lifecycle logging.
+  const DEBUG = /[?&]debug=1/.test(location.search);
+  function dbg(){
+    if(!DEBUG) return;
+    var args = Array.prototype.slice.call(arguments);
+    console.log('[DBG]', new Date().toISOString().slice(11,23), args.join(' '));
+  }
+  dbg('Script started');
+
+  // ===== ON-SCREEN ERROR TOAST (FIX #6) =====
+  // Displays errors visibly on mobile where DevTools aren't open.
+  var errorToast = document.getElementById('errorToast');
+  var errorToastTimer = null;
+  function showErrorToast(msg){
+    if(!errorToast) return;
+    errorToast.textContent = '⚠ ' + String(msg).slice(0, 200);
+    errorToast.classList.add('visible');
+    clearTimeout(errorToastTimer);
+    errorToastTimer = setTimeout(function(){ errorToast.classList.remove('visible'); }, 6000);
+  }
+
+  // Global error handlers — catch anything we missed
+  window.onerror = function(msg, src, line, col, err){
+    var label = (err && err.message) ? err.message : String(msg);
+    showErrorToast('JS Error: ' + label + (line ? ' (L'+line+')' : ''));
+    dbg('window.onerror:', label);
+    return false; // don't suppress
+  };
+  window.addEventListener('unhandledrejection', function(e){
+    var reason = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+    showErrorToast('Unhandled Promise: ' + reason);
+    dbg('unhandledrejection:', reason);
+  });
+
+  // ===== ROUTING =====
   function routeTo(pathHtml, pathStore) {
     return location.hostname === 'store.viadecide.com' ? pathStore : pathHtml;
   }
@@ -549,9 +593,47 @@
   let pointerDown=false, lastX=0, lastY=0, autoRotate=true;
   let initedCanvasEl = null;
   let renderToken = 0;
+  let webglSupported = null; // null = unchecked, true/false after detection
+
+  // ===== WEBGL DETECTION (FIX #5) =====
+  function detectWebGL(){
+    if(webglSupported !== null) return webglSupported;
+    try{
+      const testCanvas = document.createElement('canvas');
+      const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+      webglSupported = !!(gl && gl instanceof WebGLRenderingContext);
+    }catch(e){
+      webglSupported = false;
+    }
+    dbg('WebGL supported:', webglSupported);
+    return webglSupported;
+  }
 
   const COLOR_STORAGE_KEY = "PBD_NUMBERPLATE_COLORS_V2";
-  const PLATE_TEXT_KEY = "PBD_PLATE_TEXT_V1";
+  const PLATE_TEXT_KEY = "PBD_PLATE_TEXT_V2";
+
+  // ===== INPUT RULES =====
+  const MAX_PLATE_LEN = 18;
+  const ALLOWED_RE = /[A-Z0-9 -]/;
+
+  function normalizePlateInput(raw){
+    const up = String(raw || "").toUpperCase();
+    let cleaned = "";
+    let removed = 0;
+    for (let i=0;i<up.length;i++){
+      let ch = up[i];
+      if (ch === "_") ch = "-";
+      if (ALLOWED_RE.test(ch)) cleaned += ch;
+      else if (ch !== "\n" && ch !== "\r" && ch !== "\t") removed++;
+    }
+    cleaned = cleaned.replace(/\s+/g, " ").trim();
+    if (!cleaned.includes(" ") && /^[A-Z0-9-]+$/.test(cleaned)){
+      const m = cleaned.match(/^([A-Z]{2})(\d{1,2})([A-Z]{1,3})(\d{1,4})$/);
+      if (m) cleaned = [m[1], m[2], m[3], m[4]].join(" ");
+    }
+    if (cleaned.length > MAX_PLATE_LEN) cleaned = cleaned.slice(0, MAX_PLATE_LEN).trim();
+    return { value: cleaned, removed };
+  }
 
   // ===== COLOR DEFINITIONS =====
   const BASE_COLORS = {
@@ -575,9 +657,7 @@
     steel: { hex: 0x9aa4b2, css: '#9aa4b2', label: 'Steel' }
   };
 
-  // custom colors override (hex string "xxxxxx")
   let customBaseHex = null, customCharHex = null, customBoundaryHex = null;
-
   let currentBaseKey = "black";
   let currentCharKey = "white";
   let currentBoundaryKey = "red";
@@ -593,8 +673,8 @@
       if(s.customCharHex) customCharHex = s.customCharHex;
       if(s.customBoundaryHex) customBoundaryHex = s.customBoundaryHex;
       const pt = localStorage.getItem(PLATE_TEXT_KEY);
-      if(pt) plateText = pt;
-    }catch(e){}
+      if(pt){ const n = normalizePlateInput(pt); plateText = n.value || plateText; }
+    }catch(e){ dbg('restoreState error:', e.message); }
   })();
 
   function persistState(){
@@ -607,7 +687,6 @@
     }catch(e){}
   }
 
-  // ===== COLOR GETTERS =====
   function getBaseColor(){ return customBaseHex ? parseInt(customBaseHex.replace('#',''), 16) : BASE_COLORS[currentBaseKey].hex; }
   function getCharColor(){ return customCharHex ? parseInt(customCharHex.replace('#',''), 16) : CHAR_COLORS[currentCharKey].hex; }
   function getBoundaryColor(){ return customBoundaryHex ? parseInt(customBoundaryHex.replace('#',''), 16) : BOUNDARY_COLORS[currentBoundaryKey].hex; }
@@ -615,208 +694,158 @@
   function getCharCss(){ return customCharHex || CHAR_COLORS[currentCharKey].css; }
   function getBoundaryCss(){ return customBoundaryHex || BOUNDARY_COLORS[currentBoundaryKey].css; }
 
-  function enforceColorRules(){
-    // no auto-change needed — trust the user's choice
+  // ===== CONTRAST =====
+  function hexToRgb(hex){
+    const h = String(hex || "").replace("#","").trim();
+    if(!/^[0-9a-fA-F]{6}$/.test(h)) return {r:0,g:0,b:0};
+    return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+  }
+  function srgbToLin(c){ c=c/255; return (c<=0.03928)?(c/12.92):Math.pow((c+0.055)/1.055,2.4); }
+  function relLuminance(rgb){ return 0.2126*srgbToLin(rgb.r)+0.7152*srgbToLin(rgb.g)+0.0722*srgbToLin(rgb.b); }
+  function contrastRatio(hexA,hexB){
+    const La=relLuminance(hexToRgb(hexA)), Lb=relLuminance(hexToRgb(hexB));
+    return (Math.max(La,Lb)+0.05)/(Math.min(La,Lb)+0.05);
+  }
+  function updateContrastUI(){
+    try{
+      const c1=contrastRatio(getBaseCss(),getCharCss());
+      const c2=contrastRatio(getBaseCss(),getBoundaryCss());
+      const score=Math.min(c1,c2);
+      const badge=document.getElementById("contrastScore");
+      const msg=document.getElementById("contrastMsg");
+      if(!badge||!msg) return;
+      badge.textContent=score.toFixed(2)+"×";
+      const good=score>=4.0;
+      badge.classList.toggle("ok",good); badge.classList.toggle("warn",!good);
+      msg.textContent=good?"Readability: Strong contrast.":score>=2.5?"Readability: Medium. Consider higher contrast.":"Readability: Low. Digits may blend in daylight.";
+    }catch(e){}
   }
 
   // ===== 2D PLATE CANVAS RENDERER =====
   function draw2DPlate(){
-    const canvas = document.getElementById('plate2DCanvas');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = 520, H = 130;
-    canvas.width = W; canvas.height = H;
-
-    const base = getBaseCss();
-    const charC = getCharCss();
-    const borderC = getBoundaryCss();
-    const r = 18; // corner radius
-    const bw = 10; // border width
-
-    // outer border (boundary color)
-    ctx.clearRect(0,0,W,H);
-    ctx.beginPath();
-    roundRect(ctx, 0, 0, W, H, r);
-    ctx.fillStyle = borderC;
-    ctx.fill();
-
-    // inner plate (base color)
-    ctx.beginPath();
-    roundRect(ctx, bw, bw, W - bw*2, H - bw*2, r - bw*0.7);
-    ctx.fillStyle = base;
-    ctx.fill();
-
-    // subtle inner highlight
-    const grad = ctx.createLinearGradient(bw, bw, bw, H-bw);
-    grad.addColorStop(0, 'rgba(255,255,255,0.06)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.08)');
-    ctx.beginPath();
-    roundRect(ctx, bw, bw, W - bw*2, H - bw*2, r - bw*0.7);
-    ctx.fillStyle = grad;
-    ctx.fill();
-
-    // screw hole decorations
-    drawScrew(ctx, 32, H/2, 7, borderC);
-    drawScrew(ctx, W-32, H/2, 7, borderC);
-
-    // plate text
-    const text = (plateText || 'MH 01 AB 1234').toUpperCase();
-    ctx.font = `bold ${Math.min(58, Math.floor(300 / Math.max(text.length, 4)))}px "Share Tech Mono", "Courier New", monospace`;
-    ctx.fillStyle = charC;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // text shadow for depth
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetY = 2;
-    ctx.fillText(text, W/2, H/2 + 1);
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
+    try{
+      const canvas = document.getElementById('plate2DCanvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W=520, H=130;
+      canvas.width=W; canvas.height=H;
+      const base=getBaseCss(), charC=getCharCss(), borderC=getBoundaryCss();
+      const r=18, bw=10;
+      ctx.clearRect(0,0,W,H);
+      ctx.beginPath(); roundRect(ctx,0,0,W,H,r); ctx.fillStyle=borderC; ctx.fill();
+      ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,r-bw*0.7); ctx.fillStyle=base; ctx.fill();
+      const grad=ctx.createLinearGradient(bw,bw,bw,H-bw);
+      grad.addColorStop(0,'rgba(255,255,255,0.06)'); grad.addColorStop(1,'rgba(0,0,0,0.08)');
+      ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,r-bw*0.7); ctx.fillStyle=grad; ctx.fill();
+      drawScrew(ctx,32,H/2,7,borderC); drawScrew(ctx,W-32,H/2,7,borderC);
+      const text=(plateText||'MH 01 AB 1234').toUpperCase();
+      ctx.font=`bold ${Math.min(58,Math.floor(320/Math.max(text.length,4)))}px "Share Tech Mono","Courier New",monospace`;
+      ctx.fillStyle=charC; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=4; ctx.shadowOffsetY=2;
+      ctx.fillText(text,W/2,H/2+1);
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+    }catch(e){ dbg('draw2DPlate error:', e.message); }
   }
 
-  function roundRect(ctx, x, y, w, h, r){
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
   }
-
-  function drawScrew(ctx, x, y, r, color){
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x, y, r*0.65, 0, Math.PI*2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    // crosshair
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(x - r*0.4, y); ctx.lineTo(x + r*0.4, y);
-    ctx.moveTo(x, y - r*0.4); ctx.lineTo(x, y + r*0.4);
-    ctx.stroke();
+  function drawScrew(ctx,x,y,r,color){
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r*0.65,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(x-r*0.4,y); ctx.lineTo(x+r*0.4,y);
+    ctx.moveTo(x,y-r*0.4); ctx.lineTo(x,y+r*0.4); ctx.stroke();
   }
 
   // ===== UI SYNC =====
   function syncColorUI(){
-    // swatch active states
-    document.querySelectorAll('[data-base-key]').forEach(b => b.classList.toggle('active', b.getAttribute('data-base-key') === currentBaseKey && !customBaseHex));
-    document.querySelectorAll('[data-char-key]').forEach(b => b.classList.toggle('active', b.getAttribute('data-char-key') === currentCharKey && !customCharHex));
-    document.querySelectorAll('[data-boundary-key]').forEach(b => b.classList.toggle('active', b.getAttribute('data-boundary-key') === currentBoundaryKey && !customBoundaryHex));
-
-    // active dot colors
-    const baseDot = document.getElementById('baseDot');
-    const charDot = document.getElementById('charDot');
-    const boundaryDot = document.getElementById('boundaryDot');
-    if(baseDot) baseDot.style.background = getBaseCss();
-    if(charDot) charDot.style.background = getCharCss();
-    if(boundaryDot) boundaryDot.style.background = getBoundaryCss();
-
-    // active labels
-    const baseLbl = document.getElementById('baseActiveLbl');
-    const charLbl = document.getElementById('charActiveLbl');
-    const boundaryLbl = document.getElementById('boundaryActiveLbl');
-    if(baseLbl) baseLbl.textContent = customBaseHex ? 'CUSTOM' : currentBaseKey.toUpperCase();
-    if(charLbl) charLbl.textContent = customCharHex ? 'CUSTOM' : currentCharKey.toUpperCase();
-    if(boundaryLbl) boundaryLbl.textContent = customBoundaryHex ? 'CUSTOM' : currentBoundaryKey.toUpperCase();
-
-    // summary bar
-    const sumBase = document.getElementById('sumBaseDot');
-    const sumChar = document.getElementById('sumCharDot');
-    const sumBoundary = document.getElementById('sumBoundaryDot');
-    const sumBaseVal = document.getElementById('sumBaseVal');
-    const sumCharVal = document.getElementById('sumCharVal');
-    const sumBoundaryVal = document.getElementById('sumBoundaryVal');
-    if(sumBase){ sumBase.style.background = getBaseCss(); }
-    if(sumChar){ sumChar.style.background = getCharCss(); }
-    if(sumBoundary){ sumBoundary.style.background = getBoundaryCss(); }
-    if(sumBaseVal) sumBaseVal.textContent = customBaseHex ? 'Custom' : BASE_COLORS[currentBaseKey].label;
-    if(sumCharVal) sumCharVal.textContent = customCharHex ? 'Custom' : CHAR_COLORS[currentCharKey].label;
-    if(sumBoundaryVal) sumBoundaryVal.textContent = customBoundaryHex ? 'Custom' : BOUNDARY_COLORS[currentBoundaryKey].label;
-
-    // plate text input
-    const inp = document.getElementById('plateTextInput');
-    if(inp && inp.value.toUpperCase() !== plateText) inp.value = plateText;
-    const cnt = document.getElementById('plateCharCount');
-    if(cnt) cnt.textContent = plateText.length + '/12';
+    try{
+      document.querySelectorAll('[data-base-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-base-key')===currentBaseKey&&!customBaseHex));
+      document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-char-key')===currentCharKey&&!customCharHex));
+      document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-boundary-key')===currentBoundaryKey&&!customBoundaryHex));
+      const bd=document.getElementById('baseDot'), cd=document.getElementById('charDot'), od=document.getElementById('boundaryDot');
+      if(bd) bd.style.background=getBaseCss(); if(cd) cd.style.background=getCharCss(); if(od) od.style.background=getBoundaryCss();
+      const bl=document.getElementById('baseActiveLbl'), cl=document.getElementById('charActiveLbl'), ol=document.getElementById('boundaryActiveLbl');
+      if(bl) bl.textContent=customBaseHex?'CUSTOM':currentBaseKey.toUpperCase();
+      if(cl) cl.textContent=customCharHex?'CUSTOM':currentCharKey.toUpperCase();
+      if(ol) ol.textContent=customBoundaryHex?'CUSTOM':currentBoundaryKey.toUpperCase();
+      const sbd=document.getElementById('sumBaseDot'), scd=document.getElementById('sumCharDot'), sod=document.getElementById('sumBoundaryDot');
+      const sbv=document.getElementById('sumBaseVal'), scv=document.getElementById('sumCharVal'), sov=document.getElementById('sumBoundaryVal');
+      if(sbd) sbd.style.background=getBaseCss(); if(scd) scd.style.background=getCharCss(); if(sod) sod.style.background=getBoundaryCss();
+      if(sbv) sbv.textContent=customBaseHex?'Custom':BASE_COLORS[currentBaseKey].label;
+      if(scv) scv.textContent=customCharHex?'Custom':CHAR_COLORS[currentCharKey].label;
+      if(sov) sov.textContent=customBoundaryHex?'Custom':BOUNDARY_COLORS[currentBoundaryKey].label;
+      const inp=document.getElementById('plateTextInput');
+      if(inp && inp.value.toUpperCase()!==plateText) inp.value=plateText;
+      const cnt=document.getElementById('plateCharCount');
+      if(cnt) cnt.textContent=plateText.length+'/'+MAX_PLATE_LEN;
+      updateContrastUI();
+    }catch(e){ dbg('syncColorUI error:', e.message); }
   }
 
   function applyColors(){
-    enforceColorRules();
-    persistState();
-    syncColorUI();
-    draw2DPlate();
-
-    if(matBase3D){ matBase3D.color.setHex(getBaseColor()); matBase3D.needsUpdate = true; }
-    if(matChar3D){ matChar3D.color.setHex(getCharColor()); matChar3D.needsUpdate = true; }
-    if(matBorder3D){ matBorder3D.color.setHex(getBoundaryColor()); matBorder3D.needsUpdate = true; }
-
-    if(renderer && scene && camera) renderer.render(scene, camera);
+    try{
+      persistState(); syncColorUI(); draw2DPlate();
+      if(matBase3D){ matBase3D.color.setHex(getBaseColor()); matBase3D.needsUpdate=true; }
+      if(matChar3D){ matChar3D.color.setHex(getCharColor()); matChar3D.needsUpdate=true; }
+      if(matBorder3D){ matBorder3D.color.setHex(getBoundaryColor()); matBorder3D.needsUpdate=true; }
+      if(renderer&&scene&&camera) renderer.render(scene,camera);
+    }catch(e){ dbg('applyColors error:', e.message); }
   }
 
   // ===== PUBLIC COLOR SETTERS =====
   window.setBaseColor = function(key){
     if(!BASE_COLORS[key]) return;
-    currentBaseKey = key;
-    customBaseHex = null;
-    applyColors();
+    currentBaseKey=key; customBaseHex=null; applyColors();
   };
   window.setCharColor = function(key){
     if(!CHAR_COLORS[key]) return;
-    currentCharKey = key;
-    customCharHex = null;
-    applyColors();
+    currentCharKey=key; customCharHex=null; applyColors();
   };
   window.setBoundaryColor = function(key){
     if(!BOUNDARY_COLORS[key]) return;
-    currentBoundaryKey = key;
-    customBoundaryHex = null;
-    applyColors();
+    currentBoundaryKey=key; customBoundaryHex=null; applyColors();
   };
   window.setCustomBaseColor = function(hex){
-    customBaseHex = hex;
-    document.querySelectorAll('[data-base-key]').forEach(b => b.classList.remove('active'));
+    customBaseHex=hex;
+    document.querySelectorAll('[data-base-key]').forEach(b=>b.classList.remove('active'));
     applyColors();
   };
   window.setCustomCharColor = function(hex){
-    customCharHex = hex;
-    document.querySelectorAll('[data-char-key]').forEach(b => b.classList.remove('active'));
+    customCharHex=hex;
+    document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.remove('active'));
     applyColors();
   };
   window.setCustomBoundaryColor = function(hex){
-    customBoundaryHex = hex;
-    document.querySelectorAll('[data-boundary-key]').forEach(b => b.classList.remove('active'));
+    customBoundaryHex=hex;
+    document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.remove('active'));
     applyColors();
   };
+
   window.updatePlateText = function(val){
-    plateText = val.toUpperCase().slice(0, 12);
-    const inp = document.getElementById('plateTextInput');
-    if(inp) inp.value = plateText;
-    const cnt = document.getElementById('plateCharCount');
-    if(cnt) cnt.textContent = plateText.length + '/12';
-    draw2DPlate();
-    rebuild3DChars();
-    if(renderer && scene && camera) renderer.render(scene, camera);
-    persistState();
+    try{
+      const n=normalizePlateInput(val);
+      plateText=(n.value||"").toUpperCase();
+      const inp=document.getElementById('plateTextInput');
+      if(inp) inp.value=plateText;
+      const cnt=document.getElementById('plateCharCount');
+      if(cnt) cnt.textContent=plateText.length+'/'+MAX_PLATE_LEN;
+      const warn=document.getElementById("plateWarn");
+      if(warn){ warn.classList.toggle("show",n.removed>0); warn.title=(n.removed>0)?(n.removed+" unsupported characters removed"):""; }
+      draw2DPlate(); rebuild3DChars();
+      if(renderer&&scene&&camera) renderer.render(scene,camera);
+      persistState();
+    }catch(e){ dbg('updatePlateText error:', e.message); }
   };
 
   // ===== PROCEDURAL 3D PLATE =====
+  const PW=5.0, PH=1.15, PD=0.18, BW=0.13;
+  const CW=0.27, CH=0.63, ST=0.055, CD=0.10;
 
-  // Plate dimensions
-  const PW=5.0, PH=1.15, PD=0.18, BW=0.13;  // plate W/H/D, border width
-  const CW=0.27, CH=0.63, ST=0.055, CD=0.10; // char W/H, stroke thickness, char raise depth
-
-  // 7-segment + extras: T M B TL TR BL BR CV(center vertical)
   function segBoxes(){
     const hH=(CH-ST)/2, qH=CH/4, armH=CH/2-ST*1.6;
     return {
@@ -832,231 +861,194 @@
   }
 
   const CHAR_SEGS = {
-    '0':['T','TL','TR','BL','BR','B'],
-    '1':['TR','BR'],
-    '2':['T','TR','M','BL','B'],
-    '3':['T','TR','M','BR','B'],
-    '4':['TL','M','TR','BR'],
-    '5':['T','TL','M','BR','B'],
-    '6':['T','TL','M','BL','BR','B'],
-    '7':['T','TR','BR'],
-    '8':['T','TL','TR','M','BL','BR','B'],
-    '9':['T','TL','TR','M','BR','B'],
-    'A':['T','TL','TR','M','BL','BR'],
-    'B':['T','TL','TR','M','BL','BR','B'],
-    'C':['T','TL','BL','B'],
-    'D':['TL','TR','BL','BR','B'],
-    'E':['T','TL','M','BL','B'],
-    'F':['T','TL','M','BL'],
-    'G':['T','TL','M','BR','BL','B'],
-    'H':['TL','TR','M','BL','BR'],
-    'I':['T','CV','B'],
-    'J':['TR','BR','BL','B'],
-    'K':['TL','M','BL','TR','BR'],
-    'L':['TL','BL','B'],
-    'M':['T','TL','TR','BL','BR'],
-    'N':['TL','TR','BL','BR'],
-    'O':['T','TL','TR','BL','BR','B'],
-    'P':['T','TL','TR','M'],
-    'Q':['T','TL','TR','BL','BR','B'],
-    'R':['T','TL','TR','M','BL'],
-    'S':['T','TL','M','BR','B'],
-    'T':['T','CV'],
-    'U':['TL','TR','BL','BR','B'],
-    'V':['TL','TR','BL','BR','B'],
-    'W':['TL','TR','M','BL','BR'],
-    'X':['TL','TR','M','BL','BR'],
-    'Y':['TL','TR','M','BR'],
-    'Z':['T','TR','M','BL','B'],
-    '-':['M'],
-    ' ':[]
+    '0':['T','TL','TR','BL','BR','B'], '1':['TR','BR'], '2':['T','TR','M','BL','B'],
+    '3':['T','TR','M','BR','B'], '4':['TL','M','TR','BR'], '5':['T','TL','M','BR','B'],
+    '6':['T','TL','M','BL','BR','B'], '7':['T','TR','BR'], '8':['T','TL','TR','M','BL','BR','B'],
+    '9':['T','TL','TR','M','BR','B'], 'A':['T','TL','TR','M','BL','BR'],
+    'B':['T','TL','TR','M','BL','BR','B'], 'C':['T','TL','BL','B'],
+    'D':['TL','TR','BL','BR','B'], 'E':['T','TL','M','BL','B'], 'F':['T','TL','M','BL'],
+    'G':['T','TL','M','BR','BL','B'], 'H':['TL','TR','M','BL','BR'], 'I':['T','CV','B'],
+    'J':['TR','BR','BL','B'], 'K':['TL','M','BL','TR','BR'], 'L':['TL','BL','B'],
+    'M':['T','TL','TR','BL','BR'], 'N':['TL','TR','BL','BR'], 'O':['T','TL','TR','BL','BR','B'],
+    'P':['T','TL','TR','M'], 'Q':['T','TL','TR','BL','BR','B'], 'R':['T','TL','TR','M','BL'],
+    'S':['T','TL','M','BR','B'], 'T':['T','CV'], 'U':['TL','TR','BL','BR','B'],
+    'V':['TL','TR','BL','BR','B'], 'W':['TL','TR','M','BL','BR'], 'X':['TL','TR','M','BL','BR'],
+    'Y':['TL','TR','M','BR'], 'Z':['T','TR','M','BL','B'], '-':['M'], ' ':[]
   };
 
   function buildCharMeshes(text){
-    const sb = segBoxes();
-    const chars = text.split('');
-    const GAP = 0.09, SPACE_W = CW*0.6;
-
-    // measure total width
-    let totalW = 0;
-    chars.forEach(c => { totalW += (c===' ') ? SPACE_W : CW + GAP; });
-    totalW -= GAP;
-
-    const grp = new THREE.Group();
-    let x = -totalW/2;
-
-    chars.forEach(c => {
-      if(c === ' '){ x += SPACE_W; return; }
-      const segs = CHAR_SEGS[c] || ['T','TL','TR','BL','BR','B','M']; // fallback = full block
-      segs.forEach(sId => {
-        const s = sb[sId]; if(!s) return;
-        const geo = new THREE.BoxGeometry(s.w, s.h, CD);
-        const mesh = new THREE.Mesh(geo, matChar3D);
-        mesh.position.set(x + CW/2 + s.x, s.y, PD/2 + CD/2);
+    const sb=segBoxes();
+    const chars=text.split('');
+    const GAP=0.09, SPACE_W=CW*0.6;
+    let totalW=0;
+    chars.forEach(c=>{ totalW+=(c===' ')?SPACE_W:CW+GAP; });
+    totalW-=GAP;
+    const grp=new THREE.Group();
+    let x=-totalW/2;
+    chars.forEach(c=>{
+      if(c===' '){ x+=SPACE_W; return; }
+      const segs=CHAR_SEGS[c]||[];
+      segs.forEach(sId=>{
+        const s=sb[sId]; if(!s) return;
+        const geo=new THREE.BoxGeometry(s.w,s.h,CD);
+        const mesh=new THREE.Mesh(geo,matChar3D);
+        mesh.position.set(x+CW/2+s.x,s.y,PD/2+CD/2);
         grp.add(mesh);
       });
-      x += CW + GAP;
+      x+=CW+GAP;
     });
-
     return grp;
   }
 
   function rebuild3DChars(){
-    if(!group || !matChar3D) return;
-    if(charGroup3D){ group.remove(charGroup3D); charGroup3D = null; }
-    charGroup3D = buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
+    if(!group||!matChar3D) return;
+    if(charGroup3D){ group.remove(charGroup3D); charGroup3D=null; }
+    charGroup3D=buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
     group.add(charGroup3D);
   }
 
   function buildProceduralPlate(){
-    // ── clear group ──
     while(group.children.length) group.remove(group.children[0]);
-    charGroup3D = null;
-
-    // ── shared materials ──
-    matBase3D   = new THREE.MeshStandardMaterial({ color:getBaseColor(),     roughness:0.62, metalness:0.06 });
-    matChar3D   = new THREE.MeshStandardMaterial({ color:getCharColor(),     roughness:0.42, metalness:0.10 });
-    matBorder3D = new THREE.MeshStandardMaterial({ color:getBoundaryColor(), roughness:0.55, metalness:0.12 });
-
-    // ── base plate ──
-    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, PD), matBase3D);
+    charGroup3D=null;
+    matBase3D   = new THREE.MeshStandardMaterial({color:getBaseColor(),     roughness:0.62, metalness:0.06});
+    matChar3D   = new THREE.MeshStandardMaterial({color:getCharColor(),     roughness:0.42, metalness:0.10});
+    matBorder3D = new THREE.MeshStandardMaterial({color:getBoundaryColor(), roughness:0.55, metalness:0.12});
+    const baseMesh=new THREE.Mesh(new THREE.BoxGeometry(PW,PH,PD),matBase3D);
     group.add(baseMesh);
-
-    // ── border frame (4 bars + corner fills) ──
-    const borderParts = [
-      {w:PW+BW*2, h:BW,      d:PD+0.05, x:0,          y: PH/2+BW/2},
-      {w:PW+BW*2, h:BW,      d:PD+0.05, x:0,          y:-PH/2-BW/2},
-      {w:BW,      h:PH,      d:PD+0.05, x:-PW/2-BW/2, y:0},
-      {w:BW,      h:PH,      d:PD+0.05, x: PW/2+BW/2, y:0},
+    const borderParts=[
+      {w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:PH/2+BW/2},{w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:-PH/2-BW/2},
+      {w:BW,h:PH,d:PD+0.05,x:-PW/2-BW/2,y:0},{w:BW,h:PH,d:PD+0.05,x:PW/2+BW/2,y:0}
     ];
     borderParts.forEach(p=>{
-      const m = new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d), matBorder3D);
-      m.position.set(p.x, p.y, 0);
-      group.add(m);
+      const m=new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d),matBorder3D);
+      m.position.set(p.x,p.y,0); group.add(m);
     });
-
-    // ── raised plate edge ridge (thin frame on front face) ──
-    const ridgeParts = [
-      {w:PW-BW*0.5, h:0.045, d:0.04, y: PH/2-0.08},
-      {w:PW-BW*0.5, h:0.045, d:0.04, y:-PH/2+0.08},
-    ];
+    const ridgeParts=[{w:PW-BW*0.5,h:0.045,d:0.04,y:PH/2-0.08},{w:PW-BW*0.5,h:0.045,d:0.04,y:-PH/2+0.08}];
     ridgeParts.forEach(p=>{
-      const m = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, p.d), matBorder3D);
-      m.position.set(0, p.y, PD/2+0.02);
-      group.add(m);
+      const m=new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d),matBorder3D);
+      m.position.set(0,p.y,PD/2+0.02); group.add(m);
     });
-
-    // ── screw holes (cylinders) ──
-    const screwMat = new THREE.MeshStandardMaterial({ color:0x222222, roughness:0.85, metalness:0.3 });
-    const screwCapMat = new THREE.MeshStandardMaterial({ color:getBoundaryColor(), roughness:0.5, metalness:0.4 });
-    const screwPositions = [[-PW/2+0.28, 0], [PW/2-0.28, 0]];
-    screwPositions.forEach(([sx, sy])=>{
-      // recess
-      const rec = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,PD+0.06,10), screwMat);
-      rec.rotation.x = Math.PI/2;
-      rec.position.set(sx, sy, 0);
-      group.add(rec);
-      // cap (border color)
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.04,10), matBorder3D);
-      cap.rotation.x = Math.PI/2;
-      cap.position.set(sx, sy, PD/2+0.02);
-      group.add(cap);
-      // slot lines
-      const slotMat = new THREE.MeshStandardMaterial({color:0x111111, roughness:0.9});
-      const slot = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.018, 0.05), slotMat);
-      slot.position.set(sx, sy, PD/2+0.045);
-      group.add(slot);
+    const screwMat=new THREE.MeshStandardMaterial({color:0x222222,roughness:0.85,metalness:0.3});
+    [[-PW/2+0.28,0],[PW/2-0.28,0]].forEach(([sx,sy])=>{
+      const rec=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,PD+0.06,10),screwMat);
+      rec.rotation.x=Math.PI/2; rec.position.set(sx,sy,0); group.add(rec);
+      const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.04,10),matBorder3D);
+      cap.rotation.x=Math.PI/2; cap.position.set(sx,sy,PD/2+0.02); group.add(cap);
+      const slotMat=new THREE.MeshStandardMaterial({color:0x111111,roughness:0.9});
+      const slot=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.018,0.05),slotMat);
+      slot.position.set(sx,sy,PD/2+0.045); group.add(slot);
     });
-
-    // ── characters ──
-    charGroup3D = buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
+    charGroup3D=buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
     group.add(charGroup3D);
-
-    // initial rotation for a nice angle
-    group.rotation.x = -0.22;
-    group.rotation.y =  0.55;
-
-    // fit to view
-    const box = new THREE.Box3().setFromObject(group);
-    const sz  = new THREE.Vector3(); box.getSize(sz);
-    const maxDim = Math.max(sz.x, sz.y) || 1;
-    group.scale.setScalar(2.6 / maxDim);
+    group.rotation.x=-0.22; group.rotation.y=0.55;
+    const box=new THREE.Box3().setFromObject(group);
+    const sz=new THREE.Vector3(); box.getSize(sz);
+    const maxDim=Math.max(sz.x,sz.y)||1;
+    group.scale.setScalar(2.6/maxDim);
   }
 
-  // ===== 3D VIEWER INIT =====
+  // ===== 3D VIEWER INIT (FIX #5: full try/catch + WebGL guard) =====
   window.initSTLViewer = function(){
+    dbg('initSTLViewer called');
     const wrap    = document.getElementById('stl-viewer-wrap');
     const canvas  = document.getElementById('stl-canvas');
     const loading = document.getElementById('stl-loading');
-    if(!wrap || !canvas) return;
+    if(!wrap || !canvas){
+      dbg('initSTLViewer: wrap or canvas not found, skipping');
+      return;
+    }
 
-    if(initedCanvasEl === canvas && renderer && scene && camera){
+    // FIX #5: Check WebGL BEFORE touching Three.js
+    if(!detectWebGL()){
+      dbg('initSTLViewer: WebGL not available, showing fallback');
+      // Show friendly fallback — ordering still works
+      if(loading) loading.classList.add('hidden');
+      // Remove canvas so it doesn't take space
+      if(canvas) canvas.style.display='none';
+      // Inject fallback message
+      const existing = wrap.querySelector('.stl-webgl-fallback');
+      if(!existing){
+        const fb = document.createElement('div');
+        fb.className = 'stl-webgl-fallback';
+        fb.innerHTML = '<div class="fallback-icon">🎨</div><b>3D Preview unavailable</b><div style="margin-top:6px;font-size:12px;opacity:.7">Your browser doesn\'t support WebGL.<br>Use the 2D preview below to choose colors.</div>';
+        wrap.appendChild(fb);
+      }
+      applyColors();
+      return;
+    }
+
+    if(initedCanvasEl===canvas && renderer && scene && camera){
+      dbg('initSTLViewer: already inited, reapplying colors');
       applyColors(); return;
     }
 
     renderToken++;
     const myToken = renderToken;
 
-    try{ if(renderer) renderer.dispose(); }catch(e){}
-    scene=null; camera=null; group=null;
-    matBase3D=null; matChar3D=null; matBorder3D=null; charGroup3D=null;
-    renderer=null; initedCanvasEl = canvas;
+    // FIX #5: Wrap entire Three.js init in try/catch
+    try{
+      try{ if(renderer) renderer.dispose(); }catch(e){}
+      scene=null; camera=null; group=null;
+      matBase3D=null; matChar3D=null; matBorder3D=null; charGroup3D=null;
+      renderer=null; initedCanvasEl=canvas;
 
-    const W = wrap.clientWidth || 320, H = 220;
+      const W=wrap.clientWidth||320, H=220;
+      renderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+      renderer.setSize(W,H,false);
+      renderer.shadowMap.enabled=true;
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
-    renderer.setSize(W, H, false);
-    renderer.shadowMap.enabled = true;
+      scene=new THREE.Scene();
+      camera=new THREE.PerspectiveCamera(42,W/H,0.1,1000);
+      camera.position.set(0,0.3,5.5); camera.lookAt(0,0,0);
 
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 1000);
-    camera.position.set(0, 0.3, 5.5);
-    camera.lookAt(0, 0, 0);
+      scene.add(new THREE.AmbientLight(0xffffff,0.60));
+      const d1=new THREE.DirectionalLight(0xffffff,1.1); d1.position.set(3,4,3); scene.add(d1);
+      const d2=new THREE.DirectionalLight(0xffffff,0.40); d2.position.set(-3,-1,-2); scene.add(d2);
+      const d3=new THREE.DirectionalLight(0xffffff,0.25); d3.position.set(0,-3,2); scene.add(d3);
 
-    // Lighting
-    scene.add(new THREE.AmbientLight(0xffffff, 0.60));
-    const d1 = new THREE.DirectionalLight(0xffffff, 1.1); d1.position.set(3, 4, 3); scene.add(d1);
-    const d2 = new THREE.DirectionalLight(0xffffff, 0.40); d2.position.set(-3, -1, -2); scene.add(d2);
-    const d3 = new THREE.DirectionalLight(0xffffff, 0.25); d3.position.set(0, -3, 2); scene.add(d3);
+      group=new THREE.Group(); scene.add(group);
+      buildProceduralPlate();
 
-    group = new THREE.Group();
-    scene.add(group);
+      if(loading) loading.classList.add('hidden');
+      dbg('initSTLViewer: 3D scene built successfully');
 
-    buildProceduralPlate();
+      function onDown(e){ pointerDown=true; autoRotate=false; const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY; }
+      function onMove(e){ if(!pointerDown||!group) return; const t=e.touches?e.touches[0]:e; group.rotation.y+=(t.clientX-lastX)*0.012; group.rotation.x+=(t.clientY-lastY)*0.008; lastX=t.clientX; lastY=t.clientY; }
+      function onUp(){ pointerDown=false; }
+      wrap.onpointerdown=onDown; wrap.onpointermove=onMove; window.onpointerup=onUp;
 
-    if(loading) loading.classList.add('hidden');
+      window.addEventListener('resize',()=>{
+        if(!wrap||!renderer||!camera) return;
+        const w=wrap.clientWidth||320;
+        renderer.setSize(w,220,false); camera.aspect=w/220; camera.updateProjectionMatrix();
+        renderer.render(scene,camera);
+      });
 
-    // ── interaction ──
-    function onDown(e){
-      pointerDown=true; autoRotate=false;
-      const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY;
+      (function animate(){
+        if(myToken!==renderToken) return;
+        requestAnimationFrame(animate);
+        if(autoRotate&&group) group.rotation.y+=0.006;
+        if(renderer&&scene&&camera) renderer.render(scene,camera);
+      })();
+
+      applyColors();
+    }catch(err){
+      // FIX #5: WebGL init failed — show fallback instead of blank/broken state
+      dbg('initSTLViewer error:', err.message);
+      showErrorToast('3D viewer error: '+err.message);
+      renderer=null; scene=null; camera=null; group=null;
+      if(loading) loading.classList.add('hidden');
+      if(canvas) canvas.style.display='none';
+      const existing=wrap.querySelector('.stl-webgl-fallback');
+      if(!existing){
+        const fb=document.createElement('div');
+        fb.className='stl-webgl-fallback';
+        fb.innerHTML='<div class="fallback-icon">⚠️</div><b>3D preview failed to load</b><div style="margin-top:6px;font-size:12px;opacity:.7">Use the 2D preview to choose your colors.<br>Ordering still works normally!</div>';
+        wrap.appendChild(fb);
+      }
+      applyColors();
     }
-    function onMove(e){
-      if(!pointerDown||!group) return;
-      const t=e.touches?e.touches[0]:e;
-      group.rotation.y+=(t.clientX-lastX)*0.012;
-      group.rotation.x+=(t.clientY-lastY)*0.008;
-      lastX=t.clientX; lastY=t.clientY;
-    }
-    function onUp(){ pointerDown=false; }
-    wrap.onpointerdown=onDown; wrap.onpointermove=onMove; window.onpointerup=onUp;
-
-    window.addEventListener('resize',()=>{
-      if(!wrap||!renderer||!camera) return;
-      const w=wrap.clientWidth||320;
-      renderer.setSize(w,220,false); camera.aspect=w/220; camera.updateProjectionMatrix();
-      renderer.render(scene,camera);
-    });
-
-    (function animate(){
-      if(myToken !== renderToken) return;
-      requestAnimationFrame(animate);
-      if(autoRotate && group) group.rotation.y += 0.006;
-      if(renderer && scene && camera) renderer.render(scene, camera);
-    })();
-
-    applyColors();
   };
 
   // ===== CONTENT =====
@@ -1130,7 +1122,7 @@
             <li><b>Boundary-height:</b> colored by vertical/angled faces around raised geometry.</li>
             <li><b>Base:</b> everything below the raised Z-threshold.</li>
           </ul>
-          <div class="qt">Percentile-based splitting keeps it stable if STL height changes.</div>`,
+          <div class="qt">Lab tip: if readability matters, keep Base vs Characters high-contrast.</div>`,
         hi:()=>`
           <div class="sg">
             <div class="sn"><div class="sv">3-Color</div><div class="slbl">Split Preview</div></div>
@@ -1142,7 +1134,7 @@
             <li><b>Boundary-height:</b> raised geometry की side walls से।</li>
             <li><b>Base:</b> raised threshold के नीचे वाला हिस्सा।</li>
           </ul>
-          <div class="qt">STL बदलें तब भी splitter stable रहता है।</div>`
+          <div class="qt">Lab tip: readability के लिए Base vs Characters high-contrast रखें।</div>`
       }
     },
     {
@@ -1171,46 +1163,35 @@
   // ===== CUSTOMIZE HTML BUILDER =====
   function buildCustomizeHTML(){
     return `
-      <!-- 3D viewer -->
       <div id="stl-viewer-wrap" class="stl-viewer-wrap">
         <canvas id="stl-canvas"></canvas>
         <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
         <div class="stl-hint">Drag to rotate</div>
       </div>
-
-      <!-- 2D plate text preview -->
       <div class="plate-preview-block">
         <div class="plate-preview-label">Live Plate Preview</div>
-        <div class="plate-canvas-wrap">
-          <canvas id="plate2DCanvas"></canvas>
-        </div>
+        <div class="plate-canvas-wrap"><canvas id="plate2DCanvas"></canvas></div>
       </div>
-
-      <!-- Plate number input -->
       <div class="plate-input-block">
-        <div class="plate-input-label">Your Plate Number</div>
-        <div class="plate-input-row">
-          <input
-            type="text"
-            id="plateTextInput"
-            class="plate-text-input"
-            maxlength="12"
-            placeholder="MH 01 AB 1234"
-            value="${plateText}"
-            spellcheck="false"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="characters"
-            oninput="updatePlateText(this.value)"
-          >
-          <span class="plate-char-count" id="plateCharCount">${plateText.length}/12</span>
+        <div class="plate-input-label">
+          <span>Your Plate Number</span>
+          <span class="plate-meta">
+            <span class="plate-warn" id="plateWarn"><span class="dot"></span>Unsupported removed</span>
+            <span class="plate-char-count" id="plateCharCount">${plateText.length}/${MAX_PLATE_LEN}</span>
+          </span>
         </div>
+        <div class="plate-input-row">
+          <input type="text" id="plateTextInput" class="plate-text-input"
+            maxlength="${MAX_PLATE_LEN}" placeholder="MH 01 AB 1234"
+            value="${plateText}" spellcheck="false" autocomplete="off"
+            autocorrect="off" autocapitalize="characters"
+            oninput="updatePlateText(this.value)">
+        </div>
+        <p style="margin:10px 2px 0;font-size:11px;color:rgba(255,255,255,0.28);line-height:1.55;">
+          Allowed: A–Z, 0–9, space, hyphen. We auto-clean unsupported characters.
+        </p>
       </div>
-
-      <!-- Color panel -->
       <div class="stl-color-panel">
-
-        <!-- BASE -->
         <div class="color-group">
           <div class="color-group-header">
             <div class="color-group-title">Base / Background</div>
@@ -1220,22 +1201,16 @@
             </div>
           </div>
           <div class="color-swatches">
-            ${Object.entries(BASE_COLORS).map(([key, val]) => `
-              <button class="swatch-btn ${currentBaseKey===key && !customBaseHex ? 'active':''}"
-                      data-base-key="${key}"
-                      style="background:${val.css}"
-                      data-label="${val.label}"
-                      onclick="setBaseColor('${key}')"
-                      title="${val.label}"></button>
+            ${Object.entries(BASE_COLORS).map(([key,val])=>`
+              <button class="swatch-btn ${currentBaseKey===key&&!customBaseHex?'active':''}"
+                data-base-key="${key}" style="background:${val.css}" data-label="${val.label}"
+                onclick="setBaseColor('${key}')" title="${val.label}"></button>
             `).join('')}
-            <div class="swatch-custom" title="Custom color">
-              <span>+</span>
+            <div class="swatch-custom" title="Custom color"><span>+</span>
               <input type="color" value="${customBaseHex||getBaseCss()}" oninput="setCustomBaseColor(this.value)" title="Pick custom base color">
             </div>
           </div>
         </div>
-
-        <!-- CHARACTERS -->
         <div class="color-group">
           <div class="color-group-header">
             <div class="color-group-title">Characters (Top Surface)</div>
@@ -1245,22 +1220,16 @@
             </div>
           </div>
           <div class="color-swatches">
-            ${Object.entries(CHAR_COLORS).map(([key, val]) => `
-              <button class="swatch-btn ${currentCharKey===key && !customCharHex ? 'active':''}"
-                      data-char-key="${key}"
-                      style="background:${val.css}"
-                      data-label="${val.label}"
-                      onclick="setCharColor('${key}')"
-                      title="${val.label}"></button>
+            ${Object.entries(CHAR_COLORS).map(([key,val])=>`
+              <button class="swatch-btn ${currentCharKey===key&&!customCharHex?'active':''}"
+                data-char-key="${key}" style="background:${val.css}" data-label="${val.label}"
+                onclick="setCharColor('${key}')" title="${val.label}"></button>
             `).join('')}
-            <div class="swatch-custom" title="Custom color">
-              <span>+</span>
+            <div class="swatch-custom" title="Custom color"><span>+</span>
               <input type="color" value="${customCharHex||getCharCss()}" oninput="setCustomCharColor(this.value)" title="Pick custom character color">
             </div>
           </div>
         </div>
-
-        <!-- BOUNDARY -->
         <div class="color-group">
           <div class="color-group-header">
             <div class="color-group-title">Boundary-Height (Edge Walls)</div>
@@ -1270,22 +1239,16 @@
             </div>
           </div>
           <div class="color-swatches">
-            ${Object.entries(BOUNDARY_COLORS).map(([key, val]) => `
-              <button class="swatch-btn ${currentBoundaryKey===key && !customBoundaryHex ? 'active':''}"
-                      data-boundary-key="${key}"
-                      style="background:${val.css}"
-                      data-label="${val.label}"
-                      onclick="setBoundaryColor('${key}')"
-                      title="${val.label}"></button>
+            ${Object.entries(BOUNDARY_COLORS).map(([key,val])=>`
+              <button class="swatch-btn ${currentBoundaryKey===key&&!customBoundaryHex?'active':''}"
+                data-boundary-key="${key}" style="background:${val.css}" data-label="${val.label}"
+                onclick="setBoundaryColor('${key}')" title="${val.label}"></button>
             `).join('')}
-            <div class="swatch-custom" title="Custom color">
-              <span>+</span>
+            <div class="swatch-custom" title="Custom color"><span>+</span>
               <input type="color" value="${customBoundaryHex||getBoundaryCss()}" oninput="setCustomBoundaryColor(this.value)" title="Pick custom boundary color">
             </div>
           </div>
         </div>
-
-        <!-- Summary -->
         <div class="color-summary">
           <div class="cs-item"><div class="cs-dot" id="sumBaseDot" style="background:${getBaseCss()}"></div>Base: <span class="cs-val" id="sumBaseVal">${BASE_COLORS[currentBaseKey].label}</span></div>
           <div class="cs-sep">·</div>
@@ -1293,33 +1256,28 @@
           <div class="cs-sep">·</div>
           <div class="cs-item"><div class="cs-dot" id="sumBoundaryDot" style="background:${getBoundaryCss()}"></div>Border: <span class="cs-val" id="sumBoundaryVal">${BOUNDARY_COLORS[currentBoundaryKey].label}</span></div>
         </div>
+        <div class="contrast-badge" aria-live="polite">
+          <div class="contrast-left">
+            <div class="contrast-title">Readability Check</div>
+            <div class="contrast-msg" id="contrastMsg">Readability: —</div>
+          </div>
+          <div class="contrast-score warn" id="contrastScore">—</div>
+        </div>
       </div>
-
       <button class="cp" style="margin-top:14px;" onclick="orderOnWhatsApp()">
         <span class="cpulse"></span>
         <div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
       </button>
-
       <p style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.28);line-height:1.6;">
-        Tip: Use the + button to pick any custom colour. The live preview above updates instantly.
+        Tip: Use the + button to pick any custom colour. The live preview updates instantly.
       </p>
     `;
   }
 
   // ===== ORDER =====
   window.orderOnWhatsApp = function(){
-    const msg =
-`Hi! I want to order the 3D Numberplate.
-
-Plate Number: ${plateText}
-
-Selected Colors:
-- Base: ${customBaseHex ? 'Custom ('+customBaseHex+')' : currentBaseKey.toUpperCase()}
-- Characters: ${customCharHex ? 'Custom ('+customCharHex+')' : currentCharKey.toUpperCase()}
-- Boundary-height: ${customBoundaryHex ? 'Custom ('+customBoundaryHex+')' : currentBoundaryKey.toUpperCase()}
-
-(Please share next steps + pricing.)`;
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+    const msg=`Hi! I want to order the 3D Numberplate.\n\nPlate Number: ${plateText}\n\nSelected Colors:\n- Base: ${customBaseHex?'Custom ('+customBaseHex+')':currentBaseKey.toUpperCase()}\n- Characters: ${customCharHex?'Custom ('+customCharHex+')':currentCharKey.toUpperCase()}\n- Boundary-height: ${customBoundaryHex?'Custom ('+customBoundaryHex+')':currentBoundaryKey.toUpperCase()}\n\n(Please share next steps + pricing.)`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
   };
 
   // ===== NAV / RENDER =====
@@ -1361,9 +1319,9 @@ Selected Colors:
     if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
     if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
     if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
-    if(bnCtaText && bnCtaTag){
+    if(bnCtaText&&bnCtaTag){
       if(currentSecIndex===CUSTOMIZE_IDX){ bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
-      else { bnCtaText.textContent="Customize"; bnCtaTag.textContent="3D"; }
+      else{ bnCtaText.textContent="Customize"; bnCtaTag.textContent="3D"; }
     }
   }
 
@@ -1372,66 +1330,147 @@ Selected Colors:
     if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
     if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
     if(bnCta) bnCta.addEventListener('click',()=>{
-      if(currentSecIndex!==CUSTOMIZE_IDX && CUSTOMIZE_IDX>=0) scrollToIndex(CUSTOMIZE_IDX);
+      if(currentSecIndex!==CUSTOMIZE_IDX&&CUSTOMIZE_IDX>=0) scrollToIndex(CUSTOMIZE_IDX);
       else orderOnWhatsApp();
     });
   }
 
-  const observer=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        entry.target.classList.add('is-active');
-        const idx=parseInt(entry.target.getAttribute('data-index'),10);
-        currentSecIndex=isNaN(idx)?0:idx;
-        secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
-        secName.textContent=entry.target.getAttribute('data-name');
-        updateBottomNav();
-        if(entry.target.getAttribute('data-name')==='CUSTOMIZE'){
-          setTimeout(()=>{
-            window.initSTLViewer();
-            syncColorUI();
-            draw2DPlate();
-          }, 120);
-        }
-      } else {
-        entry.target.classList.remove('is-active');
-      }
+  // FIX #7: IntersectionObserver with lower threshold (0.45 catches scroll-snap reliably)
+  // + fallback scroll listener if IntersectionObserver is unavailable or misfires.
+  let observerActive = false;
+
+  function onSectionVisible(idx){
+    dbg('Section visible:', idx, SECTIONS[idx]&&SECTIONS[idx].name);
+    const wrapper = container.querySelector(`.section-wrapper[data-index="${idx}"]`);
+    // Mark active / deactivate others
+    container.querySelectorAll('.section-wrapper').forEach((w,i)=>{
+      w.classList.toggle('is-active', i===idx);
     });
-  },{root:container,threshold:0.6});
+    currentSecIndex = idx;
+    if(secLabel) secLabel.textContent=`SEC ${idx+1}/${SECTIONS.length}`;
+    if(secName && SECTIONS[idx]) secName.textContent=SECTIONS[idx].name;
+    updateBottomNav();
+    if(SECTIONS[idx]&&SECTIONS[idx].name==='CUSTOMIZE'){
+      setTimeout(()=>{
+        try{ window.initSTLViewer(); }catch(e){ dbg('initSTLViewer threw:', e.message); showErrorToast('3D init: '+e.message); }
+        syncColorUI();
+        draw2DPlate();
+      },120);
+    }
+  }
+
+  // Try IntersectionObserver first
+  let observer = null;
+  try{
+    observer = new IntersectionObserver(entries=>{
+      try{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting){
+            observerActive = true;
+            const idx=parseInt(entry.target.getAttribute('data-index'),10);
+            if(!isNaN(idx)) onSectionVisible(idx);
+          }
+        });
+      }catch(e){ dbg('observer callback error:', e.message); showErrorToast('Observer: '+e.message); }
+    // FIX: threshold 0.45 fires reliably during scroll-snap animation on mobile
+    },{root:container, threshold:0.45});
+    dbg('IntersectionObserver created');
+  }catch(e){
+    dbg('IntersectionObserver not available:', e.message);
+    observer=null;
+  }
+
+  // FIX #7: Scroll fallback — fires when observer hasn't triggered yet or isn't available
+  function setupScrollFallback(){
+    let ticking=false;
+    container.addEventListener('scroll',function(){
+      if(ticking) return;
+      ticking=true;
+      requestAnimationFrame(function(){
+        ticking=false;
+        // Find which section is most centered in the viewport
+        const wrappers=container.querySelectorAll('.section-wrapper');
+        const containerMid=container.scrollTop+container.clientHeight/2;
+        let bestIdx=0, bestDist=Infinity;
+        wrappers.forEach((w,i)=>{
+          const top=w.offsetTop, h=w.offsetHeight;
+          const dist=Math.abs((top+h/2)-containerMid);
+          if(dist<bestDist){ bestDist=dist; bestIdx=i; }
+        });
+        if(bestIdx!==currentSecIndex){
+          onSectionVisible(bestIdx);
+        }
+      });
+    },{passive:true});
+    dbg('Scroll fallback listener attached');
+  }
+  setupScrollFallback();
 
   let currentLang='en';
   function renderSections(){
-    container.innerHTML='';
-    SECTIONS.forEach((sec,index)=>{
-      const w=document.createElement('div');
-      w.className='section-wrapper';
-      w.setAttribute('data-index',index);
-      w.setAttribute('data-name',sec.name);
-      w.innerHTML=`
-        <article class="card">
-          <header class="cardHeader">
-            <div class="kicker">${sec.kicker}</div>
-            <h1 class="h1">${sec.title[currentLang]}</h1>
-          </header>
-          <div class="cardBody">
-            ${sec.html[currentLang]()}
-            <div style="height:85px;"></div>
-          </div>
-        </article>
-        <div class="hint">
-          <span>Scroll for more</span>
-          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-      `;
-      container.appendChild(w);
-      observer.observe(w);
-    });
+    dbg('renderSections started, lang:', currentLang);
+    try{
+      container.innerHTML='';
+      SECTIONS.forEach((sec,index)=>{
+        try{
+          const w=document.createElement('div');
+          w.className='section-wrapper';
+          w.setAttribute('data-index',index);
+          w.setAttribute('data-name',sec.name);
+          const htmlContent = sec.html[currentLang]();
+          w.innerHTML=`
+            <article class="card">
+              <header class="cardHeader">
+                <div class="kicker">${sec.kicker}</div>
+                <h1 class="h1">${sec.title[currentLang]}</h1>
+              </header>
+              <div class="cardBody">
+                ${htmlContent}
+                <div style="height:85px;"></div>
+              </div>
+            </article>
+            <div class="hint">
+              <span>Scroll for more</span>
+              <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          `;
+          container.appendChild(w);
+          dbg('Section appended:', sec.name, 'index:', index);
+          if(observer) observer.observe(w);
+        }catch(secErr){
+          dbg('Error building section', index, ':', secErr.message);
+          showErrorToast('Section '+index+' error: '+secErr.message);
+          // Still append a minimal placeholder so layout doesn't break
+          const fallback=document.createElement('div');
+          fallback.className='section-wrapper';
+          fallback.setAttribute('data-index',index);
+          fallback.setAttribute('data-name',sec.name||'?');
+          fallback.innerHTML=`<article class="card"><header class="cardHeader"><div class="kicker">${sec.kicker||''}</div><h1 class="h1">Section unavailable</h1></header><div class="cardBody"><p class="lead" style="color:rgba(255,100,100,0.8)">This section failed to render. (${secErr.message})</p></div></article>`;
+          container.appendChild(fallback);
+          if(observer) observer.observe(fallback);
+        }
+      });
+      dbg('renderSections: all', SECTIONS.length, 'sections appended');
 
-    setTimeout(()=>{
-      if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots();
-      updateBottomNav();
-      applyColors();
-    }, 60);
+      // Activate the first section immediately so cards are visible on load
+      setTimeout(()=>{
+        const firstWrapper=container.querySelector('.section-wrapper[data-index="0"]');
+        if(firstWrapper&&!firstWrapper.classList.contains('is-active')){
+          dbg('renderSections: forcing first section active via timeout');
+          onSectionVisible(0);
+        }
+        if(bnDots&&bnDots.children.length!==SECTIONS.length) buildBottomDots();
+        updateBottomNav();
+        try{ applyColors(); }catch(e){}
+        const warn=document.getElementById("plateWarn");
+        if(warn) warn.classList.remove("show");
+      },80);
+    }catch(e){
+      dbg('renderSections fatal error:', e.message);
+      showErrorToast('Render error: '+e.message);
+      // Last-resort: show plain text so page isn't blank
+      container.innerHTML='<div style="padding:80px 24px;color:#fff;font-size:16px;line-height:1.7;"><b style="color:#ff4444">Page render error</b><br>'+e.message+'<br><br>Please reload or try on desktop.</div>';
+    }
   }
 
   // ===== TRANSLATION =====
@@ -1443,42 +1482,49 @@ Selected Colors:
 
   function triggerTranslation(lang){
     currentLang=lang; renderSections();
-    toast.classList.add('is-visible');
-    toastMsg.textContent=(lang==='hi')?"Translated to Hindi":"Back to English";
-    btnUndo.style.display=(lang==='hi')?'block':'none';
+    if(toast){ toast.classList.add('is-visible'); }
+    if(toastMsg) toastMsg.textContent=(lang==='hi')?"Translated to Hindi":"Back to English";
+    if(btnUndo) btnUndo.style.display=(lang==='hi')?'block':'none';
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200);
+    toastTimer=setTimeout(()=>{ if(toast) toast.classList.remove('is-visible'); },2200);
   }
-  btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
-  btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); toast.classList.remove('is-visible'); });
+  if(btnTranslate) btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
+  if(btnUndo) btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); if(toast) toast.classList.remove('is-visible'); });
 
   // ===== ROTATION POPUP =====
   const popup=document.getElementById('rotatePopup');
   const appWrapper=document.getElementById('appWrapper');
   let isForcedLandscape=false, targetRotationAngle=0;
-
   window.addEventListener('deviceorientation',e=>{
     const g=e.gamma;
     if(g===null||typeof g==='undefined') return;
     if(!isForcedLandscape){ if(g>45) showRotatePopup(90); else if(g<-45) showRotatePopup(-90); else hideRotatePopup(); }
-    else { if(Math.abs(g)<25) showRotatePopup(0); else hideRotatePopup(); }
+    else{ if(Math.abs(g)<25) showRotatePopup(0); else hideRotatePopup(); }
   });
-  function showRotatePopup(a){ targetRotationAngle=a; popup.classList.add('is-visible'); popup.textContent=(a===0)?"Tap for Portrait":"Tap for Landscape"; }
-  function hideRotatePopup(){ popup.classList.remove('is-visible'); }
-  popup.addEventListener('click',()=>{
+  function showRotatePopup(a){ targetRotationAngle=a; if(popup){ popup.classList.add('is-visible'); popup.textContent=(a===0)?"Tap for Portrait":"Tap for Landscape"; } }
+  function hideRotatePopup(){ if(popup) popup.classList.remove('is-visible'); }
+  if(popup) popup.addEventListener('click',()=>{
     if(targetRotationAngle!==0){ appWrapper.classList.add('forced-landscape'); appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`; isForcedLandscape=true; }
-    else { appWrapper.classList.remove('forced-landscape'); appWrapper.style.transform='none'; isForcedLandscape=false; }
+    else{ appWrapper.classList.remove('forced-landscape'); appWrapper.style.transform='none'; isForcedLandscape=false; }
     hideRotatePopup();
   });
 
-  document.getElementById("backBtn").addEventListener("click", function(e) {
-    if(!this.hasAttribute('data-vd-route')){ e.preventDefault(); window.location.href = this.href; }
+  const backBtnEl=document.getElementById("backBtn");
+  if(backBtnEl) backBtnEl.addEventListener("click",function(e){
+    if(!this.hasAttribute('data-vd-route')){ e.preventDefault(); window.location.href=this.href; }
   });
 
   // ===== INIT =====
+  (function initPlateText(){
+    const n=normalizePlateInput(plateText);
+    plateText=n.value||plateText;
+  })();
+
+  dbg('Starting renderSections + initBottomNav');
   renderSections();
   initBottomNav();
-  applyColors();
+  try{ applyColors(); }catch(e){}
+  dbg('Init complete');
 
 })();
 </script>
