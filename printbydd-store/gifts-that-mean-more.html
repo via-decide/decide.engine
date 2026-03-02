@@ -607,11 +607,11 @@
     <div class="bg-glow"></div>
 
     <header class="site-header">
-      <a href="./index.html" class="logo">PrintByDD</a>
+      <a id="gtmLogo" href="./index.html" class="logo">PrintByDD</a>
       <nav>
-        <a href="./index.html">Home</a>
-        <a href="./keychain.html">Products</a>
-        <a href="./gifts-that-mean-more.html" class="active">Blog</a>
+        <a id="gtmNavHome" href="./index.html">Home</a>
+        <a id="gtmNavProducts" href="./products.html">Products</a>
+        <a id="gtmNavBlog" href="./gifts-that-mean-more.html" class="active">Blog</a>
       </nav>
     </header>
 
@@ -638,10 +638,33 @@
       "use strict";
 
       // ===== Back Logic (universal, robust) =====
+      // ── routeTo helper ──
+      function routeTo(pathHtml, pathRoute) {
+        return location.hostname === 'store.viadecide.com' ? pathRoute : pathHtml;
+      }
+      (function applyNavLinks() {
+        var links = {
+          'gtmLogo':        ['./index.html',               '/printbydd/'],
+          'gtmNavHome':     ['./index.html',               '/printbydd/'],
+          'gtmNavProducts': ['./products.html',            '/printbydd/products'],
+          'gtmNavBlog':     ['./gifts-that-mean-more.html','/printbydd/gifts'],
+          'backBtn':        ['./index.html',               '/printbydd/'],
+        };
+        Object.keys(links).forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.href = routeTo(links[id][0], links[id][1]);
+        });
+      })();
+
+      // ── Back button: history.back() if possible, else home ──
       const backBtn = document.getElementById("backBtn");
       backBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "./index.html";
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = routeTo('./index.html', '/printbydd/');
+        }
       });
 
       // ===== Invert Theme Toggle =====
