@@ -80,9 +80,10 @@
       font-size: 20px; cursor: pointer;
     }
 
-    /* ── Nav install button ── */
+    /* ── Nav install button (ALWAYS VISIBLE) ── */
     #install-pwa-nav {
-      display: none; /* shown only when install available OR iOS hint is relevant */
+      display: inline-flex;
+      align-items: center;
       font-size: 12px; font-weight: 800;
       color: var(--accent);
       padding: 6px 14px;
@@ -94,6 +95,7 @@
       white-space: nowrap;
     }
     #install-pwa-nav:hover { background: var(--accent); color: #fff; }
+    #install-pwa-nav:disabled { opacity: 0.45; cursor: default; }
 
     /* ── Install section ── */
     #install-section {
@@ -185,7 +187,9 @@
     body.invert-mode { background-color: #050505; }
     body.invert-mode #appWrapper,
     body.invert-mode .site-header,
-    body.invert-mode .auth-modal { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode .auth-modal,
+    body.invert-mode #install-banner,
+    body.invert-mode #ios-hint { filter: invert(1) hue-rotate(180deg); }
     body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
 
     #appWrapper {
@@ -566,10 +570,10 @@
       <a href="./keychain.html">Products</a>
       <a href="./gifts-that-mean-more.html">Blog</a>
 
-      <!-- ✅ Install App Button (Nav) -->
-      <button id="install-pwa-nav" aria-label="Install app" title="Install App">📲 Install</button>
+      <!-- ✅ ALWAYS VISIBLE INSTALL BUTTON -->
+      <button id="install-pwa-nav" aria-label="Install app" type="button">📲 Install</button>
 
-      <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
+      <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme" type="button">☾</button>
     </nav>
   </header>
 
@@ -621,21 +625,21 @@
       <!-- ── Install App Section ── -->
       <div id="install-section">
         <h2>Get PrintByDD on<br>any <span>device.</span></h2>
-        <p>Install our store as a Progressive Web App — works on Android, iPhone, Windows, Mac, and Linux. Loads instantly from your homescreen.</p>
+        <p>Install our store as a Progressive Web App — works on Android, iPhone, Windows, Mac, and Linux. Browse and order offline, loads instantly from your homescreen.</p>
         <div class="install-steps">
           <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, or Edge</div></div>
           <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser menu</div></div>
           <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy instant access</strong> — PrintByDD lives on your homescreen</div></div>
         </div>
         <div class="install-btns">
-          <button id="install-pwa-section" class="btn-primary" style="display:none">📲 Install Now</button>
-          <button id="ios-trigger-section" class="btn-secondary" style="display:none">🍎 iPhone Instructions</button>
+          <button id="install-pwa-section" class="btn-primary" style="display:none" type="button">📲 Install Now</button>
+          <button id="ios-trigger-section" class="btn-secondary" style="display:none" type="button">🍎 iPhone Instructions</button>
         </div>
         <div class="dev-tabs-wrap">
           <div class="dev-tabs">
-            <button class="dev-tab active" data-tab="android">Android</button>
-            <button class="dev-tab" data-tab="ios">iPhone / iPad</button>
-            <button class="dev-tab" data-tab="desktop">Desktop</button>
+            <button class="dev-tab active" data-tab="android" type="button">Android</button>
+            <button class="dev-tab" data-tab="ios" type="button">iPhone / iPad</button>
+            <button class="dev-tab" data-tab="desktop" type="button">Desktop</button>
           </div>
           <div id="tab-android" class="dev-inst">
             <strong>📱 Android — Chrome</strong>
@@ -659,7 +663,7 @@
             <strong>💻 Desktop — Chrome / Edge</strong>
             <ol>
               <li>Open <strong>store.viadecide.com/printbydd</strong> in Chrome or Edge</li>
-              <li>Look for the <strong>install icon</strong> in the address bar</li>
+              <li>Look for the <strong>install icon ⊕</strong> in the address bar (right side)</li>
               <li>Or open <strong>3-dot menu → "Install PrintByDD"</strong></li>
               <li>Click <strong>Install</strong> — opens as its own app window!</li>
             </ol>
@@ -676,18 +680,18 @@
       <div class="ib-icon">P</div>
       <div class="ib-txt">
         <strong>Install PrintByDD Store</strong>
-        <span>Add to homescreen — loads instantly</span>
+        <span>Add to homescreen — works offline, loads instantly</span>
       </div>
       <div class="ib-acts">
-        <button class="ib-btn" id="install-banner-btn">Install</button>
-        <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss">✕</button>
+        <button class="ib-btn" id="install-banner-btn" type="button">Install</button>
+        <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss" type="button">✕</button>
       </div>
     </div>
   </div>
 
   <!-- iOS Hint -->
   <div id="ios-hint">
-    <button id="ios-hint-close" aria-label="Close">✕</button>
+    <button id="ios-hint-close" aria-label="Close" type="button">✕</button>
     <strong>Install on iPhone / iPad</strong>
     <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari,<br>then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
   </div>
@@ -699,8 +703,8 @@
       <input type="text" id="accessCodeInput" class="code-input" placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
       <div class="auth-error" id="authErrorMsg">Invalid code. Please check your WhatsApp.</div>
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeAuthModal()">Cancel</button>
-        <button class="btn-primary" onclick="verifyCode()">Unlock</button>
+        <button class="btn-secondary" onclick="closeAuthModal()" type="button">Cancel</button>
+        <button class="btn-primary" onclick="verifyCode()" type="button">Unlock</button>
       </div>
     </div>
   </div>
@@ -708,6 +712,15 @@
   <script>
     (function(){
       "use strict";
+
+      // ── Store URL canonicalization ──
+      (function fixStoreLinks(){
+        const isStoreDomain = location.hostname === 'store.viadecide.com';
+        if (!isStoreDomain) return;
+        if (location.pathname === '/printbydd') {
+          history.replaceState(null, '', '/printbydd/');
+        }
+      })();
 
       // ── THEME LOGIC ──
       const THEME_KEY = "VD_INVERT_THEME";
@@ -722,7 +735,9 @@
         try{ saved = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
         setInvert(saved === "1");
       })();
-      btnTheme.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode")));
+      btnTheme.addEventListener("click", () => {
+        setInvert(!document.body.classList.contains("invert-mode"));
+      });
 
       // ── AUTHENTICATION LOGIC ──
       const AUTH_KEY = "PBD_USER_VERIFIED";
@@ -730,10 +745,12 @@
       (function checkAuthStatus() {
         if (localStorage.getItem(AUTH_KEY) === "true") showLoggedInState();
       })();
+
       window.requestNewCode = function() {
         const text = `✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._`;
         window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
       };
+
       const modal = document.getElementById("authModalOverlay");
       const input = document.getElementById("accessCodeInput");
       const errorMsg = document.getElementById("authErrorMsg");
@@ -768,119 +785,110 @@
         });
       });
 
-      // ── PWA INSTALL (Nav button enabled) ──
-      let deferredPrompt = null;
-
+      // ── PWA INSTALL (NAV BUTTON ALWAYS VISIBLE; NO ROUTER TOUCH) ──
+      let dP = null;
       const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
-      const isStandalone =
-        window.matchMedia('(display-mode:standalone)').matches ||
-        (typeof navigator.standalone !== "undefined" && navigator.standalone === true);
+      const isStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone === true;
 
-      const banner     = document.getElementById('install-banner');
-      const bannerBtn  = document.getElementById('install-banner-btn');
-      const bannerDis  = document.getElementById('install-banner-dismiss');
+      const banner    = document.getElementById('install-banner');
+      const bannerBtn = document.getElementById('install-banner-btn');
+      const bannerDis = document.getElementById('install-banner-dismiss');
 
-      const iosHint    = document.getElementById('ios-hint');
-      const iosClose   = document.getElementById('ios-hint-close');
+      const iosHint   = document.getElementById('ios-hint');
+      const iosClose  = document.getElementById('ios-hint-close');
 
-      const navBtn     = document.getElementById('install-pwa-nav');
-      const secBtn     = document.getElementById('install-pwa-section');
+      const navBtn    = document.getElementById('install-pwa-nav');
+      const secBtn    = document.getElementById('install-pwa-section');
       const iosTrigger = document.getElementById('ios-trigger-section');
 
-      function showInstallButtons() {
-        if (navBtn) navBtn.style.display = 'inline-flex';
+      function showInstallBtns() {
+        // ✅ keep nav visible always; only show section button when supported
         if (secBtn) secBtn.style.display = 'inline-flex';
       }
-      function hideInstallButtons() {
-        if (navBtn) navBtn.style.display = 'none';
+      function hideInstallBtns() {
+        // ✅ keep nav visible always; only hide section + banner
         if (secBtn) secBtn.style.display = 'none';
         if (banner) banner.classList.remove('show');
       }
 
-      function openIOSHint() {
-        if (iosHint) iosHint.classList.add('show');
-      }
-
-      async function doInstall() {
-        // iOS: show instruction sheet
+      function doInstall() {
         if (isIOS && !isStandalone) {
-          openIOSHint();
+          if (iosHint) iosHint.classList.add('show');
           return;
         }
-        // Chrome/Edge/etc
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        try {
-          await deferredPrompt.userChoice;
-        } catch(_) {}
-        deferredPrompt = null;
-        hideInstallButtons();
+        if (isStandalone) {
+          alert("PrintByDD is already installed ✅");
+          return;
+        }
+        if (dP) {
+          dP.prompt();
+          dP.userChoice.then(r => {
+            if (r.outcome === 'accepted') {
+              dP = null;
+              hideInstallBtns();
+            }
+          });
+        } else {
+          alert("Install not available in this browser. Try Chrome or Edge.");
+        }
       }
 
-      // If already installed: hide everything
-      if (isStandalone) hideInstallButtons();
-
-      // Chrome/Edge install available
-      window.addEventListener('beforeinstallprompt', (e) => {
+      // Android/Chrome/Edge
+      window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
-        deferredPrompt = e;
-        if (!isStandalone) showInstallButtons();
+        dP = e;
+        showInstallBtns();
 
-        // Optional banner after a delay (only once per session)
-        setTimeout(() => {
+        setTimeout(function() {
           try {
             const dismissed = sessionStorage.getItem('pbd-install-dismissed');
             if (!dismissed && !isStandalone && banner) banner.classList.add('show');
-          } catch(_) {}
-        }, 2500);
+          } catch(ex) {}
+        }, 3500);
       });
 
       if (navBtn) navBtn.addEventListener('click', doInstall);
       if (secBtn) secBtn.addEventListener('click', doInstall);
 
-      if (bannerBtn) bannerBtn.addEventListener('click', () => {
+      if (bannerBtn) bannerBtn.addEventListener('click', function() {
         doInstall();
         if (banner) banner.classList.remove('show');
       });
-
-      if (bannerDis) bannerDis.addEventListener('click', () => {
+      if (bannerDis) bannerDis.addEventListener('click', function() {
         if (banner) banner.classList.remove('show');
-        try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(_) {}
+        try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(e) {}
       });
 
-      // iOS: show the instruction button + optionally show hint once
+      // iOS hints
       if (isIOS && !isStandalone) {
         if (iosTrigger) iosTrigger.style.display = 'inline-flex';
-
-        // Show nav install even on iOS so user can tap it → instructions
-        if (navBtn) navBtn.style.display = 'inline-flex';
-
-        if (iosTrigger) iosTrigger.addEventListener('click', openIOSHint);
-
-        setTimeout(() => {
+        if (iosTrigger) iosTrigger.addEventListener('click', function() {
+          if (iosHint) iosHint.classList.add('show');
+        });
+        setTimeout(function() {
           try {
             const d = sessionStorage.getItem('pbd-ios-dismissed');
             if (!d && iosHint) iosHint.classList.add('show');
-          } catch(_) {}
+          } catch(e) {}
         }, 4500);
       }
-
-      if (iosClose) iosClose.addEventListener('click', () => {
+      if (iosClose) iosClose.addEventListener('click', function() {
         if (iosHint) iosHint.classList.remove('show');
-        try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(_) {}
+        try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(e) {}
       });
 
-      window.addEventListener('appinstalled', () => {
-        deferredPrompt = null;
-        hideInstallButtons();
+      window.addEventListener('appinstalled', function() {
+        dP = null;
+        hideInstallBtns();
       });
 
       // ── SERVICE WORKER ──
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('./sw.js').catch(function() {});
         });
       }
+
     })();
   </script>
 </body>
