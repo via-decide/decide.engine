@@ -250,6 +250,12 @@
   window.VDRouter = {
     go: function (slug, options) {
       options = options || {};
+      // Safety: if slug is actually an external URL, open it directly without routing
+      if (isLikelyExternalHref(String(slug || ""))) {
+        if (!isInAppBrowser()) window.open(String(slug), "_blank", "noopener,noreferrer");
+        else window.location.href = String(slug);
+        return;
+      }
       var norm = normalizeSlug(slug);
       var file = resolveRoute(norm);
 
@@ -294,6 +300,9 @@
           // ── [data-back] universal handler ──
           var backEl = e.target && e.target.closest ? e.target.closest("[data-back]") : null;
           if (backEl) {
+            // Don't intercept if it's an anchor pointing to an external URL
+            var backHref = backEl.getAttribute("href") || "";
+            if (backHref && isLikelyExternalHref(backHref)) return;
             e.preventDefault();
             if (window.history.length > 1) {
               window.history.back();
