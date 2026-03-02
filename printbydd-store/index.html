@@ -4,9 +4,157 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PrintByDD" />
+  <meta name="description" content="Precision 3D manufacturing — smart accessories, architectural models, and gifts that mean more." />
+  <link rel="manifest" href="./manifest.json" />
   <title>PrintByDD • Architectural 3D Manufacturing</title>
 
   <style>
+    /* ── PWA Install Banner ── */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 3000;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 14px 20px;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.10);
+    }
+    #install-banner.show { display: block; }
+    .ib-inner {
+      display: flex; align-items: center; gap: 14px;
+      max-width: 640px; margin: 0 auto;
+    }
+    .ib-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; flex-shrink: 0;
+      letter-spacing: -0.02em;
+    }
+    .ib-txt { flex: 1; }
+    .ib-txt strong { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); }
+    .ib-txt span { font-size: 12px; color: var(--text-muted); }
+    .ib-acts { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .ib-btn {
+      font-size: 13px; font-weight: 800; padding: 9px 18px;
+      background: var(--text-main); color: #fff; border-radius: 999px;
+      cursor: pointer; transition: background .2s; white-space: nowrap;
+      border: none;
+    }
+    .ib-btn:hover { background: var(--accent); }
+    .ib-dismiss {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer; padding: 2px 6px;
+      line-height: 1; transition: color .2s;
+    }
+    .ib-dismiss:hover { color: var(--text-main); }
+
+    /* ── iOS Install Hint ── */
+    #ios-hint {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 3000;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 20px 24px 28px;
+      text-align: center;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+    }
+    #ios-hint.show { display: block; }
+    #ios-hint strong { display: block; font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
+    #ios-hint p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    #ios-hint p strong { display: inline; font-size: 13px; }
+    #ios-hint-close {
+      position: absolute; top: 12px; right: 16px;
+      background: none; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer;
+    }
+
+    /* ── Nav install button ── */
+    #install-pwa-nav {
+      display: none;
+      font-size: 12px; font-weight: 800;
+      color: var(--accent);
+      padding: 6px 14px;
+      border: 1.5px solid var(--accent);
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    #install-pwa-nav:hover { background: var(--accent); color: #fff; }
+
+    /* ── Install section ── */
+    #install-section {
+      max-width: 840px;
+      margin: 60px 0 0;
+      padding: 40px;
+      background: #f5f5f5;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+    #install-section h2 {
+      font-size: clamp(22px,3vw,32px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    #install-section h2 span { color: var(--accent); }
+    #install-section p { font-size: 15px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+    .install-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+    .install-step { display: flex; align-items: flex-start; gap: 12px; }
+    .step-n {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--text-main); color: #fff;
+      font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step-txt { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+    .step-txt strong { color: var(--text-main); }
+    .install-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    .dev-tabs-wrap {
+      margin-top: 24px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .dev-tabs {
+      display: flex; gap: 4px;
+      background: #f0f0f0; padding: 4px;
+      border-radius: 10px; margin-bottom: 16px;
+      width: fit-content;
+    }
+    .dev-tab {
+      padding: 6px 14px; border-radius: 7px;
+      font-size: 12px; font-weight: 700;
+      color: var(--text-muted); cursor: pointer;
+      border: none; background: transparent;
+      transition: all .2s;
+    }
+    .dev-tab.active { background: #fff; color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .dev-inst { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+    .dev-inst strong { display: block; font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+    .dev-inst ol { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+    .dev-inst li strong { display: inline; }
+    @media (max-width: 640px) {
+      #install-section { padding: 24px 20px; }
+      .install-btns { flex-direction: column; }
+      .install-btns button { width: 100%; text-align: center; }
+    }
     :root {
       --bg: #fafafa;
       --surface: #ffffff;
@@ -416,6 +564,7 @@
       <a href="./index.html" class="active">Home</a>
       <a href="./keychain.html">Products</a>
       <a href="./gifts-that-mean-more.html">Blog</a>
+      <button id="install-pwa-nav" aria-label="Install app">📲 Install</button>
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
     </nav>
   </header>
@@ -464,18 +613,87 @@
         </a>
 
       </div>
+
+      <!-- ── Install App Section ── -->
+      <div id="install-section">
+        <h2>Get PrintByDD on<br>any <span>device.</span></h2>
+        <p>Install our store as a Progressive Web App — works on Android, iPhone, Windows, Mac, and Linux. Browse and order offline, loads instantly from your homescreen.</p>
+        <div class="install-steps">
+          <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, or Edge</div></div>
+          <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser menu</div></div>
+          <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy instant access</strong> — PrintByDD lives on your homescreen</div></div>
+        </div>
+        <div class="install-btns">
+          <button id="install-pwa-section" class="btn-primary" style="display:none">📲 Install Now</button>
+          <button id="ios-trigger-section" class="btn-secondary" style="display:none">🍎 iPhone Instructions</button>
+        </div>
+        <div class="dev-tabs-wrap">
+          <div class="dev-tabs">
+            <button class="dev-tab active" data-tab="android">Android</button>
+            <button class="dev-tab" data-tab="ios">iPhone / iPad</button>
+            <button class="dev-tab" data-tab="desktop">Desktop</button>
+          </div>
+          <div id="tab-android" class="dev-inst">
+            <strong>📱 Android — Chrome</strong>
+            <ol>
+              <li>Open <strong>store.viadecide.com/printbydd</strong> in Chrome</li>
+              <li>Tap the <strong>3-dot menu (⋮)</strong> at the top-right</li>
+              <li>Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong></li>
+              <li>Tap <strong>Install</strong> — the PrintByDD icon appears on your homescreen.</li>
+            </ol>
+          </div>
+          <div id="tab-ios" class="dev-inst" style="display:none">
+            <strong>🍎 iPhone / iPad — Safari</strong>
+            <ol>
+              <li>Open <strong>store.viadecide.com/printbydd</strong> in <strong>Safari</strong> (not Chrome)</li>
+              <li>Tap the <strong>Share button (□↑)</strong> at the bottom of the screen</li>
+              <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+              <li>Tap <strong>Add</strong> — the PrintByDD icon appears on your homescreen!</li>
+            </ol>
+          </div>
+          <div id="tab-desktop" class="dev-inst" style="display:none">
+            <strong>💻 Desktop — Chrome / Edge</strong>
+            <ol>
+              <li>Open <strong>store.viadecide.com/printbydd</strong> in Chrome or Edge</li>
+              <li>Look for the <strong>install icon ⊕</strong> in the address bar (right side)</li>
+              <li>Or open <strong>3-dot menu → "Install PrintByDD"</strong></li>
+              <li>Click <strong>Install</strong> — opens as its own app window!</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
     </main>
+  </div>
+
+  <!-- Install Banner -->
+  <div id="install-banner">
+    <div class="ib-inner">
+      <div class="ib-icon">P</div>
+      <div class="ib-txt">
+        <strong>Install PrintByDD Store</strong>
+        <span>Add to homescreen — works offline, loads instantly</span>
+      </div>
+      <div class="ib-acts">
+        <button class="ib-btn" id="install-banner-btn">Install</button>
+        <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- iOS Hint -->
+  <div id="ios-hint">
+    <button id="ios-hint-close" aria-label="Close">✕</button>
+    <strong>Install on iPhone / iPad</strong>
+    <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari,<br>then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
   </div>
 
   <div class="modal-overlay" id="authModalOverlay">
     <div class="auth-modal">
       <h2>Client Login</h2>
       <p>Enter your 5-character secure access code (e.g., VIA-A1B2C).</p>
-      
       <input type="text" id="accessCodeInput" class="code-input" placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
-      
       <div class="auth-error" id="authErrorMsg">Invalid code. Please check your WhatsApp.</div>
-      
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeAuthModal()">Cancel</button>
         <button class="btn-primary" onclick="verifyCode()">Unlock</button>
@@ -487,96 +705,152 @@
     (function(){
       "use strict";
 
-      // ===== THEME LOGIC =====
+      // ── Store URL canonicalization ──
+      // If accessed via store.viadecide.com (any path), fix internal links to stay on subdomain
+      (function fixStoreLinks(){
+        const isStoreDomain = location.hostname === 'store.viadecide.com';
+        if (!isStoreDomain) return;
+        // Update all internal href links to use the store subdomain path
+        document.querySelectorAll('a[href]').forEach(a => {
+          const h = a.getAttribute('href');
+          if (h && (h.startsWith('./') || h.startsWith('../'))) {
+            // keep relative — they resolve correctly when at /printbydd/
+          }
+        });
+        // Update canonical URL in address bar if at /printbydd without trailing slash
+        if (location.pathname === '/printbydd') {
+          history.replaceState(null, '', '/printbydd/');
+        }
+      })();
+
+      // ── THEME LOGIC ──
       const THEME_KEY = "VD_INVERT_THEME";
       const btnTheme  = document.getElementById("btnTheme");
-
       function setInvert(on){
         document.body.classList.toggle("invert-mode", !!on);
         btnTheme.textContent = on ? "☀" : "☾";
         try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
       }
-
       (function initTheme(){
         let saved = "0";
         try{ saved = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
         setInvert(saved === "1");
       })();
-
       btnTheme.addEventListener("click", () => {
         setInvert(!document.body.classList.contains("invert-mode"));
       });
 
-      // ===== AUTHENTICATION LOGIC =====
+      // ── AUTHENTICATION LOGIC ──
       const AUTH_KEY = "PBD_USER_VERIFIED";
-      const WA_NUMBER = "916351537770"; // Update to your WhatsApp
-
-      // 1. Check if user is already logged in on page load
+      const WA_NUMBER = "916351537770";
       (function checkAuthStatus() {
-        const isVerified = localStorage.getItem(AUTH_KEY);
-        if (isVerified === "true") {
-          showLoggedInState();
-        }
+        if (localStorage.getItem(AUTH_KEY) === "true") showLoggedInState();
       })();
-
-      // 2. WhatsApp Request Flow
       window.requestNewCode = function() {
         const text = `✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._`;
-        const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
+        window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
       };
-
-      // 3. Modal Controls
       const modal = document.getElementById("authModalOverlay");
       const input = document.getElementById("accessCodeInput");
       const errorMsg = document.getElementById("authErrorMsg");
-
       window.openAuthModal = function() {
-        modal.classList.add("active");
-        input.value = "";
-        errorMsg.style.display = "none";
-        input.focus();
+        modal.classList.add("active"); input.value = ""; errorMsg.style.display = "none"; input.focus();
       };
-
-      window.closeAuthModal = function() {
-        modal.classList.remove("active");
-      };
-
-      // 4. Verification Algorithm (Basic format check)
+      window.closeAuthModal = function() { modal.classList.remove("active"); };
       window.verifyCode = function() {
         const code = input.value.trim().toUpperCase();
-        
-        // Validation: Must start with VIA- and be exactly 9 characters long
         if (code.startsWith("VIA-") && code.length >= 8) {
-          // Success
-          localStorage.setItem(AUTH_KEY, "true");
-          closeAuthModal();
-          showLoggedInState();
-          
-          // Optional: Redirect them to the actual portal page if you have one
-          // window.location.href = "./dashboard.html"; 
+          localStorage.setItem(AUTH_KEY, "true"); closeAuthModal(); showLoggedInState();
         } else {
-          // Fail
-          errorMsg.style.display = "block";
-          input.value = "";
-          input.focus();
+          errorMsg.style.display = "block"; input.value = ""; input.focus();
         }
       };
-
-      // 5. Update UI for logged-in users
       function showLoggedInState() {
         const ctaContainer = document.getElementById("portalCtaContainer");
         ctaContainer.innerHTML = `
           <button class="btn-primary" onclick="alert('Portal Dashboard Coming Soon!')">Access Dashboard</button>
-          <button class="btn-secondary" onclick="logout()" style="border:none; text-decoration:underline;">Sign Out</button>
-        `;
+          <button class="btn-secondary" onclick="logout()" style="border:none;text-decoration:underline">Sign Out</button>`;
+      }
+      window.logout = function() { localStorage.removeItem(AUTH_KEY); location.reload(); };
+
+      // ── DEVICE TABS ──
+      document.querySelectorAll('.dev-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.dev-inst').forEach(d => d.style.display = 'none');
+          const t = document.getElementById('tab-' + tab.dataset.tab);
+          if (t) t.style.display = 'block';
+        });
+      });
+
+      // ── PWA INSTALL ──
+      var dP = null;
+      var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
+      var isStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone === true;
+      var banner    = document.getElementById('install-banner');
+      var bannerBtn = document.getElementById('install-banner-btn');
+      var bannerDis = document.getElementById('install-banner-dismiss');
+      var iosHint   = document.getElementById('ios-hint');
+      var iosClose  = document.getElementById('ios-hint-close');
+      var navBtn    = document.getElementById('install-pwa-nav');
+      var secBtn    = document.getElementById('install-pwa-section');
+      var iosTrigger = document.getElementById('ios-trigger-section');
+
+      function showInstallBtns() {
+        if (navBtn) navBtn.style.display = 'inline-flex';
+        if (secBtn) secBtn.style.display = 'inline-flex';
+      }
+      function hideInstallBtns() {
+        if (navBtn) navBtn.style.display = 'none';
+        if (secBtn) secBtn.style.display = 'none';
+        if (banner) banner.classList.remove('show');
+      }
+      function doInstall() {
+        if (dP) { dP.prompt(); dP.userChoice.then(r => { if (r.outcome === 'accepted') { dP = null; hideInstallBtns(); } }); }
       }
 
-      // 6. Logout
-      window.logout = function() {
-        localStorage.removeItem(AUTH_KEY);
-        location.reload(); // Refresh to reset UI
-      };
+      // Android / Chrome / Edge
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault(); dP = e;
+        showInstallBtns();
+        setTimeout(function() {
+          try {
+            var dismissed = sessionStorage.getItem('pbd-install-dismissed');
+            if (!dismissed && !isStandalone && banner) banner.classList.add('show');
+          } catch(ex) {}
+        }, 3500);
+      });
+
+      if (navBtn) navBtn.addEventListener('click', doInstall);
+      if (secBtn) secBtn.addEventListener('click', doInstall);
+      if (bannerBtn) bannerBtn.addEventListener('click', function() { doInstall(); banner.classList.remove('show'); });
+      if (bannerDis) bannerDis.addEventListener('click', function() {
+        banner.classList.remove('show');
+        try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(e) {}
+      });
+
+      // iOS
+      if (isIOS && !isStandalone) {
+        if (iosTrigger) iosTrigger.style.display = 'inline-flex';
+        if (iosTrigger) iosTrigger.addEventListener('click', function() { if (iosHint) iosHint.classList.add('show'); });
+        setTimeout(function() {
+          try { var d = sessionStorage.getItem('pbd-ios-dismissed'); if (!d && iosHint) iosHint.classList.add('show'); } catch(e) {}
+        }, 4500);
+      }
+      if (iosClose) iosClose.addEventListener('click', function() {
+        iosHint.classList.remove('show');
+        try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(e) {}
+      });
+
+      window.addEventListener('appinstalled', function() { dP = null; hideInstallBtns(); });
+
+      // ── SERVICE WORKER ──
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('./sw.js').catch(function() {});
+        });
+      }
 
     })();
   </script>
