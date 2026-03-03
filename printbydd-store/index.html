@@ -13,6 +13,72 @@
   <title>PrintByDD • Architectural 3D Manufacturing</title>
 
   <style>
+    /* ══════════════════════════════════════
+       GLOBAL UX PATCH (A + B)
+       ── Kills iOS/Android blue tap flash
+       ── Removes focus outlines for pointer
+          users; keeps them for keyboard
+       ── Disables text selection site-wide;
+          re-enables for all input surfaces
+    ══════════════════════════════════════ */
+
+    /* (A) Kill tap highlight on every element */
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      -webkit-touch-callout: none;
+    }
+
+    /* (A) Mouse users: no outline. Keyboard users: keep :focus-visible ring. */
+    a:focus:not(:focus-visible),
+    button:focus:not(:focus-visible),
+    [tabindex]:focus:not(:focus-visible) {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid rgba(255, 42, 42, 0.55) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* (A) Subtle custom selection colour */
+    ::selection      { background: rgba(255, 42, 42, 0.18); color: inherit; }
+    ::-moz-selection { background: rgba(255, 42, 42, 0.18); color: inherit; }
+
+    /* (B) Disable text selection globally */
+    body,
+    h1, h2, h3, h4, h5, h6,
+    p, span, div, label,
+    .kicker, .card-link,
+    .section-header,
+    .hero, .install-badge,
+    .install-step, .step-txt,
+    .swipe-hint,
+    .ib-txt, .ib-txt strong, .ib-txt span {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    /* (B) Re-enable selection for all input/editable surfaces + code */
+    input,
+    textarea,
+    select,
+    [contenteditable="true"],
+    .code-input,
+    .allow-select,
+    pre,
+    code {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+      -webkit-touch-callout: default !important;
+    }
+
     /* ── PWA Install Banner ── */
     #install-banner {
       display: none;
@@ -80,12 +146,9 @@
       font-size: 20px; cursor: pointer;
     }
 
-    /* ── Nav install button ──
-       ALWAYS display:none in CSS.
-       JS shows it ONLY on desktop (> 720px) when beforeinstallprompt fires.
-       On mobile the Install App section handles this instead.           ── */
+    /* ── Nav install button ── */
     #install-pwa-nav {
-      display: none; /* JS overrides only on desktop — see showInstallBtns() */
+      display: none;
       align-items: center;
       gap: 5px;
       font-size: 12px; font-weight: 800;
@@ -198,10 +261,7 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html {
-      /* FIX: Prevent horizontal scroll caused by overflowing nav */
-      overflow-x: hidden;
-    }
+    html { overflow-x: hidden; }
 
     body {
       background-color: var(--bg);
@@ -210,7 +270,6 @@
       -webkit-font-smoothing: antialiased;
       line-height: 1.5;
       min-height: 100vh;
-      /* FIX: Prevent horizontal scroll */
       overflow-x: hidden;
     }
 
@@ -246,8 +305,6 @@
       padding: 0 5vw;
       z-index: 1000;
       transition: filter 0.3s ease;
-      /* FIX: Clip any overflowing nav children so they can't paint
-         outside the header box and float over page content.         */
       overflow: hidden;
     }
 
@@ -257,18 +314,13 @@
       letter-spacing: -0.03em;
       color: var(--text-main);
       white-space: nowrap;
-      /* FIX: Never let the logo shrink — it anchors the left side */
       flex-shrink: 0;
     }
 
-    /* FIX: Nav is a flex child of the header. On mobile it must not
-       overflow the header's width. We control which items are visible
-       via the media query below rather than letting them overflow.    */
     .site-header nav {
       display: flex;
       align-items: center;
       gap: 24px;
-      /* FIX: Prevent the nav from pushing past the header edge */
       overflow: hidden;
       min-width: 0;
     }
@@ -281,7 +333,6 @@
       letter-spacing: 0.05em;
       transition: color 0.2s;
       white-space: nowrap;
-      /* FIX: Don't let individual links shrink to zero and disappear */
       flex-shrink: 0;
     }
     .site-header nav a:hover,
@@ -402,7 +453,7 @@
     /* ── Grid ── */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
 
-    /* ── Cards ── */
+    /* ── Cards (D: <a> tags — native keyboard support already present) ── */
     .card { display: flex; flex-direction: column; position: relative; cursor: pointer; }
     .card:hover .card-image-wrap,
     .card:hover .carousel-container {
@@ -468,31 +519,14 @@
     .card-link::after { content: '→'; transition: transform 0.2s; color: var(--accent); }
     .card:hover .card-link::after { transform: translateX(4px); }
 
-    /* ══════════════════════════════════════
-       MOBILE — max-width: 720px
-       Key fixes here:
-       1. Hide Instagram nav link (it's non-critical at this size)
-       2. Ensure install-pwa-nav NEVER shows in nav on mobile
-          (JS also checks window width — double safety)
-       3. Reduce nav gap so remaining items fit cleanly
-    ══════════════════════════════════════ */
+    /* ── Mobile ── */
     @media (max-width: 720px) {
       .site-header { padding: 0 4vw; gap: 8px; }
-
-      /* FIX: Reduce nav gap on mobile */
       .site-header nav { gap: 10px; }
       .site-header nav a { font-size: 12px; }
       .btn-icon { padding: 4px 9px; font-size: 16px; }
-
-      /* FIX: Hide Instagram link from nav on mobile — keeps it tidy.
-         Instagram is still linked in page content via cards if needed. */
       #navInsta { display: none !important; }
-
-      /* FIX: Never show install button inside nav on mobile.
-         The "Install App" section in the page body handles this.
-         Using !important to override the inline style JS sets.   */
       #install-pwa-nav { display: none !important; }
-
       .grid { grid-template-columns: 1fr; gap: 28px; }
       main { padding-left: 4vw; padding-right: 4vw; }
       .portal-cta { flex-direction: column; align-items: stretch; }
@@ -502,7 +536,6 @@
       .install-btns button { width: 100%; text-align: center; }
     }
 
-    /* Very small screens — also hide Blog link to prevent overflow */
     @media (max-width: 420px) {
       #navBlog { display: none; }
     }
@@ -511,6 +544,38 @@
 
 <body>
 
+  <!-- ══════════════════════════════════════
+       JS TAP-HIGHLIGHT POLISH (C)
+       Runs before body renders.
+       Intercepts focus events triggered by
+       touch on non-input elements and
+       removes the lingering iOS focus ring
+       without blocking clicks or scroll.
+  ══════════════════════════════════════ -->
+  <script>
+  (function () {
+    var touchPending = false;
+    document.addEventListener('touchstart', function () {
+      touchPending = true;
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      setTimeout(function () { touchPending = false; }, 400);
+    }, { passive: true });
+    /* On focus events fired by touch: blur non-interactive elements
+       so iOS doesn't paint a lingering ring, but defer so the click
+       event fires first (requestAnimationFrame). */
+    document.addEventListener('focus', function (e) {
+      if (!touchPending) return;
+      var tag = (e.target.tagName || '').toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+          e.target.isContentEditable) return;
+      requestAnimationFrame(function () {
+        if (document.activeElement === e.target) e.target.blur();
+      });
+    }, true);
+  })();
+  </script>
+
   <header class="site-header">
     <a id="navLogo" href="./index.html" class="logo">PrintByDD</a>
     <nav>
@@ -518,7 +583,6 @@
       <a id="navProducts" href="./products.html">Products</a>
       <a id="navBlog" href="./gifts-that-mean-more.html">Blog</a>
 
-      <!-- Hidden on mobile via CSS; still shown on desktop -->
       <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
          target="_blank" rel="noopener" id="navInsta"
          style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;border:1px solid rgba(0,0,0,0.10);font-size:12px;font-weight:800;background:linear-gradient(135deg,rgba(240,148,51,0.08),rgba(188,24,136,0.08));white-space:nowrap;transition:all 0.2s;"
@@ -534,10 +598,7 @@
         <span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">@printbydd</span>
       </a>
 
-      <!-- Nav install button: JS only shows this on DESKTOP (> 720px).
-           On mobile it stays display:none (CSS also enforces this).   -->
       <button id="install-pwa-nav" aria-label="Install app" type="button">📲 Install</button>
-
       <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme" type="button">☾</button>
     </nav>
   </header>
@@ -558,6 +619,9 @@
         <h2>Products</h2>
       </div>
 
+      <!-- D: Cards are native <a> elements — keyboard Enter/Space navigation
+           is built-in. tabindex is implicit (href present). No div[onclick]
+           patterns exist on this page so no extra keyboard wiring needed. -->
       <div class="grid">
         <a id="cardKeychain" href="./keychain.html" class="card">
           <div class="card-image-wrap">
@@ -799,12 +863,6 @@
 
       // ══════════════════════════════════════════════════
       // PWA INSTALL
-      //
-      // FIX: showInstallBtns() now checks window width before
-      // showing the nav button. On mobile (≤ 720px) the nav
-      // button is never shown — only the in-page section button.
-      // This eliminates the floating circle glitch caused by the
-      // nav button overflowing the fixed header's bounds.
       // ══════════════════════════════════════════════════
       var dP = null;
       var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
@@ -819,14 +877,10 @@
       var iosHint    = document.getElementById('ios-hint');
       var iosClose   = document.getElementById('ios-hint-close');
 
-      // FIX: Only show nav install button on desktop (> 720px).
-      // On mobile the in-page Install App section is sufficient.
       function isMobile() { return window.innerWidth <= 720; }
 
       function showInstallBtns() {
-        // Nav button: desktop only — prevents overflow-paint glitch on mobile
         if (navBtn && !isMobile()) { navBtn.style.display = 'inline-flex'; }
-        // Section button: always show when install is available
         if (secBtn) { secBtn.style.display = 'inline-flex'; }
       }
       function hideInstallBtns() {
@@ -841,10 +895,7 @@
         if (dP) {
           dP.prompt();
           dP.userChoice.then(function(result) {
-            if (result.outcome === 'accepted') {
-              dP = null;
-              hideInstallBtns();
-            }
+            if (result.outcome === 'accepted') { dP = null; hideInstallBtns(); }
           });
         }
       }
@@ -869,9 +920,7 @@
         try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(e) {}
       });
 
-      // iOS Safari
       if (isIOS && !isStandalone) {
-        // FIX: Nav button only on desktop even for iOS
         if (navBtn && !isMobile()) navBtn.style.display = 'inline-flex';
         if (iosTrigger) {
           iosTrigger.style.display = 'inline-flex';
@@ -889,15 +938,8 @@
         try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(e) {}
       });
 
-      window.addEventListener('appinstalled', function() {
-        dP = null;
-        hideInstallBtns();
-      });
-
-      // Also re-evaluate on resize in case user rotates device
-      window.addEventListener('resize', function() {
-        if (isMobile() && navBtn) navBtn.style.display = 'none';
-      });
+      window.addEventListener('appinstalled', function() { dP = null; hideInstallBtns(); });
+      window.addEventListener('resize', function() { if (isMobile() && navBtn) navBtn.style.display = 'none'; });
 
       // ══════════════════════════════════════════════════
       // SERVICE WORKER
