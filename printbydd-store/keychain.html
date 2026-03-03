@@ -6,10 +6,83 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>Hardcore NFC Keychain • PrintByDD</title>
 
-  <!-- Three.js (same as your current setup) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
+    /* ══════════════════════════════════════
+       GLOBAL UX PATCH
+       A) Kills iOS/Android blue tap flash
+          on every element universally.
+       A) :focus-visible keeps keyboard rings;
+          :focus:not(:focus-visible) strips
+          them for pointer/touch users.
+       A) Custom selection colour replaces
+          the default blue highlight.
+       B) Disables text selection globally;
+          re-enables for all input surfaces.
+    ══════════════════════════════════════ */
+
+    /* (A) Kill tap highlight on every element */
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      -webkit-touch-callout: none;
+    }
+
+    /* (A) Pointer users: no outline ring */
+    a:focus:not(:focus-visible),
+    button:focus:not(:focus-visible),
+    [tabindex]:focus:not(:focus-visible) {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    /* (A) Keyboard users: keep visible ring */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid rgba(232, 40, 40, 0.65) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* (A) Custom selection colour */
+    ::selection      { background: rgba(232, 40, 40, 0.22); color: inherit; }
+    ::-moz-selection { background: rgba(232, 40, 40, 0.22); color: inherit; }
+
+    /* (B) Disable text selection site-wide */
+    body,
+    h1, h2, h3, h4, h5, h6,
+    p, span, div, label,
+    .kicker, .big, .lead, .qt,
+    .step-title, .step-desc,
+    .ul, .ul li,
+    .sv, .slbl,
+    .pill, .back,
+    .hint, .swipe-hint,
+    .social-strip,
+    .stl-color-title,
+    .bn-cta, .stl-hint {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    /* (B) Re-enable selection for all input surfaces */
+    input,
+    textarea,
+    select,
+    [contenteditable="true"],
+    .allow-select,
+    pre,
+    code {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+      -webkit-touch-callout: default !important;
+    }
+
+    /* ── DESIGN TOKENS ── */
     :root{
       --bg:#050505;
       --card-bg: rgba(18, 18, 20, 0.75);
@@ -20,12 +93,10 @@
       --accent-glow: rgba(232, 40, 40, 0.15);
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
       --radius: 24px;
-
       --safeTop: env(safe-area-inset-top, 0px);
       --safeBottom: env(safe-area-inset-bottom, 0px);
       --safeLeft: env(safe-area-inset-left, 0px);
       --safeRight: env(safe-area-inset-right, 0px);
-
       --maxw: 860px;
       --header-height: 60px;
     }
@@ -39,10 +110,9 @@
       -webkit-font-smoothing: antialiased;
     }
     a{ color:inherit; text-decoration:none; }
-    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; -webkit-tap-highlight-color: transparent; }
-    body{ -webkit-user-select:none; user-select:none; }
+    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; }
 
-    /* ===== Site Header ===== */
+    /* ── Site Header ── */
     .site-header{
       position:absolute; top:0; left:0; right:0;
       height: var(--header-height);
@@ -54,7 +124,6 @@
       z-index:1000;
     }
     .site-header .logo{ color:var(--accent); font-size:18px; font-weight:900; letter-spacing:-0.02em; }
-
     .nav-container { display: flex; align-items: center; gap: 20px; }
     .site-header nav{ display:flex; gap:20px; align-items:center; }
     .site-header nav a{ color:var(--text-muted); font-weight:600; font-size:14px; transition:color 0.2s; }
@@ -75,7 +144,6 @@
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
 
-    /* Invert theme */
     body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
     body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
@@ -100,11 +168,10 @@
       padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,0.08);
       background:rgba(15,15,15,0.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
       transition:all 0.2s ease;
-      user-select:none;
     }
     .btn-icon{ padding:10px; font-weight:900; color:var(--accent); width:38px; height:38px; }
     .btn-icon:active, .back:active{ transform:scale(0.96); }
-    .back{ color:rgba(255,255,255,0.92); font-weight:700; font-size:14px; cursor: pointer;}
+    .back{ color:rgba(255,255,255,0.92); font-weight:700; font-size:14px; cursor: pointer; }
     .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
     .pill b{ color:#fff; letter-spacing:0.1em; font-weight:900; }
 
@@ -218,18 +285,14 @@
 
     /* STL viewer */
     .stl-viewer-wrap{
-      position:relative;
-      width:100%;
-      height: 260px;
-      min-height: 260px;
-      max-height: 260px;
+      position:relative; width:100%;
+      height: 260px; min-height: 260px; max-height: 260px;
       border-radius:16px; overflow:hidden;
       border:1px solid rgba(255,255,255,0.1);
       background:#0a0a0a; margin-bottom:14px;
       touch-action:none;
     }
     .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; }
-
     .stl-loading{
       position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
       font-size:13px; color:rgba(255,255,255,0.4);
@@ -283,7 +346,11 @@
       outline:none;
       transition:all 0.2s;
       appearance:none;
-      -webkit-user-select:text; user-select:text;
+      /* Inputs must be selectable — the global patch handles this,
+         but we reinforce here for specificity */
+      -webkit-user-select:text !important;
+      user-select:text !important;
+      -webkit-touch-callout:default !important;
     }
     .input-group input::placeholder{ color:rgba(255,255,255,0.30); }
     .input-group input:focus{ border-color:var(--accent); background:rgba(0,0,0,0.62); box-shadow:0 0 0 3px var(--accent-glow); }
@@ -336,14 +403,11 @@
     /* Bottom Nav */
     .bottom-nav{
       position:fixed;
-      left:max(10px,var(--safeLeft));
-      right:max(10px,var(--safeRight));
+      left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
       bottom:calc(10px + var(--safeBottom));
       height:64px;
-      display:flex; align-items:center; gap:10px;
-      padding:10px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,0.10);
+      display:flex; align-items:center; gap:10px; padding:10px;
+      border-radius:18px; border:1px solid rgba(255,255,255,0.10);
       background:rgba(10,10,12,0.78);
       backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
       box-shadow:0 18px 60px rgba(0,0,0,0.55);
@@ -353,11 +417,9 @@
       width:44px; height:44px; border-radius:14px;
       border:1px solid rgba(255,255,255,0.12);
       background:rgba(255,255,255,0.06);
-      color:rgba(255,255,255,0.92);
-      font-weight:950;
+      color:rgba(255,255,255,0.92); font-weight:950;
       display:flex; align-items:center; justify-content:center;
-      transition:transform .2s,opacity .2s;
-      flex-shrink:0;
+      transition:transform .2s,opacity .2s; flex-shrink:0;
     }
     .bn-btn:active{ transform:scale(0.96); }
     .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
@@ -375,8 +437,7 @@
     }
     .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(232,40,40,0.7); }
     .bn-cta{
-      height:44px; padding:0 16px; border-radius:14px;
-      border:none;
+      height:44px; padding:0 16px; border-radius:14px; border:none;
       background:linear-gradient(135deg,#ff4444,#b80000);
       color:#fff; font-weight:950; letter-spacing:-0.01em;
       display:flex; align-items:center; gap:10px;
@@ -395,6 +456,36 @@
   </style>
 </head>
 <body>
+
+  <!-- ══════════════════════════════════════
+       JS TAP-HIGHLIGHT POLISH (C)
+       Placed before any DOM so it can
+       intercept events immediately.
+       Blurs non-input elements on touch-
+       triggered focus via rAF — doesn't
+       block clicks or scroll.
+  ══════════════════════════════════════ -->
+  <script>
+  (function () {
+    var touchPending = false;
+    document.addEventListener('touchstart', function () {
+      touchPending = true;
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      setTimeout(function () { touchPending = false; }, 400);
+    }, { passive: true });
+    document.addEventListener('focus', function (e) {
+      if (!touchPending) return;
+      var tag = (e.target.tagName || '').toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+          e.target.isContentEditable) return;
+      requestAnimationFrame(function () {
+        if (document.activeElement === e.target) e.target.blur();
+      });
+    }, true);
+  })();
+  </script>
+
   <div id="appWrapper">
     <div class="bg-glow"></div>
 
@@ -461,7 +552,6 @@
   function routeTo(pathHtml, pathRoute){
     return location.hostname === 'store.viadecide.com' ? pathRoute : pathHtml;
   }
-  // Set nav links based on environment
   (function(){
     var links = {
       'kcHomeLink':   ['./index.html',               '/printbydd/'],
@@ -485,7 +575,7 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none"/></svg>`;
   }
 
-  // ========= THEME (invert) =========
+  // ========= THEME =========
   const THEME_KEY = "VD_INVERT_THEME";
   const btnTheme = document.getElementById("btnTheme");
   function setInvert(on){
@@ -540,18 +630,7 @@
     }
   };
 
-  // =============================================================
-  // 3D VIEWER — DUAL-COLOR: BODY vs ARM+RING
-  //
-  // FIX: The STL has a clear Z-gap between base (Z=0–2.2) and
-  // arm+ring (Z=5.0–6.01). We split on RAW Z before centering,
-  // using threshold=4.5 (right in the gap). This guarantees the
-  // entire arm AND the full ring get the accent color.
-  //
-  // The old percentile approach failed because arm+ring is ~90%
-  // of all triangles, so a 92nd-percentile threshold landed
-  // inside the arm, leaving most of it in the body mesh.
-  // =============================================================
+  // ========= 3D VIEWER =========
   let stlScene=null, stlRenderer=null, stlCamera=null;
   let stlMeshBody=null, stlMeshAccent=null, stlGroup=null;
   let stlPointerDown=false, stlLastX=0, stlLastY=0, stlInited=false;
@@ -605,7 +684,6 @@
     }
   };
 
-  // ----- STL parsing (binary + ascii) -----
   function parseBinarySTL(buf){
     const v=new DataView(buf), n=v.getUint32(80,true), pos=[], nor=[];
     let o=84;
@@ -663,29 +741,15 @@
     return g;
   }
 
-  // ──────────────────────────────────────────────────────────────
-  // splitByRawZ — splits triangles by their average Z in the
-  // ORIGINAL (uncentered) coordinate space.
-  //
-  // This STL's Z layout (measured from the file):
-  //   Z = 0.0 – 2.2  →  base / body plate
-  //   Z = 3.33        →  small connector (goes with body)
-  //   Z = 5.0 – 6.01 →  arm + ring (accent color)
-  //
-  // Threshold = 4.5 sits cleanly in the gap between 3.33 and 5.0,
-  // so 100% of the arm+ring triangles get the accent color.
-  // ──────────────────────────────────────────────────────────────
   function splitByRawZ(geo, threshold) {
     const pa = geo.getAttribute('position');
     const na = geo.getAttribute('normal');
     const bp=[], bn=[], ap=[], an=[];
-
     for(let i = 0; i < pa.count; i += 3){
       const z0 = pa.array[i*3+2];
       const z1 = pa.array[(i+1)*3+2];
       const z2 = pa.array[(i+2)*3+2];
       const avgZ = (z0 + z1 + z2) / 3;
-
       const tp = [
         pa.array[i*3],     pa.array[i*3+1],     pa.array[i*3+2],
         pa.array[(i+1)*3], pa.array[(i+1)*3+1], pa.array[(i+1)*3+2],
@@ -696,40 +760,29 @@
         na.array[(i+1)*3], na.array[(i+1)*3+1], na.array[(i+1)*3+2],
         na.array[(i+2)*3], na.array[(i+2)*3+1], na.array[(i+2)*3+2]
       ];
-
       if(avgZ >= threshold){ ap.push(...tp); an.push(...tn); }
       else                  { bp.push(...tp); bn.push(...tn); }
     }
-
     return {
       body:   { p: new Float32Array(bp), n: new Float32Array(bn) },
       accent: { p: new Float32Array(ap), n: new Float32Array(an) }
     };
   }
 
-  // Center both meshes together using the COMBINED bounding box
   function centerSplit(split){
     const all = [...Array.from(split.body.p), ...Array.from(split.accent.p)];
-    let minX=Infinity, maxX=-Infinity;
-    let minY=Infinity, maxY=-Infinity;
-    let minZ=Infinity, maxZ=-Infinity;
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity, minZ=Infinity, maxZ=-Infinity;
     for(let i=0; i<all.length; i+=3){
       minX=Math.min(minX,all[i]);   maxX=Math.max(maxX,all[i]);
       minY=Math.min(minY,all[i+1]); maxY=Math.max(maxY,all[i+1]);
       minZ=Math.min(minZ,all[i+2]); maxZ=Math.max(maxZ,all[i+2]);
     }
     const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
-
     function shift(arr){
       const out = new Float32Array(arr.length);
-      for(let i=0; i<arr.length; i+=3){
-        out[i]   = arr[i]   - cx;
-        out[i+1] = arr[i+1] - cy;
-        out[i+2] = arr[i+2] - cz;
-      }
+      for(let i=0; i<arr.length; i+=3){ out[i]=arr[i]-cx; out[i+1]=arr[i+1]-cy; out[i+2]=arr[i+2]-cz; }
       return out;
     }
-
     return {
       body:   { p: shift(split.body.p),   n: split.body.n   },
       accent: { p: shift(split.accent.p), n: split.accent.n }
@@ -744,73 +797,39 @@
     if(!wrap || !canvas) return;
     stlInited = true;
 
-    const W = wrap.clientWidth || 300;
-    const H = 260;
-
+    const W = wrap.clientWidth || 300, H = 260;
     stlRenderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
     stlRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
     stlRenderer.setSize(W, H, false);
     stlScene = new THREE.Scene();
-
     stlCamera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
     stlCamera.position.set(0, 0, 4);
-
     stlScene.add(new THREE.AmbientLight(0xffffff, 0.75));
     const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-    dir.position.set(2, 3, 2);
-    stlScene.add(dir);
+    dir.position.set(2, 3, 2); stlScene.add(dir);
     const dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
-    dir2.position.set(-2, -1, -2);
-    stlScene.add(dir2);
-
-    stlGroup = new THREE.Group();
-    stlScene.add(stlGroup);
+    dir2.position.set(-2, -1, -2); stlScene.add(dir2);
+    stlGroup = new THREE.Group(); stlScene.add(stlGroup);
 
     try{
-      // 1. Load raw geometry (uncentered)
       const geo = await loadSTLGeometry();
-
-      // 2. Split by raw Z coordinate BEFORE centering
-      //    Threshold 4.5 sits in the gap between base (max Z=3.33)
-      //    and arm+ring (min Z=5.0) — confirmed from STL analysis
       const rawSplit = splitByRawZ(geo, 4.5);
-
-      // 3. Center both parts together (shared bounding box origin)
       const split = centerSplit(rawSplit);
 
-      // 4. Build body mesh
       const bodyGeo = buildGeo(split.body.p, split.body.n);
       bodyGeo.computeVertexNormals();
-      stlMeshBody = new THREE.Mesh(
-        bodyGeo,
-        new THREE.MeshStandardMaterial({
-          color: BODY_COLORS[currentBodyKey],
-          roughness: 0.62,
-          metalness: 0.08
-        })
-      );
+      stlMeshBody = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: BODY_COLORS[currentBodyKey], roughness: 0.62, metalness: 0.08 }));
       stlGroup.add(stlMeshBody);
 
-      // 5. Build accent mesh (arm + ring — full Z≥4.5 region)
       if(split.accent.p.length > 0){
         const accentGeo = buildGeo(split.accent.p, split.accent.n);
         accentGeo.computeVertexNormals();
-        stlMeshAccent = new THREE.Mesh(
-          accentGeo,
-          new THREE.MeshStandardMaterial({
-            color: ARM_COLORS[currentArmKey],
-            roughness: 0.56,
-            metalness: 0.08
-          })
-        );
+        stlMeshAccent = new THREE.Mesh(accentGeo, new THREE.MeshStandardMaterial({ color: ARM_COLORS[currentArmKey], roughness: 0.56, metalness: 0.08 }));
         stlGroup.add(stlMeshAccent);
       }
 
-      // 6. Initial orientation: tilt to show both body and arm+ring well
       stlGroup.rotation.x = -0.25;
       stlGroup.rotation.y =  0.9;
-
-      // 7. Scale to fill the viewport
       const box = new THREE.Box3().setFromObject(stlGroup);
       const sz  = new THREE.Vector3();
       box.getSize(sz);
@@ -819,52 +838,26 @@
 
       if(loading) loading.classList.add('hidden');
 
-      // 8. Input: drag to rotate
-      function onDown(e){
-        stlPointerDown = true;
-        stlAutoRotate  = false;
-        const t = e.touches ? e.touches[0] : e;
-        stlLastX = t.clientX; stlLastY = t.clientY;
-      }
-      function onMove(e){
-        if(!stlPointerDown) return;
-        const t = e.touches ? e.touches[0] : e;
-        stlGroup.rotation.y += (t.clientX - stlLastX) * 0.01;
-        stlGroup.rotation.x += (t.clientY - stlLastY) * 0.01;
-        stlLastX = t.clientX; stlLastY = t.clientY;
-      }
-      function onUp(){ stlPointerDown = false; }
-
+      function onDown(e){ stlPointerDown=true; stlAutoRotate=false; const t=e.touches?e.touches[0]:e; stlLastX=t.clientX; stlLastY=t.clientY; }
+      function onMove(e){ if(!stlPointerDown) return; const t=e.touches?e.touches[0]:e; stlGroup.rotation.y+=(t.clientX-stlLastX)*0.01; stlGroup.rotation.x+=(t.clientY-stlLastY)*0.01; stlLastX=t.clientX; stlLastY=t.clientY; }
+      function onUp(){ stlPointerDown=false; }
       wrap.addEventListener('pointerdown', onDown);
       wrap.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
       wrap.addEventListener('touchstart', onDown, {passive:true});
       wrap.addEventListener('touchmove',  onMove, {passive:true});
       wrap.addEventListener('touchend',   onUp,   {passive:true});
-
       window.addEventListener('resize', ()=>{
-        if(!wrap || !stlRenderer || !stlCamera) return;
-        const w = wrap.clientWidth || 300, h = 260;
-        stlRenderer.setSize(w, h, false);
-        stlCamera.aspect = w / h;
-        stlCamera.updateProjectionMatrix();
+        if(!wrap||!stlRenderer||!stlCamera) return;
+        const w=wrap.clientWidth||300, h=260;
+        stlRenderer.setSize(w,h,false); stlCamera.aspect=w/h; stlCamera.updateProjectionMatrix();
       });
 
-      // 9. Render loop
-      (function animate(){
-        requestAnimationFrame(animate);
-        if(stlAutoRotate) stlGroup.rotation.y += 0.004;
-        stlRenderer.render(stlScene, stlCamera);
-      })();
-
-      // 10. Apply stored colors
+      (function animate(){ requestAnimationFrame(animate); if(stlAutoRotate) stlGroup.rotation.y+=0.004; stlRenderer.render(stlScene,stlCamera); })();
       applyKeyColors();
 
     } catch(err){
-      if(loading){
-        loading.style.fontSize = "12px";
-        loading.textContent = "3D preview unavailable.\n" + (err && err.message ? err.message : "");
-      }
+      if(loading){ loading.style.fontSize="12px"; loading.textContent="3D preview unavailable.\n"+(err&&err.message?err.message:""); }
       console.error("STL viewer error:", err);
     }
   };
@@ -885,8 +878,7 @@
             <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
           </div>
           <div class="qt">One tap. One impression. <b>Forever.</b></div>
-          <div class="social-strip">
-            See it in action →
+          <div class="social-strip">See it in action →
             <a href="${INSTA}" target="_blank" rel="noopener">${igIcon(13)} @printbydd</a>
           </div>`,
         hi:()=>`
@@ -899,8 +891,7 @@
             <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
           </div>
           <div class="qt">एक tap. एक impression. <b>हमेशा।</b></div>
-          <div class="social-strip">
-            Instagram पर देखें →
+          <div class="social-strip">Instagram पर देखें →
             <a href="${INSTA}" target="_blank" rel="noopener">${igIcon(13)} @printbydd</a>
           </div>`
       }
@@ -1005,11 +996,9 @@
               <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
               <div class="stl-hint">Drag to rotate</div>
             </div>
-
             <div class="qt" style="margin-top:6px;">
               Body: <b id="bodyLbl">${currentBodyKey.toUpperCase()}</b> &nbsp;•&nbsp; Arm + Ring: <b id="armLbl">${currentArmKey.toUpperCase()}</b>
             </div>
-
             <div class="stl-color-panel">
               <div class="stl-color-title">Body</div>
               <div class="stl-color-row">
@@ -1018,7 +1007,6 @@
                 <button class="stl-color-btn" data-body-btn="blue"  onclick="setBodyColor('blue',this)"><span class="stl-swatch" style="background:#1a6bd1;"></span> Blue</button>
                 <button class="stl-color-btn" data-body-btn="sand"  onclick="setBodyColor('sand',this)"><span class="stl-swatch" style="background:#d8c7a6;"></span> Sand</button>
               </div>
-
               <div class="stl-color-title" style="margin-top:12px;">Arm + Ring</div>
               <div class="stl-color-row">
                 <button class="stl-color-btn" data-arm-btn="red"   onclick="setArmColor('red',this)"><span class="stl-swatch" style="background:#e82828;"></span> Red</button>
@@ -1027,13 +1015,10 @@
                 <button class="stl-color-btn" data-arm-btn="green" onclick="setArmColor('green',this)"><span class="stl-swatch" style="background:#22c55e;"></span> Green</button>
               </div>
             </div>
-
             ${orderUI}
-
             <a href="${INSTA}" target="_blank" rel="noopener" class="btn-insta" style="margin-top:12px;">
               ${igIcon(18)} See builds on Instagram
             </a>
-
             <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
               Made in India · Delivery pan-India · NFC chip included
             </p>`;
@@ -1071,20 +1056,19 @@
   ];
 
   // ========= NAV + RENDER =========
-  const container=document.getElementById('scrollContainer');
-  const secLabel=document.getElementById('secLabel');
-  const secName=document.getElementById('secName');
+  const container  = document.getElementById('scrollContainer');
+  const secLabel   = document.getElementById('secLabel');
+  const secName    = document.getElementById('secName');
+  const bnPrev     = document.getElementById('bnPrev');
+  const bnNext     = document.getElementById('bnNext');
+  const bnDots     = document.getElementById('bnDots');
+  const bnCta      = document.getElementById('bnCta');
+  const bnCtaText  = document.getElementById('bnCtaText');
+  const bnCtaTag   = document.getElementById('bnCtaTag');
 
-  const bnPrev=document.getElementById('bnPrev');
-  const bnNext=document.getElementById('bnNext');
-  const bnDots=document.getElementById('bnDots');
-  const bnCta=document.getElementById('bnCta');
-  const bnCtaText=document.getElementById('bnCtaText');
-  const bnCtaTag=document.getElementById('bnCtaTag');
-
-  const BUYER_IDX = SECTIONS.findIndex(s=>s.name==='BUYER');
-  let currentSecIndex=0;
-  let currentLang='en';
+  const BUYER_IDX  = SECTIONS.findIndex(s=>s.name==='BUYER');
+  let currentSecIndex = 0;
+  let currentLang = 'en';
 
   function buildBottomDots(){
     if(!bnDots) return;
@@ -1120,22 +1104,14 @@
     if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
     if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
     if(bnCtaText && bnCtaTag){
-      if(currentSecIndex===BUYER_IDX){
-        bnCtaText.textContent="Order";
-        bnCtaTag.textContent="Now";
-      } else if(currentSecIndex<BUYER_IDX){
-        bnCtaText.textContent="Go to";
-        bnCtaTag.textContent="Order";
-      } else {
-        bnCtaText.textContent="Order";
-        bnCtaTag.textContent="Now";
-      }
+      if(currentSecIndex===BUYER_IDX){ bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
+      else if(currentSecIndex<BUYER_IDX){ bnCtaText.textContent="Go to"; bnCtaTag.textContent="Order"; }
+      else { bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
     }
   }
 
   function initBottomNav(){
-    buildBottomDots();
-    updateBottomNav();
+    buildBottomDots(); updateBottomNav();
     if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
     if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
     if(bnCta) bnCta.addEventListener('click',()=>{
@@ -1155,7 +1131,6 @@
         secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
         secName.textContent=entry.target.getAttribute('data-name');
         updateBottomNav();
-
         if(entry.target.getAttribute('data-name')==='BUYER'){
           setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); },120);
         }
@@ -1177,7 +1152,6 @@
       w.className='section-wrapper';
       w.setAttribute('data-index',index);
       w.setAttribute('data-name',sec.name);
-
       w.innerHTML=`
         <article class="card">
           <header class="cardHeader">
@@ -1196,24 +1170,21 @@
       container.appendChild(w);
       observer.observe(w);
     });
-
     setTimeout(()=>{
       if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots();
-      updateBottomNav();
-      syncColorUI();
+      updateBottomNav(); syncColorUI();
     },60);
   }
 
   // ========= TRANSLATION =========
-  const btnTranslate=document.getElementById('btnTranslate');
-  const toast=document.getElementById('translationToast');
-  const btnUndo=document.getElementById('btnUndoTranslate');
-  const toastMsg=document.getElementById('toastMsg');
+  const btnTranslate = document.getElementById('btnTranslate');
+  const toast        = document.getElementById('translationToast');
+  const btnUndo      = document.getElementById('btnUndoTranslate');
+  const toastMsg     = document.getElementById('toastMsg');
   let toastTimer;
 
   function triggerTranslation(lang){
-    currentLang=lang;
-    renderSections();
+    currentLang=lang; renderSections();
     toast.classList.add('is-visible');
     toastMsg.textContent=lang==='hi'?"Translated to Hindi":"Back to English";
     btnUndo.style.display=lang==='hi'?'block':'none';
@@ -1224,8 +1195,8 @@
   btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); toast.classList.remove('is-visible'); });
 
   // ========= ROTATION POPUP =========
-  const popup=document.getElementById('rotatePopup');
-  const appWrapper=document.getElementById('appWrapper');
+  const popup      = document.getElementById('rotatePopup');
+  const appWrapper = document.getElementById('appWrapper');
   let isForcedLandscape=false, targetRotationAngle=0;
 
   window.addEventListener('deviceorientation',e=>{
@@ -1240,11 +1211,7 @@
       else hideRotatePopup();
     }
   });
-  function showRotatePopup(a){
-    targetRotationAngle=a;
-    popup.classList.add('is-visible');
-    popup.textContent=a===0?"Tap for Portrait":"Tap for Landscape";
-  }
+  function showRotatePopup(a){ targetRotationAngle=a; popup.classList.add('is-visible'); popup.textContent=a===0?"Tap for Portrait":"Tap for Landscape"; }
   function hideRotatePopup(){ popup.classList.remove('is-visible'); }
   popup.addEventListener('click',()=>{
     if(targetRotationAngle!==0){
@@ -1259,14 +1226,11 @@
     hideRotatePopup();
   });
 
-  // Back button: history.back() if possible, else home via routeTo
+  // Back button
   document.getElementById("backBtn").addEventListener("click", (e)=>{
     e.preventDefault();
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = routeTo('./index.html', '/printbydd/');
-    }
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = routeTo('./index.html', '/printbydd/');
   });
 
   // Boot
