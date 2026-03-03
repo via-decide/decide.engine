@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,6 +8,47 @@
   <title>Founder • Weekly Decision Reviews</title>
 
   <style>
+    /* ============================================================
+       GLOBAL UX PATCH — tap highlight, selection, focus
+       ============================================================ */
+    *, *::before, *::after {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    /* Remove focus outline for pointer/mouse interactions only;
+       keyboard users (:focus-visible) still get a ring */
+    *:focus:not(:focus-visible) {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Suppress text selection globally */
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* Re-enable selection for interactive / code elements */
+    input,
+    textarea,
+    [contenteditable="true"],
+    pre,
+    code,
+    .allow-select {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+
+    /* Neutral selection colour where selection is allowed */
+    ::selection        { background: rgba(255,103,31,0.32); color: #fff; }
+    ::-moz-selection   { background: rgba(255,103,31,0.32); color: #fff; }
+    /* ============================================================ */
+
     :root {
       --bg: #050505;
       --card-bg: rgba(18, 18, 20, 0.75);
@@ -38,7 +80,6 @@
     a { color: inherit; text-decoration: none; }
     button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 
-    /* Ambient glow */
     .bg-glow {
       position:absolute; inset:0; pointer-events:none; z-index:0;
       background:
@@ -46,7 +87,6 @@
         radial-gradient(circle at 90% 100%, rgba(255,255,255,0.04), transparent 60%);
     }
 
-    /* Top */
     .top {
       position:absolute; top:0; left:0; right:0; z-index:50;
       padding: calc(14px + var(--safeTop)) calc(14px + var(--safeRight)) 12px calc(14px + var(--safeLeft));
@@ -72,7 +112,6 @@
     .pill { font-size:11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
     .pill b { color:#fff; font-weight:900; letter-spacing: .1em; }
 
-    /* Scroll */
     .scroll-container{
       position:absolute; inset:0;
       overflow-y:auto; overflow-x:hidden;
@@ -83,7 +122,6 @@
     }
     .scroll-container::-webkit-scrollbar{ display:none; }
 
-    /* Section / Card */
     .section-wrapper{
       height:100%; width:100%;
       scroll-snap-align:start;
@@ -137,7 +175,6 @@
     .cardBody::-webkit-scrollbar { width: 5px; }
     .cardBody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-    /* Typography */
     .big{
       font-size: clamp(28px, 6vw, 46px);
       line-height: 1.08;
@@ -167,7 +204,6 @@
       font-style: italic;
     }
 
-    /* Strong CTA blocks */
     .ctaBox{
       margin: 18px 0;
       border-radius: 18px;
@@ -210,6 +246,12 @@
       background: rgba(0,0,0,0.28);
       transition: transform .18s ease, filter .18s ease, border-color .18s ease;
       user-select:none;
+      cursor: pointer;
+    }
+    /* Keyboard focus ring for buttons */
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
     .btn:active{ transform: scale(0.985); filter: brightness(1.08); }
     .btnPrimary{
@@ -244,13 +286,16 @@
       color:#fff;
       font-size: 15px;
       outline:none;
+      /* Explicitly re-enable selection & callout for inputs */
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
     }
     .field input:focus{
       border-color: rgba(255,103,31,0.55);
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    /* Sticky bottom mega CTA */
     .stickyCTA{
       position: fixed;
       left: calc(12px + var(--safeLeft));
@@ -287,7 +332,6 @@
       .stickyCTA .left span{ white-space:normal; }
     }
 
-    /* Small hint */
     .hint{
       position:absolute;
       bottom: calc(14px + var(--safeBottom));
@@ -306,6 +350,13 @@
       50%{ transform: translateX(-50%) translateY(6px); opacity:1; }
     }
     .section-wrapper:last-child .hint{ display:none; }
+
+    /* Clickable-card keyboard focus */
+    [role="button"]:focus-visible,
+    [role="link"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
   </style>
 </head>
 
@@ -325,11 +376,11 @@
   <!-- Sticky mega CTA -->
   <div class="stickyCTA" role="region" aria-label="Primary call to action">
     <div class="left">
-      <b>Run your first Weekly Decision Review this Friday.</b>
-      <span>30 minutes → better judgment → compounding advantage.</span>
+      <b>Block 30 minutes this Friday. Review 3 decisions.</b>
+      <span>One session builds more clarity than a month of reaction.</span>
     </div>
     <div class="right">
-      <button class="btn btnPrimary" id="ctaStart">Start the 30-Minute Review →</button>
+      <button class="btn btnPrimary" id="ctaStart">See the Exact Format →</button>
     </div>
   </div>
 
@@ -337,7 +388,24 @@
     (function(){
       "use strict";
 
-      // Back button: prefer history.back, fallback to index.html
+      /* ── iOS Safari tap-highlight safety patch ──────────────────
+         Prevents any residual blue flash on touchstart without
+         blocking scroll, click, or any default behaviour.          */
+      document.addEventListener("touchstart", function(){}, { passive: true });
+
+      /* ── Keyboard support for div[role=button/link] ─────────────
+         Applied after render() via event delegation so it covers
+         dynamically injected cards too.                            */
+      document.addEventListener("keydown", function(e){
+        if (e.key !== "Enter" && e.key !== " ") return;
+        const el = e.target;
+        const role = el.getAttribute("role");
+        if (role === "button" || role === "link") {
+          e.preventDefault();
+          el.click();
+        }
+      });
+
       document.getElementById("btnBack").addEventListener("click", function(e){
         e.preventDefault();
         if (history.length > 1) history.back();
@@ -355,145 +423,149 @@
 
       const BLOG = {
         title: {
-          en: "How To Run Weekly Decision Reviews (Like a Founder)",
-          hi: "साप्ताहिक निर्णय समीक्षा कैसे करें (संस्थापक की तरह)"
+          en: "The Founder's Weekly Decision Review",
+          hi: "संस्थापक की साप्ताहिक निर्णय समीक्षा"
         },
         sections: [
           {
             name:"INTRO",
-            kicker:{en:"Founder Ritual", hi:"संस्थापक रिवाज"},
-            title:{en:"A 30-minute ritual that upgrades judgment", hi:"30 मिनट का रिवाज जो निर्णय क्षमता बढ़ाता है"},
+            kicker:{en:"Founder Practice", hi:"संस्थापक का अभ्यास"},
+            title:{en:"The 30-minute ritual that compounds your judgment", hi:"30 मिनट का रिवाज जो निर्णय क्षमता बढ़ाता है"},
             html:{
               en: () => `
-                <div class="big">Most teams review <span class="accentText">results.</span><br>Founders review <span class="accentText">decisions.</span></div>
-                <p class="lead">Outcomes fluctuate. Decision quality compounds. This weekly ritual makes your business <b>learn faster than competitors</b>.</p>
+                <div class="big">Your competitors review <span class="accentText">results.</span><br>You review <span class="accentText">decisions.</span></div>
+                <p class="lead">Results tell you what happened. Decisions tell you why — and whether your reasoning is getting sharper or just getting lucky. This weekly ritual closes that gap.</p>
                 <div class="ctaBox">
                   <div class="ctaHead">
                     <div>
-                      <strong>⚡ Your mission:</strong>
-                      <span>Pick 3–5 decisions from last week and audit the reasoning—before the next week starts.</span>
+                      <strong>⚡ One rule:</strong>
+                      <span>Pick 3–5 decisions from the past week. Audit the reasoning — not the outcome. Do it before Monday starts.</span>
                     </div>
                   </div>
                   <div class="ctaRow">
                     <button class="btn btnPrimary" onclick="jumpTo('FORMAT')">See the 30-minute format →</button>
-                    <button class="btn btnGhost" onclick="openTemplate()">Download template</button>
+                    <button class="btn btnGhost" onclick="sendWA('I want to start the Weekly Decision Review. Share the format and log template.')">Get the template on WhatsApp</button>
                   </div>
                 </div>
-                <div class="quote">If you only review what happened, your judgment never improves. Review why you chose it.</div>
+                <div class="quote">"The goal isn't to get every decision right. It's to get better at deciding — so the odds compound in your favour."</div>
               `,
               hi: () => `
-                <div class="big">अधिकांश टीमें <span class="accentText">परिणाम</span> देखती हैं।<br>संस्थापक <span class="accentText">निर्णय</span> देखते हैं।</div>
-                <p class="lead">परिणाम बदलते रहते हैं। निर्णय गुणवत्ता बढ़ती रहती है। यह साप्ताहिक रिवाज आपके व्यवसाय को <b>तेज़ सीखने</b> वाला बनाता है।</p>
+                <div class="big">आपके प्रतिस्पर्धी <span class="accentText">परिणाम</span> देखते हैं।<br>आप <span class="accentText">निर्णय</span> देखते हैं।</div>
+                <p class="lead">परिणाम बताता है क्या हुआ। निर्णय बताता है क्यों — और आपकी सोच तेज हो रही है या बस किस्मत अच्छी थी। यह साप्ताहिक रिवाज वह फ़र्क बंद करता है।</p>
                 <div class="ctaBox">
                   <div class="ctaHead">
                     <div>
-                      <strong>⚡ आपका मिशन:</strong>
-                      <span>पिछले सप्ताह के 3–5 निर्णय चुनें और तर्क की समीक्षा करें—अगला सप्ताह शुरू होने से पहले।</span>
+                      <strong>⚡ एक नियम:</strong>
+                      <span>पिछले हफ्ते के 3–5 निर्णय चुनें। तर्क की जाँच करें — परिणाम की नहीं। सोमवार से पहले करें।</span>
                     </div>
                   </div>
                   <div class="ctaRow">
                     <button class="btn btnPrimary" onclick="jumpTo('FORMAT')">30-मिनट फॉर्मेट देखें →</button>
-                    <button class="btn btnGhost" onclick="openTemplate()">टेम्पलेट डाउनलोड करें</button>
+                    <button class="btn btnGhost" onclick="sendWA('मुझे Weekly Decision Review शुरू करनी है। फॉर्मेट और लॉग टेम्पलेट भेजें।')">WhatsApp पर टेम्पलेट लें</button>
                   </div>
                 </div>
-                <div class="quote">अगर आप सिर्फ “क्या हुआ” देखते हैं, तो निर्णय क्षमता नहीं बढ़ती। “क्यों चुना” देखें।</div>
+                <div class="quote">"लक्ष्य हर निर्णय सही होना नहीं। लक्ष्य है — निर्णय लेने में बेहतर होना, ताकि odds हमेशा आपके पक्ष में compounding करें।"</div>
               `
             }
           },
           {
             name:"WHY",
-            kicker:{en:"The Problem", hi:"समस्या"},
-            title:{en:"Why most reviews don’t improve judgment", hi:"अधिकांश रिव्यू निर्णय क्षमता क्यों नहीं बढ़ाते"},
+            kicker:{en:"The Real Problem", hi:"असली समस्या"},
+            title:{en:"Outcome reviews teach you nothing about judgment", hi:"परिणाम-रिव्यू निर्णय क्षमता नहीं सिखाते"},
             html:{
               en: () => `
-                <div class="big">Outcome reviews create <span class="accentText">reaction</span>, not learning.</div>
-                <p class="lead">Most weekly meetings are dashboards + updates. Then someone says: “Let’s try this.”</p>
+                <div class="big">Outcome bias is <span class="accentText">silent</span> and expensive.</div>
+                <p class="lead">A good decision can produce a bad outcome. A bad decision can get lucky. If you only review outcomes, you can't tell the difference — so you either punish good thinking or reward bad bets.</p>
                 <ul class="list">
-                  <li><b>No reasoning audit</b> → same mistakes repeat.</li>
-                  <li><b>No assumptions named</b> → emotions drive choices.</li>
-                  <li><b>No decision log</b> → the team forgets what it learned.</li>
+                  <li><b>No reasoning audit</b> → the same flawed assumption fires again next month.</li>
+                  <li><b>No assumptions named</b> → decisions feel like consensus but carry hidden bets.</li>
+                  <li><b>No written log</b> → the team forgets what it learned and re-learns it expensively.</li>
+                  <li><b>Only outcome tracking</b> → the team learns to look busy after things go wrong, not to think better before.</li>
                 </ul>
-                <div class="quote">A decision can be good even if the outcome is bad. Without reviewing reasoning, you can’t tell the difference.</div>
+                <div class="quote">Most post-mortems are autopsies. A decision review is a training programme.</div>
               `,
               hi: () => `
-                <div class="big">परिणाम-रिव्यू <span class="accentText">सीख</span> नहीं, प्रतिक्रिया बनाते हैं।</div>
-                <p class="lead">अधिकांश मीटिंग्स डैशबोर्ड + अपडेट होती हैं। फिर कोई कहता है: “चलो ये ट्राई करें।”</p>
+                <div class="big">Outcome bias <span class="accentText">चुपचाप</span> और महंगा होता है।</div>
+                <p class="lead">अच्छा निर्णय बुरा परिणाम दे सकता है। बुरा निर्णय किस्मत से बच सकता है। अगर आप सिर्फ परिणाम देखते हैं, तो फर्क नहीं समझ पाएंगे — और अच्छी सोच को दंड देंगे या बुरी सोच को इनाम।</p>
                 <ul class="list">
-                  <li><b>तर्क की समीक्षा नहीं</b> → वही गलतियाँ दोहरती हैं।</li>
-                  <li><b>अनुमान स्पष्ट नहीं</b> → भावनाएँ निर्णय चलाती हैं।</li>
-                  <li><b>लॉग नहीं</b> → टीम सीख भूल जाती है।</li>
+                  <li><b>तर्क की जाँच नहीं</b> → वही गलत अनुमान अगले महीने फिर से चलेगा।</li>
+                  <li><b>अनुमान लिखे नहीं</b> → निर्णय consensus लगता है, लेकिन छुपे हुए जोखिम होते हैं।</li>
+                  <li><b>लिखित लॉग नहीं</b> → टीम सीख भूल जाती है और महंगे तरीके से दोबारा सीखती है।</li>
+                  <li><b>केवल परिणाम tracking</b> → टीम गड़बड़ी के बाद व्यस्त दिखना सीखती है, पहले बेहतर सोचना नहीं।</li>
                 </ul>
-                <div class="quote">कभी-कभी अच्छा निर्णय भी खराब परिणाम दे सकता है। तर्क देखे बिना फर्क नहीं समझ आएगा।</div>
+                <div class="quote">अधिकांश post-mortems शव-परीक्षाएं हैं। Decision review एक training programme है।</div>
               `
             }
           },
           {
             name:"MINDSET",
-            kicker:{en:"Founder Shift", hi:"संस्थापक बदलाव"},
-            title:{en:"Operators manage tasks. Founders design decisions.", hi:"ऑपरेटर कार्य संभालते हैं। संस्थापक निर्णय डिज़ाइन करते हैं।"},
+            kicker:{en:"The Founder Shift", hi:"संस्थापक बदलाव"},
+            title:{en:"Stop managing tasks. Start designing how you decide.", hi:"काम संभालना बंद करें। निर्णय प्रक्रिया बनाना शुरू करें।"},
             html:{
               en: () => `
-                <div class="big">Change the weekly question:</div>
+                <div class="big">The weekly question that changes everything:</div>
                 <ul class="list">
-                  <li><b>Operator:</b> “What should we do now?”</li>
-                  <li><b>Founder:</b> “How do we improve how we decide?”</li>
+                  <li><b>Operator asks:</b> "What should we do about this?"</li>
+                  <li><b>Founder asks:</b> "What made us decide this way — and was that reasoning sound?"</li>
                 </ul>
-                <p class="lead">This ritual upgrades clarity, reduces ego, and speeds decisions—because the team knows decisions will be reviewed.</p>
+                <p class="lead">When the team knows decisions will be reviewed, three things shift: people document their reasoning before acting, assumptions get stated out loud, and gut calls get challenged respectfully.</p>
                 <div class="ctaBox">
-                  <strong>✅ Rule:</strong>
-                  <span>We review the <b>decision</b>, not the person. No blame. Only learning.</span>
+                  <strong>✅ Ground rule for every review:</strong>
+                  <span style="display:block; margin-top:6px; color:var(--text-muted); font-size:14px; line-height:1.55;">We audit the <b>decision</b>, not the person who made it. No blame. No hindsight superiority. Only: "What can we extract to decide better next time?"</span>
                 </div>
+                <div class="quote">Psychological safety inside the review room is what makes honest reasoning possible outside it.</div>
               `,
               hi: () => `
-                <div class="big">साप्ताहिक सवाल बदलिए:</div>
+                <div class="big">वह साप्ताहिक सवाल जो सब बदल देता है:</div>
                 <ul class="list">
-                  <li><b>ऑपरेटर:</b> “अब क्या करें?”</li>
-                  <li><b>संस्थापक:</b> “निर्णय कैसे बेहतर करें?”</li>
+                  <li><b>ऑपरेटर पूछता है:</b> "इस बारे में क्या करें?"</li>
+                  <li><b>संस्थापक पूछता है:</b> "हमने इस तरह क्यों decide किया — और क्या वह तर्क सही था?"</li>
                 </ul>
-                <p class="lead">यह रिवाज स्पष्टता बढ़ाता है, अहं कम करता है, और निर्णय गति बढ़ाता है—क्योंकि टीम जानती है कि निर्णय रिव्यू होंगे।</p>
+                <p class="lead">जब टीम जानती है कि निर्णय review होंगे, तो तीन चीजें बदलती हैं: लोग action से पहले reasoning document करते हैं, अनुमान जोर से कहे जाते हैं, और gut calls को सम्मान से challenge किया जाता है।</p>
                 <div class="ctaBox">
-                  <strong>✅ नियम:</strong>
-                  <span>हम <b>निर्णय</b> की समीक्षा करते हैं, व्यक्ति की नहीं। दोष नहीं—सिर्फ सीख।</span>
+                  <strong>✅ हर review का ground rule:</strong>
+                  <span style="display:block; margin-top:6px; color:var(--text-muted); font-size:14px; line-height:1.55;">हम <b>निर्णय</b> की जाँच करते हैं, उसे लेने वाले की नहीं। कोई दोष नहीं। कोई hindsight नहीं। केवल: "अगली बार बेहतर decide करने के लिए क्या सीखें?"</span>
                 </div>
+                <div class="quote">Review room में psychological safety ही बाहर honest reasoning को संभव बनाती है।</div>
               `
             }
           },
           {
             name:"FORMAT",
-            kicker:{en:"30 Minutes", hi:"30 मिनट"},
-            title:{en:"The exact 4-step structure", hi:"सटीक 4-स्टेप संरचना"},
+            kicker:{en:"The 30-Minute Structure", hi:"30 मिनट की संरचना"},
+            title:{en:"Four steps. No fluff. Every Friday.", hi:"चार स्टेप। कोई शोर नहीं। हर शुक्रवार।"},
             html:{
               en: () => `
-                <div class="big">Keep it tight. <span class="accentText">No noise.</span></div>
+                <div class="big">Tight format = <span class="accentText">consistent habit.</span></div>
                 <ul class="list">
-                  <li><b>Step 1 (10m):</b> Identify 3–5 key decisions (not tasks).</li>
-                  <li><b>Step 2 (10m):</b> Revisit reasoning: why, expected outcome, assumptions.</li>
-                  <li><b>Step 3 (5m):</b> Compare early signals vs expectation (direction, not verdict).</li>
-                  <li><b>Step 4 (5m):</b> Extract 1 lesson and update your rulebook.</li>
+                  <li><b>Step 1 — Collect (8m):</b> List 3–5 decisions made this week. Not tasks completed — actual choices: who to hire, what to price, what to deprioritise, which deal to pursue.</li>
+                  <li><b>Step 2 — Reconstruct (10m):</b> For each: what was the stated reason? What were the implicit assumptions? What outcome did you expect and on what timeline?</li>
+                  <li><b>Step 3 — Check early signals (7m):</b> Don't wait for the final outcome. Look for directional data. Is reality tracking your assumption? If not, why?</li>
+                  <li><b>Step 4 — Extract the rule (5m):</b> One concrete lesson per session. Write it as a standing rule: "When X, we will/won't Y." Update the rulebook.</li>
                 </ul>
                 <div class="ctaBox">
-                  <strong>🎯 Founder standard:</strong>
-                  <span>If a decision is <b>irreversible</b> (hire, contract, pricing structure), it gets deeper scrutiny.</span>
+                  <strong>🔒 Irreversibility flag:</strong>
+                  <span style="display:block; margin-top:6px; color:var(--text-muted); font-size:14px; line-height:1.55;">Tag decisions as <b>reversible</b> or <b>irreversible</b> before you review them. Irreversible decisions (key hires, pricing architecture, equity, long contracts) get double the time and a written assumption list.</span>
                   <div class="ctaRow">
-                    <button class="btn btnPrimary" onclick="openTemplate()">Open the Decision Log template →</button>
-                    <button class="btn btnGhost" onclick="sendWA('I want the weekly decision review template.')">Get it on WhatsApp</button>
+                    <button class="btn btnPrimary" onclick="sendWA('Share the Weekly Decision Review format and decision log template.')">Get this format on WhatsApp →</button>
+                    <button class="btn btnGhost" onclick="copyTemplate()">Copy the decision log</button>
                   </div>
                 </div>
               `,
               hi: () => `
-                <div class="big">सख्त रखें। <span class="accentText">कोई शोर नहीं।</span></div>
+                <div class="big">Tight format = <span class="accentText">consistent आदत।</span></div>
                 <ul class="list">
-                  <li><b>स्टेप 1 (10m):</b> 3–5 प्रमुख निर्णय चुनें (टास्क नहीं)।</li>
-                  <li><b>स्टेप 2 (10m):</b> तर्क: क्यों, अपेक्षित परिणाम, कौन से अनुमान।</li>
-                  <li><b>स्टेप 3 (5m):</b> शुरुआती संकेत देखें (दिशा, अंतिम निर्णय नहीं)।</li>
-                  <li><b>स्टेप 4 (5m):</b> 1 सीख निकालें और नियम अपडेट करें।</li>
+                  <li><b>Step 1 — Collect (8m):</b> इस हफ्ते के 3–5 निर्णय लिखें। Tasks नहीं — असली choices: किसे hire करें, क्या price करें, क्या deprioritise करें।</li>
+                  <li><b>Step 2 — Reconstruct (10m):</b> हर निर्णय के लिए: stated reason क्या था? implicit अनुमान क्या थे? किस timeline पर क्या outcome expect था?</li>
+                  <li><b>Step 3 — Early signals (7m):</b> Final outcome का इंतजार न करें। Directional data देखें। क्या reality आपके अनुमान के साथ track कर रही है? अगर नहीं, तो क्यों?</li>
+                  <li><b>Step 4 — Rule निकालें (5m):</b> हर session में एक concrete lesson। इसे standing rule बनाएं: "जब X हो, तो हम Y करेंगे/नहीं करेंगे।" Rulebook update करें।</li>
                 </ul>
                 <div class="ctaBox">
-                  <strong>🎯 मानक:</strong>
-                  <span>अगर निर्णय <b>अपरिवर्तनीय</b> है (हायरिंग, कॉन्ट्रैक्ट, प्राइसिंग स्ट्रक्चर) तो अधिक गहराई से देखें।</span>
+                  <strong>🔒 Irreversibility flag:</strong>
+                  <span style="display:block; margin-top:6px; color:var(--text-muted); font-size:14px; line-height:1.55;">Review से पहले निर्णय को <b>reversible</b> या <b>irreversible</b> tag करें। Irreversible निर्णय (key hire, pricing, equity, long contract) को दोगुना समय और लिखित assumption list मिले।</span>
                   <div class="ctaRow">
-                    <button class="btn btnPrimary" onclick="openTemplate()">निर्णय लॉग टेम्पलेट खोलें →</button>
-                    <button class="btn btnGhost" onclick="sendWA('मुझे साप्ताहिक निर्णय समीक्षा टेम्पलेट चाहिए।')">WhatsApp पर लें</button>
+                    <button class="btn btnPrimary" onclick="sendWA('Weekly Decision Review का format और decision log template भेजें।')">WhatsApp पर format लें →</button>
+                    <button class="btn btnGhost" onclick="copyTemplate()">Decision log copy करें</button>
                   </div>
                 </div>
               `
@@ -501,112 +573,116 @@
           },
           {
             name:"EXAMPLES",
-            kicker:{en:"Examples", hi:"उदाहरण"},
-            title:{en:"What good review sounds like", hi:"एक अच्छा रिव्यू कैसा लगता है"},
+            kicker:{en:"Real Reviews", hi:"असली Reviews"},
+            title:{en:"What it sounds like when it's working", hi:"जब यह काम करता है तो कैसा लगता है"},
             html:{
               en: () => `
-                <div class="big">You’re reviewing <span class="accentText">logic</span>, not luck.</div>
-                <p class="lead"><b>Pricing change:</b> “We assumed loyalty protects demand.” → volume dropped 10% → lesson: smaller increments + value comms.</p>
-                <p class="lead"><b>Hiring:</b> “We optimized for availability.” → execution strong, communication weak → lesson: add comms check to scorecard.</p>
-                <div class="quote">When you log decisions weekly, you stop paying the same tuition twice.</div>
+                <div class="big">Reasoning you can <span class="accentText">learn from.</span></div>
+                <p class="lead"><b>Pricing increase (SaaS):</b> Assumption — "our loyal users absorb a 20% increase." Signal at week 3 — churn up 8% in the cohort that got the increase first. Lesson: loyalty protects retention, not pricing tolerance. New rule: test any increase above 12% on a 5% cohort before rolling out.</p>
+                <p class="lead"><b>Senior hire:</b> Assumption — "strong track record in a bigger company transfers." Signal at week 6 — execution strong, decision speed slow; waiting for approval loops that don't exist here. Lesson: past environment shapes decision reflexes. New rule: add "ambiguity comfort" scenario to every senior interview.</p>
+                <p class="lead"><b>Sales channel bet:</b> Assumption — "our ICP is active on LinkedIn." Signal at week 2 — zero inbound from LinkedIn content, three warm leads from a single founder intro. Lesson: channel assumptions need a 2-week falsifiability test before budget commitment.</p>
+                <div class="quote">When you log decisions weekly, you stop paying the same tuition twice. The compounding is real — and it's yours alone.</div>
               `,
               hi: () => `
-                <div class="big">आप <span class="accentText">तर्क</span> की समीक्षा कर रहे हैं, भाग्य की नहीं।</div>
-                <p class="lead"><b>प्राइसिंग:</b> “हमने मान लिया था कि लॉयल्टी डिमांड बचाएगी।” → वॉल्यूम 10% गिरा → सीख: छोटे इन्क्रीमेंट + वैल्यू कम्युनिकेशन।</p>
-                <p class="lead"><b>हायरिंग:</b> “हमने उपलब्धता को प्राथमिकता दी।” → एक्ज़ीक्यूशन अच्छा, कम्युनिकेशन कमजोर → सीख: कम्युनिकेशन असेसमेंट जोड़ें।</p>
-                <div class="quote">हर सप्ताह निर्णय लॉग करने से आप एक ही फीस दो बार नहीं भरते।</div>
+                <div class="big">ऐसी reasoning जिससे <span class="accentText">सीखा जा सके।</span></div>
+                <p class="lead"><b>Pricing increase (SaaS):</b> अनुमान — "loyal users 20% increase absorb करेंगे।" Week 3 signal — उस cohort में churn 8% बढ़ा। सीख: loyalty retention बचाती है, pricing tolerance नहीं। नया नियम: 12% से ऊपर कोई भी increase पहले 5% cohort पर test करें।</p>
+                <p class="lead"><b>Senior hire:</b> अनुमान — "बड़ी कंपनी का track record transfer होता है।" Week 6 signal — execution अच्छा, decision speed धीमी; approval loops ढूंढ रहे थे जो यहाँ हैं ही नहीं। सीख: past environment decision reflexes बनाता है। नया नियम: हर senior interview में "ambiguity comfort" scenario जोड़ें।</p>
+                <p class="lead"><b>Sales channel bet:</b> अनुमान — "हमारा ICP LinkedIn पर active है।" Week 2 signal — LinkedIn content से zero inbound, एक founder intro से तीन warm leads। सीख: channel assumptions को budget commit करने से पहले 2-week falsifiability test चाहिए।</p>
+                <div class="quote">जब आप हर हफ्ते decisions log करते हैं, तो एक ही fees दो बार नहीं भरते। Compounding असली है — और सिर्फ आपका।</div>
               `
             }
           },
           {
             name:"TEMPLATE",
-            kicker:{en:"Decision Memory", hi:"निर्णय मेमोरी"},
-            title:{en:"The simple log that builds institutional intelligence", hi:"साधारण लॉग जो संस्थागत बुद्धिमत्ता बनाता है"},
+            kicker:{en:"Your Decision Log", hi:"आपका Decision Log"},
+            title:{en:"The six-line format that builds institutional memory", hi:"छह-लाइन फॉर्मेट जो institutional memory बनाता है"},
             html:{
               en: () => `
-                <div class="big">Write it down. <span class="accentText">Or lose it.</span></div>
-                <p class="lead">Use this 5-line format. Keep it brutally simple.</p>
+                <div class="big">Write it down or <span class="accentText">lose it forever.</span></div>
+                <p class="lead">This is the minimum viable log. One row per decision. Fill it during or immediately after the meeting — memory degrades fast and confidence fills the gap.</p>
                 <div class="ctaBox" style="border-color:rgba(34,197,94,0.25); background:linear-gradient(180deg, rgba(34,197,94,0.10), rgba(0,0,0,0.10));">
-                  <strong>Decision Log (copy/paste)</strong>
-                  <div style="margin-top:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#cbd5e1; white-space:pre-wrap; line-height:1.55;">
-Decision:
-Reason:
-Expected outcome:
-Actual (so far):
-Lesson / rule update:
-                  </div>
+                  <strong>Decision Log (copy → paste into Notion, Notes, or WhatsApp)</strong>
+                  <pre class="allow-select" style="margin-top:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#cbd5e1; white-space:pre-wrap; line-height:1.65; background:rgba(0,0,0,0.3); padding:14px; border-radius:12px;">Decision:
+Reason (why we chose this):
+Key assumption we're betting on:
+Expected outcome + timeline:
+Actual (fill in next review):
+Lesson / rule update:</pre>
                   <div class="ctaRow">
-                    <button class="btn btnOk" onclick="copyTemplate()">Copy template</button>
-                    <button class="btn btnGhost" onclick="sendWA('Share the decision log format and examples.')">Send to WhatsApp</button>
+                    <button class="btn btnOk" onclick="copyTemplate()">Copy &amp; use this week</button>
+                    <button class="btn btnGhost" onclick="sendWA('Send me the decision log format with a filled example.')">See a filled example on WhatsApp</button>
                   </div>
                 </div>
+                <p class="lead" style="margin-top:14px; font-size:14px; color:var(--text-muted);">Stack 8 weeks of logs and you'll see your team's assumption patterns clearly. That's when the real leverage begins.</p>
               `,
               hi: () => `
-                <div class="big">लिखिए। <span class="accentText">नहीं तो भूल जाएगा।</span></div>
-                <p class="lead">यह 5-लाइन फॉर्मेट इस्तेमाल करें। बेहद सरल रखें।</p>
+                <div class="big">लिखिए, वरना <span class="accentText">हमेशा के लिए खो जाएगा।</span></div>
+                <p class="lead">यह minimum viable log है। हर निर्णय के लिए एक row। Meeting के दौरान या तुरंत बाद भरें — memory जल्दी fade होती है और confidence उसकी जगह भर लेता है।</p>
                 <div class="ctaBox" style="border-color:rgba(34,197,94,0.25); background:linear-gradient(180deg, rgba(34,197,94,0.10), rgba(0,0,0,0.10));">
-                  <strong>निर्णय लॉग (कॉपी/पेस्ट)</strong>
-                  <div style="margin-top:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#cbd5e1; white-space:pre-wrap; line-height:1.55;">
-Decision:
-Reason:
-Expected outcome:
-Actual (so far):
-Lesson / rule update:
-                  </div>
+                  <strong>Decision Log (copy → Notion, Notes, या WhatsApp में paste करें)</strong>
+                  <pre class="allow-select" style="margin-top:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#cbd5e1; white-space:pre-wrap; line-height:1.65; background:rgba(0,0,0,0.3); padding:14px; border-radius:12px;">Decision:
+Reason (why we chose this):
+Key assumption we're betting on:
+Expected outcome + timeline:
+Actual (fill in next review):
+Lesson / rule update:</pre>
                   <div class="ctaRow">
-                    <button class="btn btnOk" onclick="copyTemplate()">टेम्पलेट कॉपी करें</button>
-                    <button class="btn btnGhost" onclick="sendWA('निर्णय लॉग फॉर्मेट और उदाहरण भेजें।')">WhatsApp पर भेजें</button>
+                    <button class="btn btnOk" onclick="copyTemplate()">इस हफ्ते copy करके इस्तेमाल करें</button>
+                    <button class="btn btnGhost" onclick="sendWA('Decision log format भेजें एक filled example के साथ।')">WhatsApp पर filled example देखें</button>
                   </div>
                 </div>
+                <p class="lead" style="margin-top:14px; font-size:14px; color:var(--text-muted);">8 हफ्ते के logs stack करें और आपकी टीम के assumption patterns clearly दिखेंगे। असली leverage वहीं से शुरू होती है।</p>
               `
             }
           },
           {
             name:"FINAL",
-            kicker:{en:"Final Action", hi:"अंतिम कदम"},
-            title:{en:"Start this week. Don’t overthink.", hi:"इस हफ्ते शुरू करें। ओवरथिंक मत करें।"},
+            kicker:{en:"This Week's Move", hi:"इस हफ्ते का कदम"},
+            title:{en:"One session. Done. Compounding starts Friday.", hi:"एक session। बस। Compounding शुक्रवार से शुरू।"},
             html:{
               en: () => `
-                <div class="big">Your advantage is <span class="accentText">judgment.</span></div>
-                <p class="lead">Block 30 minutes on Friday. Review 3 decisions. Extract 3 lessons. Update rules.</p>
+                <div class="big">Judgment is the only <span class="accentText">moat</span> that scales.</div>
+                <p class="lead">Capital, talent, tools — these are available to your competitors too. But a team that systematically learns from its own decisions builds an advantage that can't be copied, because it lives in your specific decision history.</p>
+                <p class="lead"><b>This Friday:</b> Block 30 minutes. Open a blank note. Write down 3 decisions you made this week. For each, write one sentence of reasoning and one assumption you made. That's your first log entry.</p>
                 <div class="ctaBox">
                   <div class="ctaHead">
                     <div>
-                      <strong>📌 Want the next founder module?</strong>
-                      <span>Say: <b>“Next: #9 The 5-Question Framework.”</b></span>
+                      <strong>📌 Want the full Founder Clarity Kit?</strong>
+                      <span>Includes: Decision log template, reversibility scoring sheet, assumption audit framework, and Module #9 — The 5-Question Pre-Decision Framework.</span>
                     </div>
                   </div>
                   <div class="field">
-                    <label>Email (optional)</label>
-                    <input id="email" type="email" placeholder="you@company.com" />
+                    <label>Email (optional — for the kit)</label>
+                    <input id="email" type="email" placeholder="you@company.com" autocomplete="email" />
                   </div>
                   <div class="ctaRow">
-                    <button class="btn btnPrimary" onclick="joinFounder()">Get Founder Kit →</button>
-                    <button class="btn btnGhost" onclick="sendWA('Next: #9 The 5-Question Framework.')">Ask on WhatsApp</button>
+                    <button class="btn btnPrimary" onclick="joinFounder()">Send me the Founder Clarity Kit →</button>
+                    <button class="btn btnGhost" onclick="sendWA('Send Module #9: The 5-Question Pre-Decision Framework.')">Module #9 on WhatsApp</button>
                   </div>
                 </div>
-                <div class="quote">Businesses that think clearly outlast businesses that react quickly.</div>
+                <div class="quote">"The compounding of judgment is invisible at first, then suddenly it's the only thing that explains why your decisions are faster, cheaper to reverse, and less often wrong."</div>
               `,
               hi: () => `
-                <div class="big">आपकी बढ़त है <span class="accentText">निर्णय क्षमता</span>.</div>
-                <p class="lead">शुक्रवार को 30 मिनट ब्लॉक करें। 3 निर्णय रिव्यू करें। 3 सीख निकालें। नियम अपडेट करें।</p>
+                <div class="big">Judgment ही वह <span class="accentText">moat</span> है जो scale करती है।</div>
+                <p class="lead">Capital, talent, tools — ये आपके competitors के पास भी हैं। लेकिन जो टीम systematically अपने decisions से सीखती है, वह एक ऐसी बढ़त बनाती है जिसे copy नहीं किया जा सकता — क्योंकि वह आपके specific decision history में रहती है।</p>
+                <p class="lead"><b>यह शुक्रवार:</b> 30 मिनट block करें। Blank note खोलें। इस हफ्ते के 3 निर्णय लिखें। हर एक के लिए एक वाक्य reasoning और एक assumption लिखें। यह आपकी पहली log entry है।</p>
                 <div class="ctaBox">
                   <div class="ctaHead">
                     <div>
-                      <strong>📌 अगला मॉड्यूल चाहिए?</strong>
-                      <span>कहें: <b>“Next: #9 The 5-Question Framework.”</b></span>
+                      <strong>📌 पूरा Founder Clarity Kit चाहिए?</strong>
+                      <span>शामिल है: Decision log template, reversibility scoring sheet, assumption audit framework, और Module #9 — The 5-Question Pre-Decision Framework।</span>
                     </div>
                   </div>
                   <div class="field">
-                    <label>ईमेल (वैकल्पिक)</label>
-                    <input id="email" type="email" placeholder="you@company.com" />
+                    <label>Email (optional — Kit के लिए)</label>
+                    <input id="email" type="email" placeholder="you@company.com" autocomplete="email" />
                   </div>
                   <div class="ctaRow">
-                    <button class="btn btnPrimary" onclick="joinFounder()">Founder Kit लें →</button>
-                    <button class="btn btnGhost" onclick="sendWA('Next: #9 The 5-Question Framework.')">WhatsApp पर पूछें</button>
+                    <button class="btn btnPrimary" onclick="joinFounder()">Founder Clarity Kit भेजें →</button>
+                    <button class="btn btnGhost" onclick="sendWA('Module #9 भेजें: The 5-Question Pre-Decision Framework।')">WhatsApp पर Module #9</button>
                   </div>
                 </div>
-                <div class="quote">जो व्यवसाय स्पष्ट सोचता है, वह जल्दी प्रतिक्रिया देने वाले व्यवसाय से लंबा चलता है।</div>
+                <div class="quote">"Judgment की compounding पहले दिखती नहीं — फिर अचानक यही explain करती है कि आपके decisions तेज़ क्यों हैं, reverse करने में सस्ते क्यों हैं, और गलत कम क्यों होते हैं।"</div>
               `
             }
           }
@@ -640,10 +716,16 @@ Lesson / rule update:
           container.appendChild(wrap);
         });
 
+        // Upgrade any div[onclick] clickable cards with role + tabindex
+        container.querySelectorAll("[onclick]").forEach(el => {
+          if (el.tagName === "BUTTON" || el.tagName === "A") return;
+          if (!el.getAttribute("role")) el.setAttribute("role", "button");
+          if (!el.getAttribute("tabindex")) el.setAttribute("tabindex", "0");
+        });
+
         document.querySelectorAll(".section-wrapper").forEach(el => observer.observe(el));
       }
 
-      // Intersection observer for pill
       const observer = new IntersectionObserver((entries)=>{
         entries.forEach(e=>{
           if(e.isIntersecting){
@@ -657,38 +739,34 @@ Lesson / rule update:
         });
       }, { root: container, threshold: 0.62 });
 
-      // Translate toggle
       btnTranslate.addEventListener("click", ()=>{
         lang = (lang === "en") ? "hi" : "en";
         render();
       });
 
-      // Strong CTA actions
       window.jumpTo = function(sectionName){
         const el = Array.from(document.querySelectorAll(".section-wrapper"))
           .find(x => x.dataset.name === sectionName);
         if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
       };
 
-      window.openTemplate = function(){
-        // Option A: open a real file if you add one:
-        // location.href = "assets/decision-log-template.txt";
-        // Option B: just copy template right now:
-        copyTemplate();
-        alert(lang === "hi" ? "टेम्पलेट कॉपी हो गया।" : "Template copied.");
-      };
-
       window.copyTemplate = async function(){
         const txt =
 `Decision:
-Reason:
-Expected outcome:
-Actual (so far):
+Reason (why we chose this):
+Key assumption we're betting on:
+Expected outcome + timeline:
+Actual (fill in next review):
 Lesson / rule update:`;
         try {
           await navigator.clipboard.writeText(txt);
+          const btns = document.querySelectorAll('.btnOk');
+          btns.forEach(b => {
+            const orig = b.textContent;
+            b.textContent = "✓ Copied!";
+            setTimeout(() => b.textContent = orig, 1800);
+          });
         } catch(e){
-          // fallback
           const ta = document.createElement("textarea");
           ta.value = txt; document.body.appendChild(ta);
           ta.select(); document.execCommand("copy");
@@ -697,7 +775,7 @@ Lesson / rule update:`;
       };
 
       window.sendWA = function(message){
-        const text = message || "I want the Weekly Decision Review template.";
+        const text = message || "I want to start the Weekly Decision Review. Share the format and log template.";
         const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
         window.open(url, "_blank");
       };
@@ -705,12 +783,11 @@ Lesson / rule update:`;
       window.joinFounder = function(){
         const email = (document.getElementById("email")?.value || "").trim();
         const msg = email
-          ? `Founder Kit request.\nEmail: ${email}\nPlease send templates + next modules.`
-          : `Founder Kit request.\nPlease send templates + next modules.`;
+          ? `Founder Clarity Kit request.\nEmail: ${email}\nPlease send the decision log template, reversibility scoring sheet, assumption audit framework, and Module #9.`
+          : `Founder Clarity Kit request.\nPlease send the decision log template, reversibility scoring sheet, assumption audit framework, and Module #9.`;
         sendWA(msg);
       };
 
-      // Sticky CTA goes to FORMAT section
       ctaStart.addEventListener("click", ()=> jumpTo("FORMAT"));
 
       render();
