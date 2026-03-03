@@ -14,17 +14,34 @@
   box-sizing:border-box;
   margin:0;padding:0;
 }
+/* Kill focus outline for pointer/touch, keep for keyboard */
 a:focus:not(:focus-visible),
 button:focus:not(:focus-visible),
 [role="button"]:focus:not(:focus-visible),
+[role="link"]:focus:not(:focus-visible),
 [tabindex]:focus:not(:focus-visible){outline:none}
-a:focus-visible,button:focus-visible,[role="button"]:focus-visible,[tabindex]:focus-visible{
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[tabindex]:focus-visible{
   outline:2px solid rgba(255,153,51,.55);outline-offset:3px;
 }
+/* Subtle branded selection colour */
 ::selection{background:rgba(255,153,51,.22);color:inherit}
-body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-input,textarea,select,[contenteditable="true"],pre,code,.allow-select{
-  -webkit-user-select:text;user-select:text;-webkit-touch-callout:default;
+/* Disable text selection globally */
+body{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+/* Re-enable selection for editable / code elements */
+input,textarea,select,
+[contenteditable="true"],
+pre,code,.allow-select{
+  -webkit-user-select:text;
+  user-select:text;
+  -webkit-touch-callout:default;
 }
 
 :root{
@@ -68,15 +85,8 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:va
   background:linear-gradient(145deg,rgba(255,153,51,.04),rgba(0,214,143,.03));
   position:relative;
 }
-.cta-section::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--saffron),var(--go),var(--saffron));
-}
-.cta-header{
-  padding:18px 24px 14px;display:flex;align-items:center;
-  justify-content:space-between;flex-wrap:wrap;gap:10px;
-  border-bottom:1px solid var(--border);
-}
+.cta-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--saffron),var(--go),var(--saffron))}
+.cta-header{padding:18px 24px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border)}
 .cta-eyebrow{font-family:var(--fm);font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--saffron);display:flex;align-items:center;gap:8px}
 .cta-eyebrow::before{content:'⚡';font-size:.75rem}
 .cta-tag{font-family:var(--fm);font-size:.55rem;letter-spacing:1px;padding:4px 12px;border-radius:999px;border:1px solid rgba(0,214,143,.35);color:var(--go);background:rgba(0,214,143,.07)}
@@ -96,7 +106,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:va
 .delivered-list{font-family:var(--fm);font-size:.65rem;line-height:1.75;color:var(--dim)}
 .delivered-list li{list-style:none;padding-left:0}
 .delivered-list li::before{content:'✓  ';color:var(--go)}
-.cta-dl-btn{margin-top:auto;padding:10px 14px;border:1px solid rgba(0,214,143,.4);border-radius:10px;background:rgba(0,214,143,.06);color:var(--go);font-family:var(--fm);font-size:.6rem;letter-spacing:1px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.cta-dl-btn{margin-top:auto;padding:10px 14px;border:1px solid rgba(0,214,143,.4);border-radius:10px;background:rgba(0,214,143,.06);color:var(--go);font-family:var(--fm);font-size:.6rem;letter-spacing:1px;cursor:pointer;text-align:center;transition:all .18s;touch-action:manipulation}
 .cta-dl-btn:hover{background:rgba(0,214,143,.14);box-shadow:0 0 16px rgba(0,214,143,.12)}
 .cta-preview{display:flex;flex-direction:column;min-height:0}
 .cta-preview-bar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
@@ -114,7 +124,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:va
 
 /* subpage selector */
 .subpage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:6px}
-.sp-chip{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 10px 8px;cursor:pointer;transition:all .18s;text-align:left;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.sp-chip{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 10px 8px;cursor:pointer;transition:all .18s;text-align:left;touch-action:manipulation}
 .sp-chip:hover{border-color:rgba(255,153,51,.35);background:rgba(255,153,51,.04)}
 .sp-chip.selected{border-color:var(--saffron);background:rgba(255,153,51,.1);box-shadow:0 0 16px rgba(255,153,51,.1)}
 .sp-chip .ic{font-size:1rem;margin-bottom:4px}
@@ -136,7 +146,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:va
 
 /* feature toggles */
 .feat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:6px}
-.feat-toggle{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.feat-toggle{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;transition:all .18s;touch-action:manipulation}
 .feat-toggle.on{border-color:rgba(0,214,143,.4);background:rgba(0,214,143,.06)}
 .feat-toggle .fchk{width:14px;height:14px;border-radius:3px;border:1px solid var(--dim);flex-shrink:0;transition:all .18s;display:flex;align-items:center;justify-content:center;font-size:.6rem}
 .feat-toggle.on .fchk{background:var(--go);border-color:var(--go);color:#000}
@@ -145,11 +155,11 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:va
 
 /* style picker */
 .style-row{display:flex;gap:8px;flex-wrap:wrap}
-.style-chip{padding:7px 14px;border:1px solid var(--border);border-radius:999px;font-family:var(--fm);font-size:.6rem;color:var(--dim);cursor:pointer;transition:all .18s;background:var(--bg);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.style-chip{padding:7px 14px;border:1px solid var(--border);border-radius:999px;font-family:var(--fm);font-size:.6rem;color:var(--dim);cursor:pointer;transition:all .18s;background:var(--bg);touch-action:manipulation}
 .style-chip.active{border-color:rgba(59,130,246,.5);color:#93c5fd;background:rgba(59,130,246,.08)}
 
 /* generate btn */
-.gen-btn{width:100%;padding:17px;background:linear-gradient(135deg,rgba(255,153,51,.2),rgba(0,214,143,.12));border:1px solid rgba(255,153,51,.5);color:var(--saffron);font-family:var(--fn);font-size:1rem;font-weight:900;letter-spacing:.5px;border-radius:14px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.gen-btn{width:100%;padding:17px;background:linear-gradient(135deg,rgba(255,153,51,.2),rgba(0,214,143,.12));border:1px solid rgba(255,153,51,.5);color:var(--saffron);font-family:var(--fn);font-size:1rem;font-weight:900;letter-spacing:.5px;border-radius:14px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;touch-action:manipulation}
 .gen-btn:hover:not(:disabled){box-shadow:0 0 32px rgba(255,153,51,.2);transform:translateY(-1px)}
 .gen-btn:disabled{opacity:.5;cursor:not-allowed}
 .gen-btn .shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);transform:translateX(-100%)}
@@ -163,13 +173,13 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:va
 .pulse-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--go);animation:pulse 1.4s ease-in-out infinite}
 .status-text{font-size:.88rem;color:var(--text);line-height:1.7}
 
-/* preview iframe (generated apps) */
+/* preview iframe */
 .preview-wrap{margin-top:18px;border:1px solid var(--border);border-radius:16px;overflow:hidden;display:none}
 .preview-wrap.visible{display:block}
 .preview-header{background:var(--card);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .preview-header-title{font-family:var(--fm);font-size:.6rem;color:var(--saffron);letter-spacing:1.5px}
 .preview-actions{display:flex;gap:8px}
-.preview-btn{font-family:var(--fm);font-size:.58rem;letter-spacing:1px;padding:6px 13px;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--dim);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.preview-btn{font-family:var(--fm);font-size:.58rem;letter-spacing:1px;padding:6px 13px;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--dim);cursor:pointer;transition:all .18s}
 .preview-btn:hover{border-color:rgba(255,153,51,.4);color:var(--saffron)}
 .preview-btn.dl{border-color:rgba(0,214,143,.4);color:var(--go);background:rgba(0,214,143,.06)}
 .preview-btn.dl:hover{background:rgba(0,214,143,.12)}
@@ -188,62 +198,37 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
 .hist-meta{flex:1;min-width:0}
 .hist-title{font-family:var(--fn);font-size:.82rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hist-sub{font-family:var(--fm);font-size:.58rem;color:var(--dim);margin-top:3px}
-.hist-dl{font-family:var(--fm);font-size:.58rem;padding:7px 13px;border:1px solid rgba(0,214,143,.35);border-radius:999px;color:var(--go);background:rgba(0,214,143,.06);cursor:pointer;white-space:nowrap;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.hist-dl{font-family:var(--fm);font-size:.58rem;padding:7px 13px;border:1px solid rgba(0,214,143,.35);border-radius:999px;color:var(--go);background:rgba(0,214,143,.06);cursor:pointer;white-space:nowrap;transition:all .18s}
 .hist-dl:hover{background:rgba(0,214,143,.12)}
 .empty-hist{font-family:var(--fm);font-size:.65rem;color:#3a4a5c;text-align:center;padding:20px}
 
-/* ══ BOTTOM CTA — Build your custom tool ══ */
+/* ══ BOTTOM CTA ══ */
 .bottom-cta{
-  margin-top:48px;
-  border-radius:20px;
+  margin-top:48px;border-radius:20px;
   border:1px solid rgba(255,153,51,.3);
   background:linear-gradient(160deg,#0d1420 0%,#0a1a10 100%);
-  padding:36px 28px 32px;
-  text-align:center;
-  position:relative;
-  overflow:hidden;
+  padding:36px 28px 32px;text-align:center;position:relative;overflow:hidden;
 }
-.bottom-cta::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--saffron),var(--go),var(--saffron));
-}
-.bottom-cta-eyebrow{
-  font-family:var(--fm);font-size:.58rem;letter-spacing:3px;text-transform:uppercase;
-  color:var(--saffron);margin-bottom:16px;opacity:.8;
-}
-.bottom-cta h2{
-  font-family:var(--fn);font-size:clamp(1.7rem,5vw,2.6rem);font-weight:900;
-  color:#fff;line-height:1.05;letter-spacing:-.03em;margin-bottom:14px;
-}
-.bottom-cta p{
-  color:var(--dim);font-size:.9rem;line-height:1.7;max-width:420px;margin:0 auto 28px;
-}
+.bottom-cta::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--saffron),var(--go),var(--saffron))}
+.bottom-cta-eyebrow{font-family:var(--fm);font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--saffron);margin-bottom:16px;opacity:.8}
+.bottom-cta h2{font-family:var(--fn);font-size:clamp(1.7rem,5vw,2.6rem);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.03em;margin-bottom:14px}
+.bottom-cta p{color:var(--dim);font-size:.9rem;line-height:1.7;max-width:420px;margin:0 auto 28px}
 .bottom-cta p strong{color:var(--saffron)}
 .upi-btn{
   display:inline-flex;flex-direction:column;align-items:center;gap:4px;
   background:linear-gradient(135deg,rgba(255,153,51,.15),rgba(255,120,0,.08));
-  border:1.5px solid rgba(255,153,51,.55);
-  border-radius:14px;padding:18px 32px 16px;
-  cursor:pointer;transition:all .22s;text-decoration:none;
-  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
-  position:relative;overflow:hidden;
+  border:1.5px solid rgba(255,153,51,.55);border-radius:14px;
+  padding:18px 32px 16px;cursor:pointer;transition:all .22s;text-decoration:none;
+  touch-action:manipulation;position:relative;overflow:hidden;
 }
-.upi-btn::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,153,51,.06),transparent);
-  transform:translateX(-100%);transition:transform .5s ease;
-}
+.upi-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,153,51,.06),transparent);transform:translateX(-100%);transition:transform .5s ease}
 .upi-btn:hover::before{transform:translateX(100%)}
 .upi-btn:hover{box-shadow:0 0 32px rgba(255,153,51,.22);transform:translateY(-2px)}
 .upi-card-icon{font-size:1.2rem;margin-bottom:4px}
 .upi-btn-main{font-family:var(--fn);font-size:1.05rem;font-weight:900;color:var(--saffron);letter-spacing:.02em;line-height:1}
 .upi-btn-sub{font-family:var(--fm);font-size:.72rem;color:var(--saffron);opacity:.85;letter-spacing:.5px}
 .upi-btn-arrow{font-family:var(--fm);font-size:.75rem;color:var(--saffron);opacity:.6;margin-top:2px}
-.bottom-cta-note{
-  margin-top:16px;font-family:var(--fm);font-size:.62rem;
-  color:var(--dim);letter-spacing:.5px;display:flex;align-items:center;
-  justify-content:center;gap:6px;
-}
+.bottom-cta-note{margin-top:16px;font-family:var(--fm);font-size:.62rem;color:var(--dim);letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:6px}
 
 @media(max-width:480px){
   .subpage-grid{grid-template-columns:repeat(2,1fr)}
@@ -256,6 +241,29 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
 </style>
 </head>
 <body>
+
+<!-- ── JS TAP HIGHLIGHT POLISH — main page ── -->
+<script>
+(function(){
+  var _lt=false; // last interaction was touch?
+  document.addEventListener('touchstart',function(){_lt=true},{passive:true});
+  document.addEventListener('mousedown',function(){_lt=false},{passive:true});
+  // On touch-triggered focus, strip visible outline from non-editable elements
+  document.addEventListener('focusin',function(e){
+    if(!_lt)return;
+    var el=e.target;if(!el)return;
+    var t=el.tagName;
+    if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el.isContentEditable)return;
+    var prev=el.style.outline;
+    el.style.outline='none';
+    el.addEventListener('blur',function f(){
+      el.style.outline=prev;
+      el.removeEventListener('blur',f);
+    },{once:true});
+  },true);
+})();
+</script>
+
 <div class="tribar"></div>
 <div class="grid-bg"></div>
 <div class="orb" style="width:500px;height:400px;background:rgba(255,153,51,.05);top:10%;left:30%"></div>
@@ -335,30 +343,31 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
     </div>
   </div>
 
-  <!-- STEP 1: Subpage context -->
+  <!-- STEP 1 -->
   <div class="form-card">
     <div class="section-label">Step 1 — Subpage Context</div>
     <div class="subpage-grid" id="sp-grid"></div>
   </div>
 
-  <!-- STEP 2: User intent — shortened to just purpose + extra -->
+  <!-- STEP 2 -->
   <div class="form-card">
     <div class="section-label">Step 2 — Describe Your App</div>
     <div class="field">
-      <label>What should this app do?</label>
+      <label for="inp-purpose">What should this app do?</label>
       <textarea id="inp-purpose" placeholder="e.g. Track my daily protein intake and show a weekly chart&#10;e.g. Let students quiz themselves on Stoicism concepts&#10;e.g. Calculate cashback earned from ONDC purchases"></textarea>
     </div>
     <div class="field">
-      <label>Extra instructions (optional)</label>
+      <label for="inp-extra">Extra instructions (optional)</label>
       <input type="text" id="inp-extra" placeholder="e.g. Add a print button, Use saffron/green colors, Include a share link...">
     </div>
   </div>
 
-  <!-- STEP 3: Style & Features -->
+  <!-- STEP 3 -->
   <div class="form-card">
     <div class="section-label">Step 3 — Style &amp; Features</div>
     <div class="field">
       <label>Visual style</label>
+      <!-- role/tabindex set in JS buildStylePicker -->
       <div class="style-row" id="style-row">
         <div class="style-chip active" data-s="dark-india">🇮🇳 Dark India</div>
         <div class="style-chip" data-s="minimal-light">⬜ Minimal Light</div>
@@ -372,7 +381,7 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
       <div class="feat-row" id="feat-row"></div>
     </div>
     <div class="field">
-      <label>Language / locale</label>
+      <label for="inp-lang">Language / locale</label>
       <select id="inp-lang">
         <option value="English">English</option>
         <option value="Hindi">Hindi (हिंदी)</option>
@@ -395,16 +404,13 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
     <span id="token-count"></span>
   </div>
 
-  <!-- Error -->
   <div class="err-box" id="err-box"></div>
 
-  <!-- Status -->
   <div class="status-box" id="status-box">
     <div class="status-label"><span class="pulse-dot"></span><span id="status-label-text">GENERATING</span></div>
     <div class="status-text" id="status-text"></div>
   </div>
 
-  <!-- Generated App Preview -->
   <div class="preview-wrap" id="preview-wrap">
     <div class="preview-header">
       <span class="preview-header-title" id="preview-title">GENERATED APP</span>
@@ -416,18 +422,18 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
     <iframe id="preview-frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
   </div>
 
-  <!-- History -->
   <div class="history-section" id="history-section">
     <div class="section-label" style="margin-bottom:12px">Recent Generations</div>
     <div id="history-list"></div>
   </div>
 
-  <!-- ══ BOTTOM CTA ══ -->
+  <!-- BOTTOM CTA -->
   <div class="bottom-cta">
     <div class="bottom-cta-eyebrow">Want a custom tool built for you?</div>
     <h2>Build your custom<br>tool today.</h2>
     <p>Stop paying monthly subscriptions for tools that don't fit your exact needs. Describe your ideal web app, pay a one-time fee of <strong>₹49</strong>, and own the code forever.</p>
-    <a class="upi-btn" href="#" onclick="return false;">
+    <a class="upi-btn" href="#" onclick="return false;" role="button" tabindex="0"
+       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
       <div class="upi-card-icon">💳</div>
       <div class="upi-btn-main">REQUEST APP &amp; PAY</div>
       <div class="upi-btn-sub">₹49 VIA UPI</div>
@@ -438,7 +444,7 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
 
 </div><!-- /wrap -->
 
-<!-- INTERVIEW PRACTICE APP source -->
+<!-- ══ INTERVIEW PRACTICE APP source template ══ -->
 <template id="app-source-code"><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -652,8 +658,9 @@ var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeou
 </html>
 </template>
 
+<!-- ══ APP GENERATOR SCRIPTS ══ -->
 <script>
-/* ── Inject featured app ─────────────────────────────── */
+/* ── Inject featured app into CTA iframe ─────────────── */
 (function injectFeaturedApp(){
   var tpl   = document.getElementById('app-source-code');
   var frame = document.getElementById('demo-preview-frame');
@@ -675,7 +682,7 @@ function downloadFeaturedApp(){
   URL.revokeObjectURL(url);
 }
 
-/* ── Subpage definitions ─────────────────────────────── */
+/* ── Data definitions ────────────────────────────────── */
 const SUBPAGES = [
   { id:'alchemist',icon:'🧪',label:'Alchemist',      desc:'Quiz engine' },
   { id:'cashback', icon:'💰',label:'Cashback',        desc:'Rewards tracker' },
@@ -731,53 +738,91 @@ let selectedFeatures = new Set();
 let generatedHTML    = null;
 let history = JSON.parse(localStorage.getItem('app_gen_history') || '[]');
 
-/* ── Build UI ─────────────────────────────────────────── */
+/* ── Helper: add keyboard activation to a div "button" ── */
+function addKeyActivation(el){
+  el.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      el.click();
+    }
+  });
+}
+
+/* ── Build subpage grid ──────────────────────────────── */
 function buildSubpageGrid(){
   const grid = document.getElementById('sp-grid');
   SUBPAGES.forEach(sp => {
     const el = document.createElement('div');
-    el.className = 'sp-chip';
-    el.dataset.id = sp.id;
-    el.innerHTML = `<div class="ic">${sp.icon}</div><div class="lb">${sp.label}</div><div class="ds">${sp.desc}</div>`;
+    el.className   = 'sp-chip';
+    el.dataset.id  = sp.id;
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-pressed', 'false');
+    el.innerHTML   = `<div class="ic">${sp.icon}</div><div class="lb">${sp.label}</div><div class="ds">${sp.desc}</div>`;
     el.addEventListener('click', () => {
-      document.querySelectorAll('.sp-chip').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.sp-chip').forEach(c => {
+        c.classList.remove('selected');
+        c.setAttribute('aria-pressed', 'false');
+      });
       el.classList.add('selected');
+      el.setAttribute('aria-pressed', 'true');
       selectedSubpage = sp.id;
     });
+    addKeyActivation(el);
     grid.appendChild(el);
   });
 }
 
+/* ── Build feature toggles ───────────────────────────── */
 function buildFeatures(){
   const row = document.getElementById('feat-row');
   FEATURES.forEach(f => {
     const el = document.createElement('div');
     el.className = 'feat-toggle';
+    el.setAttribute('role', 'checkbox');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-checked', 'false');
+    el.setAttribute('aria-label', f.label);
     el.innerHTML = `<div class="fchk"></div><span>${f.label}</span>`;
-    el.addEventListener('click', () => {
+    const toggle = () => {
       if(selectedFeatures.has(f.id)){
-        selectedFeatures.delete(f.id); el.classList.remove('on');
+        selectedFeatures.delete(f.id);
+        el.classList.remove('on');
         el.querySelector('.fchk').textContent = '';
+        el.setAttribute('aria-checked', 'false');
       } else {
-        selectedFeatures.add(f.id); el.classList.add('on');
+        selectedFeatures.add(f.id);
+        el.classList.add('on');
         el.querySelector('.fchk').textContent = '✓';
+        el.setAttribute('aria-checked', 'true');
       }
-    });
+    };
+    el.addEventListener('click', toggle);
+    addKeyActivation(el);
     row.appendChild(el);
   });
 }
 
+/* ── Build style picker ──────────────────────────────── */
 function buildStylePicker(){
   document.querySelectorAll('.style-chip').forEach(chip => {
+    chip.setAttribute('role', 'button');
+    chip.setAttribute('tabindex', '0');
+    chip.setAttribute('aria-pressed', chip.classList.contains('active') ? 'true' : 'false');
     chip.addEventListener('click', () => {
-      document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.style-chip').forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
       chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
       selectedStyle = chip.dataset.s;
     });
+    addKeyActivation(chip);
   });
 }
 
-/* ── Build prompt ─────────────────────────────────────── */
+/* ── Build prompt ────────────────────────────────────── */
 function buildPrompt(){
   const purpose  = document.getElementById('inp-purpose').value.trim();
   const lang     = document.getElementById('inp-lang').value;
@@ -819,7 +864,7 @@ Return ONLY the complete HTML file content. Start with <!DOCTYPE html> and end w
 Do NOT include any explanation, markdown code fences, or commentary — just the raw HTML.`;
 }
 
-/* ── Generate ─────────────────────────────────────────── */
+/* ── Generate ────────────────────────────────────────── */
 async function generate(){
   const purpose = document.getElementById('inp-purpose').value.trim();
   if(!selectedSubpage) return showErr('Please select a subpage context first.');
@@ -896,7 +941,7 @@ async function generate(){
   }
 }
 
-/* ── Preview ──────────────────────────────────────────── */
+/* ── Preview ─────────────────────────────────────────── */
 function renderPreview(html, title){
   const wrap  = document.getElementById('preview-wrap');
   const frame = document.getElementById('preview-frame');
@@ -911,7 +956,7 @@ function refreshPreview(){
   if(generatedHTML) renderPreview(generatedHTML);
 }
 
-/* ── Download ─────────────────────────────────────────── */
+/* ── Download ────────────────────────────────────────── */
 function downloadApp(){
   if(!generatedHTML) return;
   const sp   = SUBPAGES.find(s=>s.id===selectedSubpage);
@@ -935,7 +980,7 @@ function downloadFromHistory(html, label){
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-/* ── History ──────────────────────────────────────────── */
+/* ── History ─────────────────────────────────────────── */
 function renderHistory(){
   const list = document.getElementById('history-list');
   if(!history.length){
@@ -952,7 +997,7 @@ function renderHistory(){
   `).join('');
 }
 
-/* ── Helpers ──────────────────────────────────────────── */
+/* ── Helpers ─────────────────────────────────────────── */
 function showStatus(label, text){
   const box = document.getElementById('status-box');
   box.classList.add('visible');
@@ -968,12 +1013,16 @@ function showErr(msg){
 function clearErr(){ document.getElementById('err-box').classList.remove('visible'); }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-/* ── Init ─────────────────────────────────────────────── */
+/* ── Init ────────────────────────────────────────────── */
 buildSubpageGrid();
 buildFeatures();
 buildStylePicker();
 renderHistory();
+
+// Pre-select first chip
 document.querySelector('.sp-chip').click();
+
+// Ctrl+Enter shortcut in textarea
 document.getElementById('inp-purpose').addEventListener('keydown', e => {
   if(e.key==='Enter' && e.ctrlKey) generate();
 });
