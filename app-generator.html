@@ -394,8 +394,8 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
     </div>
   </div>
 
-  <!-- Generate -->
-  <button class="gen-btn" id="gen-btn" onclick="generate()">
+  <!-- Generate — scrolls to the "Request & Pay" CTA -->
+  <button class="gen-btn" id="gen-btn" onclick="scrollToBottomCta()">
     <div class="shimmer"></div>
     ⚡ GENERATE HTML APP →
   </button>
@@ -428,12 +428,13 @@ iframe#preview-frame{width:100%;height:480px;border:none;display:block;backgroun
   </div>
 
   <!-- BOTTOM CTA -->
-  <div class="bottom-cta">
+  <div class="bottom-cta" id="bottom-cta">
     <div class="bottom-cta-eyebrow">Want a custom tool built for you?</div>
     <h2>Build your custom<br>tool today.</h2>
     <p>Stop paying monthly subscriptions for tools that don't fit your exact needs. Describe your ideal web app, pay a one-time fee of <strong>₹49</strong>, and own the code forever.</p>
-    <a class="upi-btn" href="#" onclick="return false;" role="button" tabindex="0"
-       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+    <a class="upi-btn" id="upi-btn" href="#" role="button" tabindex="0"
+       onclick="openMailto(event)"
+       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMailto(event)}">
       <div class="upi-card-icon">💳</div>
       <div class="upi-btn-main">REQUEST APP &amp; PAY</div>
       <div class="upi-btn-sub">₹49 VIA UPI</div>
@@ -936,6 +937,7 @@ async function generate(){
     console.error(e);
     showErr('Generation failed: '+(e.message||String(e)));
     document.getElementById('status-box').classList.remove('visible');
+    scrollToBottomCta();
   } finally {
     document.getElementById('gen-btn').disabled = false;
   }
@@ -998,6 +1000,38 @@ function renderHistory(){
 }
 
 /* ── Helpers ─────────────────────────────────────────── */
+function scrollToBottomCta(){
+  var el = document.getElementById('bottom-cta');
+  if(el) setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 320);
+}
+
+function openMailto(e){
+  if(e) e.preventDefault();
+  var purpose  = (document.getElementById('inp-purpose')||{}).value || '';
+  var extra    = (document.getElementById('inp-extra')||{}).value || '';
+  var sp       = selectedSubpage ? (SUBPAGES.find(function(s){return s.id===selectedSubpage;})||{}).label||selectedSubpage : 'Not selected';
+  var style    = selectedStyle || 'dark-india';
+  var feats    = selectedFeatures.size ? [...selectedFeatures].join(', ') : 'None';
+  var lang     = (document.getElementById('inp-lang')||{}).value || 'English';
+
+  var subject  = encodeURIComponent('App Request — decide.engine × ₹49 Plan');
+  var body     = encodeURIComponent(
+    'Hi Dharam,\n\n' +
+    'I\'d like to request a custom app built via decide.engine.\n\n' +
+    '—— App Details ——\n' +
+    'Subpage Context : ' + sp + '\n' +
+    'What it should do: ' + (purpose || '(not filled)') + '\n' +
+    'Extra instructions: ' + (extra || 'None') + '\n' +
+    'Visual Style     : ' + style + '\n' +
+    'Features wanted  : ' + feats + '\n' +
+    'Language/Locale  : ' + lang + '\n\n' +
+    'Please share UPI payment details so I can proceed.\n\n' +
+    'Thanks!'
+  );
+
+  window.location.href = 'mailto:dharam@viadecide.com?subject=' + subject + '&body=' + body;
+}
+
 function showStatus(label, text){
   const box = document.getElementById('status-box');
   box.classList.add('visible');
@@ -1009,6 +1043,10 @@ function showErr(msg){
   b.textContent = '⚠ '+msg;
   b.classList.add('visible');
   b.scrollIntoView({behavior:'smooth',block:'nearest'});
+  // If it's an API auth error, nudge user toward the paid CTA
+  if(/api.key|x-api-key|unauthorized|401/i.test(msg)){
+    scrollToBottomCta();
+  }
 }
 function clearErr(){ document.getElementById('err-box').classList.remove('visible'); }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
