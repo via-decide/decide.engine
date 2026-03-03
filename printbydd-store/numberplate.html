@@ -12,6 +12,80 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
+    /* ══════════════════════════════════════
+       GLOBAL UX PATCH
+       A) Kills iOS/Android blue tap flash universally.
+          -webkit-tap-highlight-color on * with !important
+          beats any element-level override.
+       A) :focus:not(:focus-visible) removes outlines
+          for pointer/touch without breaking keyboard nav.
+       A) ::selection replaces the default system-blue.
+       B) user-select:none on all text-bearing elements;
+          re-enabled with !important on all input surfaces.
+    ══════════════════════════════════════ */
+
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+      tap-highlight-color: rgba(0,0,0,0) !important;
+      -webkit-touch-callout: none;
+    }
+
+    /* Pointer/touch: no outline flash */
+    a:focus:not(:focus-visible),
+    button:focus:not(:focus-visible),
+    [tabindex]:focus:not(:focus-visible) {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    /* Keyboard: keep accessible ring */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid rgba(255,42,42,0.65) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Custom selection colour */
+    ::selection      { background: rgba(255,42,42,0.22); color: inherit; }
+    ::-moz-selection { background: rgba(255,42,42,0.22); color: inherit; }
+
+    /* (B) Disable text selection globally */
+    body,
+    h1, h2, h3, h4, h5, h6,
+    p, span, div, label,
+    .kicker, .big, .lead, .qt,
+    .step-title, .step-desc,
+    .ul, .ul li,
+    .sv, .slbl,
+    .pill, .back,
+    .hint,
+    .social-strip,
+    .color-group-title, .color-active-badge,
+    .stl-hint, .plate-preview-label,
+    .urgency-text, .sp-text,
+    .cs-item, .contrast-title, .contrast-msg {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    /* (B) Re-enable for all input surfaces */
+    input,
+    textarea,
+    select,
+    [contenteditable="true"],
+    .allow-select,
+    pre,
+    code {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+      -webkit-touch-callout: default !important;
+    }
+
+    /* ── DESIGN TOKENS ── */
     :root{
       --bg:#050505;
       --card-bg: rgba(18, 18, 20, 0.75);
@@ -43,13 +117,8 @@
     }
     body{ height:100vh; height:100svh; height:100dvh; }
 
-    body, .site-header, .top, .bottom-nav, .card, .cardHeader, .kicker, .h1, .cardBody, .lead, .qt, .ul, .steps, .usecases, .sg, .social-strip {
-      user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
-    }
-    input, textarea { user-select:text; -webkit-user-select:text; }
-
     a{ color:inherit; text-decoration:none; }
-    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; }
 
     /* ===== HEADER ===== */
     .site-header{
@@ -69,8 +138,7 @@
     }
     .logo-dot{
       width:7px; height:7px; border-radius:50%;
-      background:var(--accent);
-      box-shadow:0 0 8px var(--accent);
+      background:var(--accent); box-shadow:0 0 8px var(--accent);
       animation:logoPulse 2s infinite;
     }
     @keyframes logoPulse{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.8)} }
@@ -200,7 +268,6 @@
       cursor:pointer; width:100%; position:relative; overflow:hidden;
       box-shadow:0 10px 32px rgba(37,211,102,0.35);
       transition:transform .2s, filter .2s, box-shadow .2s;
-      -webkit-tap-highlight-color:transparent;
     }
     .wa-cta:active{ transform:scale(0.97); filter:brightness(1.05); box-shadow:0 5px 16px rgba(37,211,102,0.2); }
     .wa-cta .wa-icon{ font-size:22px; flex-shrink:0; }
@@ -235,8 +302,7 @@
       display:flex; align-items:center; gap:10px;
       padding:10px 14px; border-radius:12px;
       border:1px solid rgba(245,158,11,0.3);
-      background:rgba(245,158,11,0.08);
-      margin-bottom:14px;
+      background:rgba(245,158,11,0.08); margin-bottom:14px;
     }
     .urgency-dot{ width:8px; height:8px; border-radius:50%; background:#f59e0b; animation:urgPulse 1.4s infinite; flex-shrink:0; }
     @keyframes urgPulse{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
@@ -256,8 +322,7 @@
       border:2px solid rgba(0,0,0,0.5);
       background:linear-gradient(135deg, var(--c1), var(--c2));
       margin-left:-8px; font-size:11px; font-weight:900;
-      display:flex; align-items:center; justify-content:center;
-      color:#fff;
+      display:flex; align-items:center; justify-content:center; color:#fff;
     }
     .sp-avatar:first-child{ margin-left:0; }
     .sp-text{ font-size:13px; color:rgba(255,255,255,0.7); line-height:1.45; }
@@ -290,11 +355,9 @@
     }
     @keyframes spin{ to{transform:rotate(360deg)} }
     .stl-hint{
-      position:absolute; bottom:10px; left:50%;
-      transform:translateX(-50%);
-      font-size:10px; color:rgba(255,255,255,0.25);
-      letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap;
-      pointer-events:none; z-index:5;
+      position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+      font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.08em;
+      text-transform:uppercase; white-space:nowrap; pointer-events:none; z-index:5;
     }
 
     /* ===== LIVE 2D PLATE PREVIEW ===== */
@@ -304,10 +367,7 @@
       color:rgba(255,255,255,0.35); font-weight:700; margin-bottom:8px;
       display:flex; align-items:center; gap:8px;
     }
-    .preview-live-dot{
-      width:6px; height:6px; border-radius:50%; background:var(--ok);
-      animation:urgPulse 1.4s infinite;
-    }
+    .preview-live-dot{ width:6px; height:6px; border-radius:50%; background:var(--ok); animation:urgPulse 1.4s infinite; }
     .plate-canvas-outer{
       width:100%; display:flex; align-items:center; justify-content:center;
       background:repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px;
@@ -315,14 +375,12 @@
       border:1px solid rgba(255,255,255,0.07);
       position:relative; overflow:hidden;
     }
-    /* Flash animation on plate update */
     @keyframes plateFlash{
       0%{ box-shadow:0 0 0 0 rgba(255,255,255,0.3); }
       50%{ box-shadow:0 0 0 6px rgba(255,255,255,0); }
       100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
     }
     .plate-flash{ animation:plateFlash 0.35s ease-out; }
-
     #plate2DCanvas{
       display:block; border-radius:10px;
       box-shadow:0 12px 36px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
@@ -363,6 +421,10 @@
       padding:0 16px; outline:none;
       transition:border-color 0.2s, box-shadow 0.2s, background 0.2s;
       -webkit-appearance:none;
+      /* Inputs must be selectable */
+      -webkit-user-select:text !important;
+      user-select:text !important;
+      -webkit-touch-callout:default !important;
     }
     .plate-text-input::placeholder{ color:rgba(255,255,255,0.18); letter-spacing:0.1em; font-size:16px; }
     .plate-text-input:focus{
@@ -370,6 +432,9 @@
       box-shadow:0 0 0 3px var(--accent-glow);
       background:rgba(0,0,0,0.65);
     }
+
+    /* (D) plate-hint-chip — converted from <span onclick> to accessible button-like element
+       via JS; these CSS rules keep visuals identical while supporting :focus-visible. */
     .plate-hint-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
     .plate-hint-chip{
       padding:5px 12px; border-radius:999px;
@@ -378,6 +443,9 @@
       font-size:11px; font-family:'Share Tech Mono', monospace;
       color:rgba(255,255,255,0.5); cursor:pointer;
       transition:all 0.2s; letter-spacing:0.1em;
+      /* Chips are interactive — suppress tap highlight */
+      -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+      display:inline-flex; align-items:center;
     }
     .plate-hint-chip:hover, .plate-hint-chip:active{
       border-color:rgba(255,255,255,0.25);
@@ -393,13 +461,8 @@
     }
     .color-group{ margin-bottom:14px; }
     .color-group:last-child{ margin-bottom:0; }
-    .color-group-header{
-      display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
-    }
-    .color-group-title{
-      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
-      color:rgba(255,255,255,0.4); font-weight:900;
-    }
+    .color-group-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .color-group-title{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.4); font-weight:900; }
     .color-active-badge{ font-size:11px; font-weight:800; color:#fff; letter-spacing:0.05em; display:flex; align-items:center; gap:6px; }
     .color-active-dot{ width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.3); display:inline-block; transition:background 0.25s; }
 
@@ -408,7 +471,7 @@
       position:relative; width:40px; height:40px; border-radius:50%;
       border:2px solid rgba(255,255,255,0.12); cursor:pointer;
       transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1), border-color 0.18s, box-shadow 0.18s;
-      flex-shrink:0; -webkit-tap-highlight-color:transparent;
+      flex-shrink:0;
     }
     .swatch-btn:active{ transform:scale(0.9) !important; }
     .swatch-btn.active{
@@ -493,8 +556,6 @@
     }
     .bn-dot:hover{ background:rgba(255,255,255,0.25); }
     .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(255,42,42,0.7); }
-
-    /* Bottom nav CTA - switches to WhatsApp green on ORDER section */
     .bn-cta{
       height:44px; padding:0 16px; border-radius:14px; border:none;
       background:linear-gradient(135deg,#ff4444,#b80000);
@@ -545,7 +606,6 @@
     .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
     .btn-undo{ color:var(--accent); font-weight:950; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(255,42,42,0.15); border-radius:999px; }
 
-    /* ===== ERROR TOAST ===== */
     .error-toast{
       position:fixed; left:12px; right:12px;
       bottom:calc(86px + var(--safeBottom)); z-index:10000;
@@ -580,6 +640,35 @@
 </head>
 
 <body>
+  <!-- ══════════════════════════════════════
+       JS TAP-HIGHLIGHT POLISH (C)
+       Runs at parse time — before any DOM
+       interaction — so iOS never shows a ring
+       from touch-triggered focus on non-inputs.
+       Uses rAF defer so click events still fire.
+       Does NOT block scroll or prevent default.
+  ══════════════════════════════════════ -->
+  <script>
+  (function () {
+    var touchPending = false;
+    document.addEventListener('touchstart', function () {
+      touchPending = true;
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      setTimeout(function () { touchPending = false; }, 400);
+    }, { passive: true });
+    document.addEventListener('focus', function (e) {
+      if (!touchPending) return;
+      var tag = (e.target.tagName || '').toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+          e.target.isContentEditable) return;
+      requestAnimationFrame(function () {
+        if (document.activeElement === e.target) e.target.blur();
+      });
+    }, true);
+  })();
+  </script>
+
   <div id="appWrapper">
     <div class="bg-glow"></div>
 
@@ -829,7 +918,7 @@
     else msg.textContent = "Readability: Low — digits may blend in daylight.";
   }
 
-  // ===== 2D PLATE CANVAS (improved) =====
+  // ===== 2D PLATE CANVAS =====
   function roundRect(ctx, x, y, w, h, r){
     ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
     ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
@@ -838,21 +927,15 @@
   }
 
   function drawScrew(ctx, x, y, r, borderC){
-    // Shadow
     ctx.beginPath(); ctx.arc(x,y,r+1,0,Math.PI*2);
     ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fill();
-    // Outer ring
     ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
     ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fill();
-    // Cap
     ctx.beginPath(); ctx.arc(x,y,r*0.68,0,Math.PI*2);
     ctx.fillStyle=borderC; ctx.fill();
-    // Slot
     ctx.save();
     ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=2; ctx.lineCap='round';
-    ctx.beginPath();
-    ctx.moveTo(x-r*0.42,y); ctx.lineTo(x+r*0.42,y);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-r*0.42,y); ctx.lineTo(x+r*0.42,y); ctx.stroke();
     ctx.restore();
   }
 
@@ -871,7 +954,7 @@
     const outer = document.querySelector('.plate-canvas-outer');
     if(!outer) return;
     outer.classList.remove('plate-flash');
-    void outer.offsetWidth; // reflow
+    void outer.offsetWidth;
     outer.classList.add('plate-flash');
     clearTimeout(plateFlashTimer);
     plateFlashTimer = setTimeout(()=>outer.classList.remove('plate-flash'), 400);
@@ -883,48 +966,32 @@
       if(!canvas) return;
       const ctx = canvas.getContext('2d');
       if(!ctx) return;
-
-      // Canvas dimensions — realistic plate aspect ~4.3:1
       const W=560, H=130;
       canvas.width=W; canvas.height=H;
-
       const base=getBaseCss(), charC=getCharCss(), borderC=getBoundaryCss();
       const bw=11, r=16;
-
       ctx.clearRect(0,0,W,H);
-
-      // ── Outer border (shadow under plate)
       ctx.save();
       ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=18; ctx.shadowOffsetY=4;
       ctx.beginPath(); roundRect(ctx,0,0,W,H,r);
       ctx.fillStyle=borderC; ctx.fill();
       ctx.restore();
-
-      // ── Outer border
       ctx.beginPath(); roundRect(ctx,0,0,W,H,r);
       ctx.fillStyle=borderC; ctx.fill();
-
-      // ── Border bevel highlight
       const bevelGrad=ctx.createLinearGradient(0,0,0,H);
       bevelGrad.addColorStop(0,'rgba(255,255,255,0.15)');
       bevelGrad.addColorStop(1,'rgba(0,0,0,0.2)');
       ctx.beginPath(); roundRect(ctx,0,0,W,H,r);
       ctx.fillStyle=bevelGrad; ctx.fill();
-
-      // ── Base inner plate
       const ir=r-bw*0.7;
       ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,ir);
       ctx.fillStyle=base; ctx.fill();
-
-      // ── Subtle base surface gradient
       const plateGrad=ctx.createLinearGradient(bw,bw,bw,H-bw);
       plateGrad.addColorStop(0,'rgba(255,255,255,0.07)');
       plateGrad.addColorStop(0.5,'rgba(255,255,255,0.0)');
       plateGrad.addColorStop(1,'rgba(0,0,0,0.1)');
       ctx.beginPath(); roundRect(ctx,bw,bw,W-bw*2,H-bw*2,ir);
       ctx.fillStyle=plateGrad; ctx.fill();
-
-      // ── IND strip on left (Indian numberplate convention)
       const indW=28, indX=bw, indH=H-bw*2, indR=Math.min(ir,6);
       ctx.save();
       ctx.beginPath();
@@ -934,7 +1001,6 @@
       ctx.lineTo(indX,bw+indR); ctx.quadraticCurveTo(indX,bw,indX+indR,bw);
       ctx.closePath();
       ctx.fillStyle='#000080'; ctx.fill();
-      // IND text
       ctx.save();
       ctx.translate(indX+indW/2, bw+indH/2);
       ctx.rotate(-Math.PI/2);
@@ -942,48 +1008,32 @@
       ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('IND', 0, 0);
       ctx.restore();
-      // Ashoka wheel dot
       ctx.beginPath(); ctx.arc(indX+indW/2, bw+indH*0.15, 4, 0, Math.PI*2);
       ctx.fillStyle='#FF9933'; ctx.fill();
       ctx.restore();
-
-      // ── Screws
       const screwY=H/2, screwR=7;
       drawScrew(ctx, bw+indW+14, screwY, screwR, borderC);
       drawScrew(ctx, W-bw-14, screwY, screwR, borderC);
-
-      // ── Plate number text
       const text = (plateText||'MH 01 AB 1234').toUpperCase();
-      const SCREW_MARGIN=50; // space taken by IND strip + screws on left
-      const RIGHT_MARGIN=34;
+      const SCREW_MARGIN=50, RIGHT_MARGIN=34;
       const textAreaLeft = bw+indW+SCREW_MARGIN;
       const textAreaRight = W-bw-RIGHT_MARGIN;
       const textAreaW = textAreaRight - textAreaLeft;
-
-      // Measure and fit
       const fontSize = measureTextFit(ctx, text, textAreaW, 58, 18);
       ctx.font = `bold ${fontSize}px "Share Tech Mono", "Courier New", monospace`;
       ctx.fillStyle = charC;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-
-      // Text shadow for embossed look
       ctx.save();
       ctx.shadowColor='rgba(0,0,0,0.45)'; ctx.shadowBlur=3; ctx.shadowOffsetY=2; ctx.shadowOffsetX=1;
       ctx.fillText(text, textAreaLeft + textAreaW/2, H/2 + 1);
       ctx.restore();
-
-      // ── Edge highlight (plate rim gloss)
       ctx.beginPath(); roundRect(ctx,0.5,0.5,W-1,H-1,r);
       ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1; ctx.stroke();
-
       if(animate) flashPlateCanvas();
-    }catch(e){
-      if(DEBUG) console.error("[PBD] draw2DPlate failed:", e);
-    }
+    }catch(e){ if(DEBUG) console.error("[PBD] draw2DPlate failed:", e); }
   }
 
-  // Redraw after fonts load
   if(document.fonts && document.fonts.ready){
     document.fonts.ready.then(()=>{ fontsReady=true; draw2DPlate(false); });
   } else {
@@ -996,11 +1046,9 @@
       document.querySelectorAll('[data-base-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-base-key')===currentBaseKey&&!customBaseHex));
       document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-char-key')===currentCharKey&&!customCharHex));
       document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-boundary-key')===currentBoundaryKey&&!customBoundaryHex));
-
       const setDot=(id,c)=>{ const el=document.getElementById(id); if(el) el.style.background=c; };
       setDot('baseDot',getBaseCss()); setDot('charDot',getCharCss()); setDot('boundaryDot',getBoundaryCss());
       setDot('sumBaseDot',getBaseCss()); setDot('sumCharDot',getCharCss()); setDot('sumBoundaryDot',getBoundaryCss());
-
       const setTxt=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
       setTxt('baseActiveLbl', customBaseHex?'CUSTOM':currentBaseKey.toUpperCase());
       setTxt('charActiveLbl', customCharHex?'CUSTOM':currentCharKey.toUpperCase());
@@ -1008,14 +1056,31 @@
       setTxt('sumBaseVal', customBaseHex?'Custom':BASE_COLORS[currentBaseKey].label);
       setTxt('sumCharVal', customCharHex?'Custom':CHAR_COLORS[currentCharKey].label);
       setTxt('sumBoundaryVal', customBoundaryHex?'Custom':BOUNDARY_COLORS[currentBoundaryKey].label);
-
       const inp=document.getElementById('plateTextInput');
       if(inp && inp.value.toUpperCase()!==plateText) inp.value=plateText;
       const cnt=document.getElementById('plateCharCount');
       if(cnt) cnt.textContent=plateText.length+'/'+MAX_LEN;
-
       updateContrastUI();
+      // (D) Wire up any .plate-hint-chip elements that haven't been upgraded yet
+      upgradePlateChips();
     }catch(e){}
+  }
+
+  // ===== (D) KEYBOARD ACCESSIBLE CHIPS =====
+  // .plate-hint-chip elements are rendered as <span onclick> in HTML strings.
+  // We upgrade them in place: add role="button" + tabindex="0" + Enter/Space handler.
+  function upgradePlateChips(){
+    document.querySelectorAll('.plate-hint-chip:not([data-upgraded])').forEach(function(chip){
+      chip.setAttribute('role', 'button');
+      chip.setAttribute('tabindex', '0');
+      chip.setAttribute('data-upgraded', '1');
+      chip.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          chip.click();
+        }
+      });
+    });
   }
 
   function applyColors(){
@@ -1036,8 +1101,7 @@
   window.setCustomCharColor=function(hex){ customCharHex=hex; document.querySelectorAll('[data-char-key]').forEach(b=>b.classList.remove('active')); applyColors(); };
   window.setCustomBoundaryColor=function(hex){ customBoundaryHex=hex; document.querySelectorAll('[data-boundary-key]').forEach(b=>b.classList.remove('active')); applyColors(); };
 
-  // ===== PLATE TEXT UPDATE (improved) =====
-  // ── Structured plate compose ──
+  // ===== PLATE TEXT =====
   window.composeStructuredPlate = function() {
     var state    = (document.getElementById('plateState')    || {value:''}).value.trim().toUpperCase();
     var district = (document.getElementById('plateDistrict') || {value:''}).value.trim().toUpperCase();
@@ -1057,17 +1121,13 @@
     try{
       const n=normalizePlateInput(val);
       plateText=(n.value||"").toUpperCase();
-
       const inp=document.getElementById('plateTextInput');
       if(inp && document.activeElement!==inp) inp.value=plateText;
-
       const cnt=document.getElementById('plateCharCount');
       if(cnt) cnt.textContent=plateText.length+'/'+MAX_LEN;
-
       const warn=document.getElementById("plateWarn");
       if(warn){ warn.classList.toggle("show",n.removed>0); }
-
-      draw2DPlate(true); // animate on text change
+      draw2DPlate(true);
       rebuild3DChars();
       if(renderer&&scene&&camera) renderer.render(scene,camera);
       persistState();
@@ -1156,13 +1216,10 @@
     if(!THREE) throw new Error("Three.js not available.");
     while(group.children.length) group.remove(group.children[0]);
     charGroup3D=null;
-
     matBase3D   = new THREE.MeshStandardMaterial({color:getBaseColor(),roughness:0.62,metalness:0.06});
     matChar3D   = new THREE.MeshStandardMaterial({color:getCharColor(),roughness:0.42,metalness:0.10});
     matBorder3D = new THREE.MeshStandardMaterial({color:getBoundaryColor(),roughness:0.55,metalness:0.12});
-
     group.add(new THREE.Mesh(new THREE.BoxGeometry(PW,PH,PD),matBase3D));
-
     [{w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:PH/2+BW/2},
      {w:PW+BW*2,h:BW,d:PD+0.05,x:0,y:-PH/2-BW/2},
      {w:BW,h:PH,d:PD+0.05,x:-PW/2-BW/2,y:0},
@@ -1170,13 +1227,11 @@
       const m=new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d),matBorder3D);
       m.position.set(p.x,p.y,0); group.add(m);
     });
-
     [{w:PW-BW*0.5,h:0.045,d:0.04,y:PH/2-0.08},
      {w:PW-BW*0.5,h:0.045,d:0.04,y:-PH/2+0.08}].forEach(p=>{
       const m=new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d),matBorder3D);
       m.position.set(0,p.y,PD/2+0.02); group.add(m);
     });
-
     const screwMat=new THREE.MeshStandardMaterial({color:0x222222,roughness:0.85,metalness:0.3});
     [[-PW/2+0.28,0],[PW/2-0.28,0]].forEach(([sx,sy])=>{
       const rec=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,PD+0.06,10),screwMat);
@@ -1186,10 +1241,8 @@
       const slot=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.018,0.05),new THREE.MeshStandardMaterial({color:0x111111,roughness:0.9}));
       slot.position.set(sx,sy,PD/2+0.045); group.add(slot);
     });
-
     charGroup3D=buildCharMeshes((plateText||'MH 01 AB 1234').toUpperCase());
     if(charGroup3D) group.add(charGroup3D);
-
     group.rotation.x=-0.22; group.rotation.y=0.55;
     const box=new THREE.Box3().setFromObject(group);
     const sz=new THREE.Vector3(); box.getSize(sz);
@@ -1208,13 +1261,11 @@
     if(!window.THREE){ if(loading) loading.textContent="3D preview unavailable.\n2D preview still works."; return; }
     if(!isWebGLAvailable()){ if(loading) loading.textContent="3D preview unavailable on this device.\n2D preview still works."; return; }
     if(initedCanvasEl===canvas&&renderer&&scene&&camera){ applyColors(); return; }
-
     renderToken++;
     const myToken=renderToken;
     try{ if(renderer) renderer.dispose(); }catch(e){}
     scene=null; camera=null; group=null; matBase3D=null; matChar3D=null; matBorder3D=null; charGroup3D=null;
     renderer=null; initedCanvasEl=canvas;
-
     const W=wrap.clientWidth||320, H=220;
     try{
       renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:"high-performance"});
@@ -1223,7 +1274,6 @@
     }catch(e){
       if(loading) loading.textContent="3D preview unavailable.\n(WebGL init failed)\n2D preview still works."; return;
     }
-
     scene=new THREE.Scene();
     camera=new THREE.PerspectiveCamera(42,W/H,0.1,1000);
     camera.position.set(0,0.3,5.5); camera.lookAt(0,0,0);
@@ -1231,22 +1281,18 @@
     const d1=new THREE.DirectionalLight(0xffffff,1.1); d1.position.set(3,4,3); scene.add(d1);
     const d2=new THREE.DirectionalLight(0xffffff,0.40); d2.position.set(-3,-1,-2); scene.add(d2);
     const d3=new THREE.DirectionalLight(0xffffff,0.25); d3.position.set(0,-3,2); scene.add(d3);
-
     group=new THREE.Group(); scene.add(group);
     try{ buildProceduralPlate(); }catch(e){
       if(loading) loading.textContent="3D preview unavailable.\n2D preview still works."; return;
     }
     if(loading) loading.classList.add('hidden');
-
     function onDown(e){ pointerDown=true; autoRotate=false; const t=e.touches?e.touches[0]:e; lastX=t.clientX; lastY=t.clientY; }
     function onMove(e){ if(!pointerDown||!group) return; const t=e.touches?e.touches[0]:e; group.rotation.y+=(t.clientX-lastX)*0.012; group.rotation.x+=(t.clientY-lastY)*0.008; lastX=t.clientX; lastY=t.clientY; }
     function onUp(){ pointerDown=false; }
     wrap.addEventListener("pointerdown",onDown); wrap.addEventListener("pointermove",onMove); window.addEventListener("pointerup",onUp);
-
     window.addEventListener('resize',()=>{
       try{ if(!wrap||!renderer||!camera) return; const w=wrap.clientWidth||320; renderer.setSize(w,220,false); camera.aspect=w/220; camera.updateProjectionMatrix(); renderer.render(scene,camera); }catch(e){}
     });
-
     (function animate(){
       if(myToken!==renderToken) return;
       requestAnimationFrame(animate);
@@ -1340,9 +1386,9 @@
           >
         </div>
         <div class="plate-hint-chips">
-          <span class="plate-hint-chip" onclick="setExamplePlate('MH 01 AB 1234')">MH 01 AB 1234</span>
-          <span class="plate-hint-chip" onclick="setExamplePlate('DL 4C AZ 0001')">DL 4C AZ 0001</span>
-          <span class="plate-hint-chip" onclick="setExamplePlate('KA 09 MF 9999')">KA 09 MF 9999</span>
+          <span class="plate-hint-chip" role="button" tabindex="0" onclick="setExamplePlate('MH 01 AB 1234')">MH 01 AB 1234</span>
+          <span class="plate-hint-chip" role="button" tabindex="0" onclick="setExamplePlate('DL 4C AZ 0001')">DL 4C AZ 0001</span>
+          <span class="plate-hint-chip" role="button" tabindex="0" onclick="setExamplePlate('KA 09 MF 9999')">KA 09 MF 9999</span>
         </div>
         <p style="margin:8px 2px 0;font-size:11px;color:rgba(255,255,255,0.25);line-height:1.55;">
           Allowed: A–Z, 0–9, space, hyphen. Unsupported characters are cleaned automatically.
@@ -1645,13 +1691,9 @@ Selected Colors:
     if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
     if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
     if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
-
     const isOrderSec = currentSecIndex===ORDER_IDX;
     const isCustomSec = currentSecIndex===CUSTOMIZE_IDX;
-
-    if(bnCta){
-      bnCta.classList.toggle('wa-mode', isOrderSec);
-    }
+    if(bnCta) bnCta.classList.toggle('wa-mode', isOrderSec);
     if(bnCtaText && bnCtaTag){
       if(isOrderSec){ bnCtaText.textContent="WhatsApp"; bnCtaTag.textContent="📲"; }
       else if(isCustomSec){ bnCtaText.textContent="Order"; bnCtaTag.textContent="→"; }
@@ -1660,8 +1702,7 @@ Selected Colors:
   }
 
   function initBottomNav(){
-    buildBottomDots();
-    updateBottomNav();
+    buildBottomDots(); updateBottomNav();
     if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
     if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
     if(bnCta) bnCta.addEventListener('click',()=>{
@@ -1680,7 +1721,6 @@ Selected Colors:
     if(secLabel) secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
     if(secName) secName.textContent=SECTIONS[currentSecIndex].name;
     updateBottomNav();
-
     if(SECTIONS[currentSecIndex].name==='CUSTOMIZE'){
       setTimeout(()=>{
         try{ window.initSTLViewer(); syncColorUI(); draw2DPlate(false); }catch(e){ showErrorToast("Customizer init failed"); }
