@@ -13,21 +13,18 @@
 <title>ViaDecide — India's Decision Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-
 <style>
-/* ─── TOKENS ─── */
 :root{
-  --bg:#080a0f; --bg1:#0c0e15; --bg2:#10131c; --bg3:#161923;
-  --sf:rgba(255,255,255,0.04); --sf2:rgba(255,255,255,0.07);
-  --bd:rgba(255,255,255,0.07); --bd2:rgba(255,255,255,0.12);
-  --tx:#f0ede6; --tx2:#8a8fa8; --tx3:#454860;
-  --gold:#c8932a; --gold2:#e8a830; --gold3:rgba(200,147,42,0.14);
-  --teal:#1a8c7d; --teal2:#22b4a0; --teal3:rgba(34,180,160,0.12);
+  --bg:#080a0f;--bg1:#0c0e15;--bg2:#10131c;--bg3:#161923;
+  --sf:rgba(255,255,255,0.04);--sf2:rgba(255,255,255,0.07);
+  --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.12);
+  --tx:#f0ede6;--tx2:#8a8fa8;--tx3:#454860;
+  --gold:#c8932a;--gold2:#e8a830;--gold3:rgba(200,147,42,0.14);
+  --teal:#1a8c7d;--teal2:#22b4a0;--teal3:rgba(34,180,160,0.12);
   --r:1.5rem;
-  --ct:#22b4a0; --cc:#c8932a; --cg:#e06090;
-  --cs:#4a90d9; --cst:#f07040; --cb:#9b6dff;
-  /* ★ NEW — Finance & Analytics */
-  --cfi:#10b981; --cfi2:#34d399; --cfi3:rgba(16,185,129,0.12);
+  --ct:#22b4a0;--cc:#c8932a;--cg:#e06090;
+  --cs:#4a90d9;--cst:#f07040;--cb:#9b6dff;
+  --cfi:#10b981;--cfi2:#34d399;--cfi3:rgba(16,185,129,0.12);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
@@ -35,24 +32,20 @@ body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 button{font-family:inherit;cursor:none;border:none;background:none}
-
-/* ── UX: kill tap highlight, disable selection ── */
-a,button,.tc,[onclick],.nav-chip,.nav-cta,.cat-cta,.orb-chip{
-  -webkit-tap-highlight-color:rgba(0,0,0,0);tap-highlight-color:rgba(0,0,0,0);
-}
+a,button,.tc,[onclick],.nav-chip,.nav-cta,.cat-cta,.orb-chip{-webkit-tap-highlight-color:rgba(0,0,0,0);tap-highlight-color:rgba(0,0,0,0);}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea,iframe,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 a:focus,button:focus{outline:none}
 a:focus-visible,button:focus-visible{outline:2px solid rgba(34,180,160,.35);outline-offset:3px}
 
-/* ─── CURSOR ─── */
+/* CURSOR */
 #cur{position:fixed;width:10px;height:10px;background:var(--gold2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .15s}
 #cur-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(200,147,42,0.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .35s,height .35s,border-color .35s}
 body:has(a:hover) #cur,body:has(button:hover) #cur,body:has([onclick]:hover) #cur{width:6px;height:6px}
 body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:hover) #cur-ring{width:52px;height:52px;border-color:rgba(200,147,42,0.7)}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:99px}
 
-/* ─── NAV ─── */
+/* NAV */
 #nav{position:fixed;top:0;left:0;right:0;z-index:700;padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
 #nav.solid{background:rgba(8,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.85rem 2.5rem}
 .nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:.5rem;cursor:none}
@@ -67,7 +60,6 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 .nav-chip.nc-s:hover{color:var(--cs);background:rgba(74,144,217,.08);border-color:rgba(74,144,217,.2)}
 .nav-chip.nc-st:hover{color:var(--cst);background:rgba(240,112,64,.08);border-color:rgba(240,112,64,.2)}
 .nav-chip.nc-b:hover{color:var(--cb);background:rgba(155,109,255,.08);border-color:rgba(155,109,255,.2)}
-/* ★ finance nav chip */
 .nav-chip.nc-fi:hover{color:var(--cfi);background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2)}
 .nav-right{display:flex;align-items:center;gap:.5rem}
 .nav-cta{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.3rem;background:var(--gold);color:#fff;border-radius:99px;cursor:none;transition:all .22s;display:inline-flex;align-items:center;gap:.4rem}
@@ -75,15 +67,15 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 #install-pwa-nav{display:none;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.3rem;background:rgba(34,180,160,.15);color:var(--teal2);border:1px solid rgba(34,180,160,.3);border-radius:99px;cursor:none;transition:all .22s}
 #install-pwa-nav:hover{background:rgba(34,180,160,.25);transform:translateY(-1px)}
 
-/* ─── PROGRESS ─── */
+/* PROGRESS */
 #prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal2));z-index:800;width:0%;transition:width .1s linear}
 
-/* ─── CANVAS + NOISE ─── */
+/* CANVAS + NOISE */
 #bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
 .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 section{position:relative;z-index:10}
 
-/* ─── HERO ─── */
+/* HERO */
 #hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8rem 2.5rem 5rem;text-align:center;overflow:hidden}
 .hero-kicker{display:inline-flex;align-items:center;gap:.6rem;border:1px solid rgba(200,147,42,.3);background:rgba(200,147,42,.07);color:var(--gold2);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.32rem .9rem;border-radius:99px;margin-bottom:2rem;opacity:0;animation:riseUp .8s .1s forwards}
 .live-dot{width:6px;height:6px;background:var(--teal2);border-radius:50%;animation:pdot 1.8s infinite}
@@ -95,7 +87,7 @@ section{position:relative;z-index:10}
 .hero-h1 .line:nth-child(3) span{animation-delay:.55s}
 .hero-h1 .em{font-style:italic;color:var(--gold)}
 
-/* ─── ORB ─── */
+/* ORB */
 .orb-wrap{opacity:0;animation:riseUp .9s .8s forwards;width:100%;max-width:640px;position:relative}
 .orb-bar{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;padding:.2rem .2rem .2rem 1.2rem;box-shadow:0 0 0 0 rgba(34,180,160,0);transition:box-shadow .3s,border-color .3s;position:relative}
 .orb-bar:focus-within{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 4px rgba(34,180,160,.07),0 8px 32px rgba(0,0,0,.4)}
@@ -112,14 +104,13 @@ section{position:relative;z-index:10}
 .orb-chip[data-cat="services"]:hover{color:var(--cs);border-color:rgba(74,144,217,.35);background:rgba(74,144,217,.08)}
 .orb-chip[data-cat="store"]:hover{color:var(--cst);border-color:rgba(240,112,64,.35);background:rgba(240,112,64,.08)}
 .orb-chip[data-cat="blog"]:hover{color:var(--cb);border-color:rgba(155,109,255,.35);background:rgba(155,109,255,.08)}
-/* ★ finance orb chip */
 .orb-chip[data-cat="finance"]:hover{color:var(--cfi);border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08)}
 .hero-scroll{display:flex;flex-direction:column;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);opacity:0;animation:riseUp .8s 1.4s forwards;margin-top:3.5rem}
 .scroll-mouse{width:22px;height:34px;border:1.5px solid var(--tx3);border-radius:99px;display:flex;justify-content:center;padding-top:5px}
 .scroll-mouse::after{content:'';width:4px;height:7px;background:var(--gold);border-radius:99px;animation:scrollDown 1.6s ease-in-out infinite}
 @keyframes scrollDown{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
 
-/* ─── ORB SUGGEST ─── */
+/* ORB SUGGEST */
 #orb-suggest{position:absolute;left:0;right:0;top:100%;margin-top:10px;background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;z-index:50}
 .orb-row{padding:12px 14px;border-top:1px solid rgba(255,255,255,.05);cursor:none;transition:background .15s,color .15s}
 .orb-row:first-child{border-top:none}
@@ -128,7 +119,7 @@ section{position:relative;z-index:10}
 .orb-row .t{font-size:.86rem;font-weight:600;color:var(--tx)}
 .orb-row .d{font-size:.72rem;color:var(--tx2);margin-top:2px;line-height:1.45}
 
-/* ─── MARQUEE ─── */
+/* MARQUEE */
 .marquee-wrap{position:relative;z-index:10;overflow:hidden;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:var(--bg1);padding:.9rem 0}
 .marquee-track{display:flex;gap:2rem;width:max-content;animation:marquee 40s linear infinite}
 .marquee-item{display:flex;align-items:center;gap:.6rem;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;padding:0 1.2rem}
@@ -138,11 +129,10 @@ section{position:relative;z-index:10}
 .marquee-item .cat-tag.c{background:rgba(200,147,42,.1);color:var(--cc)}
 .marquee-item .cat-tag.g{background:rgba(224,96,144,.1);color:var(--cg)}
 .marquee-item .cat-tag.s{background:rgba(74,144,217,.1);color:var(--cs)}
-/* ★ finance marquee tag */
 .marquee-item .cat-tag.f{background:rgba(16,185,129,.1);color:var(--cfi)}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* ─── CATEGORY SECTIONS ─── */
+/* CAT SECTIONS */
 .cat-section{padding:6rem 0 5rem;border-top:1px solid var(--bd);position:relative}
 .cat-section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;opacity:.6}
 .cat-section[data-cat="tools"]::before{background:linear-gradient(180deg,var(--ct) 0%,transparent 100%)}
@@ -151,7 +141,6 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="services"]::before{background:linear-gradient(180deg,var(--cs) 0%,transparent 100%)}
 .cat-section[data-cat="store"]::before{background:linear-gradient(180deg,var(--cst) 0%,transparent 100%)}
 .cat-section[data-cat="blog"]::before{background:linear-gradient(180deg,var(--cb) 0%,transparent 100%)}
-/* ★ finance */
 .cat-section[data-cat="finance"]::before{background:linear-gradient(180deg,var(--cfi) 0%,transparent 100%)}
 .cat-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
 .cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
@@ -165,7 +154,6 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="services"] .cat-dot{background:var(--cs)}
 .cat-section[data-cat="store"] .cat-dot{background:var(--cst)}
 .cat-section[data-cat="blog"] .cat-dot{background:var(--cb)}
-/* ★ finance */
 .cat-section[data-cat="finance"] .cat-dot{background:var(--cfi)}
 .cat-name{font-size:1.4rem;font-weight:700;color:var(--tx);letter-spacing:-.01em}
 .cat-desc{font-size:.88rem;color:var(--tx3);line-height:1.6;max-width:380px}
@@ -175,12 +163,11 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="services"] .cat-cta{background:rgba(74,144,217,.12);color:var(--cs);border:1px solid rgba(74,144,217,.25)}
 .cat-section[data-cat="store"] .cat-cta{background:rgba(240,112,64,.12);color:var(--cst);border:1px solid rgba(240,112,64,.25)}
 .cat-section[data-cat="blog"] .cat-cta{background:rgba(155,109,255,.12);color:var(--cb);border:1px solid rgba(155,109,255,.25)}
-/* ★ finance */
 .cat-section[data-cat="finance"] .cat-cta{background:rgba(16,185,129,.12);color:var(--cfi);border:1px solid rgba(16,185,129,.25)}
 .cat-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:8px;cursor:none;transition:all .2s}
 .cat-cta:hover{filter:brightness(1.15);transform:translateY(-1px)}
 
-/* ─── BENTO GRID ─── */
+/* BENTO */
 .bento{display:grid;grid-template-columns:repeat(12,1fr);gap:.9rem}
 .tc{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:1.75rem;cursor:none;transition:transform .35s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;position:relative;overflow:hidden;opacity:0;transform:translateY(40px)}
 .tc.vis{animation:cardUp .7s cubic-bezier(.16,1,.3,1) forwards}
@@ -200,7 +187,6 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="store"] .tc:hover{border-color:rgba(240,112,64,.25)}
 .cat-section[data-cat="blog"] .tc::before{background:linear-gradient(90deg,var(--cb),rgba(155,109,255,.4))}
 .cat-section[data-cat="blog"] .tc:hover{border-color:rgba(155,109,255,.25)}
-/* ★ finance */
 .cat-section[data-cat="finance"] .tc::before{background:linear-gradient(90deg,var(--cfi),rgba(16,185,129,.4))}
 .cat-section[data-cat="finance"] .tc:hover{border-color:rgba(16,185,129,.25)}
 .tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.12),rgba(200,147,42,.05));border-color:rgba(26,140,125,.18)}
@@ -219,7 +205,6 @@ section{position:relative;z-index:10}
 .tc-st.wip{background:rgba(255,255,255,.05);color:var(--tx3)}
 .tc-st.svc{background:rgba(74,144,217,.1);color:#6aaee8}
 .tc-st.msme{background:rgba(200,147,42,.12);color:var(--gold2)}
-/* ★ finance status badge */
 .tc-st.fin{background:rgba(16,185,129,.12);color:var(--cfi)}
 .tc-arr{position:absolute;top:1.3rem;right:1.3rem;font-size:1rem;color:var(--tx3);opacity:0;transition:all .25s}
 .tc:nth-child(1).vis{animation-delay:.04s}.tc:nth-child(2).vis{animation-delay:.09s}
@@ -228,7 +213,7 @@ section{position:relative;z-index:10}
 .tc:nth-child(7).vis{animation-delay:.34s}.tc:nth-child(8).vis{animation-delay:.39s}
 .tc:nth-child(9).vis{animation-delay:.44s}
 
-/* ─── FINANCE FEATURED STRIP ─── */
+/* FINANCE STRIP */
 .finance-strip{background:var(--bg1);border:1px solid rgba(16,185,129,.18);border-radius:20px;padding:2rem 2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:2rem}
 .fin-l .feat-eye{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cfi);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
 .fin-l .feat-eye::after{content:'';flex:1;height:1px;background:rgba(16,185,129,.2);max-width:60px}
@@ -237,21 +222,18 @@ section{position:relative;z-index:10}
 .fin-l p{font-size:.88rem;color:var(--tx2);line-height:1.75;margin-bottom:1.4rem;max-width:360px}
 .fin-tags{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.4rem}
 .fin-tag{font-size:.7rem;font-weight:600;letter-spacing:.03em;padding:.28rem .7rem;border-radius:99px;background:var(--cfi3);color:var(--cfi);border:1px solid rgba(16,185,129,.18)}
-/* Finance mockup — spreadsheet style */
 .fin-mockup{background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;padding:1.25rem;box-shadow:0 30px 70px rgba(0,0,0,.5)}
 .fin-mockup-hd{display:flex;align-items:center;gap:.4rem;margin-bottom:1rem}
 .fin-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem}
 .fin-kpi{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:.6rem .75rem}
 .fin-kpi-lbl{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:.2rem}
 .fin-kpi-val{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:600}
-.fin-kpi-val.up{color:var(--cfi)}
-.fin-kpi-val.dn{color:#ef4444}
-.fin-kpi-val.nt{color:var(--gold2)}
+.fin-kpi-val.up{color:var(--cfi)}.fin-kpi-val.dn{color:#ef4444}.fin-kpi-val.nt{color:var(--gold2)}
 .fin-chart-preview{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:.7rem;display:flex;align-items:flex-end;gap:3px;height:56px}
-.fin-bar{border-radius:2px 2px 0 0;flex:1;transition:height .3s}
+.fin-bar{border-radius:2px 2px 0 0;flex:1}
 @media(max-width:1024px){.finance-strip{grid-template-columns:1fr}}
 
-/* ─── ONDC STRIP ─── */
+/* ONDC STRIP */
 .ondc-strip{background:var(--bg1);border:1px solid rgba(26,140,125,.18);border-radius:20px;padding:2rem 2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:2rem}
 .ondc-l .feat-eye{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
 .ondc-l .feat-eye::after{content:'';flex:1;height:1px;background:rgba(34,180,160,.2);max-width:60px}
@@ -272,8 +254,9 @@ section{position:relative;z-index:10}
 .m-meta{font-size:.68rem;color:var(--tx3)}
 .m-price{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;color:var(--gold2)}
 .m-badge{font-size:.56rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .5rem;border-radius:99px;background:var(--teal3);color:var(--teal2)}
+@media(max-width:1024px){.ondc-strip{grid-template-columns:1fr}}
 
-/* ─── ABOUT ─── */
+/* ABOUT */
 #about{max-width:1280px;margin:0 auto;padding:5rem 2.5rem;border-top:1px solid var(--bd)}
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
 .about-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4.5vw,4.5rem);font-weight:300;line-height:1.05;letter-spacing:-.02em;margin-bottom:1.3rem}
@@ -292,7 +275,7 @@ section{position:relative;z-index:10}
 .p-txt h4{font-size:.88rem;font-weight:700;color:var(--tx);margin-bottom:.25rem}
 .p-txt p{font-size:.78rem;color:var(--tx3);line-height:1.6}
 
-/* ─── INSTALL ─── */
+/* INSTALL */
 #install{padding:5rem 2.5rem;max-width:1280px;margin:0 auto}
 .install-inner{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
 .install-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--teal3);color:var(--teal2);font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.28rem .75rem;border-radius:99px;border:1px solid rgba(34,180,160,.25);margin-bottom:1.2rem}
@@ -312,7 +295,6 @@ section{position:relative;z-index:10}
 .btn-g:hover{background:rgba(255,255,255,.1);transform:translateY(-3px)}
 .btn-t{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--teal);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
 .btn-t:hover{background:var(--teal2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(26,140,125,.35)}
-/* ★ green btn for finance */
 .btn-fi{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--cfi);color:#000;border-radius:12px;cursor:none;transition:all .25s}
 .btn-fi:hover{background:var(--cfi2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(16,185,129,.35)}
 .install-r{background:var(--sf);border:1px solid var(--bd2);border-radius:20px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -324,7 +306,7 @@ section{position:relative;z-index:10}
 .dev-instructions ol{padding-left:1.2rem;display:flex;flex-direction:column;gap:.4rem}
 .dev-instructions li{color:var(--tx2)}.dev-instructions li strong{display:inline;font-size:inherit;color:var(--tx)}
 
-/* ─── FOOTER CTA ─── */
+/* FOOTER CTA */
 #footer-cta{padding:7rem 2.5rem;text-align:center;position:relative;overflow:hidden;background:var(--bg);z-index:10}
 #footer-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(200,147,42,.1) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 20% 100%,rgba(26,140,125,.08) 0%,transparent 60%);pointer-events:none}
 .footer-inner{position:relative;max-width:680px;margin:0 auto}
@@ -337,7 +319,7 @@ section{position:relative;z-index:10}
 .footer-links a,.footer-links span{transition:color .2s;cursor:none}
 .footer-links a:hover{color:var(--tx2)}
 
-/* ─── PWA BANNERS ─── */
+/* PWA BANNERS */
 #install-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:850;background:var(--bg2);border-top:1px solid var(--bd2);padding:.9rem 1.25rem;box-shadow:0 -8px 32px rgba(0,0,0,.4)}
 #install-banner.show{display:block}
 .ib-inner{display:flex;align-items:center;gap:1rem;max-width:640px;margin:0 auto}
@@ -357,7 +339,7 @@ section{position:relative;z-index:10}
 #ios-hint-close{position:absolute;top:.85rem;right:1.1rem;background:none;border:none;color:var(--tx3);font-size:1.1rem;cursor:none;transition:color .2s}
 #ios-hint-close:hover{color:var(--tx)}
 
-/* ─── THREAD PANEL ─── */
+/* THREAD PANEL */
 #thread-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:600;display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:rgba(34,180,160,.12);border:1px solid rgba(34,180,160,.25);border-right:none;border-radius:10px 0 0 10px;cursor:none;transition:all .25s;writing-mode:vertical-rl;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2);gap:.4rem}
 #thread-toggle:hover{background:rgba(34,180,160,.2);width:42px}
 #thread-toggle .tt-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:pdot 2s infinite;flex-shrink:0}
@@ -375,7 +357,7 @@ section{position:relative;z-index:10}
 .thread-coming{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .65rem;border-radius:99px;background:var(--teal3);color:var(--teal2);border:1px solid rgba(34,180,160,.2)}
 .thread-ft{padding:1.1rem 1.25rem;border-top:1px solid var(--bd);font-size:.72rem;color:var(--tx3);text-align:center;line-height:1.5}
 
-/* ─── MODAL ─── */
+/* MODAL — fixed iframe background to dark */
 #modal{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .35s}
 #modal.open{opacity:1;pointer-events:auto}
 #modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
@@ -390,7 +372,8 @@ section{position:relative;z-index:10}
 .m-act:hover{background:rgba(200,147,42,.1);border-color:rgba(200,147,42,.3);color:var(--gold2)}
 #modal-close{width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:none;font-size:.85rem;transition:all .2s;flex-shrink:0}
 #modal-close:hover{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.25);color:#ff6b6b}
-#modal-frame{flex:1;border:none;background:#fff;width:100%}
+/* ★ FIX: dark background so finance dashboard loads cleanly */
+#modal-frame{flex:1;border:none;background:#080c12;width:100%}
 #modal-err{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:3rem}
 #modal-err.show{display:flex}
 #modal-err .err-icon{font-size:3rem}
@@ -399,12 +382,12 @@ section{position:relative;z-index:10}
 .err-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.75rem 1.5rem;background:var(--gold);color:#fff;border-radius:10px;cursor:none;transition:all .2s}
 .err-btn:hover{background:var(--gold2)}
 
-/* ─── KEYFRAMES ─── */
+/* KEYFRAMES */
 @keyframes riseUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 @keyframes lineUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
 
-/* ─── RESPONSIVE ─── */
+/* RESPONSIVE */
 @media(max-width:1024px){
   .ondc-strip{grid-template-columns:1fr}
   .about-grid{grid-template-columns:1fr;gap:3rem}
@@ -412,11 +395,8 @@ section{position:relative;z-index:10}
 }
 @media(max-width:960px){
   .bento{grid-template-columns:repeat(6,1fr)}
-  .tc-s4,.tc-s5{grid-column:span 3}
-  .tc-s3{grid-column:span 3}
-  .tc-s6{grid-column:span 6}
-  .tc-s8{grid-column:span 6}
-  .tc-s12{grid-column:span 6}
+  .tc-s4,.tc-s5{grid-column:span 3}.tc-s3{grid-column:span 3}.tc-s6{grid-column:span 6}
+  .tc-s8{grid-column:span 6}.tc-s12{grid-column:span 6}
   .nav-mid{display:none}
   #thread-toggle{display:none}
 }
@@ -434,7 +414,6 @@ section{position:relative;z-index:10}
 }
 </style>
 </head>
-
 <body data-depth="surface">
 <div id="cur"></div>
 <div id="cur-ring"></div>
@@ -442,7 +421,7 @@ section{position:relative;z-index:10}
 <canvas id="bg-canvas"></canvas>
 <div id="prog"></div>
 
-<!-- ── NAV ── -->
+<!-- NAV -->
 <nav id="nav">
   <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <div class="brand-dot"></div>ViaDecide
@@ -454,7 +433,6 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-s" href="#cat-services">🎯 Services</a>
     <a class="nav-chip nc-st" href="#cat-store">🛍 Store</a>
     <a class="nav-chip nc-b" href="#cat-blog">✍️ Blog</a>
-    <!-- ★ NEW -->
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
   </div>
   <div class="nav-right">
@@ -463,12 +441,9 @@ section{position:relative;z-index:10}
   </div>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- HERO -->
 <section id="hero">
-  <div class="hero-kicker">
-    <div class="live-dot"></div>
-    🇮🇳 India's Decision Engine · Built for Bharat
-  </div>
+  <div class="hero-kicker"><div class="live-dot"></div>🇮🇳 India's Decision Engine · Built for Bharat</div>
   <h1 class="hero-h1">
     <div class="line"><span>Research</span></div>
     <div class="line"><span><em>Smarter.</em></span></div>
@@ -488,17 +463,13 @@ section{position:relative;z-index:10}
       <button class="orb-chip" data-cat="store" onclick="document.getElementById('cat-store').scrollIntoView({behavior:'smooth'})">🛍 Store</button>
       <button class="orb-chip" data-cat="games" onclick="document.getElementById('cat-games').scrollIntoView({behavior:'smooth'})">🎮 Sims</button>
       <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
-      <!-- ★ NEW -->
       <button class="orb-chip" data-cat="finance" onclick="document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'})">📊 Finance</button>
     </div>
   </div>
-  <div class="hero-scroll">
-    <div class="scroll-mouse"></div>
-    scroll to explore
-  </div>
+  <div class="hero-scroll"><div class="scroll-mouse"></div>scroll to explore</div>
 </section>
 
-<!-- ── MARQUEE ── -->
+<!-- MARQUEE -->
 <div class="marquee-wrap">
   <div class="marquee-track">
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
@@ -516,7 +487,6 @@ section{position:relative;z-index:10}
     <div class="marquee-item"><span class="cat-tag t">Tool</span> ViaGuide <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
-    <!-- duplicate for seamless loop -->
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> ONDC Demo <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag f">Finance</span> FinTrack Dashboard <span class="sep">◆</span></div>
@@ -535,131 +505,41 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
-<!-- ═══ [01] TOOLS ═══ -->
+<!-- [01] TOOLS -->
 <section id="cat-tools" data-cat="tools" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l">
-        <div class="cat-num">01</div>
-        <div class="cat-info">
-          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Decision Tools</span></div>
-          <p class="cat-desc">AI-powered instruments to structure your thinking, build prompts, and decide with clarity.</p>
-        </div>
-      </div>
+      <div class="cat-header-l"><div class="cat-num">01</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Decision Tools</span></div><p class="cat-desc">AI-powered instruments to structure your thinking, build prompts, and decide with clarity.</p></div></div>
       <button class="cat-cta" onclick="openModal('alchemist.html','✨','Alchemist')">Try Alchemist ✨</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="openModal('alchemist.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0" aria-label="Open Alchemist">
-        <div class="tc-arr">↗</div>
-        <div class="tc-vis">✨</div>
-        <div class="tc-name-lg">Alchemist</div>
-        <div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices — the flagship tool of the ViaDecide engine.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s4" onclick="openModal('memory.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0" aria-label="Open Memory Engine">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">🧠</span>
-        <div class="tc-name">Memory Engine</div>
-        <div class="tc-desc">Persistent decision history. Past choices inform your next ones. Never start from scratch again.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s3" onclick="openModal('prompt-alchemy.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0" aria-label="Open Prompt Alchemy">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">⚗️</span>
-        <div class="tc-name">Prompt Alchemy</div>
-        <div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview. Turn vague ideas into precise instructions.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s5" onclick="openModal('sales-dashboard.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" aria-label="Open MSME Sales Register Dashboard" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);">
-        <div class="tc-arr">↗</div>
-        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">
-          📊
-          <svg width="100" height="36" viewBox="0 0 100 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:8px;right:10px;opacity:.45">
-            <rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/>
-            <rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/>
-            <rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/>
-            <rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/>
-            <rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/>
-            <rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/>
-          </svg>
-        </div>
-        <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div>
-        <div class="tc-desc" style="font-size:.79rem;color:var(--tx2);line-height:1.6">Upload your sales CSV or XLSX (or type manually) and get instant KPIs, pivot tables, and charts — Revenue, Units, Top Product, Region breakdowns.</div>
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem">
-          <div class="tc-st msme">📈 CSV / XLSX Upload</div>
-          <div class="tc-st live">● Live</div>
-        </div>
-      </div>
-      <div class="tc tc-s4" onclick="openModal('app-generator.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0" aria-label="Open App Generator">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">🔧</span>
-        <div class="tc-name">App Generator</div>
-        <div class="tc-desc">Generate custom decision apps from requirements on the fly. Describe what you need, get a working tool.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s3" onclick="openModal('ViaGuide.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0" aria-label="Open ViaGuide">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">📚</span>
-        <div class="tc-name">ViaGuide</div>
-        <div class="tc-desc">Structured buying guides with transparent affiliate disclosures. No paid placements.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s3" onclick="openModal('StudyOS.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0" aria-label="Open StudyOS">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">📖</span>
-        <div class="tc-name">StudyOS</div>
-        <div class="tc-desc">Smart student research OS with structured learning pathways and multi-source aggregation.</div>
-        <div class="tc-st beta">◆ Beta</div>
-      </div>
-      <div class="tc tc-s3" onclick="openModal('brief.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0" aria-label="Open Decision Brief">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">📋</span>
-        <div class="tc-name">Decision Brief</div>
-        <div class="tc-desc">Generate a structured, shareable decision brief from your research session.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s3" onclick="openModal('student-research.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0" aria-label="Open Student Research">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">🔬</span>
-        <div class="tc-name">Student Research</div>
-        <div class="tc-desc">Deep research tool for academic and project work. Multiple source types, structured output.</div>
-        <div class="tc-st live">● Live</div>
-      </div>
-      <div class="tc tc-s3" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,quick" role="button" tabindex="0" aria-label="SwipeOS — coming soon">
-        <div class="tc-arr" style="opacity:.3">↗</div>
-        <span class="tc-icon">👆</span>
-        <div class="tc-name">SwipeOS</div>
-        <div class="tc-desc">Swipe-driven interface for rapid product comparison. Tinder-like decisions at scale.</div>
-        <div class="tc-st wip">◌ Coming</div>
-      </div>
+      <div class="tc tc-feat tc-s8" onclick="openModal('alchemist.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('memory.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('prompt-alchemy.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s5" onclick="openModal('sales-dashboard.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
+      <div class="tc tc-s4" onclick="openModal('app-generator.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('ViaGuide.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('StudyOS.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
+      <div class="tc tc-s3" onclick="openModal('brief.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('student-research.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st wip">◌ Coming</div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ [02] COMMERCE ═══ -->
+<!-- [02] COMMERCE -->
 <section id="cat-commerce" data-cat="commerce" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l">
-        <div class="cat-num">02</div>
-        <div class="cat-info">
-          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Commerce & Deals</span></div>
-          <p class="cat-desc">India's open commerce layer — real prices, real sellers, real cashback. No walled gardens.</p>
-        </div>
-      </div>
+      <div class="cat-header-l"><div class="cat-num">02</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Commerce & Deals</span></div><p class="cat-desc">India's open commerce layer — real prices, real sellers, real cashback.</p></div></div>
       <button class="cat-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
     </div>
     <div class="ondc-strip">
       <div class="ondc-l">
         <div class="feat-eye">Featured Module</div>
         <h3>The future of commerce<br>is <em>open.</em></h3>
-        <p>A live, working ONDC integration — discover real products from real sellers on the open network, right in your browser. No middlemen.</p>
-        <div class="feat-tags">
-          <span class="feat-tag">Live Seller Data</span>
-          <span class="feat-tag">Real-time Discovery</span>
-          <span class="feat-tag">ONDC Protocol</span>
-          <span class="feat-tag">Made in India 🇮🇳</span>
-        </div>
+        <p>A live, working ONDC integration — discover real products from real sellers on the open network.</p>
+        <div class="feat-tags"><span class="feat-tag">Live Seller Data</span><span class="feat-tag">Real-time Discovery</span><span class="feat-tag">ONDC Protocol</span><span class="feat-tag">Made in India 🇮🇳</span></div>
         <button class="btn-t" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
       </div>
       <div class="mockup">
@@ -667,7 +547,6 @@ section{position:relative;z-index:10}
         <div class="m-row"><div class="m-icon-sm">📱</div><div class="m-info"><div class="m-name-sm">OnePlus Nord CE 4</div><div class="m-meta">Reliance Digital · ONDC</div></div><div><div class="m-price">₹24,999</div><div class="m-badge">Best Value</div></div></div>
         <div class="m-row"><div class="m-icon-sm">💻</div><div class="m-info"><div class="m-name-sm">HP Pavilion 14</div><div class="m-meta">Croma · ONDC Network</div></div><div><div class="m-price">₹48,490</div><div class="m-badge" style="background:var(--gold3);color:var(--gold2)">Top Pick</div></div></div>
         <div class="m-row"><div class="m-icon-sm">🎧</div><div class="m-info"><div class="m-name-sm">Sony WH-1000XM5</div><div class="m-meta">Brand Store · ONDC</div></div><div><div class="m-price">₹26,990</div></div></div>
-        <div style="text-align:center;padding-top:.8rem;font-size:.68rem;color:var(--tx3)">Powered by ONDC · 200+ sellers · Live pricing</div>
       </div>
     </div>
     <div class="bento" style="margin-top:1.2rem">
@@ -678,167 +557,108 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- ═══ [03] GAMES ═══ -->
+<!-- [03] GAMES -->
 <section id="cat-games" data-cat="games" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l">
-        <div class="cat-num">03</div>
-        <div class="cat-info">
-          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Simulations & Games</span></div>
-          <p class="cat-desc">Decision-making at play. Strategy games and immersive sims that sharpen your thinking.</p>
-        </div>
-      </div>
+      <div class="cat-header-l"><div class="cat-num">03</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Simulations & Games</span></div><p class="cat-desc">Decision-making at play. Strategy games and immersive sims.</p></div></div>
     </div>
     <div class="bento">
       <div class="tc tc-s4" onclick="openModal('HexWars.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decision-making.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('HivaLand.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation. Build civilizations, make strategic resource decisions.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('HivaLand.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ [04] SERVICES ═══ -->
+<!-- [04] SERVICES -->
 <section id="cat-services" data-cat="services" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l">
-        <div class="cat-num">04</div>
-        <div class="cat-info">
-          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Services</span></div>
-          <p class="cat-desc">Real-world offerings — human-assisted decision research, local services, and platform access for builders.</p>
-        </div>
-      </div>
+      <div class="cat-header-l"><div class="cat-num">04</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Services</span></div><p class="cat-desc">Real-world offerings — human-assisted decision research, local services, and platform access for builders.</p></div></div>
       <button class="cat-cta" onclick="openModal('decide-service.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s6" onclick="openModal('decide-service.html','🎯','Decide.Service')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name-lg">Decide.Service</div><div class="tc-desc-lg">White-glove decision research for complex, high-value purchases. We research so you can choose with confidence.</div><div class="tc-st svc">⊕ Paid Service</div></div>
-      <div class="tc tc-s6" onclick="openModal('decide-foodrajkot.html','🍽️','Decide Food · Rajkot')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🍽️</span><div class="tc-name-lg">Decide Food · Rajkot</div><div class="tc-desc-lg">Zero-commission local food delivery in Rajkot. Smart restaurant suggestions based on your area and taste.</div><div class="tc-st svc">⊕ Local Service</div></div>
+      <div class="tc tc-feat tc-s6" onclick="openModal('decide-service.html','🎯','Decide.Service')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name-lg">Decide.Service</div><div class="tc-desc-lg">White-glove decision research for complex, high-value purchases.</div><div class="tc-st svc">⊕ Paid Service</div></div>
+      <div class="tc tc-s6" onclick="openModal('decide-foodrajkot.html','🍽️','Decide Food · Rajkot')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🍽️</span><div class="tc-name-lg">Decide Food · Rajkot</div><div class="tc-desc-lg">Zero-commission local food delivery in Rajkot.</div><div class="tc-st svc">⊕ Local Service</div></div>
       <div class="tc tc-s3" onclick="openModal('engine-license.html','⚙️','Engine License')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚙️</span><div class="tc-name">Engine License</div><div class="tc-desc">White-label the ViaDecide engine for your product.</div><div class="tc-st svc">⊕ License</div></div>
-      <div class="tc tc-s3" onclick="openModal('cohort-apply-here.html','🧪','Cohort Program')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧪</span><div class="tc-name">Cohort Program</div><div class="tc-desc">Join the decide.cohort — structured program for builders who want to think better.</div><div class="tc-st beta">◆ Apply Now</div></div>
-      <div class="tc tc-s3" onclick="openModal('CustomSwipeEngineForm.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine for your product category or business.</div><div class="tc-st svc">⊕ Custom Build</div></div>
-      <div class="tc tc-s3" onclick="openModal('pricing.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access. Free to explore. Paid for power users.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('cohort-apply-here.html','🧪','Cohort Program')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧪</span><div class="tc-name">Cohort Program</div><div class="tc-desc">Join the decide.cohort — structured program for builders.</div><div class="tc-st beta">◆ Apply Now</div></div>
+      <div class="tc tc-s3" onclick="openModal('CustomSwipeEngineForm.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine.</div><div class="tc-st svc">⊕ Custom Build</div></div>
+      <div class="tc tc-s3" onclick="openModal('pricing.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ [05] STORE ═══ -->
+<!-- [05] STORE -->
 <section id="cat-store" data-cat="store" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l">
-        <div class="cat-num">05</div>
-        <div class="cat-info">
-          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Store · PrintByDD</span></div>
-          <p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts that mean more.</p>
-        </div>
-      </div>
+      <div class="cat-header-l"><div class="cat-num">05</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Store · PrintByDD</span></div><p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts.</p></div></div>
       <a class="cat-cta" href="printbydd-store/index.html">Open Store ↗</a>
     </div>
     <div class="bento">
       <div class="tc tc-feat tc-s4" onclick="location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="location.href='printbydd-store/keychain.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔑</span><div class="tc-name">NFC Keychains</div><div class="tc-desc">Personalised NFC-enabled keychains with custom engraving.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="location.href='printbydd-store/gifts-that-mean-more.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences. Not generic. Not mass-produced.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="location.href='printbydd-store/gifts-that-mean-more.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ [06] BLOG ═══ -->
+<!-- [06] BLOG -->
 <section id="cat-blog" data-cat="blog" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l">
-        <div class="cat-num">06</div>
-        <div class="cat-info">
-          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Blog & Content</span></div>
-          <p class="cat-desc">Long-form thinking on decisions, commerce, AI, and India's digital future. No clickbait. No fluff.</p>
-        </div>
-      </div>
+      <div class="cat-header-l"><div class="cat-num">06</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Blog & Content</span></div><p class="cat-desc">Long-form thinking on decisions, commerce, AI, and India's digital future.</p></div></div>
       <button class="cat-cta" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')">All Posts ↗</button>
     </div>
     <div class="bento">
-      <div class="tc tc-s6" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✍️</span><div class="tc-name">ViaDecide Blog</div><div class="tc-desc">Essays on decision-making, consumer tech in India, ONDC, AI tools, and the infrastructure of smart choices.</div><div class="tc-st live">● Active</div></div>
-      <div class="tc tc-s3" onclick="openModal('decision-infrastructure-india.html','🏗️','Decision Infrastructure')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Infrastructure</div><div class="tc-desc">Why India needs a decision layer and how ViaDecide is building it.</div><div class="tc-st live">● Article</div></div>
+      <div class="tc tc-s6" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✍️</span><div class="tc-name">ViaDecide Blog</div><div class="tc-desc">Essays on decision-making, consumer tech in India, ONDC, AI tools.</div><div class="tc-st live">● Active</div></div>
+      <div class="tc tc-s3" onclick="openModal('decision-infrastructure-india.html','🏗️','Decision Infrastructure')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Infrastructure</div><div class="tc-desc">Why India needs a decision layer.</div><div class="tc-st live">● Article</div></div>
       <div class="tc tc-s3" onclick="openModal('ondc-for-bharat.html','🛒','ONDC for Bharat')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🇮🇳</span><div class="tc-name">ONDC for Bharat</div><div class="tc-desc">A deep-dive into India's Open Network for Digital Commerce.</div><div class="tc-st live">● Article</div></div>
-      <div class="tc tc-s3" onclick="openModal('laptops-under-50000.html','💻','Laptops Under 50k')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💻</span><div class="tc-name">Laptops Under ₹50k</div><div class="tc-desc">Structured buying guide with scoring matrix. The only laptop article that shows its work.</div><div class="tc-st live">● Guide</div></div>
+      <div class="tc tc-s3" onclick="openModal('laptops-under-50000.html','💻','Laptops Under 50k')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💻</span><div class="tc-name">Laptops Under ₹50k</div><div class="tc-desc">Structured buying guide with scoring matrix.</div><div class="tc-st live">● Guide</div></div>
       <div class="tc tc-s3" onclick="openModal('founder.html','👤','Founder')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● About</div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════
-  ★★★ [07] FINANCE & ANALYTICS — NEW CATEGORY
-  Two interactive dashboards for Indian MSME owners.
-  CTA opens FinTrack (Finance Dashboard) directly.
-═══════════════════════════════════════════════════════ -->
+<!-- ★ [07] FINANCE — ALL openModal calls use finance-dashboard-msme.html -->
 <section id="cat-finance" data-cat="finance" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l">
         <div class="cat-num">07</div>
         <div class="cat-info">
-          <div class="cat-label">
-            <div class="cat-dot"></div>
-            <span class="cat-name">Finance & Analytics</span>
-          </div>
-          <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME owners. Upload data, get instant insights — no spreadsheet skills needed.</p>
+          <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Finance & Analytics</span></div>
+          <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME owners. Upload data, get instant insights.</p>
         </div>
       </div>
-      <button class="cat-cta" onclick="openModal('Finance Dashboard — India MSME.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
+      <button class="cat-cta" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
     </div>
 
-    <!-- ── FEATURED FINANCE STRIP ── -->
     <div class="finance-strip">
       <div class="fin-l">
         <div class="feat-eye">Featured Dashboard</div>
         <h3>Your business finances,<br>finally <em>clear.</em></h3>
-        <p>Upload a CSV, type entries manually, or load sample data — and watch your P&L, cash flow, and budget variance come alive with real charts and pivot tables. Built for Indian MSME owners who don't have a CFO.</p>
+        <p>Upload a CSV, type entries manually, or load sample data — watch your P&L, cash flow, and budget variance come alive with real charts and pivot tables.</p>
         <div class="fin-tags">
-          <span class="fin-tag">₹ INR Native</span>
-          <span class="fin-tag">KPI Cards</span>
-          <span class="fin-tag">Pivot Tables</span>
-          <span class="fin-tag">Budget vs Actual</span>
-          <span class="fin-tag">CSV Upload</span>
-          <span class="fin-tag">FY Filters 🇮🇳</span>
+          <span class="fin-tag">₹ INR Native</span><span class="fin-tag">KPI Cards</span><span class="fin-tag">Pivot Tables</span>
+          <span class="fin-tag">Budget vs Actual</span><span class="fin-tag">CSV Upload</span><span class="fin-tag">FY Filters 🇮🇳</span>
         </div>
-        <button class="btn-fi" onclick="openModal('Finance Dashboard — India MSME.html','💰','FinTrack — Finance Dashboard')">Launch FinTrack Dashboard ↗</button>
+        <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Launch FinTrack Dashboard ↗</button>
       </div>
-      <!-- Live mini mockup of the finance dashboard -->
       <div class="fin-mockup">
-        <div class="fin-mockup-hd">
-          <div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div>
-          <div class="m-title" style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--tx3);margin-left:auto">FinTrack · India MSME</div>
+        <div class="fin-mockup-hd"><div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div><div class="m-title" style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--tx3);margin-left:auto">FinTrack · India MSME</div></div>
+        <div class="fin-kpi-row">
+          <div class="fin-kpi"><div class="fin-kpi-lbl">Revenue</div><div class="fin-kpi-val up">₹14.2 L</div></div>
+          <div class="fin-kpi"><div class="fin-kpi-lbl">Expenses</div><div class="fin-kpi-val dn">₹8.7 L</div></div>
+          <div class="fin-kpi"><div class="fin-kpi-lbl">Net Profit</div><div class="fin-kpi-val nt">₹5.5 L</div></div>
         </div>
         <div class="fin-kpi-row">
-          <div class="fin-kpi">
-            <div class="fin-kpi-lbl">Revenue</div>
-            <div class="fin-kpi-val up">₹14.2 L</div>
-          </div>
-          <div class="fin-kpi">
-            <div class="fin-kpi-lbl">Expenses</div>
-            <div class="fin-kpi-val dn">₹8.7 L</div>
-          </div>
-          <div class="fin-kpi">
-            <div class="fin-kpi-lbl">Net Profit</div>
-            <div class="fin-kpi-val nt">₹5.5 L</div>
-          </div>
+          <div class="fin-kpi"><div class="fin-kpi-lbl">Margin</div><div class="fin-kpi-val up">38.7%</div></div>
+          <div class="fin-kpi"><div class="fin-kpi-lbl">Cash Flow</div><div class="fin-kpi-val up">₹4.9 L</div></div>
+          <div class="fin-kpi"><div class="fin-kpi-lbl">Pending AR</div><div class="fin-kpi-val nt">₹1.2 L</div></div>
         </div>
-        <div class="fin-kpi-row">
-          <div class="fin-kpi">
-            <div class="fin-kpi-lbl">Margin</div>
-            <div class="fin-kpi-val up">38.7%</div>
-          </div>
-          <div class="fin-kpi">
-            <div class="fin-kpi-lbl">Cash Flow</div>
-            <div class="fin-kpi-val up">₹4.9 L</div>
-          </div>
-          <div class="fin-kpi">
-            <div class="fin-kpi-lbl">Pending AR</div>
-            <div class="fin-kpi-val nt">₹1.2 L</div>
-          </div>
-        </div>
-        <!-- Tiny animated bar chart preview -->
-        <div class="fin-chart-preview" id="finChartPreview">
+        <div class="fin-chart-preview">
           <div class="fin-bar" style="height:45%;background:#10b981;opacity:.7"></div>
           <div class="fin-bar" style="height:65%;background:#10b981;opacity:.8"></div>
           <div class="fin-bar" style="height:55%;background:#10b981;opacity:.7"></div>
@@ -856,140 +676,94 @@ section{position:relative;z-index:10}
       </div>
     </div>
 
-    <!-- ── BENTO CARDS ── -->
     <div class="bento" style="margin-top:1.2rem">
-
-      <!-- ★ CARD 1: FinTrack Finance Dashboard (FEATURED, span 8) -->
+      <!-- ★ FIX: all finance modal calls use finance-dashboard-msme.html -->
       <div class="tc tc-feat tc-s8"
-           onclick="openModal('Finance Dashboard — India MSME.html','💰','FinTrack — Finance Dashboard')"
-           data-cat="finance"
-           data-orbit="fintrack"
+           onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')"
+           data-cat="finance" data-orbit="fintrack"
            data-intent="finance,fintrack,cashflow,profit,loss,pnl,income,expense,gst,transaction,ledger,accounting,msme,india,dashboard"
            role="button" tabindex="0"
-           aria-label="Open FinTrack Finance Dashboard"
            style="background:linear-gradient(145deg,rgba(16,185,129,.1),rgba(52,211,153,.04));border-color:rgba(16,185,129,.2);">
         <div class="tc-arr">↗</div>
-        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(200,147,42,.08))">
-          💰
-          <svg width="120" height="38" viewBox="0 0 120 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:6px;right:8px;opacity:.5">
-            <!-- Revenue line -->
+        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(200,147,42,.08))">💰
+          <svg width="120" height="38" viewBox="0 0 120 38" fill="none" style="position:absolute;bottom:6px;right:8px;opacity:.5">
             <polyline points="4,30 20,20 36,24 52,10 68,16 84,8 100,12 116,6" stroke="#10b981" stroke-width="2" fill="none" stroke-linejoin="round"/>
-            <!-- Expense line -->
             <polyline points="4,34 20,28 36,30 52,22 68,26 84,20 100,24 116,18" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linejoin="round" stroke-dasharray="3 2"/>
-            <!-- dots on revenue -->
-            <circle cx="52" cy="10" r="2.5" fill="#10b981"/>
-            <circle cx="84" cy="8" r="2.5" fill="#10b981"/>
-            <circle cx="116" cy="6" r="2.5" fill="#10b981"/>
+            <circle cx="52" cy="10" r="2.5" fill="#10b981"/><circle cx="84" cy="8" r="2.5" fill="#10b981"/><circle cx="116" cy="6" r="2.5" fill="#10b981"/>
           </svg>
         </div>
         <div class="tc-name-lg">FinTrack — Finance Dashboard</div>
-        <div class="tc-desc-lg">A complete P&amp;L and cash flow tracker for Indian MSME businesses. Add transactions manually, upload CSV, get instant KPIs (Revenue, Expenses, Net Profit, Margin, Cash Flow), interactive line &amp; bar charts, budget vs actual analysis, pivot tables by month/category/customer — all with INR formatting and financial year filters.</div>
+        <div class="tc-desc-lg">Complete P&amp;L and cash flow tracker for Indian MSME businesses. KPIs, interactive charts, budget vs actual, pivot tables — all with INR formatting and FY filters.</div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem">
-          <div class="tc-st fin">💰 P&L Tracker</div>
-          <div class="tc-st fin">📊 Pivot Tables</div>
-          <div class="tc-st fin">📈 Charts</div>
-          <div class="tc-st live">● Live</div>
+          <div class="tc-st fin">💰 P&L Tracker</div><div class="tc-st fin">📊 Pivot Tables</div><div class="tc-st fin">📈 Charts</div><div class="tc-st live">● Live</div>
         </div>
       </div>
 
-      <!-- ★ CARD 2: MSME Sales Register Dashboard (span 4) -->
       <div class="tc tc-s4"
            onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')"
-           data-cat="finance"
-           data-orbit="sales-register"
+           data-cat="finance" data-orbit="sales-register"
            data-intent="sales,register,msme,csv,excel,pivot,chart,revenue,units,region,product,india,upload"
            role="button" tabindex="0"
-           aria-label="Open MSME Sales Register Dashboard"
            style="background:linear-gradient(145deg,rgba(200,147,42,.09),rgba(16,185,129,.05));border-color:rgba(200,147,42,.2);">
         <div class="tc-arr">↗</div>
-        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.16),rgba(16,185,129,.08))">
-          📊
-          <svg width="90" height="34" viewBox="0 0 90 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:7px;right:8px;opacity:.5">
-            <rect x="0"  y="18" width="11" height="16" rx="2" fill="#4f7fff"/>
-            <rect x="14" y="8"  width="11" height="26" rx="2" fill="#22d3a5"/>
-            <rect x="28" y="12" width="11" height="22" rx="2" fill="#c8932a"/>
-            <rect x="42" y="4"  width="11" height="30" rx="2" fill="#4f7fff"/>
-            <rect x="56" y="14" width="11" height="20" rx="2" fill="#22d3a5"/>
-            <rect x="70" y="2"  width="11" height="32" rx="2" fill="#c8932a"/>
-          </svg>
-        </div>
+        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.16),rgba(16,185,129,.08))">📊</div>
         <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Register</div>
-        <div class="tc-desc" style="font-size:.79rem;color:var(--tx2);line-height:1.6">Upload sales CSV or enter manually. Instant KPIs, pivot tables by product/region/month, and bar charts. Fast, mobile-friendly, no signup.</div>
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem">
-          <div class="tc-st msme">📈 CSV Upload</div>
-          <div class="tc-st live">● Live</div>
-        </div>
+        <div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload sales CSV or enter manually. Instant KPIs, pivot tables, and charts.</div>
+        <div style="display:flex;gap:.4rem;margin-top:.75rem"><div class="tc-st msme">📈 CSV Upload</div><div class="tc-st live">● Live</div></div>
       </div>
 
-      <!-- ★ CARD 3: GST Calculator (coming) — placeholder -->
-      <div class="tc tc-s4"
-           data-cat="finance" data-orbit="gst-calc" data-intent="gst,tax,invoice,calculator"
-           role="button" tabindex="0" aria-label="GST Calculator — coming soon">
-        <div class="tc-arr" style="opacity:.3">↗</div>
-        <span class="tc-icon">🧾</span>
+      <div class="tc tc-s4" data-cat="finance" role="button" tabindex="0">
+        <div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">🧾</span>
         <div class="tc-name">GST Calculator</div>
-        <div class="tc-desc">Instant GST breakdowns for any invoice value. CGST/SGST/IGST, HSN code lookup, and exportable tax summaries.</div>
+        <div class="tc-desc">Instant GST breakdowns, CGST/SGST/IGST, HSN code lookup, exportable summaries.</div>
         <div class="tc-st wip">◌ Coming Soon</div>
       </div>
-
-      <!-- ★ CARD 4: Inventory Tracker (coming) -->
-      <div class="tc tc-s4"
-           data-cat="finance" data-orbit="inventory" data-intent="inventory,stock,sku,warehouse,supply"
-           role="button" tabindex="0" aria-label="Inventory Tracker — coming soon">
-        <div class="tc-arr" style="opacity:.3">↗</div>
-        <span class="tc-icon">📦</span>
+      <div class="tc tc-s4" data-cat="finance" role="button" tabindex="0">
+        <div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📦</span>
         <div class="tc-name">Inventory Tracker</div>
-        <div class="tc-desc">SKU-level stock tracking with low-stock alerts, reorder triggers, and supplier cost analysis. Offline-ready.</div>
+        <div class="tc-desc">SKU-level stock tracking with low-stock alerts and reorder triggers.</div>
         <div class="tc-st wip">◌ Coming Soon</div>
       </div>
-
-      <!-- ★ CARD 5: Payroll Register (coming) -->
-      <div class="tc tc-s4"
-           data-cat="finance" data-orbit="payroll" data-intent="payroll,salary,staff,pf,esi,hr"
-           role="button" tabindex="0" aria-label="Payroll Register — coming soon">
-        <div class="tc-arr" style="opacity:.3">↗</div>
-        <span class="tc-icon">👥</span>
+      <div class="tc tc-s4" data-cat="finance" role="button" tabindex="0">
+        <div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👥</span>
         <div class="tc-name">Payroll Register</div>
-        <div class="tc-desc">Employee salary sheets with PF/ESI deductions, CTC breakdown, and one-click payslip generation. India compliance built in.</div>
+        <div class="tc-desc">Employee salary sheets with PF/ESI deductions and payslip generation.</div>
         <div class="tc-st wip">◌ Coming Soon</div>
       </div>
-
-    </div><!-- /bento finance -->
+    </div>
   </div>
 </section>
-<!-- ══ END [07] FINANCE & ANALYTICS ══ -->
 
-<!-- ── ABOUT ── -->
+<!-- ABOUT -->
 <section id="about">
   <div class="about-grid">
     <div>
       <div style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="display:block;width:24px;height:1px;background:var(--tx3)"></span>Our Philosophy</div>
       <h2 class="about-h2">Decisions deserve<br><em>infrastructure.</em></h2>
-      <p class="about-p">Most Indian buyers make expensive, life-impacting decisions with incomplete information. We're building the layer that changes that — structured, transparent, AI-native.</p>
+      <p class="about-p">Most Indian buyers make expensive, life-impacting decisions with incomplete information. We're building the layer that changes that.</p>
       <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide. Seven categories. One engine.</p>
       <div class="stat-row">
-        <!-- ★ updated: 7 categories, 23+ modules -->
         <div class="a-stat"><div class="num">23<span>+</span></div><div class="lbl">Live Modules</div></div>
         <div class="a-stat"><div class="num">7</div><div class="lbl">Categories</div></div>
         <div class="a-stat"><div class="num">∞</div><div class="lbl">Decisions</div></div>
       </div>
     </div>
     <div class="pillars">
-      <div class="pillar"><div class="p-icon">🔍</div><div class="p-txt"><h4>Multi-Source Research</h4><p>Aggregate from multiple sources so you see the full picture before committing.</p></div></div>
-      <div class="pillar"><div class="p-icon">🤖</div><div class="p-txt"><h4>AI That Structures, Not Hypes</h4><p>Structured AI reasoning — deliberate, framework-driven analysis built for real decisions.</p></div></div>
-      <div class="pillar"><div class="p-icon">🇮🇳</div><div class="p-txt"><h4>Built for Bharat</h4><p>ONDC integration, INR pricing, regional market awareness — every tool knows the Indian consumer's reality.</p></div></div>
-      <div class="pillar"><div class="p-icon">🔓</div><div class="p-txt"><h4>Radical Transparency</h4><p>Affiliate links always disclosed. Editorial rankings always independent. No paid placements. Ever.</p></div></div>
+      <div class="pillar"><div class="p-icon">🔍</div><div class="p-txt"><h4>Multi-Source Research</h4><p>Aggregate from multiple sources so you see the full picture.</p></div></div>
+      <div class="pillar"><div class="p-icon">🤖</div><div class="p-txt"><h4>AI That Structures, Not Hypes</h4><p>Structured AI reasoning — deliberate, framework-driven analysis.</p></div></div>
+      <div class="pillar"><div class="p-icon">🇮🇳</div><div class="p-txt"><h4>Built for Bharat</h4><p>ONDC integration, INR pricing, regional market awareness.</p></div></div>
+      <div class="pillar"><div class="p-icon">🔓</div><div class="p-txt"><h4>Radical Transparency</h4><p>Affiliate links always disclosed. Editorial rankings always independent.</p></div></div>
     </div>
   </div>
 </section>
 
-<!-- ── INSTALL ── -->
+<!-- INSTALL -->
 <section id="install" style="border-top:1px solid var(--bd)">
   <div class="install-inner">
     <div>
       <div class="install-badge">📲 Progressive Web App</div>
       <h2 class="install-h2">Get ViaDecide on<br>any <em>device.</em></h2>
-      <p class="install-sub">Install our PWA — works on Android, iPhone, Windows, Mac, Linux. No app store needed. Works offline too.</p>
+      <p class="install-sub">Install our PWA — works on Android, iPhone, Windows, Mac, Linux. No app store needed.</p>
       <div class="install-steps">
         <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, Edge, or Firefox</div></div>
         <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser's menu</div></div>
@@ -1006,33 +780,24 @@ section{position:relative;z-index:10}
         <button class="dev-tab" data-tab="ios">iPhone</button>
         <button class="dev-tab" data-tab="desktop">Desktop</button>
       </div>
-      <div id="tab-android" class="dev-instructions">
-        <strong>📱 Android — Chrome</strong>
-        <ol><li>Open <strong>viadecide.com</strong> in Chrome</li><li>Tap <strong>⋮ → "Add to Home screen"</strong></li><li>Tap <strong>Install</strong> — done!</li></ol>
-      </div>
-      <div id="tab-ios" class="dev-instructions" style="display:none">
-        <strong>🍎 iPhone / iPad — Safari</strong>
-        <ol><li>Open in <strong>Safari</strong> (not Chrome)</li><li>Tap the <strong>Share button (□↑)</strong></li><li>Tap <strong>"Add to Home Screen"</strong> → Add</li></ol>
-      </div>
-      <div id="tab-desktop" class="dev-instructions" style="display:none">
-        <strong>💻 Desktop — Chrome / Edge</strong>
-        <ol><li>Open in <strong>Chrome or Edge</strong></li><li>Look for the <strong>⊕ install icon</strong> in the address bar</li><li>Click <strong>Install</strong></li></ol>
-      </div>
+      <div id="tab-android" class="dev-instructions"><strong>📱 Android — Chrome</strong><ol><li>Open <strong>viadecide.com</strong> in Chrome</li><li>Tap <strong>⋮ → "Add to Home screen"</strong></li><li>Tap <strong>Install</strong> — done!</li></ol></div>
+      <div id="tab-ios" class="dev-instructions" style="display:none"><strong>🍎 iPhone / iPad — Safari</strong><ol><li>Open in <strong>Safari</strong> (not Chrome)</li><li>Tap the <strong>Share button (□↑)</strong></li><li>Tap <strong>"Add to Home Screen"</strong> → Add</li></ol></div>
+      <div id="tab-desktop" class="dev-instructions" style="display:none"><strong>💻 Desktop — Chrome / Edge</strong><ol><li>Open in <strong>Chrome or Edge</strong></li><li>Look for the <strong>⊕ install icon</strong> in the address bar</li><li>Click <strong>Install</strong></li></ol></div>
     </div>
   </div>
 </section>
 
-<!-- ── FOOTER CTA ── -->
+<!-- FOOTER CTA -->
 <section id="footer-cta">
   <div class="footer-inner">
     <div class="footer-eye">Ready to decide smarter?</div>
     <h2 class="footer-h2">Start with clarity.<em>Not confusion.</em></h2>
-    <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.<br>India's decision infrastructure — for everyone.</p>
+    <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.</p>
     <div class="footer-acts">
       <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
       <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
-      <!-- ★ NEW finance CTA buttons -->
-      <button class="btn-fi" onclick="openModal('Finance Dashboard — India MSME.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
+      <!-- ★ FIX: correct filename -->
+      <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
       <button class="btn-g" onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
     </div>
     <div class="footer-links">
@@ -1047,21 +812,17 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- ── BANNERS + PANELS ── -->
+<!-- BANNERS -->
 <div id="install-banner">
   <div class="ib-inner">
     <div class="ib-icon">⚡</div>
-    <div class="ib-txt">
-      <strong>Install ViaDecide App</strong>
-      <span>Add to homescreen — works offline, loads instantly</span>
-    </div>
+    <div class="ib-txt"><strong>Install ViaDecide App</strong><span>Add to homescreen — works offline, loads instantly</span></div>
     <div class="ib-acts">
       <button id="install-banner-btn" class="ib-btn">Install</button>
       <button id="install-banner-dismiss" class="ib-dismiss">✕</button>
     </div>
   </div>
 </div>
-
 <div id="ios-hint">
   <button id="ios-hint-close">✕</button>
   <strong>Install on iPhone / iPad</strong>
@@ -1072,10 +833,7 @@ section{position:relative;z-index:10}
   <div class="tt-dot"></div>Thread
 </button>
 <div id="thread-panel">
-  <div class="thread-hd">
-    <div class="thread-title"><div class="thread-badge"></div>Decision Thread</div>
-    <button class="thread-close" onclick="toggleThread()">✕</button>
-  </div>
+  <div class="thread-hd"><div class="thread-title"><div class="thread-badge"></div>Decision Thread</div><button class="thread-close" onclick="toggleThread()">✕</button></div>
   <div class="thread-body">
     <div class="thread-empty-icon">🧵</div>
     <div class="thread-empty-title">No decisions yet</div>
@@ -1085,15 +843,12 @@ section{position:relative;z-index:10}
   <div class="thread-ft">Decision Thread · Every tool you use, one connected story.</div>
 </div>
 
-<!-- ── MODAL ── -->
+<!-- MODAL -->
 <div id="modal">
   <div id="modal-bd" onclick="closeModal()"></div>
   <div id="modal-sheet">
     <div id="modal-top">
-      <div class="m-title-wrap">
-        <span class="m-t-icon" id="m-icon">🔬</span>
-        <span class="m-t-name" id="m-name">Tool</span>
-      </div>
+      <div class="m-title-wrap"><span class="m-t-icon" id="m-icon">🔬</span><span class="m-t-name" id="m-name">Tool</span></div>
       <div class="m-acts">
         <a id="m-tab" href="#" target="_blank" class="m-act">↗ Open in Tab</a>
         <button id="modal-close" onclick="closeModal()">✕</button>
@@ -1102,7 +857,7 @@ section{position:relative;z-index:10}
     <div id="modal-err">
       <div class="err-icon">🔒</div>
       <h3>Can't load in iframe</h3>
-      <p>This page has security restrictions that prevent embedding. Open it in a new tab.</p>
+      <p>This page has security restrictions that prevent embedding. Open it in a new tab instead.</p>
       <a id="err-open-link" href="#" target="_blank" class="err-btn">Open in New Tab ↗</a>
     </div>
     <iframe id="modal-frame" src="about:blank" allowfullscreen
@@ -1110,15 +865,15 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
-<script src="router.js"></script>
+<script src="router.js" onerror="console.warn('router.js not found, skipping')"></script>
 <script>
-/* ─── CURSOR ─── */
+/* CURSOR */
 const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
 let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
 (function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
 
-/* ─── CANVAS PARTICLES ─── */
+/* CANVAS */
 const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
 let W,H,particles=[];
 function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
@@ -1130,43 +885,32 @@ function drawCanvas(){
   ctx.strokeStyle='rgba(255,255,255,0.018)';ctx.lineWidth=1;
   for(let x=0;x<W;x+=100){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
   for(let y=0;y<H;y+=100){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
-  particles.forEach(p=>{
-    p.x+=p.vx;p.y+=p.vy;
-    if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.c+p.o+')';ctx.fill();
-  });
-  for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){
-    const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);
-    if(d<120){ctx.beginPath();ctx.strokeStyle='rgba(200,147,42,'+(0.06*(1-d/120))+')';ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}
-  }
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.c+p.o+')';ctx.fill();});
+  for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle='rgba(200,147,42,'+(0.06*(1-d/120))+')';ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}
   requestAnimationFrame(drawCanvas);
 }
 drawCanvas();
 
-/* ─── SCROLL ─── */
+/* SCROLL */
 const nav=document.getElementById('nav'),prog=document.getElementById('prog');
-const heroH1=document.getElementById('hero').querySelector('.hero-h1');
 window.addEventListener('scroll',()=>{
   const s=window.scrollY,max=document.body.scrollHeight-innerHeight;
   prog.style.width=(s/max*100)+'%';
   nav.classList.toggle('solid',s>80);
-  if(heroH1)heroH1.style.transform=`translateY(${s*.18}px)`;
+  const h1=document.querySelector('.hero-h1');
+  if(h1)h1.style.transform=`translateY(${s*.18}px)`;
 });
 
-/* ─── INTERSECTION OBSERVER ─── */
-const io=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
-},{threshold:.08});
+/* INTERSECTION OBSERVER */
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.08});
 document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
 
-/* ─── KEYBOARD SUPPORT FOR .tc CARDS ─── */
+/* KEYBOARD FOR .tc CARDS */
 document.querySelectorAll('.tc[role="button"]').forEach(card=>{
-  card.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}
-  });
+  card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}});
 });
 
-/* ─── DEVICE TABS ─── */
+/* DEVICE TABS */
 document.querySelectorAll('.dev-tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     document.querySelectorAll('.dev-tab').forEach(t=>t.classList.remove('active'));
@@ -1177,12 +921,12 @@ document.querySelectorAll('.dev-tab').forEach(tab=>{
   });
 });
 
-/* ─── THREAD ─── */
+/* THREAD */
 var threadOpen=false;
 function toggleThread(){threadOpen=!threadOpen;document.getElementById('thread-panel').classList.toggle('open',threadOpen);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleThread();});
 
-/* ─── MODAL ─── */
+/* ★ MODAL — fixed iframe load detection (ignores about:blank) */
 let currentFile='';
 function openModal(file,icon,name){
   if(/^https?:\/\//i.test(file)){window.open(file,'_blank','noopener,noreferrer');return;}
@@ -1194,29 +938,49 @@ function openModal(file,icon,name){
   document.getElementById('modal-err').classList.remove('show');
   const frame=document.getElementById('modal-frame');
   frame.style.display='block';
-  frame.src=file;
+  frame.src='';            // clear first to reset load event
+  setTimeout(()=>{ frame.src=file; },10);  // slight delay ensures clean load
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
+
+/* ★ FIX: only trigger error for real failures, not about:blank */
 document.getElementById('modal-frame').addEventListener('load',function(){
-  try{const d=this.contentDocument||this.contentWindow.document;if(!d||d.body===null||d.body.innerHTML===''){showModalError();}}catch(e){showModalError();}
+  const src=this.src;
+  // Skip blank / empty states
+  if(!src || src==='about:blank' || src===window.location.href+'#' || src==='') return;
+  try{
+    const d=this.contentDocument||this.contentWindow.document;
+    if(!d||d.body===null||d.body.innerHTML.trim()===''){showModalError();}
+  }catch(e){
+    // Cross-origin error = page loaded but has X-Frame-Options restriction
+    showModalError();
+  }
 });
-function showModalError(){document.getElementById('modal-frame').style.display='none';document.getElementById('modal-err').classList.add('show');}
+
+function showModalError(){
+  document.getElementById('modal-frame').style.display='none';
+  document.getElementById('modal-err').classList.add('show');
+}
 function closeModal(){
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow='';
-  setTimeout(()=>{document.getElementById('modal-frame').src='about:blank';document.getElementById('modal-frame').style.display='block';document.getElementById('modal-err').classList.remove('show');},400);
+  setTimeout(()=>{
+    document.getElementById('modal-frame').src='about:blank';
+    document.getElementById('modal-frame').style.display='block';
+    document.getElementById('modal-err').classList.remove('show');
+  },400);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeModal();});
 
-/* ─── ORB SEARCH (with finance keywords) ─── */
+/* ORB SEARCH */
 (function(){
   const input=document.getElementById('orb-input');
   const go=document.getElementById('orb-go');
   const suggest=document.getElementById('orb-suggest');
   if(!input||!go||!suggest)return;
-  function txt(el){return(el&&el.textContent||'').trim();}
   function norm(s){return(s||'').toLowerCase().trim();}
+  function txt(el){return(el&&el.textContent||'').trim();}
   function parseOpenModal(oc){const m=(oc||'').match(/openModal\('([^']+)','([^']*)','([^']*)'\)/);if(!m)return null;return{type:'modal',file:m[1],icon:m[2],name:m[3]};}
   function parseLocHref(oc){const m=(oc||'').match(/location\.href='([^']+)'/);if(!m)return null;return{type:'nav',file:m[1],icon:'↗',name:m[1]};}
   const INDEX=Array.from(document.querySelectorAll('.tc')).map(card=>{
@@ -1228,33 +992,22 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeMo
     return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
   }).filter(Boolean);
   function tokenScore(q,str){if(!str)return 0;let s=0;if(str===q)s+=80;if(str.includes(q))s+=40;q.split(/\s+/).filter(Boolean).forEach(p=>{if(str.includes(p))s+=10;});return s;}
-  function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,item.intent)*.7;s+=tokenScore(qq,item.orbit)*.8;s+=tokenScore(qq,item.cat)*.3;return s;}
+  function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,norm(item.intent))*.7;s+=tokenScore(qq,norm(item.orbit))*.8;s+=tokenScore(qq,norm(item.cat))*.3;return s;}
   let results=[],active=-1;
   function hideSuggest(){suggest.style.display='none';suggest.innerHTML='';results=[];active=-1;}
-  function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row ${i===active?'active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
+  function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row${i===active?' active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
   function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
   function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal')openModal(item.file,item.icon,item.title);else location.href=item.file;}
   function fallbackScroll(q){
-    const v=(q||'').trim();
-    if(!v){document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});return;}
-    const lv=v.toLowerCase();
-    // ★ finance keywords scroll to finance section
-    if(/finance|fintrack|cashflow|profit|loss|pnl|income|expense|gst|transaction|ledger|accounting|msme|dashboard|kpi|revenue|sales|register|budget|invoice|payroll|inventory|stock/i.test(lv))
+    const lv=(q||'').toLowerCase();
+    if(/finance|fintrack|cashflow|profit|loss|pnl|income|expense|gst|transaction|ledger|accounting|msme|dashboard|kpi|revenue|budget|invoice|payroll|inventory|stock/i.test(lv))
       document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'});
-    else if(/food|rajkot|deliver|order|eat/i.test(lv))
-      document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
-    else if(/game|play|sim|mars|hex|war/i.test(lv))
-      document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});
-    else if(/deal|price|buy|ondc|cashback|discount/i.test(lv))
-      document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});
-    else if(/print|plate|keychain|gift|store/i.test(lv))
-      document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
-    else if(/blog|article|read|guide|learn/i.test(lv))
-      document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
-    else if(/service|hire|license|cohort/i.test(lv))
-      document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
-    else
-      document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
+    else if(/game|play|sim|mars|hex|war/i.test(lv))document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});
+    else if(/deal|price|buy|ondc|cashback|discount/i.test(lv))document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});
+    else if(/print|plate|keychain|gift|store/i.test(lv))document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
+    else if(/blog|article|read|guide|learn/i.test(lv))document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
+    else if(/service|hire|license|cohort/i.test(lv))document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
+    else document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
   }
   input.addEventListener('input',doSearch);
   input.addEventListener('keydown',e=>{
@@ -1269,7 +1022,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeMo
   input.addEventListener('blur',()=>setTimeout(hideSuggest,120));
 })();
 
-/* ─── PWA INSTALL ─── */
+/* PWA */
 var dP=null;
 var isIOS=/iP(ad|hone|od)/.test(navigator.userAgent)&&!window.MSStream;
 var isInStandaloneMode=window.matchMedia('(display-mode:standalone)').matches||(window.navigator.standalone===true);
@@ -1290,8 +1043,6 @@ if(bannerDismiss)bannerDismiss.addEventListener('click',function(){if(banner)ban
 if(isIOS&&!isInStandaloneMode){if(iosTriggerSection)iosTriggerSection.style.display='inline-flex';if(iosTriggerSection)iosTriggerSection.addEventListener('click',function(){if(iosHint)iosHint.classList.add('show');});setTimeout(function(){try{var d=sessionStorage.getItem('de-ios-dismissed');if(!d&&iosHint)iosHint.classList.add('show');}catch(e){}},4500);}
 if(iosHintClose)iosHintClose.addEventListener('click',function(){if(iosHint)iosHint.classList.remove('show');try{sessionStorage.setItem('de-ios-dismissed','1');}catch(e){}});
 window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns();});
-
-/* ─── SERVICE WORKER ─── */
 if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 </script>
 </body>
