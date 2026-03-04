@@ -422,6 +422,22 @@ section{position:relative;z-index:10}
   .cat-num{font-size:clamp(3rem,6vw,5rem)}
 }
 /* ── MOBILE TOUCH UX ─────────────────────────────────── */
+/* CRITICAL: On touch devices, skip scroll-reveal opacity animations.
+   Cards that rely on IntersectionObserver to become visible are invisible
+   by default — this caused entire bento sections to appear empty on mobile. */
+@media(hover:none),(pointer:coarse){
+  /* Show cards instantly — no opacity-0 waiting for IO */
+  .tc, .pillar, .build-card, .pt-card {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  /* Keep the hover-lift effect still works on tap (active state) */
+  .tc:active, .build-card:active, .pt-card:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.15s ease !important;
+  }
+}
 /* Ensure all interactive elements have comfortable tap targets on mobile */
 @media(max-width:640px){
   /* Nav: only brand + CTA on mobile */
@@ -472,13 +488,14 @@ section{position:relative;z-index:10}
   .cat-header{margin-bottom:1.5rem}
   .cat-name{font-size:1.2rem}
 
-  /* Bento cards on mobile: 2 col layout */
+  /* Bento cards on mobile: clean 2-col */
   .bento{grid-template-columns:1fr 1fr;gap:.6rem}
-  .tc-s4,.tc-s5,.tc-s3,.tc-s6,.tc-s8,.tc-s12{grid-column:span 2}
-  /* Large featured cards span full width */
-  .tc-feat{grid-column:span 2}
-  /* Small cards: 1 col each */
-  .tc-s3,.tc-s4{grid-column:span 1}
+  /* All bento cards default to 1 col on mobile */
+  .tc{grid-column:span 1}
+  /* Only truly featured/wide cards span full width */
+  .tc.tc-feat, .tc.tc-s6, .tc.tc-s8, .tc.tc-s12{grid-column:span 2}
+  /* Override: small cards always 1 col (more items per row) */
+  .tc.tc-s3{grid-column:span 1}
 
   /* Bento card internals */
   .tc{padding:1.1rem;border-radius:14px}
@@ -836,14 +853,14 @@ section{position:relative;z-index:10}
     <div class="build-grid" id="build-grid">
 
       <div class="build-card" data-a="teal"
-           onclick="openModal('app-generator.html','🎤','Interview Simulator')"
+           onclick="openModal('interview-prep.html','🎤','Interview Simulator')"
            role="button" tabindex="0">
         <div class="build-card-arr">↗</div>
         <div class="build-card-icon">🎤</div>
         <div class="build-card-title">Interview Simulator</div>
         <div class="build-card-desc">Practice job interviews in a chat simulator. Get real-time feedback and build confidence before the real thing.</div>
         <button class="build-card-cta"
-                onclick="event.stopPropagation();openModal('app-generator.html','🎤','Interview Simulator')">
+                onclick="event.stopPropagation();openModal('interview-prep.html','🎤','Interview Simulator')">
           Open Tool →
         </button>
       </div>
@@ -862,14 +879,14 @@ section{position:relative;z-index:10}
       </div>
 
       <div class="build-card" data-a="orange"
-           onclick="openModal('app-generator.html','🍽️','Restaurant Website')"
+           onclick="openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website')"
            role="button" tabindex="0">
         <div class="build-card-arr">↗</div>
         <div class="build-card-icon">🍽️</div>
         <div class="build-card-title">Restaurant Website</div>
-        <div class="build-card-desc">Create a simple restaurant website complete with a menu, gallery, and contact section — in minutes.</div>
+        <div class="build-card-desc">Create a simple restaurant website with menu and contact. See a live example — Jalaram Food Court, Rajkot.</div>
         <button class="build-card-cta"
-                onclick="event.stopPropagation();openModal('app-generator.html','🍽️','Restaurant Website')">
+                onclick="event.stopPropagation();openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website')">
           Open Tool →
         </button>
       </div>
@@ -925,7 +942,7 @@ section{position:relative;z-index:10}
     entries.forEach(function(e){
       if(e.isIntersecting){e.target.classList.add('vis');bIo.unobserve(e.target);}
     });
-  },{threshold:.08});
+  },{threshold:0,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.build-card').forEach(function(el){bIo.observe(el);});
 
   /* Keyboard activation */
@@ -941,9 +958,9 @@ section{position:relative;z-index:10}
   if(!bInput||!bGo)return;
 
   var routes=[
-    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('app-generator.html','🎤','Interview Simulator');}},
+    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('interview-prep.html','🎤','Interview Simulator');}},
     {kw:['sales','revenue','units','product','register','csv','excel','chart','kpi'],fn:function(){openModal('sales-dashboard.html','📊','Sales Dashboard');}},
-    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('app-generator.html','🍽️','Restaurant Website');}},
+    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website');}},
     {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('finance-dashboard-msme.html','💰','Finance Dashboard');}},
     {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('alchemist.html','⚖️','Decision Tools');}},
     {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('app-generator.html','🔧','Custom Web Apps');}},
@@ -1129,8 +1146,18 @@ window.addEventListener('scroll',()=>{
 });
 
 /* INTERSECTION OBSERVER */
-const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.08});
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:0,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
+
+/* MOBILE FALLBACK: on touch devices show all cards after 600ms regardless */
+if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
+  setTimeout(()=>{
+    document.querySelectorAll('.tc,.pillar,.build-card,.pt-card').forEach(el=>{
+      el.classList.add('vis');
+      el.style.animationDuration='0s'; // instant, no janky replay
+    });
+  },600);
+}
 
 /* KEYBOARD FOR .tc CARDS */
 document.querySelectorAll('.tc[role="button"]').forEach(card=>{
@@ -1569,7 +1596,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
       <!-- 1 Interview Simulator · COMING SOON dedicated page -->
       <div class="pt-card pt-card--wip" data-c="teal"
-           onclick="openModal('app-generator.html','🎤','Interview Simulator')"
+           onclick="openModal('interview-prep.html','🎤','Interview Simulator')"
            role="button" tabindex="0">
         <div class="pt-num">01</div>
         <div class="pt-icon-row">
@@ -1580,10 +1607,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         <div class="pt-desc">Practice job interviews with a chat-style simulator. Get realistic questions, instant feedback, and build confidence before the real thing.</div>
         <div class="pt-footer-row">
           <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('app-generator.html','🎤','Interview Simulator')">
+                  onclick="event.stopPropagation();openModal('interview-prep.html','🎤','Interview Simulator')">
             Open Tool <span class="cta-arrow">→</span>
           </button>
-          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
+          <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
 
@@ -1607,9 +1634,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <!-- 3 Restaurant Website Builder · COMING SOON dedicated page -->
-      <div class="pt-card pt-card--wip" data-c="orange"
-           onclick="openModal('app-generator.html','🍽️','Restaurant Website Builder')"
+      <!-- 3 Restaurant Website Builder · LIVE via Jalaram example -->
+      <div class="pt-card" data-c="orange"
+           onclick="openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website Builder')"
            role="button" tabindex="0">
         <div class="pt-num">03</div>
         <div class="pt-icon-row">
@@ -1617,13 +1644,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <span class="pt-pill">Builder</span>
         </div>
         <div class="pt-name">Restaurant Website Builder</div>
-        <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering — set up in minutes, no code required.</div>
+        <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering. Live example: Jalaram Food Court, Rajkot.</div>
         <div class="pt-footer-row">
           <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('app-generator.html','🍽️','Restaurant Website Builder')">
+                  onclick="event.stopPropagation();openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website Builder')">
             Open Tool <span class="cta-arrow">→</span>
           </button>
-          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
+          <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
 
@@ -1698,8 +1725,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     entries.forEach(function(e){
       if(e.isIntersecting){ e.target.classList.add('vis'); ptIo.unobserve(e.target); }
     });
-  }, { threshold: .07 });
+  }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.pt-card').forEach(function(el){ ptIo.observe(el); });
+
+  document.querySelectorAll('.pt-card[role="button"]').forEach(function(card){
+    card.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.click(); }
+    });
+  });
+})();
 
   document.querySelectorAll('.pt-card[role="button"]').forEach(function(card){
     card.addEventListener('keydown', function(e){
