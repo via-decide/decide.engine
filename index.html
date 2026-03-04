@@ -501,6 +501,346 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
+<!-- ╔══════════════════════════════════════════════════╗ -->
+<!-- ║   WHAT CAN YOU BUILD WITH VIADECIDE — SECTION   ║ -->
+<!-- ╚══════════════════════════════════════════════════╝ -->
+<style>
+/* ── BUILD SECTION ─────────────────────────────────── */
+#build-section{
+  position:relative;z-index:10;
+  padding:6rem 0 5.5rem;
+  border-top:1px solid var(--bd);
+}
+#build-section::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(34,180,160,.04) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 80% 100%, rgba(200,147,42,.04) 0%, transparent 60%);
+}
+.build-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
+
+/* header */
+.build-eyebrow{
+  display:inline-flex;align-items:center;gap:.6rem;
+  font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--teal2);margin-bottom:.9rem;
+}
+.build-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--teal2);opacity:.6}
+.build-h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.4rem,5.5vw,5.2rem);
+  font-weight:300;line-height:.97;letter-spacing:-.03em;
+  color:var(--tx);margin-bottom:1rem;
+}
+.build-h2 em{font-style:italic;color:var(--gold)}
+.build-sub{
+  font-size:.9rem;color:var(--tx2);line-height:1.8;
+  max-width:500px;margin-bottom:2.8rem;
+}
+
+/* search bar */
+.build-search-wrap{position:relative;max-width:580px;margin-bottom:3.8rem}
+.build-search-bar{
+  display:flex;align-items:center;gap:0;
+  background:var(--bg2);border:1px solid var(--bd2);
+  border-radius:16px;padding:.2rem .2rem .2rem 1.2rem;
+  transition:border-color .3s,box-shadow .3s;
+}
+.build-search-bar:focus-within{
+  border-color:rgba(200,147,42,.42);
+  box-shadow:0 0 0 4px rgba(200,147,42,.07),0 8px 32px rgba(0,0,0,.4);
+}
+.build-search-glyph{font-size:1rem;flex-shrink:0;margin-right:.65rem;opacity:.4;pointer-events:none}
+#build-search-input{
+  flex:1;background:none;border:none;outline:none;
+  font-family:'Outfit',sans-serif;font-size:.97rem;
+  color:var(--tx);padding:.9rem 0;cursor:text;
+}
+#build-search-input::placeholder{color:var(--tx3)}
+.build-search-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:.6rem 1.15rem;background:var(--gold);color:#fff;
+  border-radius:12px;font-size:.8rem;font-weight:700;
+  letter-spacing:.04em;flex-shrink:0;cursor:none;
+  transition:all .22s;
+}
+.build-search-btn:hover{background:var(--gold2);transform:scale(1.04);box-shadow:0 6px 20px rgba(200,147,42,.32)}
+.build-search-hint{
+  font-size:.69rem;color:var(--tx3);
+  padding:.55rem 1.2rem .3rem;letter-spacing:.02em;line-height:1.5;
+}
+.build-search-hint strong{color:var(--tx2);font-weight:500}
+
+/* card grid */
+.build-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem;
+}
+.build-card{
+  background:var(--sf);border:1px solid var(--bd);
+  border-radius:20px;padding:1.8rem;
+  cursor:none;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+  opacity:0;transform:translateY(40px);
+  transition:
+    transform .36s cubic-bezier(.34,1.56,.64,1),
+    border-color .28s,background .28s,box-shadow .28s;
+}
+.build-card.vis{animation:cardUp .72s cubic-bezier(.16,1,.3,1) forwards}
+.build-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  transform:scaleX(0);transform-origin:left;transition:transform .36s;
+}
+.build-card:hover{
+  transform:translateY(-7px);
+  background:rgba(255,255,255,.055);
+  box-shadow:0 28px 60px rgba(0,0,0,.52);
+}
+.build-card:hover::before{transform:scaleX(1)}
+.build-card:hover .build-card-arr{opacity:1;transform:translate(3px,-3px)}
+
+/* accent variants */
+.build-card[data-a="teal"]::before{background:linear-gradient(90deg,var(--teal2),rgba(34,180,160,.3))}
+.build-card[data-a="teal"]:hover{border-color:rgba(34,180,160,.3)}
+.build-card[data-a="gold"]::before{background:linear-gradient(90deg,var(--gold),rgba(200,147,42,.3))}
+.build-card[data-a="gold"]:hover{border-color:rgba(200,147,42,.3)}
+.build-card[data-a="orange"]::before{background:linear-gradient(90deg,var(--cst),rgba(240,112,64,.3))}
+.build-card[data-a="orange"]:hover{border-color:rgba(240,112,64,.3)}
+.build-card[data-a="green"]::before{background:linear-gradient(90deg,var(--cfi),rgba(16,185,129,.3))}
+.build-card[data-a="green"]:hover{border-color:rgba(16,185,129,.3)}
+.build-card[data-a="purple"]::before{background:linear-gradient(90deg,var(--cb),rgba(155,109,255,.3))}
+.build-card[data-a="purple"]:hover{border-color:rgba(155,109,255,.3)}
+.build-card[data-a="blue"]::before{background:linear-gradient(90deg,var(--cs),rgba(74,144,217,.3))}
+.build-card[data-a="blue"]:hover{border-color:rgba(74,144,217,.3)}
+
+/* icon badge */
+.build-card-icon{
+  width:50px;height:50px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.55rem;margin-bottom:1.15rem;flex-shrink:0;
+  border:1px solid transparent;
+}
+.build-card[data-a="teal"] .build-card-icon{background:rgba(34,180,160,.1);border-color:rgba(34,180,160,.2)}
+.build-card[data-a="gold"] .build-card-icon{background:rgba(200,147,42,.1);border-color:rgba(200,147,42,.2)}
+.build-card[data-a="orange"] .build-card-icon{background:rgba(240,112,64,.1);border-color:rgba(240,112,64,.2)}
+.build-card[data-a="green"] .build-card-icon{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2)}
+.build-card[data-a="purple"] .build-card-icon{background:rgba(155,109,255,.1);border-color:rgba(155,109,255,.2)}
+.build-card[data-a="blue"] .build-card-icon{background:rgba(74,144,217,.1);border-color:rgba(74,144,217,.2)}
+
+/* card text */
+.build-card-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.35rem;font-weight:600;
+  color:var(--tx);margin-bottom:.4rem;
+  letter-spacing:-.01em;line-height:1.15;
+}
+.build-card-desc{
+  font-size:.79rem;color:var(--tx3);
+  line-height:1.7;flex:1;margin-bottom:1.4rem;
+}
+
+/* CTA button */
+.build-card-cta{
+  display:inline-flex;align-items:center;gap:.4rem;
+  font-size:.76rem;font-weight:700;letter-spacing:.04em;
+  padding:.48rem 1.05rem;border-radius:99px;
+  border:1px solid transparent;cursor:none;
+  transition:all .22s;align-self:flex-start;
+}
+.build-card[data-a="teal"] .build-card-cta{background:rgba(34,180,160,.1);color:var(--teal2);border-color:rgba(34,180,160,.25)}
+.build-card[data-a="teal"] .build-card-cta:hover{background:rgba(34,180,160,.2);transform:translateX(3px)}
+.build-card[data-a="gold"] .build-card-cta{background:rgba(200,147,42,.1);color:var(--gold2);border-color:rgba(200,147,42,.25)}
+.build-card[data-a="gold"] .build-card-cta:hover{background:rgba(200,147,42,.2);transform:translateX(3px)}
+.build-card[data-a="orange"] .build-card-cta{background:rgba(240,112,64,.1);color:var(--cst);border-color:rgba(240,112,64,.25)}
+.build-card[data-a="orange"] .build-card-cta:hover{background:rgba(240,112,64,.2);transform:translateX(3px)}
+.build-card[data-a="green"] .build-card-cta{background:rgba(16,185,129,.1);color:var(--cfi);border-color:rgba(16,185,129,.25)}
+.build-card[data-a="green"] .build-card-cta:hover{background:rgba(16,185,129,.2);transform:translateX(3px)}
+.build-card[data-a="purple"] .build-card-cta{background:rgba(155,109,255,.1);color:var(--cb);border-color:rgba(155,109,255,.25)}
+.build-card[data-a="purple"] .build-card-cta:hover{background:rgba(155,109,255,.2);transform:translateX(3px)}
+.build-card[data-a="blue"] .build-card-cta{background:rgba(74,144,217,.1);color:var(--cs);border-color:rgba(74,144,217,.25)}
+.build-card[data-a="blue"] .build-card-cta:hover{background:rgba(74,144,217,.2);transform:translateX(3px)}
+
+/* arrow */
+.build-card-arr{
+  position:absolute;top:1.35rem;right:1.35rem;
+  font-size:.95rem;color:var(--tx3);
+  opacity:0;transition:all .25s;
+}
+
+/* stagger */
+.build-card:nth-child(1).vis{animation-delay:.04s}
+.build-card:nth-child(2).vis{animation-delay:.1s}
+.build-card:nth-child(3).vis{animation-delay:.16s}
+.build-card:nth-child(4).vis{animation-delay:.22s}
+.build-card:nth-child(5).vis{animation-delay:.28s}
+.build-card:nth-child(6).vis{animation-delay:.34s}
+
+/* responsive */
+@media(max-width:960px){.build-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){
+  .build-grid{grid-template-columns:1fr}
+  .build-h2{font-size:clamp(2rem,9vw,3rem)}
+  .build-search-wrap{max-width:100%}
+}
+</style>
+
+<section id="build-section">
+  <div class="build-inner">
+
+    <div class="build-eyebrow">Platform Capabilities</div>
+    <h2 class="build-h2">What can you build<br>with <em>ViaDecide?</em></h2>
+    <p class="build-sub">From dashboards to full web apps — ready-made tools and an AI generation engine that turns any idea into a working product.</p>
+
+    <!-- Search bar -->
+    <div class="build-search-wrap">
+      <div class="build-search-bar">
+        <span class="build-search-glyph">🔍</span>
+        <input type="text" id="build-search-input"
+               placeholder="What tool do you want to build?"
+               autocomplete="off" spellcheck="false"/>
+        <button class="build-search-btn" id="build-search-go">Explore →</button>
+      </div>
+      <div class="build-search-hint">
+        <strong>e.g.</strong> interview simulator, restaurant site, sales dashboard
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="build-grid" id="build-grid">
+
+      <div class="build-card" data-a="teal"
+           onclick="openModal('app-generator.html','🎤','Interview Simulator')"
+           role="button" tabindex="0">
+        <div class="build-card-arr">↗</div>
+        <div class="build-card-icon">🎤</div>
+        <div class="build-card-title">Interview Simulator</div>
+        <div class="build-card-desc">Practice job interviews in a chat simulator. Get real-time feedback and build confidence before the real thing.</div>
+        <button class="build-card-cta"
+                onclick="event.stopPropagation();openModal('app-generator.html','🎤','Interview Simulator')">
+          Open Tool →
+        </button>
+      </div>
+
+      <div class="build-card" data-a="gold"
+           onclick="openModal('sales-dashboard.html','📊','Sales Dashboard')"
+           role="button" tabindex="0">
+        <div class="build-card-arr">↗</div>
+        <div class="build-card-icon">📊</div>
+        <div class="build-card-title">Sales Dashboard</div>
+        <div class="build-card-desc">Track sales and visualize performance. Upload a CSV for instant KPIs, pivot tables, and charts.</div>
+        <button class="build-card-cta"
+                onclick="event.stopPropagation();openModal('sales-dashboard.html','📊','Sales Dashboard')">
+          Open Tool →
+        </button>
+      </div>
+
+      <div class="build-card" data-a="orange"
+           onclick="openModal('app-generator.html','🍽️','Restaurant Website')"
+           role="button" tabindex="0">
+        <div class="build-card-arr">↗</div>
+        <div class="build-card-icon">🍽️</div>
+        <div class="build-card-title">Restaurant Website</div>
+        <div class="build-card-desc">Create a simple restaurant website complete with a menu, gallery, and contact section — in minutes.</div>
+        <button class="build-card-cta"
+                onclick="event.stopPropagation();openModal('app-generator.html','🍽️','Restaurant Website')">
+          Open Tool →
+        </button>
+      </div>
+
+      <div class="build-card" data-a="green"
+           onclick="openModal('finance-dashboard-msme.html','💰','Finance Dashboard')"
+           role="button" tabindex="0">
+        <div class="build-card-arr">↗</div>
+        <div class="build-card-icon">💰</div>
+        <div class="build-card-title">Finance Dashboard</div>
+        <div class="build-card-desc">Visualize revenue, expenses and profit with interactive P&amp;L charts, budget vs actual, and FY filters.</div>
+        <button class="build-card-cta"
+                onclick="event.stopPropagation();openModal('finance-dashboard-msme.html','💰','Finance Dashboard')">
+          Open Tool →
+        </button>
+      </div>
+
+      <div class="build-card" data-a="purple"
+           onclick="openModal('alchemist.html','⚖️','Decision Tools')"
+           role="button" tabindex="0">
+        <div class="build-card-arr">↗</div>
+        <div class="build-card-icon">⚖️</div>
+        <div class="build-card-title">Decision Tools</div>
+        <div class="build-card-desc">Compare products and research choices with AI-powered structured frameworks for clear, confident decisions.</div>
+        <button class="build-card-cta"
+                onclick="event.stopPropagation();openModal('alchemist.html','⚖️','Decision Tools')">
+          Open Tool →
+        </button>
+      </div>
+
+      <div class="build-card" data-a="blue"
+           onclick="openModal('app-generator.html','🔧','Custom Web Apps')"
+           role="button" tabindex="0">
+        <div class="build-card-arr">↗</div>
+        <div class="build-card-icon">🔧</div>
+        <div class="build-card-title">Custom Web Apps</div>
+        <div class="build-card-desc">Turn simple ideas into working web tools. Describe what you need and the generator builds it on the spot.</div>
+        <button class="build-card-cta"
+                onclick="event.stopPropagation();openModal('app-generator.html','🔧','Custom Web Apps')">
+          Open Tool →
+        </button>
+      </div>
+
+    </div><!-- /build-grid -->
+  </div><!-- /build-inner -->
+</section>
+
+<script>
+/* BUILD SECTION — observer + keyboard + search */
+(function(){
+  /* Scroll-reveal observer */
+  var bIo=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('vis');bIo.unobserve(e.target);}
+    });
+  },{threshold:.08});
+  document.querySelectorAll('.build-card').forEach(function(el){bIo.observe(el);});
+
+  /* Keyboard activation */
+  document.querySelectorAll('.build-card[role="button"]').forEach(function(card){
+    card.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}
+    });
+  });
+
+  /* Search routing */
+  var bInput=document.getElementById('build-search-input');
+  var bGo=document.getElementById('build-search-go');
+  if(!bInput||!bGo)return;
+
+  var routes=[
+    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('app-generator.html','🎤','Interview Simulator');}},
+    {kw:['sales','revenue','units','product','register','csv','excel','chart','kpi'],fn:function(){openModal('sales-dashboard.html','📊','Sales Dashboard');}},
+    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('app-generator.html','🍽️','Restaurant Website');}},
+    {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('finance-dashboard-msme.html','💰','Finance Dashboard');}},
+    {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('alchemist.html','⚖️','Decision Tools');}},
+    {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('app-generator.html','🔧','Custom Web Apps');}},
+  ];
+
+  function runBuildSearch(q){
+    if(!q)return;
+    var lq=q.toLowerCase();
+    var best=null,top=0;
+    routes.forEach(function(r){
+      var sc=r.kw.reduce(function(acc,k){return acc+(lq.includes(k)?1:0);},0);
+      if(sc>top){top=sc;best=r;}
+    });
+    if(best&&top>0)best.fn();
+    else{var el=document.getElementById('cat-tools');if(el)el.scrollIntoView({behavior:'smooth'});}
+  }
+
+  bGo.addEventListener('click',function(){runBuildSearch(bInput.value.trim());});
+  bInput.addEventListener('keydown',function(e){if(e.key==='Enter')runBuildSearch(bInput.value.trim());});
+})();
+</script>
+<!-- ╚══════════════════════════════════════════════════╝ -->
+
 <section id="cat-tools" data-cat="tools" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
