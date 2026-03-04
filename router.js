@@ -1,4 +1,3 @@
-
 /**
  * ═══════════════════════════════════════════════════════════
  * viadecide.com — UNIVERSAL ROUTER v3.1
@@ -27,16 +26,29 @@
   // Static paths go here.
   // ─────────────────────────────────────────────────────────
   var ROUTES = {
-    // ── Popular-tool dedicated subpages (add .html files to repo when ready) ──
-    // Swap "app-generator.html" for the real file as each page ships.
-    "interview-simulator":      "interview-simulator.html",
-    "interview-prep":           "interview-prep.html",
-    "restaurant-website":       "app-generator.html",   // replace when ready
-    "restaurant-builder":       "app-generator.html",   // alias
-    "finance-dashboard":        "finance-dashboard-msme.html",
-    "sales-dashboard":          "sales-dashboard.html",
-    "decision-tool":            "alchemist.html",
-    "app-generator":            "app-generator.html",
+    // ── Popular-tool dedicated subpages ──────────────────────────────────────
+    "interview-simulator":      "interview-prep.html",    // ✅ real page exists
+    "interview-prep":           "interview-prep.html",    // ✅ real page exists
+    "restaurant-website":       "Jalaram-food-court-rajkot.html", // live restaurant example
+    "restaurant-builder":       "Jalaram-food-court-rajkot.html",
+    "finance-dashboard":        "finance-dashboard-msme.html",    // ✅ real page
+    "sales-dashboard":          "sales-dashboard.html",           // ✅ real page
+    "decision-tool":            "alchemist.html",                  // ✅ real page
+    "app-generator":            "app-generator.html",             // ✅ real page
+
+    // ── Additional real pages in repo ────────────────────────────────────────
+    "indiaai-mission-2025":          "indiaai-mission-2025.html",
+    "viadecide-public-beta":         "viadecide-public-beta.html",
+    "multi-source-research-explained":"multi-source-research-explained.html",
+    "payment-register":              "payment-register.html",
+    "payroll-register":              "payment-register.html",
+    "jalaram-food-court":            "Jalaram-food-court-rajkot.html",
+    "restaurant-example":            "Jalaram-food-court-rajkot.html",
+    "interview-prep":                "interview-prep.html",
+    "interview-simulator":           "interview-prep.html",
+    "finance-dashboard":             "finance-dashboard-msme.html",
+    "viaguide":                      "ViaGuide.html",
+    "studyos":                       "StudyOS.html",
 
     // Core tools
     alchemist:          "alchemist.html",
