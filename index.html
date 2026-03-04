@@ -381,12 +381,33 @@ section{position:relative;z-index:10}
 .err-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.75rem 1.5rem;background:var(--gold);color:#fff;border-radius:10px;cursor:none;transition:all .2s}
 .err-btn:hover{background:var(--gold2)}
 
-/* KEYFRAMES */
+/* Modal mobile overrides */
+@media(max-width:640px){
+  #modal-sheet{
+    margin:0;width:100vw;max-width:100vw;
+    height:100dvh;border-radius:0;
+    border:none;
+  }
+  #modal-top{padding:.6rem .9rem}
+  .m-t-name{font-size:.8rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m-act{font-size:.7rem;padding:.3rem .65rem}
+  /* Error state: big tap-friendly button */
+  #modal-err{padding:2rem 1.25rem;gap:.75rem;text-align:center}
+  #modal-err h3{font-size:1.4rem}
+  #modal-err p{font-size:.82rem;max-width:280px}
+  .err-btn{
+    width:100%;justify-content:center;
+    padding:1rem 1.5rem;font-size:.95rem;
+    border-radius:14px;
+    box-shadow:0 8px 24px rgba(200,147,42,.35);
+  }
+}
 @keyframes riseUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 @keyframes lineUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
 
 /* RESPONSIVE */
+/* Tablet */
 @media(max-width:1024px){
   .ondc-strip{grid-template-columns:1fr}
   .about-grid{grid-template-columns:1fr;gap:3rem}
@@ -398,18 +419,94 @@ section{position:relative;z-index:10}
   .tc-s8{grid-column:span 6}.tc-s12{grid-column:span 6}
   .nav-mid{display:none}
   #thread-toggle{display:none}
+  .cat-num{font-size:clamp(3rem,6vw,5rem)}
 }
+/* ── MOBILE TOUCH UX ─────────────────────────────────── */
+/* Ensure all interactive elements have comfortable tap targets on mobile */
 @media(max-width:640px){
-  .bento{grid-template-columns:1fr 1fr}
-  .tc-s4,.tc-s5,.tc-s3,.tc-s6,.tc-s8,.tc-s12{grid-column:span 2}
+  /* Nav: only brand + CTA on mobile */
+  #nav{padding:.75rem 1rem}
+  #nav.solid{padding:.65rem 1rem}
+  .nav-brand{font-size:1.2rem}
+  .nav-cta{font-size:.72rem;padding:.48rem 1rem;border-radius:99px}
+
+  /* Hero heading */
   .hero-h1{font-size:clamp(2.8rem,10vw,5rem)}
-  .orb-wrap{max-width:100%}
-  #cur,#cur-ring{display:none}
-  body{cursor:auto}
-  button,a,[onclick]{cursor:pointer}
-  .cat-num{display:none}
+
+  /* Hide thread toggle and cat numbers */
   #thread-toggle{display:none}
-  .finance-strip{padding:1.25rem}
+  .cat-num{display:none}
+  #hero{padding:6rem 1rem 3.5rem}
+  .hero-kicker{font-size:.6rem;margin-bottom:1.5rem}
+
+  /* Orb bar: full width, bigger touch target */
+  .orb-wrap{max-width:100%}
+  .orb-bar{padding:.2rem .2rem .2rem .9rem}
+  #orb-input{font-size:.92rem;padding:.75rem 0}
+  .orb-go{width:48px;height:48px;border-radius:12px}
+
+  /* Orb chips: horizontal scroll instead of wrapping 3 rows */
+  .orb-chips{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    padding:.25rem .5rem .5rem;
+    justify-content:flex-start;
+    gap:.4rem;
+    /* hide scrollbar */
+    scrollbar-width:none;
+  }
+  .orb-chips::-webkit-scrollbar{display:none}
+  .orb-chip{
+    scroll-snap-align:start;
+    flex-shrink:0;
+    font-size:.7rem;
+    padding:.38rem .8rem;
+    min-height:36px;
+  }
+
+  /* Category sections: reduce padding */
+  .cat-section{padding:3.5rem 0 3rem}
+  .cat-inner{padding:0 1rem}
+  .cat-header{margin-bottom:1.5rem}
+  .cat-name{font-size:1.2rem}
+
+  /* Bento cards on mobile: 2 col layout */
+  .bento{grid-template-columns:1fr 1fr;gap:.6rem}
+  .tc-s4,.tc-s5,.tc-s3,.tc-s6,.tc-s8,.tc-s12{grid-column:span 2}
+  /* Large featured cards span full width */
+  .tc-feat{grid-column:span 2}
+  /* Small cards: 1 col each */
+  .tc-s3,.tc-s4{grid-column:span 1}
+
+  /* Bento card internals */
+  .tc{padding:1.1rem;border-radius:14px}
+  .tc-name{font-size:.86rem}
+  .tc-name-lg{font-size:1.35rem}
+  .tc-desc{font-size:.72rem}
+  .tc-vis{height:72px;font-size:2rem}
+  /* Bigger tap area — always show arrow on touch */
+  .tc-arr{opacity:.4}
+
+  /* Finance strip: single column */
+  .finance-strip{grid-template-columns:1fr;padding:1.2rem;gap:1.5rem}
+  .ondc-strip{grid-template-columns:1fr;padding:1.2rem;gap:1.5rem}
+
+  /* About */
+  #about{padding:3rem 1rem}
+
+  /* Install */
+  #install{padding:3rem 1rem}
+  .install-inner{grid-template-columns:1fr;gap:2rem}
+
+  /* Footer CTA */
+  #footer-cta{padding:4rem 1rem}
+  .footer-acts{gap:.65rem}
+  .btn-p,.btn-g,.btn-t,.btn-fi{font-size:.82rem;padding:.75rem 1.4rem}
+
+  /* Footer links: wrap tighter */
+  .footer-links{gap:.85rem;font-size:.72rem}
 }
 </style>
 </head>
@@ -676,12 +773,41 @@ section{position:relative;z-index:10}
 .build-card:nth-child(5).vis{animation-delay:.28s}
 .build-card:nth-child(6).vis{animation-delay:.34s}
 
-/* responsive */
+/* ── MOBILE FIXES (touch devices only) ──────────────── */
+
+/* Hide custom cursor on ALL touch/pointer-coarse devices */
+@media(hover:none),(pointer:coarse){
+  #cur,#cur-ring{display:none!important}
+  body{cursor:auto}
+  button,a,[onclick],.build-card,.pt-card,.tc{cursor:pointer}
+}
+
+/* Prevent horizontal overflow */
+#build-section{overflow:hidden}
+
+/* Build grid: 2-col on tablet, 2-col on mobile (not 1!) */
 @media(max-width:960px){.build-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:640px){
+  #build-section{padding:4rem 0 3.5rem}
+  .build-inner{padding:0 1rem}
+  .build-grid{grid-template-columns:1fr 1fr;gap:.6rem}
+  .build-h2{font-size:clamp(1.9rem,8vw,2.8rem)}
+  .build-sub{font-size:.82rem;margin-bottom:1.8rem}
+  .build-search-wrap{max-width:100%;margin-bottom:2rem}
+  /* stack search button below on very small screens */
+  .build-search-bar{flex-wrap:wrap;padding:.6rem .75rem}
+  .build-search-glyph{display:none}
+  #build-search-input{padding:.55rem 0;font-size:.9rem;width:100%}
+  .build-search-btn{width:100%;justify-content:center;border-radius:10px;margin-top:.4rem;padding:.6rem 1rem}
+  .build-search-hint{padding:.4rem .5rem .2rem}
+  .build-card{padding:1.2rem;border-radius:16px}
+  .build-card-title{font-size:1.1rem}
+  .build-card-desc{font-size:.74rem;margin-bottom:1rem}
+  .build-card-cta{font-size:.72rem;padding:.42rem .85rem}
+}
+@media(max-width:380px){
   .build-grid{grid-template-columns:1fr}
-  .build-h2{font-size:clamp(2rem,9vw,3rem)}
-  .build-search-wrap{max-width:100%}
+  .build-card{padding:1.1rem}
 }
 </style>
 
@@ -840,6 +966,749 @@ section{position:relative;z-index:10}
 })();
 </script>
 <!-- ╚══════════════════════════════════════════════════╝ -->
+
+<section id="about">
+  <div class="about-grid">
+    <div>
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="display:block;width:24px;height:1px;background:var(--tx3)"></span>Our Philosophy</div>
+      <h2 class="about-h2">Decisions deserve<br><em>infrastructure.</em></h2>
+      <p class="about-p">Most Indian buyers make expensive, life-impacting decisions with incomplete information. We're building the layer that changes that.</p>
+      <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide. Seven categories. One engine.</p>
+      <div class="stat-row">
+        <div class="a-stat"><div class="num">23<span>+</span></div><div class="lbl">Live Modules</div></div>
+        <div class="a-stat"><div class="num">7</div><div class="lbl">Categories</div></div>
+        <div class="a-stat"><div class="num">∞</div><div class="lbl">Decisions</div></div>
+      </div>
+    </div>
+    <div class="pillars">
+      <div class="pillar"><div class="p-icon">🔍</div><div class="p-txt"><h4>Multi-Source Research</h4><p>Aggregate from multiple sources so you see the full picture.</p></div></div>
+      <div class="pillar"><div class="p-icon">🤖</div><div class="p-txt"><h4>AI That Structures, Not Hypes</h4><p>Structured AI reasoning — deliberate, framework-driven analysis.</p></div></div>
+      <div class="pillar"><div class="p-icon">🇮🇳</div><div class="p-txt"><h4>Built for Bharat</h4><p>ONDC integration, INR pricing, regional market awareness.</p></div></div>
+      <div class="pillar"><div class="p-icon">🔓</div><div class="p-txt"><h4>Radical Transparency</h4><p>Affiliate links always disclosed. Editorial rankings always independent.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="install" style="border-top:1px solid var(--bd)">
+  <div class="install-inner">
+    <div>
+      <div class="install-badge">📲 Progressive Web App</div>
+      <h2 class="install-h2">Get ViaDecide on<br>any <em>device.</em></h2>
+      <p class="install-sub">Install our PWA — works on Android, iPhone, Windows, Mac, Linux. No app store needed.</p>
+      <div class="install-steps">
+        <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, Edge, or Firefox</div></div>
+        <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser's menu</div></div>
+        <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy offline access</strong> — fast, native-like on your homescreen</div></div>
+      </div>
+      <div class="install-btns">
+        <button id="install-pwa-section" class="btn-t">📲 Install Now</button>
+        <button id="ios-trigger-section" class="btn-g" style="display:none">🍎 iOS Instructions</button>
+      </div>
+    </div>
+    <div class="install-r">
+      <div class="dev-tabs">
+        <button class="dev-tab active" data-tab="android">Android</button>
+        <button class="dev-tab" data-tab="ios">iPhone</button>
+        <button class="dev-tab" data-tab="desktop">Desktop</button>
+      </div>
+      <div id="tab-android" class="dev-instructions"><strong>📱 Android — Chrome</strong><ol><li>Open <strong>viadecide.com</strong> in Chrome</li><li>Tap <strong>⋮ → "Add to Home screen"</strong></li><li>Tap <strong>Install</strong> — done!</li></ol></div>
+      <div id="tab-ios" class="dev-instructions" style="display:none"><strong>🍎 iPhone / iPad — Safari</strong><ol><li>Open in <strong>Safari</strong> (not Chrome)</li><li>Tap the <strong>Share button (□↑)</strong></li><li>Tap <strong>"Add to Home Screen"</strong> → Add</li></ol></div>
+      <div id="tab-desktop" class="dev-instructions" style="display:none"><strong>💻 Desktop — Chrome / Edge</strong><ol><li>Open in <strong>Chrome or Edge</strong></li><li>Look for the <strong>⊕ install icon</strong> in the address bar</li><li>Click <strong>Install</strong></li></ol></div>
+    </div>
+  </div>
+</section>
+
+<section id="footer-cta">
+  <div class="footer-inner">
+    <div class="footer-eye">Ready to decide smarter?</div>
+    <h2 class="footer-h2">Start with clarity.<em>Not confusion.</em></h2>
+    <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.</p>
+    <div class="footer-acts">
+      <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
+      <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
+      <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
+      <button class="btn-g" onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
+    </div>
+    <div class="footer-links">
+      <a onclick="openModal('contact.html','✉️','Contact')">Contact</a>
+      <a onclick="openModal('privacy.html','🔒','Privacy')">Privacy</a>
+      <a onclick="openModal('terms.html','📜','Terms')">Terms</a>
+      <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
+      <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
+      <a onclick="openModal('founder.html','👤','Founder')">About</a>
+      <span>· © 2025 ViaDecide · Amazon Associates IN (decideengine-21)</span>
+    </div>
+  </div>
+</section>
+
+<div id="install-banner">
+  <div class="ib-inner">
+    <div class="ib-icon">⚡</div>
+    <div class="ib-txt"><strong>Install ViaDecide App</strong><span>Add to homescreen — works offline, loads instantly</span></div>
+    <div class="ib-acts">
+      <button id="install-banner-btn" class="ib-btn">Install</button>
+      <button id="install-banner-dismiss" class="ib-dismiss">✕</button>
+    </div>
+  </div>
+</div>
+<div id="ios-hint">
+  <button id="ios-hint-close">✕</button>
+  <strong>Install on iPhone / iPad</strong>
+  <p>Tap the <strong>Share button (□↑)</strong> in Safari, then tap <strong>"Add to Home Screen"</strong> → Add.</p>
+</div>
+
+<button id="thread-toggle" onclick="toggleThread()" title="Decision Thread">
+  <div class="tt-dot"></div>Thread
+</button>
+<div id="thread-panel">
+  <div class="thread-hd"><div class="thread-title"><div class="thread-badge"></div>Decision Thread</div><button class="thread-close" onclick="toggleThread()">✕</button></div>
+  <div class="thread-body">
+    <div class="thread-empty-icon">🧵</div>
+    <div class="thread-empty-title">No decisions yet</div>
+    <p class="thread-empty-sub">As you explore tools and research products, your session will be chronicled here.</p>
+    <span class="thread-coming">Phase 2 · Coming Soon</span>
+  </div>
+  <div class="thread-ft">Decision Thread · Every tool you use, one connected story.</div>
+</div>
+
+<div id="modal">
+  <div id="modal-bd" onclick="closeModal()"></div>
+  <div id="modal-sheet">
+    <div id="modal-top">
+      <div class="m-title-wrap"><span class="m-t-icon" id="m-icon">🔬</span><span class="m-t-name" id="m-name">Tool</span></div>
+      <div class="m-acts">
+        <a id="m-tab" href="#" target="_blank" class="m-act">↗ Open in Tab</a>
+        <button id="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div id="modal-err">
+      <div class="err-icon">🔒</div>
+      <h3>Can't load in iframe</h3>
+      <p>This page has security restrictions that prevent embedding. Open it in a new tab instead.</p>
+      <a id="err-open-link" href="#" target="_blank" class="err-btn">Open in New Tab ↗</a>
+    </div>
+    <iframe id="modal-frame" src="about:blank" allowfullscreen
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
+  </div>
+</div>
+
+<script src="router.js" onerror="console.warn('router.js not found, skipping')"></script>
+<script>
+/* CURSOR */
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
+
+/* CANVAS */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
+resize();window.addEventListener('resize',resize);
+function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,o:Math.random()*.4+.1,c:Math.random()>.5?'rgba(200,147,42,':'rgba(34,180,160,'}}
+for(let i=0;i<90;i++)particles.push(mkP());
+function drawCanvas(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.018)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=100){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=100){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.c+p.o+')';ctx.fill();});
+  for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle='rgba(200,147,42,'+(0.06*(1-d/120))+')';ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}
+  requestAnimationFrame(drawCanvas);
+}
+drawCanvas();
+
+/* SCROLL */
+const nav=document.getElementById('nav'),prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY,max=document.body.scrollHeight-innerHeight;
+  prog.style.width=(s/max*100)+'%';
+  nav.classList.toggle('solid',s>80);
+  const h1=document.querySelector('.hero-h1');
+  if(h1)h1.style.transform=`translateY(${s*.18}px)`;
+});
+
+/* INTERSECTION OBSERVER */
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.08});
+document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
+
+/* KEYBOARD FOR .tc CARDS */
+document.querySelectorAll('.tc[role="button"]').forEach(card=>{
+  card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}});
+});
+
+/* DEVICE TABS */
+document.querySelectorAll('.dev-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.dev-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.dev-instructions').forEach(d=>d.style.display='none');
+    const t=document.getElementById('tab-'+tab.dataset.tab);
+    if(t)t.style.display='block';
+  });
+});
+
+/* THREAD */
+var threadOpen=false;
+function toggleThread(){threadOpen=!threadOpen;document.getElementById('thread-panel').classList.toggle('open',threadOpen);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleThread();});
+
+/* MODAL */
+let currentFile='';
+function openModal(file,icon,name){
+  if(/^https?:\/\//i.test(file)){window.open(file,'_blank','noopener,noreferrer');return;}
+  currentFile=file;
+  document.getElementById('m-icon').textContent=icon;
+  document.getElementById('m-name').textContent=name;
+  document.getElementById('m-tab').href=file;
+  document.getElementById('err-open-link').href=file;
+  document.getElementById('modal-err').classList.remove('show');
+  const frame=document.getElementById('modal-frame');
+  frame.style.display='block';
+  frame.src='';            
+  setTimeout(()=>{ frame.src=file; },10);  
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+document.getElementById('modal-frame').addEventListener('load',function(){
+  const src=this.src;
+  if(!src || src==='about:blank' || src==='' || src===window.location.href) return;
+  // Only show error when we genuinely can't access the frame (cross-origin block).
+  // Do NOT check for empty body — same-origin pages may have JS that runs after load.
+  try{
+    const d=this.contentDocument||this.contentWindow.document;
+    // null document = actual block (CSP / X-Frame-Options)
+    if(!d||d.body===null){showModalError();}
+    // If body exists but is empty, wait 800ms for JS to populate it
+    else if(d.body.innerHTML.trim()===''){
+      const f=this;
+      setTimeout(()=>{
+        try{
+          const d2=f.contentDocument||f.contentWindow.document;
+          if(!d2||d2.body===null||d2.body.innerHTML.trim()===''){showModalError();}
+        }catch(e2){showModalError();}
+      },800);
+    }
+  }catch(e){
+    showModalError();
+  }
+});
+
+function showModalError(){
+  document.getElementById('modal-frame').style.display='none';
+  document.getElementById('modal-err').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow='';
+  setTimeout(()=>{
+    document.getElementById('modal-frame').src='about:blank';
+    document.getElementById('modal-frame').style.display='block';
+    document.getElementById('modal-err').classList.remove('show');
+  },400);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeModal();});
+
+/* ORB SEARCH */
+(function(){
+  const input=document.getElementById('orb-input');
+  const go=document.getElementById('orb-go');
+  const suggest=document.getElementById('orb-suggest');
+  if(!input||!go||!suggest)return;
+  function norm(s){return(s||'').toLowerCase().trim();}
+  function txt(el){return(el&&el.textContent||'').trim();}
+  function parseOpenModal(oc){const m=(oc||'').match(/openModal\('([^']+)','([^']*)','([^']*)'\)/);if(!m)return null;return{type:'modal',file:m[1],icon:m[2],name:m[3]};}
+  function parseLocHref(oc){const m=(oc||'').match(/location\.href='([^']+)'/);if(!m)return null;return{type:'nav',file:m[1],icon:'↗',name:m[1]};}
+  const INDEX=Array.from(document.querySelectorAll('.tc')).map(card=>{
+    const oc=card.getAttribute('onclick')||'';
+    const tgt=parseOpenModal(oc)||parseLocHref(oc);
+    if(!tgt)return null;
+    const title=txt(card.querySelector('.tc-name-lg'))||txt(card.querySelector('.tc-name'))||tgt.name;
+    const desc=txt(card.querySelector('.tc-desc-lg'))||txt(card.querySelector('.tc-desc'))||'';
+    return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
+  }).filter(Boolean);
+  function tokenScore(q,str){if(!str)return 0;let s=0;if(str===q)s+=80;if(str.includes(q))s+=40;q.split(/\s+/).filter(Boolean).forEach(p=>{if(str.includes(p))s+=10;});return s;}
+  function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,norm(item.intent))*.7;s+=tokenScore(qq,norm(item.orbit))*.8;s+=tokenScore(qq,norm(item.cat))*.3;return s;}
+  let results=[],active=-1;
+  function hideSuggest(){suggest.style.display='none';suggest.innerHTML='';results=[];active=-1;}
+  function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row${i===active?' active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
+  function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
+  function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal')openModal(item.file,item.icon,item.title);else location.href=item.file;}
+  function fallbackScroll(q){
+    const lv=(q||'').toLowerCase();
+    if(/finance|fintrack|cashflow|profit|loss|pnl|income|expense|gst|transaction|ledger|accounting|msme|dashboard|kpi|revenue|budget|invoice|payroll|inventory|stock/i.test(lv))
+      document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'});
+    else if(/game|play|sim|mars|hex|war/i.test(lv))document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});
+    else if(/deal|price|buy|ondc|cashback|discount/i.test(lv))document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});
+    else if(/print|plate|keychain|gift|store/i.test(lv))document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
+    else if(/blog|article|read|guide|learn/i.test(lv))document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
+    else if(/service|hire|license|cohort/i.test(lv))document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
+    else document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
+  }
+  input.addEventListener('input',doSearch);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'&&results.length){e.preventDefault();active=Math.min(results.length-1,active+1);render();}
+    else if(e.key==='ArrowUp'&&results.length){e.preventDefault();active=Math.max(0,active-1);render();}
+    else if(e.key==='Enter'){e.preventDefault();if(results.length)openItem(results[active>=0?active:0]);else fallbackScroll(input.value);}
+    else if(e.key==='Escape'){hideSuggest();input.blur();}
+  });
+  go.addEventListener('click',()=>{if(results.length)openItem(results[0]);else fallbackScroll(input.value);});
+  suggest.addEventListener('click',e=>{const row=e.target.closest('.orb-row');if(!row)return;openItem(results[Number(row.dataset.i)]);});
+  document.addEventListener('mousedown',e=>{const wrap=document.getElementById('orb-wrap');if(!wrap)return;if(!wrap.contains(e.target))hideSuggest();});
+  input.addEventListener('blur',()=>setTimeout(hideSuggest,120));
+})();
+
+/* PWA */
+var dP=null;
+var isIOS=/iP(ad|hone|od)/.test(navigator.userAgent)&&!window.MSStream;
+var isInStandaloneMode=window.matchMedia('(display-mode:standalone)').matches||(window.navigator.standalone===true);
+var allInstallBtns=[document.getElementById('install-pwa-nav'),document.getElementById('install-pwa-section')];
+var banner=document.getElementById('install-banner');
+var bannerBtn=document.getElementById('install-banner-btn');
+var bannerDismiss=document.getElementById('install-banner-dismiss');
+var iosHint=document.getElementById('ios-hint');
+var iosHintClose=document.getElementById('ios-hint-close');
+var iosTriggerSection=document.getElementById('ios-trigger-section');
+function showInstallBtns(){allInstallBtns.forEach(b=>{if(b)b.style.display='inline-flex';});}
+function hideInstallBtns(){allInstallBtns.forEach(b=>{if(b)b.style.display='none';});if(banner)banner.classList.remove('show');}
+function doInstall(){if(dP){dP.prompt();dP.userChoice.then(r=>{if(r.outcome==='accepted'){dP=null;hideInstallBtns();}});}}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dP=e;showInstallBtns();setTimeout(function(){try{var d=sessionStorage.getItem('de-install-dismissed');if(!d&&!isInStandaloneMode&&banner)banner.classList.add('show');}catch(ex){}},3500);});
+allInstallBtns.forEach(b=>{if(b)b.addEventListener('click',doInstall)});
+if(bannerBtn)bannerBtn.addEventListener('click',function(){doInstall();if(banner)banner.classList.remove('show');});
+if(bannerDismiss)bannerDismiss.addEventListener('click',function(){if(banner)banner.classList.remove('show');try{sessionStorage.setItem('de-install-dismissed','1');}catch(e){}});
+if(isIOS&&!isInStandaloneMode){if(iosTriggerSection)iosTriggerSection.style.display='inline-flex';if(iosTriggerSection)iosTriggerSection.addEventListener('click',function(){if(iosHint)iosHint.classList.add('show');});setTimeout(function(){try{var d=sessionStorage.getItem('de-ios-dismissed');if(!d&&iosHint)iosHint.classList.add('show');}catch(e){}},4500);}
+if(iosHintClose)iosHintClose.addEventListener('click',function(){if(iosHint)iosHint.classList.remove('show');try{sessionStorage.setItem('de-ios-dismissed','1');}catch(e){}});
+window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns();});
+if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</body>
+</html>
+
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║    POPULAR TOOLS BUILT ON VIADECIDE — SECTION       ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<style>
+/* ── POPULAR TOOLS ──────────────────────────────────────── */
+#popular-tools {
+  position: relative; z-index: 10;
+  padding: 7rem 0 6rem;
+  border-top: 1px solid var(--bd);
+  overflow: hidden; /* contain the ghost text */
+}
+#popular-tools::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 50%, rgba(200,147,42,.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 20%, rgba(34,180,160,.04) 0%, transparent 55%);
+}
+/* ghost word behind title */
+#popular-tools .pt-ghost {
+  position: absolute; top: 3.5rem; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(5rem, 14vw, 14rem);
+  font-weight: 700; letter-spacing: -.04em;
+  color: rgba(255,255,255,.018);
+  white-space: nowrap; pointer-events: none;
+  user-select: none; line-height: 1;
+}
+
+.pt-inner { max-width: 1280px; margin: 0 auto; padding: 0 2.5rem; }
+
+/* header row */
+.pt-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 2rem;
+  margin-bottom: 3.5rem; flex-wrap: wrap;
+}
+.pt-header-l { max-width: 540px; }
+.pt-eyebrow {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-size: .62rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gold2); margin-bottom: .85rem;
+}
+.pt-eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold2); animation: pdot 1.8s infinite;
+}
+.pt-h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
+  font-weight: 300; line-height: .97;
+  letter-spacing: -.03em; color: var(--tx);
+}
+.pt-h2 em { font-style: italic; color: var(--gold); }
+.pt-header-r {
+  font-size: .82rem; color: var(--tx3); line-height: 1.7;
+  max-width: 300px; text-align: right;
+}
+@media(max-width:640px){ .pt-header-r { display: none; } }
+
+/* ── GRID ────────────────────────────────────────────────── */
+.pt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .9rem;
+}
+
+/* base card */
+.pt-card {
+  position: relative; overflow: hidden;
+  background: var(--sf); border: 1px solid var(--bd);
+  border-radius: 22px; padding: 2rem;
+  display: flex; flex-direction: column;
+  cursor: none;
+  opacity: 0; transform: translateY(44px);
+  transition:
+    transform .38s cubic-bezier(.34,1.56,.64,1),
+    border-color .28s, background .28s, box-shadow .28s;
+}
+.pt-card.vis { animation: cardUp .75s cubic-bezier(.16,1,.3,1) forwards; }
+.pt-card:nth-child(1).vis{animation-delay:.05s}
+.pt-card:nth-child(2).vis{animation-delay:.12s}
+.pt-card:nth-child(3).vis{animation-delay:.19s}
+.pt-card:nth-child(4).vis{animation-delay:.26s}
+.pt-card:nth-child(5).vis{animation-delay:.33s}
+.pt-card:nth-child(6).vis{animation-delay:.40s}
+
+/* hover lift */
+.pt-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--bd2);
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 32px 70px rgba(0,0,0,.55);
+}
+.pt-card:hover .pt-card-cta { gap: .65rem; }
+.pt-card:hover .pt-num { opacity: .09; }
+
+/* top shimmer bar */
+.pt-card::after {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--pt-accent, var(--gold)) 50%, transparent 100%);
+  opacity: 0; transition: opacity .35s;
+}
+.pt-card:hover::after { opacity: 1; }
+
+/* accent per card via CSS custom prop */
+.pt-card[data-c="gold"]   { --pt-accent: var(--gold2); }
+.pt-card[data-c="teal"]   { --pt-accent: var(--teal2); }
+.pt-card[data-c="orange"] { --pt-accent: var(--cst); }
+.pt-card[data-c="green"]  { --pt-accent: var(--cfi); }
+.pt-card[data-c="purple"] { --pt-accent: var(--cb); }
+.pt-card[data-c="blue"]   { --pt-accent: var(--cs); }
+
+.pt-card[data-c="gold"]:hover   { border-color: rgba(200,147,42,.28); }
+.pt-card[data-c="teal"]:hover   { border-color: rgba(34,180,160,.28); }
+.pt-card[data-c="orange"]:hover { border-color: rgba(240,112,64,.28); }
+.pt-card[data-c="green"]:hover  { border-color: rgba(16,185,129,.28); }
+.pt-card[data-c="purple"]:hover { border-color: rgba(155,109,255,.28); }
+.pt-card[data-c="blue"]:hover   { border-color: rgba(74,144,217,.28); }
+
+/* ghost number */
+.pt-num {
+  position: absolute; top: -.2rem; right: 1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 6rem; font-weight: 700; line-height: 1;
+  color: rgba(255,255,255,.04);
+  letter-spacing: -.06em; user-select: none;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+
+/* icon row */
+.pt-icon-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+}
+.pt-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.03);
+  transition: transform .25s;
+}
+.pt-card:hover .pt-icon { transform: scale(1.08) rotate(-3deg); }
+
+/* category pill */
+.pt-pill {
+  font-size: .58rem; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: .22rem .65rem; border-radius: 99px;
+  border: 1px solid rgba(255,255,255,.07);
+  color: var(--pt-accent, var(--gold));
+  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 10%, transparent);
+}
+
+/* text */
+.pt-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem; font-weight: 600;
+  color: var(--tx); letter-spacing: -.015em;
+  line-height: 1.15; margin-bottom: .45rem;
+}
+.pt-desc {
+  font-size: .8rem; color: var(--tx3);
+  line-height: 1.72; flex: 1; margin-bottom: 1.2rem;
+}
+
+/* CTA */
+.pt-card-cta {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: .75rem; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  padding: .52rem 1.1rem .52rem .9rem;
+  border-radius: 99px; border: 1px solid;
+  align-self: flex-start; cursor: none;
+  transition: gap .22s, background .22s, box-shadow .22s, transform .22s;
+  color: var(--pt-accent, var(--gold));
+  border-color: color-mix(in srgb, var(--pt-accent, var(--gold)) 35%, transparent);
+  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 8%, transparent);
+}
+.pt-card-cta:hover {
+  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 18%, transparent);
+  transform: translateX(3px);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--pt-accent, var(--gold)) 20%, transparent);
+}
+.pt-card-cta .cta-arrow {
+  display: inline-block;
+  transition: transform .22s;
+}
+.pt-card-cta:hover .cta-arrow { transform: translateX(3px); }
+
+/* divider line under header */
+.pt-rule {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, var(--gold3) 0%, transparent 80%);
+  margin-bottom: 3.5rem;
+}
+
+/* responsive */
+@media(max-width: 1024px) {
+  .pt-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 640px) {
+  /* 2-col on mobile phones */
+  .pt-grid { grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .pt-card { padding: 1.2rem; border-radius: 18px; }
+  .pt-name { font-size: 1.1rem; }
+  .pt-desc { font-size: .74rem; }
+  .pt-num { font-size: 3.5rem; top: -.1rem; right: .6rem; }
+  /* kill the ghost word on mobile — it causes overflow */
+  .pt-ghost { display: none; }
+  #popular-tools { padding: 4rem 0 3.5rem; }
+  .pt-inner { padding: 0 1rem; }
+  .pt-h2 { font-size: clamp(1.9rem, 8vw, 2.8rem); }
+  .pt-header-r { display: none; }
+  /* make icon smaller to save space */
+  .pt-icon { width: 40px; height: 40px; font-size: 1.25rem; border-radius: 12px; }
+  .pt-pill { font-size: .52rem; padding: .18rem .5rem; }
+  /* bigger tap targets on mobile */
+  .pt-card-cta { padding: .6rem 1rem; font-size: .72rem; min-height: 40px; }
+  .pt-footer-row { gap: .5rem; }
+  .pt-badge { font-size: .55rem; padding: .2rem .55rem; }
+}
+@media(max-width: 380px) {
+  .pt-grid { grid-template-columns: 1fr; }
+  .pt-card { padding: 1.1rem; }
+}
+
+/* footer row: CTA + badge side by side */
+.pt-footer-row {
+  display: flex; align-items: center;
+  gap: .75rem; flex-wrap: wrap;
+  margin-top: auto;
+}
+
+/* status badges — mirrors existing .tc-st pattern */
+.pt-badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .6rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: .22rem .65rem; border-radius: 99px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.pt-badge--live {
+  background: var(--teal3); color: var(--teal2);
+  border: 1px solid rgba(34,180,160,.2);
+}
+.pt-badge--wip {
+  background: rgba(255,255,255,.05); color: var(--tx3);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* wip card: subtle dim treatment on the icon */
+.pt-card--wip .pt-icon { opacity: .65; }
+.pt-card--wip .pt-name { opacity: .85; }
+</style>
+
+<section id="popular-tools">
+  <div class="pt-ghost">Popular</div>
+
+  <div class="pt-inner">
+    <div class="pt-header">
+      <div class="pt-header-l">
+        <div class="pt-eyebrow">
+          <span class="pt-eyebrow-dot"></span>
+          Ready to use · No signup required
+        </div>
+        <h2 class="pt-h2">Popular tools built<br>on <em>ViaDecide</em></h2>
+      </div>
+      <div class="pt-header-r">Dedicated subpages launching soon — use existing tools now or watch for the new standalone pages.</div>
+    </div>
+
+    <div class="pt-rule"></div>
+
+    <div class="pt-grid" id="pt-grid">
+
+      <!-- 1 Interview Simulator · COMING SOON dedicated page -->
+      <div class="pt-card pt-card--wip" data-c="teal"
+           onclick="openModal('app-generator.html','🎤','Interview Simulator')"
+           role="button" tabindex="0">
+        <div class="pt-num">01</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">🎤</div>
+          <span class="pt-pill">Simulator</span>
+        </div>
+        <div class="pt-name">Interview Simulator</div>
+        <div class="pt-desc">Practice job interviews with a chat-style simulator. Get realistic questions, instant feedback, and build confidence before the real thing.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('app-generator.html','🎤','Interview Simulator')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
+        </div>
+      </div>
+
+      <!-- 2 Sales Dashboard · LIVE -->
+      <div class="pt-card" data-c="gold"
+           onclick="openModal('sales-dashboard.html','📊','Sales Dashboard')"
+           role="button" tabindex="0">
+        <div class="pt-num">02</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">📊</div>
+          <span class="pt-pill">Dashboard</span>
+        </div>
+        <div class="pt-name">Sales Dashboard</div>
+        <div class="pt-desc">Track revenue and visualize business performance. Upload a CSV or enter data manually for instant KPIs, pivot tables, and trend charts.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('sales-dashboard.html','📊','Sales Dashboard')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+      <!-- 3 Restaurant Website Builder · COMING SOON dedicated page -->
+      <div class="pt-card pt-card--wip" data-c="orange"
+           onclick="openModal('app-generator.html','🍽️','Restaurant Website Builder')"
+           role="button" tabindex="0">
+        <div class="pt-num">03</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">🍽️</div>
+          <span class="pt-pill">Builder</span>
+        </div>
+        <div class="pt-name">Restaurant Website Builder</div>
+        <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering — set up in minutes, no code required.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('app-generator.html','🍽️','Restaurant Website Builder')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
+        </div>
+      </div>
+
+      <!-- 4 Finance Dashboard · LIVE -->
+      <div class="pt-card" data-c="green"
+           onclick="openModal('finance-dashboard-msme.html','💰','Finance Dashboard')"
+           role="button" tabindex="0">
+        <div class="pt-num">04</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">💰</div>
+          <span class="pt-pill">Finance</span>
+        </div>
+        <div class="pt-name">Finance Dashboard</div>
+        <div class="pt-desc">Visualize expenses, profit and cash flow with interactive P&amp;L charts, budget vs actual breakdowns, and Indian FY filters.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('finance-dashboard-msme.html','💰','Finance Dashboard')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+      <!-- 5 Decision Tool · LIVE -->
+      <div class="pt-card" data-c="purple"
+           onclick="openModal('alchemist.html','⚖️','Decision Tool')"
+           role="button" tabindex="0">
+        <div class="pt-num">05</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">⚖️</div>
+          <span class="pt-pill">Decision</span>
+        </div>
+        <div class="pt-name">Decision Tool</div>
+        <div class="pt-desc">Compare products and evaluate buying decisions. AI-powered structured frameworks surface clarity from complex, high-stakes choices.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('alchemist.html','⚖️','Decision Tool')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+      <!-- 6 Custom Web App Generator · LIVE -->
+      <div class="pt-card" data-c="blue"
+           onclick="openModal('app-generator.html','🔧','Custom Web App Generator')"
+           role="button" tabindex="0">
+        <div class="pt-num">06</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">🔧</div>
+          <span class="pt-pill">Generator</span>
+        </div>
+        <div class="pt-name">Custom Web App Generator</div>
+        <div class="pt-desc">Turn simple ideas into working web tools. Describe what you need and the engine generates a fully functional app on the spot.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('app-generator.html','🔧','Custom Web App Generator')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+    </div><!-- /pt-grid -->
+  </div><!-- /pt-inner -->
+</section>
+
+<script>
+/* POPULAR TOOLS — scroll reveal + keyboard */
+(function(){
+  var ptIo = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('vis'); ptIo.unobserve(e.target); }
+    });
+  }, { threshold: .07 });
+  document.querySelectorAll('.pt-card').forEach(function(el){ ptIo.observe(el); });
+
+  document.querySelectorAll('.pt-card[role="button"]').forEach(function(card){
+    card.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.click(); }
+    });
+  });
+})();
+</script>
+<!-- ╚══════════════════════════════════════════════════════╝ -->
 
 <section id="cat-tools" data-cat="tools" class="cat-section">
   <div class="cat-inner">
@@ -1069,716 +1938,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- ╔══════════════════════════════════════════════════════╗ -->
-<!-- ║    POPULAR TOOLS BUILT ON VIADECIDE — SECTION       ║ -->
-<!-- ╚══════════════════════════════════════════════════════╝ -->
-<style>
-/* ── POPULAR TOOLS ──────────────────────────────────────── */
-#popular-tools {
-  position: relative; z-index: 10;
-  padding: 7rem 0 6rem;
-  border-top: 1px solid var(--bd);
-  overflow: hidden;
-}
-#popular-tools::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at 15% 50%, rgba(200,147,42,.05) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 85% 20%, rgba(34,180,160,.04) 0%, transparent 55%);
-}
-/* ghost word behind title */
-#popular-tools .pt-ghost {
-  position: absolute; top: 3.5rem; left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(5rem, 14vw, 14rem);
-  font-weight: 700; letter-spacing: -.04em;
-  color: rgba(255,255,255,.018);
-  white-space: nowrap; pointer-events: none;
-  user-select: none; line-height: 1;
-}
 
-.pt-inner { max-width: 1280px; margin: 0 auto; padding: 0 2.5rem; }
 
-/* header row */
-.pt-header {
-  display: flex; align-items: flex-end;
-  justify-content: space-between; gap: 2rem;
-  margin-bottom: 3.5rem; flex-wrap: wrap;
-}
-.pt-header-l { max-width: 540px; }
-.pt-eyebrow {
-  display: inline-flex; align-items: center; gap: .55rem;
-  font-size: .62rem; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
-  color: var(--gold2); margin-bottom: .85rem;
-}
-.pt-eyebrow-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--gold2); animation: pdot 1.8s infinite;
-}
-.pt-h2 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(2.2rem, 5vw, 4.8rem);
-  font-weight: 300; line-height: .97;
-  letter-spacing: -.03em; color: var(--tx);
-}
-.pt-h2 em { font-style: italic; color: var(--gold); }
-.pt-header-r {
-  font-size: .82rem; color: var(--tx3); line-height: 1.7;
-  max-width: 300px; text-align: right;
-}
-@media(max-width:640px){ .pt-header-r { display: none; } }
 
-/* ── GRID ────────────────────────────────────────────────── */
-.pt-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: .9rem;
-}
-
-/* base card */
-.pt-card {
-  position: relative; overflow: hidden;
-  background: var(--sf); border: 1px solid var(--bd);
-  border-radius: 22px; padding: 2rem;
-  display: flex; flex-direction: column;
-  cursor: none;
-  opacity: 0; transform: translateY(44px);
-  transition:
-    transform .38s cubic-bezier(.34,1.56,.64,1),
-    border-color .28s, background .28s, box-shadow .28s;
-}
-.pt-card.vis { animation: cardUp .75s cubic-bezier(.16,1,.3,1) forwards; }
-.pt-card:nth-child(1).vis{animation-delay:.05s}
-.pt-card:nth-child(2).vis{animation-delay:.12s}
-.pt-card:nth-child(3).vis{animation-delay:.19s}
-.pt-card:nth-child(4).vis{animation-delay:.26s}
-.pt-card:nth-child(5).vis{animation-delay:.33s}
-.pt-card:nth-child(6).vis{animation-delay:.40s}
-
-/* hover lift */
-.pt-card:hover {
-  transform: translateY(-8px);
-  border-color: var(--bd2);
-  background: rgba(255,255,255,.06);
-  box-shadow: 0 32px 70px rgba(0,0,0,.55);
-}
-.pt-card:hover .pt-card-cta { gap: .65rem; }
-.pt-card:hover .pt-num { opacity: .09; }
-
-/* top shimmer bar */
-.pt-card::after {
-  content: ''; position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--pt-accent, var(--gold)) 50%, transparent 100%);
-  opacity: 0; transition: opacity .35s;
-}
-.pt-card:hover::after { opacity: 1; }
-
-/* accent per card via CSS custom prop */
-.pt-card[data-c="gold"]   { --pt-accent: var(--gold2); }
-.pt-card[data-c="teal"]   { --pt-accent: var(--teal2); }
-.pt-card[data-c="orange"] { --pt-accent: var(--cst); }
-.pt-card[data-c="green"]  { --pt-accent: var(--cfi); }
-.pt-card[data-c="purple"] { --pt-accent: var(--cb); }
-.pt-card[data-c="blue"]   { --pt-accent: var(--cs); }
-
-.pt-card[data-c="gold"]:hover   { border-color: rgba(200,147,42,.28); }
-.pt-card[data-c="teal"]:hover   { border-color: rgba(34,180,160,.28); }
-.pt-card[data-c="orange"]:hover { border-color: rgba(240,112,64,.28); }
-.pt-card[data-c="green"]:hover  { border-color: rgba(16,185,129,.28); }
-.pt-card[data-c="purple"]:hover { border-color: rgba(155,109,255,.28); }
-.pt-card[data-c="blue"]:hover   { border-color: rgba(74,144,217,.28); }
-
-/* ghost number */
-.pt-num {
-  position: absolute; top: -.2rem; right: 1rem;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 6rem; font-weight: 700; line-height: 1;
-  color: rgba(255,255,255,.04);
-  letter-spacing: -.06em; user-select: none;
-  transition: opacity .3s;
-  pointer-events: none;
-}
-
-/* icon row */
-.pt-icon-row {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.4rem;
-}
-.pt-icon {
-  width: 48px; height: 48px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,.06);
-  background: rgba(255,255,255,.03);
-  transition: transform .25s;
-}
-.pt-card:hover .pt-icon { transform: scale(1.08) rotate(-3deg); }
-
-/* category pill */
-.pt-pill {
-  font-size: .58rem; font-weight: 800;
-  letter-spacing: .1em; text-transform: uppercase;
-  padding: .22rem .65rem; border-radius: 99px;
-  border: 1px solid rgba(255,255,255,.07);
-  color: var(--pt-accent, var(--gold));
-  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 10%, transparent);
-}
-
-/* text */
-.pt-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.45rem; font-weight: 600;
-  color: var(--tx); letter-spacing: -.015em;
-  line-height: 1.15; margin-bottom: .45rem;
-}
-.pt-desc {
-  font-size: .8rem; color: var(--tx3);
-  line-height: 1.72; flex: 1; margin-bottom: 1.2rem;
-}
-
-/* CTA */
-.pt-card-cta {
-  display: inline-flex; align-items: center; gap: .45rem;
-  font-size: .75rem; font-weight: 700;
-  letter-spacing: .05em; text-transform: uppercase;
-  padding: .52rem 1.1rem .52rem .9rem;
-  border-radius: 99px; border: 1px solid;
-  align-self: flex-start; cursor: none;
-  transition: gap .22s, background .22s, box-shadow .22s, transform .22s;
-  color: var(--pt-accent, var(--gold));
-  border-color: color-mix(in srgb, var(--pt-accent, var(--gold)) 35%, transparent);
-  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 8%, transparent);
-}
-.pt-card-cta:hover {
-  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 18%, transparent);
-  transform: translateX(3px);
-  box-shadow: 0 4px 18px color-mix(in srgb, var(--pt-accent, var(--gold)) 20%, transparent);
-}
-.pt-card-cta .cta-arrow {
-  display: inline-block;
-  transition: transform .22s;
-}
-.pt-card-cta:hover .cta-arrow { transform: translateX(3px); }
-
-/* divider line under header */
-.pt-rule {
-  width: 100%; height: 1px;
-  background: linear-gradient(90deg, var(--gold3) 0%, transparent 80%);
-  margin-bottom: 3.5rem;
-}
-
-/* responsive */
-@media(max-width: 1024px) {
-  .pt-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media(max-width: 640px) {
-  .pt-grid { grid-template-columns: 1fr 1fr; gap: .7rem; }
-  .pt-card { padding: 1.35rem; border-radius: 18px; }
-  .pt-name { font-size: 1.2rem; }
-  .pt-num { font-size: 4.5rem; }
-  #popular-tools { padding: 5rem 0 4.5rem; }
-}
-@media(max-width: 420px) {
-  .pt-grid { grid-template-columns: 1fr; }
-}
-
-/* footer row: CTA + badge side by side */
-.pt-footer-row {
-  display: flex; align-items: center;
-  gap: .75rem; flex-wrap: wrap;
-  margin-top: auto;
-}
-
-/* status badges — mirrors existing .tc-st pattern */
-.pt-badge {
-  display: inline-flex; align-items: center; gap: .3rem;
-  font-size: .6rem; font-weight: 700;
-  letter-spacing: .08em; text-transform: uppercase;
-  padding: .22rem .65rem; border-radius: 99px;
-  white-space: nowrap; flex-shrink: 0;
-}
-.pt-badge--live {
-  background: var(--teal3); color: var(--teal2);
-  border: 1px solid rgba(34,180,160,.2);
-}
-.pt-badge--wip {
-  background: rgba(255,255,255,.05); color: var(--tx3);
-  border: 1px solid rgba(255,255,255,.08);
-}
-
-/* wip card: subtle dim treatment on the icon */
-.pt-card--wip .pt-icon { opacity: .65; }
-.pt-card--wip .pt-name { opacity: .85; }
-</style>
-
-<section id="popular-tools">
-  <div class="pt-ghost">Popular</div>
-
-  <div class="pt-inner">
-    <div class="pt-header">
-      <div class="pt-header-l">
-        <div class="pt-eyebrow">
-          <span class="pt-eyebrow-dot"></span>
-          Ready to use · No signup required
-        </div>
-        <h2 class="pt-h2">Popular tools built<br>on <em>ViaDecide</em></h2>
-      </div>
-      <div class="pt-header-r">Dedicated subpages launching soon — use existing tools now or watch for the new standalone pages.</div>
-    </div>
-
-    <div class="pt-rule"></div>
-
-    <div class="pt-grid" id="pt-grid">
-
-      <!-- 1 Interview Simulator · COMING SOON dedicated page -->
-      <div class="pt-card pt-card--wip" data-c="teal"
-           onclick="openModal('app-generator.html','🎤','Interview Simulator')"
-           role="button" tabindex="0">
-        <div class="pt-num">01</div>
-        <div class="pt-icon-row">
-          <div class="pt-icon">🎤</div>
-          <span class="pt-pill">Simulator</span>
-        </div>
-        <div class="pt-name">Interview Simulator</div>
-        <div class="pt-desc">Practice job interviews with a chat-style simulator. Get realistic questions, instant feedback, and build confidence before the real thing.</div>
-        <div class="pt-footer-row">
-          <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('app-generator.html','🎤','Interview Simulator')">
-            Open Tool <span class="cta-arrow">→</span>
-          </button>
-          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
-        </div>
-      </div>
-
-      <!-- 2 Sales Dashboard · LIVE -->
-      <div class="pt-card" data-c="gold"
-           onclick="openModal('sales-dashboard.html','📊','Sales Dashboard')"
-           role="button" tabindex="0">
-        <div class="pt-num">02</div>
-        <div class="pt-icon-row">
-          <div class="pt-icon">📊</div>
-          <span class="pt-pill">Dashboard</span>
-        </div>
-        <div class="pt-name">Sales Dashboard</div>
-        <div class="pt-desc">Track revenue and visualize business performance. Upload a CSV or enter data manually for instant KPIs, pivot tables, and trend charts.</div>
-        <div class="pt-footer-row">
-          <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('sales-dashboard.html','📊','Sales Dashboard')">
-            Open Tool <span class="cta-arrow">→</span>
-          </button>
-          <span class="pt-badge pt-badge--live">● Live</span>
-        </div>
-      </div>
-
-      <!-- 3 Restaurant Website Builder · COMING SOON dedicated page -->
-      <div class="pt-card pt-card--wip" data-c="orange"
-           onclick="openModal('app-generator.html','🍽️','Restaurant Website Builder')"
-           role="button" tabindex="0">
-        <div class="pt-num">03</div>
-        <div class="pt-icon-row">
-          <div class="pt-icon">🍽️</div>
-          <span class="pt-pill">Builder</span>
-        </div>
-        <div class="pt-name">Restaurant Website Builder</div>
-        <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering — set up in minutes, no code required.</div>
-        <div class="pt-footer-row">
-          <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('app-generator.html','🍽️','Restaurant Website Builder')">
-            Open Tool <span class="cta-arrow">→</span>
-          </button>
-          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
-        </div>
-      </div>
-
-      <!-- 4 Finance Dashboard · LIVE -->
-      <div class="pt-card" data-c="green"
-           onclick="openModal('finance-dashboard-msme.html','💰','Finance Dashboard')"
-           role="button" tabindex="0">
-        <div class="pt-num">04</div>
-        <div class="pt-icon-row">
-          <div class="pt-icon">💰</div>
-          <span class="pt-pill">Finance</span>
-        </div>
-        <div class="pt-name">Finance Dashboard</div>
-        <div class="pt-desc">Visualize expenses, profit and cash flow with interactive P&amp;L charts, budget vs actual breakdowns, and Indian FY filters.</div>
-        <div class="pt-footer-row">
-          <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('finance-dashboard-msme.html','💰','Finance Dashboard')">
-            Open Tool <span class="cta-arrow">→</span>
-          </button>
-          <span class="pt-badge pt-badge--live">● Live</span>
-        </div>
-      </div>
-
-      <!-- 5 Decision Tool · LIVE -->
-      <div class="pt-card" data-c="purple"
-           onclick="openModal('alchemist.html','⚖️','Decision Tool')"
-           role="button" tabindex="0">
-        <div class="pt-num">05</div>
-        <div class="pt-icon-row">
-          <div class="pt-icon">⚖️</div>
-          <span class="pt-pill">Decision</span>
-        </div>
-        <div class="pt-name">Decision Tool</div>
-        <div class="pt-desc">Compare products and evaluate buying decisions. AI-powered structured frameworks surface clarity from complex, high-stakes choices.</div>
-        <div class="pt-footer-row">
-          <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('alchemist.html','⚖️','Decision Tool')">
-            Open Tool <span class="cta-arrow">→</span>
-          </button>
-          <span class="pt-badge pt-badge--live">● Live</span>
-        </div>
-      </div>
-
-      <!-- 6 Custom Web App Generator · LIVE -->
-      <div class="pt-card" data-c="blue"
-           onclick="openModal('app-generator.html','🔧','Custom Web App Generator')"
-           role="button" tabindex="0">
-        <div class="pt-num">06</div>
-        <div class="pt-icon-row">
-          <div class="pt-icon">🔧</div>
-          <span class="pt-pill">Generator</span>
-        </div>
-        <div class="pt-name">Custom Web App Generator</div>
-        <div class="pt-desc">Turn simple ideas into working web tools. Describe what you need and the engine generates a fully functional app on the spot.</div>
-        <div class="pt-footer-row">
-          <button class="pt-card-cta"
-                  onclick="event.stopPropagation();openModal('app-generator.html','🔧','Custom Web App Generator')">
-            Open Tool <span class="cta-arrow">→</span>
-          </button>
-          <span class="pt-badge pt-badge--live">● Live</span>
-        </div>
-      </div>
-
-    </div><!-- /pt-grid -->
-  </div><!-- /pt-inner -->
-</section>
-
-<script>
-/* POPULAR TOOLS — scroll reveal + keyboard */
-(function(){
-  var ptIo = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){ e.target.classList.add('vis'); ptIo.unobserve(e.target); }
-    });
-  }, { threshold: .07 });
-  document.querySelectorAll('.pt-card').forEach(function(el){ ptIo.observe(el); });
-
-  document.querySelectorAll('.pt-card[role="button"]').forEach(function(card){
-    card.addEventListener('keydown', function(e){
-      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.click(); }
-    });
-  });
-})();
-</script>
-<!-- ╚══════════════════════════════════════════════════════╝ -->
-
-<section id="about">
-  <div class="about-grid">
-    <div>
-      <div style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="display:block;width:24px;height:1px;background:var(--tx3)"></span>Our Philosophy</div>
-      <h2 class="about-h2">Decisions deserve<br><em>infrastructure.</em></h2>
-      <p class="about-p">Most Indian buyers make expensive, life-impacting decisions with incomplete information. We're building the layer that changes that.</p>
-      <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide. Seven categories. One engine.</p>
-      <div class="stat-row">
-        <div class="a-stat"><div class="num">23<span>+</span></div><div class="lbl">Live Modules</div></div>
-        <div class="a-stat"><div class="num">7</div><div class="lbl">Categories</div></div>
-        <div class="a-stat"><div class="num">∞</div><div class="lbl">Decisions</div></div>
-      </div>
-    </div>
-    <div class="pillars">
-      <div class="pillar"><div class="p-icon">🔍</div><div class="p-txt"><h4>Multi-Source Research</h4><p>Aggregate from multiple sources so you see the full picture.</p></div></div>
-      <div class="pillar"><div class="p-icon">🤖</div><div class="p-txt"><h4>AI That Structures, Not Hypes</h4><p>Structured AI reasoning — deliberate, framework-driven analysis.</p></div></div>
-      <div class="pillar"><div class="p-icon">🇮🇳</div><div class="p-txt"><h4>Built for Bharat</h4><p>ONDC integration, INR pricing, regional market awareness.</p></div></div>
-      <div class="pillar"><div class="p-icon">🔓</div><div class="p-txt"><h4>Radical Transparency</h4><p>Affiliate links always disclosed. Editorial rankings always independent.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section id="install" style="border-top:1px solid var(--bd)">
-  <div class="install-inner">
-    <div>
-      <div class="install-badge">📲 Progressive Web App</div>
-      <h2 class="install-h2">Get ViaDecide on<br>any <em>device.</em></h2>
-      <p class="install-sub">Install our PWA — works on Android, iPhone, Windows, Mac, Linux. No app store needed.</p>
-      <div class="install-steps">
-        <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, Edge, or Firefox</div></div>
-        <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser's menu</div></div>
-        <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy offline access</strong> — fast, native-like on your homescreen</div></div>
-      </div>
-      <div class="install-btns">
-        <button id="install-pwa-section" class="btn-t">📲 Install Now</button>
-        <button id="ios-trigger-section" class="btn-g" style="display:none">🍎 iOS Instructions</button>
-      </div>
-    </div>
-    <div class="install-r">
-      <div class="dev-tabs">
-        <button class="dev-tab active" data-tab="android">Android</button>
-        <button class="dev-tab" data-tab="ios">iPhone</button>
-        <button class="dev-tab" data-tab="desktop">Desktop</button>
-      </div>
-      <div id="tab-android" class="dev-instructions"><strong>📱 Android — Chrome</strong><ol><li>Open <strong>viadecide.com</strong> in Chrome</li><li>Tap <strong>⋮ → "Add to Home screen"</strong></li><li>Tap <strong>Install</strong> — done!</li></ol></div>
-      <div id="tab-ios" class="dev-instructions" style="display:none"><strong>🍎 iPhone / iPad — Safari</strong><ol><li>Open in <strong>Safari</strong> (not Chrome)</li><li>Tap the <strong>Share button (□↑)</strong></li><li>Tap <strong>"Add to Home Screen"</strong> → Add</li></ol></div>
-      <div id="tab-desktop" class="dev-instructions" style="display:none"><strong>💻 Desktop — Chrome / Edge</strong><ol><li>Open in <strong>Chrome or Edge</strong></li><li>Look for the <strong>⊕ install icon</strong> in the address bar</li><li>Click <strong>Install</strong></li></ol></div>
-    </div>
-  </div>
-</section>
-
-<section id="footer-cta">
-  <div class="footer-inner">
-    <div class="footer-eye">Ready to decide smarter?</div>
-    <h2 class="footer-h2">Start with clarity.<em>Not confusion.</em></h2>
-    <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.</p>
-    <div class="footer-acts">
-      <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
-      <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
-      <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
-      <button class="btn-g" onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
-    </div>
-    <div class="footer-links">
-      <a onclick="openModal('contact.html','✉️','Contact')">Contact</a>
-      <a onclick="openModal('privacy.html','🔒','Privacy')">Privacy</a>
-      <a onclick="openModal('terms.html','📜','Terms')">Terms</a>
-      <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
-      <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
-      <a onclick="openModal('founder.html','👤','Founder')">About</a>
-      <span>· © 2025 ViaDecide · Amazon Associates IN (decideengine-21)</span>
-    </div>
-  </div>
-</section>
-
-<div id="install-banner">
-  <div class="ib-inner">
-    <div class="ib-icon">⚡</div>
-    <div class="ib-txt"><strong>Install ViaDecide App</strong><span>Add to homescreen — works offline, loads instantly</span></div>
-    <div class="ib-acts">
-      <button id="install-banner-btn" class="ib-btn">Install</button>
-      <button id="install-banner-dismiss" class="ib-dismiss">✕</button>
-    </div>
-  </div>
-</div>
-<div id="ios-hint">
-  <button id="ios-hint-close">✕</button>
-  <strong>Install on iPhone / iPad</strong>
-  <p>Tap the <strong>Share button (□↑)</strong> in Safari, then tap <strong>"Add to Home Screen"</strong> → Add.</p>
-</div>
-
-<button id="thread-toggle" onclick="toggleThread()" title="Decision Thread">
-  <div class="tt-dot"></div>Thread
-</button>
-<div id="thread-panel">
-  <div class="thread-hd"><div class="thread-title"><div class="thread-badge"></div>Decision Thread</div><button class="thread-close" onclick="toggleThread()">✕</button></div>
-  <div class="thread-body">
-    <div class="thread-empty-icon">🧵</div>
-    <div class="thread-empty-title">No decisions yet</div>
-    <p class="thread-empty-sub">As you explore tools and research products, your session will be chronicled here.</p>
-    <span class="thread-coming">Phase 2 · Coming Soon</span>
-  </div>
-  <div class="thread-ft">Decision Thread · Every tool you use, one connected story.</div>
-</div>
-
-<div id="modal">
-  <div id="modal-bd" onclick="closeModal()"></div>
-  <div id="modal-sheet">
-    <div id="modal-top">
-      <div class="m-title-wrap"><span class="m-t-icon" id="m-icon">🔬</span><span class="m-t-name" id="m-name">Tool</span></div>
-      <div class="m-acts">
-        <a id="m-tab" href="#" target="_blank" class="m-act">↗ Open in Tab</a>
-        <button id="modal-close" onclick="closeModal()">✕</button>
-      </div>
-    </div>
-    <div id="modal-err">
-      <div class="err-icon">🔒</div>
-      <h3>Can't load in iframe</h3>
-      <p>This page has security restrictions that prevent embedding. Open it in a new tab instead.</p>
-      <a id="err-open-link" href="#" target="_blank" class="err-btn">Open in New Tab ↗</a>
-    </div>
-    <iframe id="modal-frame" src="about:blank" allowfullscreen
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
-  </div>
-</div>
-
-<script src="router.js" onerror="console.warn('router.js not found, skipping')"></script>
-<script>
-/* CURSOR */
-const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
-(function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
-
-/* CANVAS */
-const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
-let W,H,particles=[];
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
-resize();window.addEventListener('resize',resize);
-function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,o:Math.random()*.4+.1,c:Math.random()>.5?'rgba(200,147,42,':'rgba(34,180,160,'}}
-for(let i=0;i<90;i++)particles.push(mkP());
-function drawCanvas(){
-  ctx.clearRect(0,0,W,H);
-  ctx.strokeStyle='rgba(255,255,255,0.018)';ctx.lineWidth=1;
-  for(let x=0;x<W;x+=100){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
-  for(let y=0;y<H;y+=100){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
-  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.c+p.o+')';ctx.fill();});
-  for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle='rgba(200,147,42,'+(0.06*(1-d/120))+')';ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}
-  requestAnimationFrame(drawCanvas);
-}
-drawCanvas();
-
-/* SCROLL */
-const nav=document.getElementById('nav'),prog=document.getElementById('prog');
-window.addEventListener('scroll',()=>{
-  const s=window.scrollY,max=document.body.scrollHeight-innerHeight;
-  prog.style.width=(s/max*100)+'%';
-  nav.classList.toggle('solid',s>80);
-  const h1=document.querySelector('.hero-h1');
-  if(h1)h1.style.transform=`translateY(${s*.18}px)`;
-});
-
-/* INTERSECTION OBSERVER */
-const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.08});
-document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
-
-/* KEYBOARD FOR .tc CARDS */
-document.querySelectorAll('.tc[role="button"]').forEach(card=>{
-  card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}});
-});
-
-/* DEVICE TABS */
-document.querySelectorAll('.dev-tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.dev-tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.dev-instructions').forEach(d=>d.style.display='none');
-    const t=document.getElementById('tab-'+tab.dataset.tab);
-    if(t)t.style.display='block';
-  });
-});
-
-/* THREAD */
-var threadOpen=false;
-function toggleThread(){threadOpen=!threadOpen;document.getElementById('thread-panel').classList.toggle('open',threadOpen);}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleThread();});
-
-/* MODAL */
-let currentFile='';
-function openModal(file,icon,name){
-  if(/^https?:\/\//i.test(file)){window.open(file,'_blank','noopener,noreferrer');return;}
-  currentFile=file;
-  document.getElementById('m-icon').textContent=icon;
-  document.getElementById('m-name').textContent=name;
-  document.getElementById('m-tab').href=file;
-  document.getElementById('err-open-link').href=file;
-  document.getElementById('modal-err').classList.remove('show');
-  const frame=document.getElementById('modal-frame');
-  frame.style.display='block';
-  frame.src='';            
-  setTimeout(()=>{ frame.src=file; },10);  
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-
-document.getElementById('modal-frame').addEventListener('load',function(){
-  const src=this.src;
-  if(!src || src==='about:blank' || src===window.location.href+'#' || src==='') return;
-  try{
-    const d=this.contentDocument||this.contentWindow.document;
-    if(!d||d.body===null||d.body.innerHTML.trim()===''){showModalError();}
-  }catch(e){
-    showModalError();
-  }
-});
-
-function showModalError(){
-  document.getElementById('modal-frame').style.display='none';
-  document.getElementById('modal-err').classList.add('show');
-}
-function closeModal(){
-  document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow='';
-  setTimeout(()=>{
-    document.getElementById('modal-frame').src='about:blank';
-    document.getElementById('modal-frame').style.display='block';
-    document.getElementById('modal-err').classList.remove('show');
-  },400);
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeModal();});
-
-/* ORB SEARCH */
-(function(){
-  const input=document.getElementById('orb-input');
-  const go=document.getElementById('orb-go');
-  const suggest=document.getElementById('orb-suggest');
-  if(!input||!go||!suggest)return;
-  function norm(s){return(s||'').toLowerCase().trim();}
-  function txt(el){return(el&&el.textContent||'').trim();}
-  function parseOpenModal(oc){const m=(oc||'').match(/openModal\('([^']+)','([^']*)','([^']*)'\)/);if(!m)return null;return{type:'modal',file:m[1],icon:m[2],name:m[3]};}
-  function parseLocHref(oc){const m=(oc||'').match(/location\.href='([^']+)'/);if(!m)return null;return{type:'nav',file:m[1],icon:'↗',name:m[1]};}
-  const INDEX=Array.from(document.querySelectorAll('.tc')).map(card=>{
-    const oc=card.getAttribute('onclick')||'';
-    const tgt=parseOpenModal(oc)||parseLocHref(oc);
-    if(!tgt)return null;
-    const title=txt(card.querySelector('.tc-name-lg'))||txt(card.querySelector('.tc-name'))||tgt.name;
-    const desc=txt(card.querySelector('.tc-desc-lg'))||txt(card.querySelector('.tc-desc'))||'';
-    return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
-  }).filter(Boolean);
-  function tokenScore(q,str){if(!str)return 0;let s=0;if(str===q)s+=80;if(str.includes(q))s+=40;q.split(/\s+/).filter(Boolean).forEach(p=>{if(str.includes(p))s+=10;});return s;}
-  function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,norm(item.intent))*.7;s+=tokenScore(qq,norm(item.orbit))*.8;s+=tokenScore(qq,norm(item.cat))*.3;return s;}
-  let results=[],active=-1;
-  function hideSuggest(){suggest.style.display='none';suggest.innerHTML='';results=[];active=-1;}
-  function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row${i===active?' active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
-  function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
-  function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal')openModal(item.file,item.icon,item.title);else location.href=item.file;}
-  function fallbackScroll(q){
-    const lv=(q||'').toLowerCase();
-    if(/finance|fintrack|cashflow|profit|loss|pnl|income|expense|gst|transaction|ledger|accounting|msme|dashboard|kpi|revenue|budget|invoice|payroll|inventory|stock/i.test(lv))
-      document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'});
-    else if(/game|play|sim|mars|hex|war/i.test(lv))document.getElementById('cat-games').scrollIntoView({behavior:'smooth'});
-    else if(/deal|price|buy|ondc|cashback|discount/i.test(lv))document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});
-    else if(/print|plate|keychain|gift|store/i.test(lv))document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
-    else if(/blog|article|read|guide|learn/i.test(lv))document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
-    else if(/service|hire|license|cohort/i.test(lv))document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
-    else document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
-  }
-  input.addEventListener('input',doSearch);
-  input.addEventListener('keydown',e=>{
-    if(e.key==='ArrowDown'&&results.length){e.preventDefault();active=Math.min(results.length-1,active+1);render();}
-    else if(e.key==='ArrowUp'&&results.length){e.preventDefault();active=Math.max(0,active-1);render();}
-    else if(e.key==='Enter'){e.preventDefault();if(results.length)openItem(results[active>=0?active:0]);else fallbackScroll(input.value);}
-    else if(e.key==='Escape'){hideSuggest();input.blur();}
-  });
-  go.addEventListener('click',()=>{if(results.length)openItem(results[0]);else fallbackScroll(input.value);});
-  suggest.addEventListener('click',e=>{const row=e.target.closest('.orb-row');if(!row)return;openItem(results[Number(row.dataset.i)]);});
-  document.addEventListener('mousedown',e=>{const wrap=document.getElementById('orb-wrap');if(!wrap)return;if(!wrap.contains(e.target))hideSuggest();});
-  input.addEventListener('blur',()=>setTimeout(hideSuggest,120));
-})();
-
-/* PWA */
-var dP=null;
-var isIOS=/iP(ad|hone|od)/.test(navigator.userAgent)&&!window.MSStream;
-var isInStandaloneMode=window.matchMedia('(display-mode:standalone)').matches||(window.navigator.standalone===true);
-var allInstallBtns=[document.getElementById('install-pwa-nav'),document.getElementById('install-pwa-section')];
-var banner=document.getElementById('install-banner');
-var bannerBtn=document.getElementById('install-banner-btn');
-var bannerDismiss=document.getElementById('install-banner-dismiss');
-var iosHint=document.getElementById('ios-hint');
-var iosHintClose=document.getElementById('ios-hint-close');
-var iosTriggerSection=document.getElementById('ios-trigger-section');
-function showInstallBtns(){allInstallBtns.forEach(b=>{if(b)b.style.display='inline-flex';});}
-function hideInstallBtns(){allInstallBtns.forEach(b=>{if(b)b.style.display='none';});if(banner)banner.classList.remove('show');}
-function doInstall(){if(dP){dP.prompt();dP.userChoice.then(r=>{if(r.outcome==='accepted'){dP=null;hideInstallBtns();}});}}
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dP=e;showInstallBtns();setTimeout(function(){try{var d=sessionStorage.getItem('de-install-dismissed');if(!d&&!isInStandaloneMode&&banner)banner.classList.add('show');}catch(ex){}},3500);});
-allInstallBtns.forEach(b=>{if(b)b.addEventListener('click',doInstall)});
-if(bannerBtn)bannerBtn.addEventListener('click',function(){doInstall();if(banner)banner.classList.remove('show');});
-if(bannerDismiss)bannerDismiss.addEventListener('click',function(){if(banner)banner.classList.remove('show');try{sessionStorage.setItem('de-install-dismissed','1');}catch(e){}});
-if(isIOS&&!isInStandaloneMode){if(iosTriggerSection)iosTriggerSection.style.display='inline-flex';if(iosTriggerSection)iosTriggerSection.addEventListener('click',function(){if(iosHint)iosHint.classList.add('show');});setTimeout(function(){try{var d=sessionStorage.getItem('de-ios-dismissed');if(!d&&iosHint)iosHint.classList.add('show');}catch(e){}},4500);}
-if(iosHintClose)iosHintClose.addEventListener('click',function(){if(iosHint)iosHint.classList.remove('show');try{sessionStorage.setItem('de-ios-dismissed','1');}catch(e){}});
-window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns();});
-if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
-</script>
-</body>
-</html>
