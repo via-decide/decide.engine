@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -14,69 +15,107 @@
 
   <style>
     /* ══════════════════════════════════════
-       GLOBAL UX PATCH (A + B)
+       GLOBAL UX PATCH — (A) + (B)
        ── Kills iOS/Android blue tap flash
-       ── Removes focus outlines for pointer
-          users; keeps them for keyboard
-       ── Disables text selection site-wide;
-          re-enables for all input surfaces
+       ── Pointer users: no outline
+          Keyboard users: :focus-visible ring
+       ── Text selection disabled site-wide;
+          re-enabled for all editable surfaces
     ══════════════════════════════════════ */
 
     /* (A) Kill tap highlight on every element */
     *,
     *::before,
     *::after {
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
-      tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+      tap-highlight-color: rgba(0,0,0,0) !important;
       -webkit-touch-callout: none;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    /* (A) Mouse users: no outline. Keyboard users: keep :focus-visible ring. */
-    a:focus:not(:focus-visible),
-    button:focus:not(:focus-visible),
-    [tabindex]:focus:not(:focus-visible) {
+    /* (A) Mouse/pointer users: suppress outline.
+           Keyboard users: keep :focus-visible ring. */
+    *:focus:not(:focus-visible) {
       outline: none !important;
       box-shadow: none !important;
     }
     a:focus-visible,
     button:focus-visible,
     [tabindex]:focus-visible {
-      outline: 2px solid rgba(255, 42, 42, 0.55) !important;
+      outline: 2px solid rgba(255,42,42,0.55) !important;
       outline-offset: 2px !important;
     }
 
-    /* (A) Subtle custom selection colour */
-    ::selection      { background: rgba(255, 42, 42, 0.18); color: inherit; }
-    ::-moz-selection { background: rgba(255, 42, 42, 0.18); color: inherit; }
+    /* (A) Subtle branded selection colour */
+    ::selection      { background: rgba(255,42,42,0.18); color: inherit; }
+    ::-moz-selection { background: rgba(255,42,42,0.18); color: inherit; }
 
     /* (B) Disable text selection globally */
-    body,
-    h1, h2, h3, h4, h5, h6,
-    p, span, div, label,
-    .kicker, .card-link,
-    .section-header,
-    .hero, .install-badge,
-    .install-step, .step-txt,
-    .swipe-hint,
-    .ib-txt, .ib-txt strong, .ib-txt span {
+    body {
       -webkit-user-select: none;
       -moz-user-select: none;
       user-select: none;
     }
 
-    /* (B) Re-enable selection for all input/editable surfaces + code */
+    /* (B) Re-enable for all editable / readable surfaces */
     input,
     textarea,
     select,
     [contenteditable="true"],
-    .code-input,
     .allow-select,
     pre,
-    code {
+    code,
+    .code-input {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       user-select: text !important;
       -webkit-touch-callout: default !important;
+    }
+
+    /* ══════════════════════════════════════
+       CORE DESIGN TOKENS & BASE
+    ══════════════════════════════════════ */
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --text-main: #111111;
+      --text-muted: #666666;
+      --accent: #ff2a2a;
+      --border: rgba(0,0,0,0.08);
+      --header-height: 70px;
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                    "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    html { overflow-x: hidden; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; cursor: pointer; }
+    button { background: none; border: none; cursor: pointer; font: inherit; }
+
+    body.invert-mode { background-color: #050505; }
+    body.invert-mode #appWrapper,
+    body.invert-mode .site-header,
+    body.invert-mode .auth-modal,
+    body.invert-mode #install-banner,
+    body.invert-mode #ios-hint { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
+
+    #appWrapper {
+      min-height: 100vh;
+      background-color: var(--bg);
+      transition: filter 0.3s ease;
     }
 
     /* ── PWA Install Banner ── */
@@ -106,7 +145,7 @@
     }
     .ib-txt { flex: 1; }
     .ib-txt strong { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); }
-    .ib-txt span { font-size: 12px; color: var(--text-muted); }
+    .ib-txt span   { font-size: 12px; color: var(--text-muted); }
     .ib-acts { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
     .ib-btn {
       font-size: 13px; font-weight: 800; padding: 9px 18px;
@@ -191,10 +230,15 @@
       border: 1px solid rgba(255,42,42,0.20);
       margin-bottom: 14px;
     }
-    .install-badge::before { content: ''; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: ibdot 1.8s infinite; }
+    .install-badge::before {
+      content: ''; width: 7px; height: 7px;
+      background: var(--accent); border-radius: 50%;
+      animation: ibdot 1.8s infinite;
+    }
     @keyframes ibdot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
     #install-section h2 {
-      font-size: clamp(22px, 3vw, 34px);
+      font-size: clamp(22px,3vw,34px);
       font-weight: 900; letter-spacing: -0.03em;
       margin-bottom: 10px; color: var(--text-main); line-height: 1.15;
     }
@@ -203,7 +247,7 @@
       font-size: 15px; color: var(--text-muted); margin-bottom: 22px; line-height: 1.65;
     }
     .install-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-    .install-step { display: flex; align-items: flex-start; gap: 12px; }
+    .install-step  { display: flex; align-items: flex-start; gap: 12px; }
     .step-n {
       width: 26px; height: 26px; border-radius: 50%;
       background: var(--text-main); color: #fff;
@@ -233,7 +277,10 @@
       border: none; background: transparent;
       transition: all .2s;
     }
-    .dev-tab.active { background: #fff; color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .dev-tab.active {
+      background: #fff; color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
     .dev-inst { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
     .dev-inst strong { display: block; font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
     .dev-inst ol { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
@@ -241,53 +288,8 @@
 
     @media (max-width: 620px) {
       .install-inner { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
-      .install-btns { flex-direction: column; }
+      .install-btns  { flex-direction: column; }
       .install-btns button { width: 100%; text-align: center; }
-    }
-
-    /* ══════════════════════════════════════
-       CORE DESIGN TOKENS & BASE
-    ══════════════════════════════════════ */
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --text-main: #111111;
-      --text-muted: #666666;
-      --accent: #ff2a2a;
-      --border: rgba(0, 0, 0, 0.08);
-      --header-height: 70px;
-      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { overflow-x: hidden; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: var(--font-stack);
-      -webkit-font-smoothing: antialiased;
-      line-height: 1.5;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    a { text-decoration: none; color: inherit; cursor: pointer; }
-    button { background: none; border: none; cursor: pointer; font: inherit; }
-
-    body.invert-mode { background-color: #050505; }
-    body.invert-mode #appWrapper,
-    body.invert-mode .site-header,
-    body.invert-mode .auth-modal,
-    body.invert-mode #install-banner,
-    body.invert-mode #ios-hint { filter: invert(1) hue-rotate(180deg); }
-    body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
-
-    #appWrapper {
-      min-height: 100vh;
-      background-color: var(--bg);
-      transition: filter 0.3s ease;
     }
 
     /* ── Global Header ── */
@@ -295,7 +297,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: var(--header-height);
-      background: rgba(250, 250, 250, 0.92);
+      background: rgba(250,250,250,0.92);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
@@ -307,47 +309,28 @@
       transition: filter 0.3s ease;
       overflow: hidden;
     }
-
     .site-header .logo {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      color: var(--text-main);
-      white-space: nowrap;
-      flex-shrink: 0;
+      font-size: 20px; font-weight: 900;
+      letter-spacing: -0.03em; color: var(--text-main);
+      white-space: nowrap; flex-shrink: 0;
     }
-
     .site-header nav {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      overflow: hidden;
-      min-width: 0;
+      display: flex; align-items: center; gap: 24px;
+      overflow: hidden; min-width: 0;
     }
-
     .site-header nav a {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: color 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      transition: color 0.2s; white-space: nowrap; flex-shrink: 0;
     }
     .site-header nav a:hover,
     .site-header nav a.active { color: var(--accent); }
 
     .btn-icon {
-      font-weight: 900;
-      color: var(--accent);
-      font-size: 18px;
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      transition: transform 0.2s;
-      line-height: 1;
-      flex-shrink: 0;
+      font-weight: 900; color: var(--accent); font-size: 18px;
+      padding: 4px 10px; border: 1px solid var(--border);
+      border-radius: 999px; transition: transform 0.2s;
+      line-height: 1; flex-shrink: 0;
     }
     .btn-icon:active { transform: scale(0.92); }
 
@@ -364,20 +347,15 @@
     /* ── Hero ── */
     .hero { max-width: 840px; margin-bottom: 64px; }
     .hero h1 {
-      font-size: clamp(40px, 6vw, 72px);
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.04em;
-      margin-bottom: 18px;
-      color: var(--text-main);
+      font-size: clamp(40px,6vw,72px);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -0.04em; margin-bottom: 18px; color: var(--text-main);
     }
     .hero h1 span { color: var(--accent); }
     .hero p {
-      font-size: clamp(18px, 2vw, 22px);
-      color: var(--text-muted);
-      line-height: 1.5;
-      max-width: 640px;
-      margin-bottom: 32px;
+      font-size: clamp(18px,2vw,22px);
+      color: var(--text-muted); line-height: 1.5;
+      max-width: 640px; margin-bottom: 32px;
     }
 
     .portal-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -389,7 +367,7 @@
       letter-spacing: 0.02em;
       transition: transform 0.2s, background 0.2s;
     }
-    .btn-primary:hover { background: var(--accent); }
+    .btn-primary:hover  { background: var(--accent); }
     .btn-primary:active { transform: scale(0.97); }
 
     .btn-secondary {
@@ -399,13 +377,13 @@
       border: 1px solid var(--border);
       transition: transform 0.2s, border-color 0.2s;
     }
-    .btn-secondary:hover { border-color: var(--text-main); }
+    .btn-secondary:hover  { border-color: var(--text-main); }
     .btn-secondary:active { transform: scale(0.97); }
 
     /* ── Auth Modal ── */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       display: flex; align-items: center; justify-content: center;
       z-index: 2000;
@@ -419,11 +397,11 @@
       box-shadow: 0 24px 60px rgba(0,0,0,0.15);
       border: 1px solid var(--border);
       transform: translateY(20px);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
     }
     .modal-overlay.active .auth-modal { transform: translateY(0); }
     .auth-modal h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; color: var(--text-main); letter-spacing: -0.02em; }
-    .auth-modal p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+    .auth-modal p  { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
     .code-input {
       width: 100%; background: var(--bg);
       border: 1px solid var(--border); border-radius: 12px;
@@ -451,9 +429,9 @@
     }
 
     /* ── Grid ── */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 40px; }
 
-    /* ── Cards (D: <a> tags — native keyboard support already present) ── */
+    /* ── Cards — native <a> tags, keyboard-accessible by default ── */
     .card { display: flex; flex-direction: column; position: relative; cursor: pointer; }
     .card:hover .card-image-wrap,
     .card:hover .carousel-container {
@@ -461,23 +439,27 @@
       box-shadow: 0 20px 50px rgba(0,0,0,0.10);
     }
     .card-image-wrap {
-      width: 100%; aspect-ratio: 4 / 3;
+      width: 100%; aspect-ratio: 4/3;
       border-radius: 14px; margin-bottom: 20px;
       overflow: hidden; background: #f0f0f0;
       box-shadow: 0 8px 28px rgba(0,0,0,0.06);
-      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
+      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
+                  box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
       display: flex; align-items: center; justify-content: center;
     }
-    .card-image-wrap img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; }
+    .card-image-wrap img {
+      width: 100%; height: 100%;
+      object-fit: contain; object-position: center; display: block;
+    }
 
     /* ── Carousel ── */
     .carousel-container {
-      width: 100%; aspect-ratio: 4 / 3;
+      width: 100%; aspect-ratio: 4/3;
       border-radius: 14px; margin-bottom: 20px;
-      overflow: hidden; position: relative;
-      background: #f0f0f0;
+      overflow: hidden; position: relative; background: #f0f0f0;
       box-shadow: 0 8px 28px rgba(0,0,0,0.06);
-      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
+      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
+                  box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
     }
     .carousel-track {
       display: flex; width: 100%; height: 100%;
@@ -544,58 +526,76 @@
 
 <body>
 
-  <!-- ══════════════════════════════════════
-       JS TAP-HIGHLIGHT POLISH (C)
-       Runs before body renders.
-       Intercepts focus events triggered by
-       touch on non-input elements and
-       removes the lingering iOS focus ring
-       without blocking clicks or scroll.
-  ══════════════════════════════════════ -->
+  <!--
+    ══════════════════════════════════════
+    JS TAP-HIGHLIGHT POLISH — (C)
+    Inline, before paint. Intercepts focus
+    events fired by touch on non-input
+    elements and immediately blurs them,
+    preventing iOS's lingering focus ring.
+    • Passive listeners — no scroll impact.
+    • Click fires before blur (rAF defer).
+    ══════════════════════════════════════
+  -->
   <script>
   (function () {
-    var touchPending = false;
+    var touchActive = false;
     document.addEventListener('touchstart', function () {
-      touchPending = true;
+      touchActive = true;
     }, { passive: true });
     document.addEventListener('touchend', function () {
-      setTimeout(function () { touchPending = false; }, 400);
+      setTimeout(function () { touchActive = false; }, 400);
     }, { passive: true });
-    /* On focus events fired by touch: blur non-interactive elements
-       so iOS doesn't paint a lingering ring, but defer so the click
-       event fires first (requestAnimationFrame). */
+    /* Blur non-interactive elements focused by touch so iOS
+       doesn't paint a blue ring, but defer past the click event. */
     document.addEventListener('focus', function (e) {
-      if (!touchPending) return;
+      if (!touchActive) return;
       var tag = (e.target.tagName || '').toUpperCase();
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
-          e.target.isContentEditable) return;
+      if (
+        tag === 'INPUT' || tag === 'TEXTAREA' ||
+        tag === 'SELECT' || e.target.isContentEditable
+      ) return;
       requestAnimationFrame(function () {
         if (document.activeElement === e.target) e.target.blur();
       });
-    }, true);
+    }, true /* capture so it fires before bubbling handlers */);
   })();
   </script>
 
+  <!-- ══════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════ -->
   <header class="site-header">
     <a id="navLogo" href="./index.html" class="logo">PrintByDD</a>
     <nav>
-      <a id="navHome" href="./index.html" class="active">Home</a>
+      <a id="navHome"     href="./index.html"                class="active">Home</a>
       <a id="navProducts" href="./products.html">Products</a>
-      <a id="navBlog" href="./gifts-that-mean-more.html">Blog</a>
+      <a id="navBlog"     href="./gifts-that-mean-more.html">Blog</a>
 
       <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
          target="_blank" rel="noopener" id="navInsta"
-         style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;border:1px solid rgba(0,0,0,0.10);font-size:12px;font-weight:800;background:linear-gradient(135deg,rgba(240,148,51,0.08),rgba(188,24,136,0.08));white-space:nowrap;transition:all 0.2s;"
+         style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
+                border-radius:999px;border:1px solid rgba(0,0,0,0.10);
+                font-size:12px;font-weight:800;
+                background:linear-gradient(135deg,rgba(240,148,51,0.08),rgba(188,24,136,0.08));
+                white-space:nowrap;transition:all 0.2s;"
          aria-label="PrintByDD on Instagram">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <defs><linearGradient id="ig-s" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/>
-          </linearGradient></defs>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="ig-s" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#f09433"/>
+              <stop offset="50%"  stop-color="#dc2743"/>
+              <stop offset="100%" stop-color="#bc1888"/>
+            </linearGradient>
+          </defs>
           <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-s)"/>
           <circle cx="12" cy="12" r="4" stroke="url(#ig-s)"/>
           <circle cx="17.5" cy="6.5" r="1" fill="url(#ig-s)" stroke="none"/>
         </svg>
-        <span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">@printbydd</span>
+        <span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                     background-clip:text;">@printbydd</span>
       </a>
 
       <button id="install-pwa-nav" aria-label="Install app" type="button">📲 Install</button>
@@ -603,25 +603,32 @@
     </nav>
   </header>
 
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════ -->
   <div id="appWrapper">
     <main>
 
+      <!-- Hero -->
       <div class="hero">
         <h1>Physical concepts,<br>built in <span>3D.</span></h1>
         <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
         <div class="portal-cta" id="portalCtaContainer">
-          <button class="btn-primary" onclick="openAuthModal()">Enter Portal</button>
+          <button class="btn-primary"   onclick="openAuthModal()">Enter Portal</button>
           <button class="btn-secondary" onclick="requestNewCode()">Request Access</button>
         </div>
       </div>
 
+      <!-- Products section -->
       <div class="section-header">
         <h2>Products</h2>
       </div>
 
-      <!-- D: Cards are native <a> elements — keyboard Enter/Space navigation
-           is built-in. tabindex is implicit (href present). No div[onclick]
-           patterns exist on this page so no extra keyboard wiring needed. -->
+      <!--
+        (D) All clickable cards use native <a href> elements.
+        Keyboard Enter/Space navigation is built-in; tabindex
+        is implicit via href. No div[onclick] patterns present.
+      -->
       <div class="grid">
         <a id="cardKeychain" href="./keychain.html" class="card">
           <div class="card-image-wrap">
@@ -636,7 +643,7 @@
         <a id="cardNumberplate" href="./numberplate.html" class="card">
           <div class="card-image-wrap">
             <img src="./numberplate-preview.png" alt="3D Numberplate Keychain"
-                 onerror="this.style.background='#f0f0f0';this.style.display='none';" />
+                 onerror="this.style.display='none';" />
           </div>
           <div class="kicker">Custom Vehicle ID</div>
           <h3>3D Two-Tone Numberplate</h3>
@@ -645,6 +652,7 @@
         </a>
       </div>
 
+      <!-- Blog section -->
       <div class="section-header" style="margin-top:56px;">
         <h2>Featured Perspectives</h2>
       </div>
@@ -665,6 +673,7 @@
         </a>
       </div>
 
+      <!-- Install section -->
       <div id="install-section">
         <div class="install-inner">
           <div class="install-l">
@@ -672,12 +681,21 @@
             <h2>Get PrintByDD on<br>any <span>device.</span></h2>
             <p>Install our store as a Progressive Web App — no App Store needed. Works on Android, iPhone, Windows, Mac, and Linux. Browse and order offline, loads instantly from your homescreen.</p>
             <div class="install-steps">
-              <div class="install-step"><div class="step-n">1</div><div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, or Edge</div></div>
-              <div class="install-step"><div class="step-n">2</div><div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser menu</div></div>
-              <div class="install-step"><div class="step-n">3</div><div class="step-txt"><strong>Enjoy instant access</strong> — PrintByDD lives on your homescreen</div></div>
+              <div class="install-step">
+                <div class="step-n">1</div>
+                <div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, or Edge</div>
+              </div>
+              <div class="install-step">
+                <div class="step-n">2</div>
+                <div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser menu</div>
+              </div>
+              <div class="install-step">
+                <div class="step-n">3</div>
+                <div class="step-txt"><strong>Enjoy instant access</strong> — PrintByDD lives on your homescreen</div>
+              </div>
             </div>
             <div class="install-btns">
-              <button id="install-pwa-section" class="btn-primary" style="display:none" type="button">📲 Install PrintByDD</button>
+              <button id="install-pwa-section" class="btn-primary"   style="display:none" type="button">📲 Install PrintByDD</button>
               <button id="ios-trigger-section" class="btn-secondary" style="display:none" type="button">🍎 iPhone Instructions</button>
             </div>
           </div>
@@ -685,8 +703,8 @@
           <div class="install-r">
             <div class="dev-tabs">
               <button class="dev-tab active" data-tab="android" type="button">Android</button>
-              <button class="dev-tab" data-tab="ios" type="button">iPhone</button>
-              <button class="dev-tab" data-tab="desktop" type="button">Desktop</button>
+              <button class="dev-tab"        data-tab="ios"     type="button">iPhone</button>
+              <button class="dev-tab"        data-tab="desktop" type="button">Desktop</button>
             </div>
             <div id="tab-android" class="dev-inst">
               <strong>📱 Android — Chrome</strong>
@@ -722,6 +740,9 @@
     </main>
   </div>
 
+  <!-- ══════════════════════════════════════
+       PWA BANNERS
+  ══════════════════════════════════════ -->
   <div id="install-banner">
     <div class="ib-inner">
       <div class="ib-icon">P</div>
@@ -730,7 +751,7 @@
         <span>Add to homescreen — works offline, loads instantly</span>
       </div>
       <div class="ib-acts">
-        <button class="ib-btn" id="install-banner-btn" type="button">Install</button>
+        <button class="ib-btn"     id="install-banner-btn"     type="button">Install</button>
         <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss" type="button">✕</button>
       </div>
     </div>
@@ -739,218 +760,239 @@
   <div id="ios-hint">
     <button id="ios-hint-close" aria-label="Close" type="button">✕</button>
     <strong>Install on iPhone / iPad</strong>
-    <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari,<br>then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
+    <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari,<br>
+       then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
   </div>
 
+  <!-- ══════════════════════════════════════
+       AUTH MODAL
+  ══════════════════════════════════════ -->
   <div class="modal-overlay" id="authModalOverlay">
     <div class="auth-modal">
       <h2>Client Login</h2>
       <p>Enter your 5-character secure access code (e.g., VIA-A1B2C).</p>
-      <input type="text" id="accessCodeInput" class="code-input" placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
+      <input type="text" id="accessCodeInput" class="code-input allow-select"
+             placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
       <div class="auth-error" id="authErrorMsg">Invalid code. Please check your WhatsApp.</div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeAuthModal()" type="button">Cancel</button>
-        <button class="btn-primary" onclick="verifyCode()" type="button">Unlock</button>
+        <button class="btn-primary"   onclick="verifyCode()"     type="button">Unlock</button>
       </div>
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════ -->
   <script>
-    (function(){
-      "use strict";
+  (function () {
+    "use strict";
 
-      // ══════════════════════════════════════════════════
-      // ROUTER
-      // ══════════════════════════════════════════════════
-      (function fixStoreLinks(){
-        const isStoreDomain = location.hostname === 'store.viadecide.com';
-        if (!isStoreDomain) return;
-        if (location.pathname === '/printbydd') {
-          history.replaceState(null, '', '/printbydd/');
-        }
-      })();
-
-      function isStore() {
-        return location.hostname === 'store.viadecide.com'
-            || location.pathname.startsWith('/printbydd');
-      }
-      function routeTo(pathHtml, pathRoute) {
-        return isStore() ? pathRoute : pathHtml;
-      }
-      (function applyNavRoutes() {
-        var links = {
-          'navLogo':        ['./index.html',               '/printbydd/'],
-          'navHome':        ['./index.html',               '/printbydd/'],
-          'navProducts':    ['./products.html',            '/printbydd/products'],
-          'navBlog':        ['./gifts-that-mean-more.html','/printbydd/gifts'],
-          'cardKeychain':   ['./keychain.html',            '/printbydd/keychain'],
-          'cardNumberplate':['./numberplate.html',         '/printbydd/numberplate'],
-          'cardBlog':       ['./gifts-that-mean-more.html','/printbydd/gifts'],
-        };
-        Object.keys(links).forEach(function(id) {
-          var el = document.getElementById(id);
-          if (el) el.href = routeTo(links[id][0], links[id][1]);
-        });
-      })();
-
-      // ══════════════════════════════════════════════════
-      // THEME
-      // ══════════════════════════════════════════════════
-      const THEME_KEY = "VD_INVERT_THEME";
-      const btnTheme  = document.getElementById("btnTheme");
-      function setInvert(on){
-        document.body.classList.toggle("invert-mode", !!on);
-        btnTheme.textContent = on ? "☀" : "☾";
-        try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
-      }
-      (function initTheme(){
-        let saved = "0";
-        try{ saved = localStorage.getItem(THEME_KEY) || "0"; }catch(e){}
-        setInvert(saved === "1");
-      })();
-      btnTheme.addEventListener("click", () => {
-        setInvert(!document.body.classList.contains("invert-mode"));
-      });
-
-      // ══════════════════════════════════════════════════
-      // AUTHENTICATION
-      // ══════════════════════════════════════════════════
-      const AUTH_KEY  = "PBD_USER_VERIFIED";
-      const WA_NUMBER = "916351537770";
-
-      (function checkAuthStatus() {
-        if (localStorage.getItem(AUTH_KEY) === "true") showLoggedInState();
-      })();
-
-      window.requestNewCode = function() {
-        const text = `✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._`;
-        window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-      };
-
-      const modal    = document.getElementById("authModalOverlay");
-      const input    = document.getElementById("accessCodeInput");
-      const errorMsg = document.getElementById("authErrorMsg");
-
-      window.openAuthModal  = function() { modal.classList.add("active"); input.value = ""; errorMsg.style.display = "none"; input.focus(); };
-      window.closeAuthModal = function() { modal.classList.remove("active"); };
-      window.verifyCode     = function() {
-        const code = input.value.trim().toUpperCase();
-        if (code.startsWith("VIA-") && code.length >= 8) {
-          localStorage.setItem(AUTH_KEY, "true"); closeAuthModal(); showLoggedInState();
-        } else {
-          errorMsg.style.display = "block"; input.value = ""; input.focus();
-        }
-      };
-      function showLoggedInState() {
-        document.getElementById("portalCtaContainer").innerHTML = `
-          <button class="btn-primary" onclick="alert('Portal Dashboard Coming Soon!')">Access Dashboard</button>
-          <button class="btn-secondary" onclick="logout()" style="border:none;text-decoration:underline">Sign Out</button>`;
-      }
-      window.logout = function() { localStorage.removeItem(AUTH_KEY); location.reload(); };
-
-      // ══════════════════════════════════════════════════
-      // DEVICE TABS
-      // ══════════════════════════════════════════════════
-      document.querySelectorAll('.dev-tab').forEach(function(tab) {
-        tab.addEventListener('click', function() {
-          document.querySelectorAll('.dev-tab').forEach(function(t){ t.classList.remove('active'); });
-          tab.classList.add('active');
-          document.querySelectorAll('.dev-inst').forEach(function(d){ d.style.display = 'none'; });
-          const t = document.getElementById('tab-' + tab.dataset.tab);
-          if (t) t.style.display = 'block';
-        });
-      });
-
-      // ══════════════════════════════════════════════════
-      // PWA INSTALL
-      // ══════════════════════════════════════════════════
-      var dP = null;
-      var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
-      var isStandalone = window.matchMedia('(display-mode:standalone)').matches || navigator.standalone === true;
-
-      var navBtn     = document.getElementById('install-pwa-nav');
-      var secBtn     = document.getElementById('install-pwa-section');
-      var iosTrigger = document.getElementById('ios-trigger-section');
-      var banner     = document.getElementById('install-banner');
-      var bannerBtn  = document.getElementById('install-banner-btn');
-      var bannerDis  = document.getElementById('install-banner-dismiss');
-      var iosHint    = document.getElementById('ios-hint');
-      var iosClose   = document.getElementById('ios-hint-close');
-
-      function isMobile() { return window.innerWidth <= 720; }
-
-      function showInstallBtns() {
-        if (navBtn && !isMobile()) { navBtn.style.display = 'inline-flex'; }
-        if (secBtn) { secBtn.style.display = 'inline-flex'; }
-      }
-      function hideInstallBtns() {
-        if (navBtn) { navBtn.style.display = 'none'; }
-        if (secBtn) { secBtn.style.display = 'none'; }
-        if (banner) { banner.classList.remove('show'); }
-      }
-
-      if (isStandalone) { hideInstallBtns(); }
-
-      function doInstall() {
-        if (dP) {
-          dP.prompt();
-          dP.userChoice.then(function(result) {
-            if (result.outcome === 'accepted') { dP = null; hideInstallBtns(); }
-          });
-        }
-      }
-
-      window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault();
-        dP = e;
-        showInstallBtns();
-        setTimeout(function() {
-          try {
-            var dismissed = sessionStorage.getItem('pbd-install-dismissed');
-            if (!dismissed && !isStandalone && banner) banner.classList.add('show');
-          } catch(ex) {}
-        }, 3500);
-      });
-
-      if (navBtn)    navBtn.addEventListener('click', doInstall);
-      if (secBtn)    secBtn.addEventListener('click', doInstall);
-      if (bannerBtn) bannerBtn.addEventListener('click', function() { doInstall(); if (banner) banner.classList.remove('show'); });
-      if (bannerDis) bannerDis.addEventListener('click', function() {
-        if (banner) banner.classList.remove('show');
-        try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch(e) {}
-      });
-
-      if (isIOS && !isStandalone) {
-        if (navBtn && !isMobile()) navBtn.style.display = 'inline-flex';
-        if (iosTrigger) {
-          iosTrigger.style.display = 'inline-flex';
-          iosTrigger.addEventListener('click', function() { if (iosHint) iosHint.classList.add('show'); });
-        }
-        setTimeout(function() {
-          try {
-            var d = sessionStorage.getItem('pbd-ios-dismissed');
-            if (!d && iosHint) iosHint.classList.add('show');
-          } catch(e) {}
-        }, 4500);
-      }
-      if (iosClose) iosClose.addEventListener('click', function() {
-        if (iosHint) iosHint.classList.remove('show');
-        try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch(e) {}
-      });
-
-      window.addEventListener('appinstalled', function() { dP = null; hideInstallBtns(); });
-      window.addEventListener('resize', function() { if (isMobile() && navBtn) navBtn.style.display = 'none'; });
-
-      // ══════════════════════════════════════════════════
-      // SERVICE WORKER
-      // ══════════════════════════════════════════════════
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('./sw.js').catch(function() {});
-        });
-      }
-
+    /* ── ROUTER ── */
+    (function fixStoreLinks() {
+      var isStoreDomain = location.hostname === 'store.viadecide.com';
+      if (!isStoreDomain) return;
+      if (location.pathname === '/printbydd') history.replaceState(null, '', '/printbydd/');
     })();
+
+    function isStore() {
+      return location.hostname === 'store.viadecide.com' ||
+             location.pathname.startsWith('/printbydd');
+    }
+    function routeTo(pathHtml, pathRoute) {
+      return isStore() ? pathRoute : pathHtml;
+    }
+    (function applyNavRoutes() {
+      var links = {
+        'navLogo':         ['./index.html',                '/printbydd/'],
+        'navHome':         ['./index.html',                '/printbydd/'],
+        'navProducts':     ['./products.html',             '/printbydd/products'],
+        'navBlog':         ['./gifts-that-mean-more.html', '/printbydd/gifts'],
+        'cardKeychain':    ['./keychain.html',             '/printbydd/keychain'],
+        'cardNumberplate': ['./numberplate.html',          '/printbydd/numberplate'],
+        'cardBlog':        ['./gifts-that-mean-more.html', '/printbydd/gifts']
+      };
+      Object.keys(links).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.href = routeTo(links[id][0], links[id][1]);
+      });
+    })();
+
+    /* ── THEME ── */
+    var THEME_KEY = "VD_INVERT_THEME";
+    var btnTheme  = document.getElementById("btnTheme");
+
+    function setInvert(on) {
+      document.body.classList.toggle("invert-mode", !!on);
+      btnTheme.textContent = on ? "☀" : "☾";
+      try { localStorage.setItem(THEME_KEY, on ? "1" : "0"); } catch (e) {}
+    }
+    (function initTheme() {
+      var saved = "0";
+      try { saved = localStorage.getItem(THEME_KEY) || "0"; } catch (e) {}
+      setInvert(saved === "1");
+    })();
+    btnTheme.addEventListener("click", function () {
+      setInvert(!document.body.classList.contains("invert-mode"));
+    });
+
+    /* ── AUTH ── */
+    var AUTH_KEY  = "PBD_USER_VERIFIED";
+    var WA_NUMBER = "916351537770";
+
+    (function checkAuthStatus() {
+      if (localStorage.getItem(AUTH_KEY) === "true") showLoggedInState();
+    })();
+
+    window.requestNewCode = function () {
+      var text = "✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._";
+      window.open('https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text), '_blank');
+    };
+
+    var modal    = document.getElementById("authModalOverlay");
+    var input    = document.getElementById("accessCodeInput");
+    var errorMsg = document.getElementById("authErrorMsg");
+
+    window.openAuthModal  = function () {
+      modal.classList.add("active");
+      input.value = "";
+      errorMsg.style.display = "none";
+      input.focus();
+    };
+    window.closeAuthModal = function () { modal.classList.remove("active"); };
+    window.verifyCode     = function () {
+      var code = input.value.trim().toUpperCase();
+      if (code.startsWith("VIA-") && code.length >= 8) {
+        localStorage.setItem(AUTH_KEY, "true");
+        closeAuthModal();
+        showLoggedInState();
+      } else {
+        errorMsg.style.display = "block";
+        input.value = "";
+        input.focus();
+      }
+    };
+    function showLoggedInState() {
+      document.getElementById("portalCtaContainer").innerHTML =
+        '<button class="btn-primary" onclick="alert(\'Portal Dashboard Coming Soon!\')">Access Dashboard</button>' +
+        '<button class="btn-secondary" onclick="logout()" style="border:none;text-decoration:underline">Sign Out</button>';
+    }
+    window.logout = function () { localStorage.removeItem(AUTH_KEY); location.reload(); };
+
+    /* Allow closing auth modal with Escape */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('active')) closeAuthModal();
+    });
+
+    /* ── DEVICE TABS ── */
+    document.querySelectorAll('.dev-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.dev-tab').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.dev-inst').forEach(function (d) { d.style.display = 'none'; });
+        var panel = document.getElementById('tab-' + tab.dataset.tab);
+        if (panel) panel.style.display = 'block';
+      });
+      /* Keyboard support for tab buttons */
+      tab.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tab.click(); }
+      });
+    });
+
+    /* ── PWA INSTALL ── */
+    var dP = null;
+    var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
+    var isStandalone = window.matchMedia('(display-mode:standalone)').matches ||
+                       navigator.standalone === true;
+
+    var navBtn     = document.getElementById('install-pwa-nav');
+    var secBtn     = document.getElementById('install-pwa-section');
+    var iosTrigger = document.getElementById('ios-trigger-section');
+    var banner     = document.getElementById('install-banner');
+    var bannerBtn  = document.getElementById('install-banner-btn');
+    var bannerDis  = document.getElementById('install-banner-dismiss');
+    var iosHint    = document.getElementById('ios-hint');
+    var iosClose   = document.getElementById('ios-hint-close');
+
+    function isMobile() { return window.innerWidth <= 720; }
+
+    function showInstallBtns() {
+      if (navBtn && !isMobile()) navBtn.style.display = 'inline-flex';
+      if (secBtn) secBtn.style.display = 'inline-flex';
+    }
+    function hideInstallBtns() {
+      if (navBtn) navBtn.style.display = 'none';
+      if (secBtn) secBtn.style.display = 'none';
+      if (banner) banner.classList.remove('show');
+    }
+
+    if (isStandalone) hideInstallBtns();
+
+    function doInstall() {
+      if (dP) {
+        dP.prompt();
+        dP.userChoice.then(function (result) {
+          if (result.outcome === 'accepted') { dP = null; hideInstallBtns(); }
+        });
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      dP = e;
+      showInstallBtns();
+      setTimeout(function () {
+        try {
+          var dismissed = sessionStorage.getItem('pbd-install-dismissed');
+          if (!dismissed && !isStandalone && banner) banner.classList.add('show');
+        } catch (ex) {}
+      }, 3500);
+    });
+
+    if (navBtn)    navBtn.addEventListener('click', doInstall);
+    if (secBtn)    secBtn.addEventListener('click', doInstall);
+    if (bannerBtn) bannerBtn.addEventListener('click', function () {
+      doInstall();
+      if (banner) banner.classList.remove('show');
+    });
+    if (bannerDis) bannerDis.addEventListener('click', function () {
+      if (banner) banner.classList.remove('show');
+      try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch (e) {}
+    });
+
+    if (isIOS && !isStandalone) {
+      if (navBtn && !isMobile()) navBtn.style.display = 'inline-flex';
+      if (iosTrigger) {
+        iosTrigger.style.display = 'inline-flex';
+        iosTrigger.addEventListener('click', function () {
+          if (iosHint) iosHint.classList.add('show');
+        });
+      }
+      setTimeout(function () {
+        try {
+          var d = sessionStorage.getItem('pbd-ios-dismissed');
+          if (!d && iosHint) iosHint.classList.add('show');
+        } catch (e) {}
+      }, 4500);
+    }
+    if (iosClose) iosClose.addEventListener('click', function () {
+      if (iosHint) iosHint.classList.remove('show');
+      try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch (e) {}
+    });
+
+    window.addEventListener('appinstalled', function () { dP = null; hideInstallBtns(); });
+    window.addEventListener('resize', function () {
+      if (isMobile() && navBtn) navBtn.style.display = 'none';
+    });
+
+    /* ── SERVICE WORKER ── */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      });
+    }
+
+  })();
   </script>
 </body>
 </html>
