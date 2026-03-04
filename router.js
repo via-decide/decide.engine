@@ -1,31 +1,21 @@
 /**
  * ═══════════════════════════════════════════════════════════
- * viadecide.com — UNIVERSAL ROUTER v3.0
+ * viadecide.com — UNIVERSAL ROUTER v3.1
  *
- * Features (all new vs v2.4):
- *   ✦ Route parameters  (/blog/:slug → params.slug)
- *   ✦ Wildcard routes   (* catch-all)
- *   ✦ beforeEach / afterEach middleware hooks
- *   ✦ Event bus         (VDRouter.on / off / emit)
- *   ✦ pushState SPA mode (no reload for in-site navigation)
- *   ✦ Scroll restoration per route
- *   ✦ VDRouter.query()  (parsed URLSearchParams)
- *   ✦ VDRouter.params() (current dynamic params)
- *   ✦ VDRouter.prefetch(slug)
- *   ✦ VDRouter.back() / forward()
- *   ✦ Dynamic route registration at runtime
- *   ✦ Smarter 404 with "did you mean?" suggestions
- *   ✦ Full backward-compat with v2.4 public API
+ * Upgrades (v3.1):
+ * ✦ Inframe Context: Intercepts _blank/new tabs and opens 
+ * them in a sleek iframe overlay to preserve app context.
+ * ✦ Dynamic Subpage Interpolation: PARAM_ROUTES now directly
+ * injects matched parameters into the resolved file path.
+ * ✦ Automated Store Routing: printbydd-store/:item maps instantly.
  *
- * Preserved from v2.4:
- *   • Pretty URL handler (/pricing → pricing.html)
- *   • Hash routing (#/pricing)
- *   • 404 session-redirect (Netlify / GitHub Pages)
- *   • Nav-safe link interception
- *   • In-app browser detection
- *   • ROUTES / ALIASES maps
- *
- * File: router.js
+ * Features:
+ * ✦ Route parameters  (/blog/:slug → params.slug)
+ * ✦ Wildcard routes   (* catch-all)
+ * ✦ beforeEach / afterEach middleware hooks
+ * ✦ Event bus         (VDRouter.on / off / emit)
+ * ✦ pushState SPA mode (no reload for in-site navigation)
+ * ✦ Scroll restoration per route
  * ═══════════════════════════════════════════════════════════
  */
 (function ViaDecideRouter() {
@@ -33,7 +23,7 @@
 
   // ─────────────────────────────────────────────────────────
   // ROUTE MAP  (slug → file path)
-  // Add new slugs here; dynamic segments use :param notation.
+  // Static paths go here.
   // ─────────────────────────────────────────────────────────
   var ROUTES = {
     // Core tools
@@ -68,16 +58,11 @@
     "mars-rover-simulator-game":  "mars-rover-simulator-game.html",
     hivaland:                     "HivaLand.html",
 
-    // Store
+    // Store Base (Dynamic item routing handled in PARAM_ROUTES)
     "printbydd-store":      "printbydd-store/index.html",
     printbydd:              "printbydd-store/index.html",
-    keychain:               "printbydd-store/keychain.html",
-    numberplate:            "printbydd-store/numberplate.html",
-    products:               "printbydd-store/products.html",
-    "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more.html",
-    gifts:                  "printbydd-store/gifts-that-mean-more.html",
 
-    // Blog
+    // Blog Base
     blogs:                           "Viadecide-blogs.html",
     "viadecide-blogs":               "Viadecide-blogs.html",
     "decision-infrastructure-india": "decision-infrastructure-india.html",
@@ -97,41 +82,32 @@
     ondc:           "ondc-demo",
     ViaGuide:       "viaguide",
     StudyOS:        "studyos",
+    keychain:               "printbydd-store/keychain",
+    numberplate:            "printbydd-store/numberplate",
+    products:               "printbydd-store/products",
+    "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more",
+    gifts:                  "printbydd-store/gifts-that-mean-more"
   };
 
   // ─────────────────────────────────────────────────────────
   // DYNAMIC PARAM ROUTES  (pattern → file template)
-  // Pattern:  "blog/:slug"  →  file: "blog-post.html"
-  // Matched params injected into VDRouter.params()
+  // Auto-interpolates parameters: "printbydd-store/:item" -> "printbydd-store/:item.html"
   // ─────────────────────────────────────────────────────────
   var PARAM_ROUTES = [
-    // { pattern: "blog/:slug", file: "blog-post.html" },
+    { pattern: "printbydd-store/:item", file: "printbydd-store/:item.html" },
+    { pattern: "store/:item",           file: "printbydd-store/:item.html" },
+    { pattern: "blog/:slug",            file: "blog/:slug.html" }
   ];
 
-  // ─────────────────────────────────────────────────────────
-  // WILDCARD / CATCH-ALL
-  // Set to a file path to catch unrecognised slugs instead of
-  // showing the built-in 404. Leave null to use built-in 404.
-  // ─────────────────────────────────────────────────────────
   var WILDCARD_FILE = null; // e.g. "404.html"
-
-  // ─────────────────────────────────────────────────────────
-  // SPA MODE
-  // true  → use pushState; navigate without full reload
-  //         (requires server to serve index.html for all paths)
-  // false → classic full-page navigation (default, safe)
-  // ─────────────────────────────────────────────────────────
   var SPA_MODE = false;
 
-  // ─────────────────────────────────────────────────────────
   // Internal state
-  // ─────────────────────────────────────────────────────────
   var _currentParams  = {};
-  var _scrollMap      = {};           // path → scrollY for restoration
+  var _scrollMap      = {};           
   var _hooks          = { before: [], after: [] };
-  var _listeners      = {};           // event → [fn, ...]
+  var _listeners      = {};           
   var _prefetchCache  = {};
-
 
   // ══════════════════════════════════════════════════════════
   // ①  UTILITIES
@@ -150,8 +126,7 @@
       .replace(/^\.\//, "")
       .replace(/\.html?$/i, "")
       .trim()
-      .toLowerCase()
-      .split("/")[0];
+      .toLowerCase();
   }
 
   function getBasePath() {
@@ -207,7 +182,6 @@
     return pathname;
   }
 
-  // Levenshtein distance — used for "did you mean?" suggestions
   function levenshtein(a, b) {
     var m = a.length, n = b.length, d = [], i, j;
     for (i = 0; i <= m; i++) d[i] = [i];
@@ -222,21 +196,80 @@
 
   function suggest(slug) {
     var all = Object.keys(ROUTES);
-    var scored = all
+    return all
       .map(function(k) { return { k: k, d: levenshtein(slug, k) }; })
       .filter(function(o) { return o.d <= 3; })
       .sort(function(a, b) { return a.d - b.d; })
       .slice(0, 3)
       .map(function(o) { return o.k; });
-    return scored;
   }
 
+  // ══════════════════════════════════════════════════════════
+  // ②  INFRAME MODAL (Replaces "New Tab" CTA)
+  // ══════════════════════════════════════════════════════════
+  
+  function _openInframe(url) {
+    var overlayId = "vd-inframe-overlay";
+    var existing = document.getElementById(overlayId);
+    if (existing) document.body.removeChild(existing);
+
+    var overlay = document.createElement("div");
+    overlay.id = overlayId;
+    overlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483647;background:rgba(4,8,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;opacity:0;transition:opacity 0.3s ease;";
+    
+    var header = document.createElement("div");
+    header.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#050505;border-bottom:1px solid rgba(255,255,255,0.1);";
+    
+    var urlSpan = document.createElement("span");
+    urlSpan.style.cssText = "color:#8a8a8a;font-family:monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;";
+    urlSpan.textContent = url;
+
+    var actions = document.createElement("div");
+    actions.style.cssText = "display:flex;gap:10px;";
+
+    // Fallback button in case iframe is blocked by external X-Frame-Options
+    var extBtn = document.createElement("a");
+    extBtn.href = url;
+    extBtn.target = "_blank";
+    extBtn.rel = "noopener noreferrer";
+    extBtn.textContent = "Open Tab ↗";
+    extBtn.style.cssText = "color:#ff671f;text-decoration:none;font-size:13px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,103,31,0.3);border-radius:6px;transition:background 0.2s;display:flex;align-items:center;";
+    
+    var closeBtn = document.createElement("button");
+    closeBtn.textContent = "✕ Close";
+    closeBtn.style.cssText = "background:#ff671f;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;";
+    closeBtn.onclick = function() {
+      overlay.style.opacity = "0";
+      setTimeout(function(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+    };
+
+    actions.appendChild(extBtn);
+    actions.appendChild(closeBtn);
+    header.appendChild(urlSpan);
+    header.appendChild(actions);
+
+    var iframeWrap = document.createElement("div");
+    iframeWrap.style.cssText = "flex:1;position:relative;background:#fff;border-radius:0 0 8px 8px;overflow:hidden;margin:0 auto;width:100%;max-width:1200px;"; 
+    
+    var iframe = document.createElement("iframe");
+    iframe.src = url;
+    iframe.style.cssText = "width:100%;height:100%;border:none;position:absolute;top:0;left:0;";
+    
+    iframeWrap.appendChild(iframe);
+    overlay.appendChild(header);
+    overlay.appendChild(iframeWrap);
+    
+    document.body.appendChild(overlay);
+    
+    // Trigger reflow for CSS fade animation
+    window.getComputedStyle(overlay).opacity;
+    overlay.style.opacity = "1";
+  }
 
   // ══════════════════════════════════════════════════════════
-  // ②  ROUTE RESOLVER
+  // ③  ROUTE RESOLVER
   // ══════════════════════════════════════════════════════════
 
-  /** Try static ROUTES + ALIASES first, then dynamic :param patterns. */
   function resolveRoute(slug) {
     if (!slug) return null;
 
@@ -256,12 +289,18 @@
         return { file: ROUTES[key], params: {} };
     }
 
-    // Dynamic :param patterns (full path, not just first segment)
+    // Dynamic :param patterns (Interpolates params into the file path)
     var fullPath = String(slug);
     for (var i = 0; i < PARAM_ROUTES.length; i++) {
       var pr = PARAM_ROUTES[i];
       var result = matchPattern(pr.pattern, fullPath);
-      if (result) return { file: pr.file, params: result };
+      if (result) {
+        var finalFile = pr.file;
+        for (var paramKey in result) {
+           finalFile = finalFile.replace(new RegExp(":" + paramKey, "g"), result[paramKey]);
+        }
+        return { file: finalFile, params: result };
+      }
     }
 
     // Wildcard catch-all
@@ -270,8 +309,6 @@
     return null;
   }
 
-  /** Match a :param pattern against a path string.
-   *  Returns params object on match, null otherwise. */
   function matchPattern(pattern, path) {
     var pParts = pattern.split("/");
     var uParts = path.split("/");
@@ -289,7 +326,7 @@
 
 
   // ══════════════════════════════════════════════════════════
-  // ③  NAVIGATION CORE
+  // ④  NAVIGATION CORE
   // ══════════════════════════════════════════════════════════
 
   function navigateTo(filePath, search, hash, replaceState) {
@@ -304,16 +341,12 @@
     }
   }
 
-  // ── SPA navigation (pushState, no reload) ────────────────
-  var _spaContainer = null;
-
   function _spaNavigate(url, filePath, search, hash, replace) {
     var from = window.location.href;
 
     _runHooks("before", { from: from, to: url, file: filePath }, function(allowed) {
       if (!allowed) return;
 
-      // Save current scroll
       _scrollMap[window.location.pathname] = window.scrollY || 0;
 
       if (replace) window.history.replaceState({ vd: true }, "", url);
@@ -348,32 +381,27 @@
         var parser = new DOMParser();
         var doc = parser.parseFromString(html, "text/html");
 
-        // Swap <title>
         if (doc.title) document.title = doc.title;
 
-        // Swap <main> or <body> content
         var newMain = doc.querySelector("main") || doc.body;
         var curMain = document.querySelector("main") || document.body;
         if (newMain && curMain) {
           curMain.innerHTML = newMain.innerHTML;
-          bindNow(); // re-bind router links in new content
+          bindNow(); 
         }
 
         if (typeof done === "function") done();
       })
       .catch(function() {
-        // Fallback: hard navigate
         window.location.href = pageUrl;
       });
   }
 
 
   // ══════════════════════════════════════════════════════════
-  // ④  MIDDLEWARE & EVENT BUS
+  // ⑤  MIDDLEWARE & EVENT BUS
   // ══════════════════════════════════════════════════════════
 
-  /** Run all "before" hooks in sequence. Calls cb(true) if navigation
-   *  should proceed, cb(false) if any hook returned false. */
   function _runHooks(type, ctx, cb) {
     var hooks = _hooks[type] || [];
     var i = 0;
@@ -383,10 +411,7 @@
       var hook = hooks[i++];
       try {
         var result = hook(ctx, next);
-        // If hook returns false synchronously, cancel
         if (result === false) { if (cb) cb(false); }
-        // If hook accepts (ctx, next) and calls next() → async flow
-        // If it returns a promise, wait for it
         else if (result && typeof result.then === "function") {
           result.then(function(v) {
             if (v === false) { if (cb) cb(false); }
@@ -403,7 +428,6 @@
     for (var i = 0; i < fns.length; i++) {
       try { fns[i](data); } catch(e) {}
     }
-    // Also dispatch as DOM CustomEvent
     try {
       window.dispatchEvent(new CustomEvent("vd:" + event, { detail: data }));
     } catch(e) {}
@@ -411,10 +435,9 @@
 
 
   // ══════════════════════════════════════════════════════════
-  // ⑤  BOOT SEQUENCE
+  // ⑥  BOOT SEQUENCE
   // ══════════════════════════════════════════════════════════
 
-  // STEP A: Pretty URL handler  (/pricing → pricing.html)
   (function handlePrettyURL() {
     var base     = getBasePath();
     var pathname = window.location.pathname || "/";
@@ -422,15 +445,10 @@
 
     var clean = pathname.replace(/^\/+/, "");
     if (!clean || clean === "index.html" || clean === "index.htm") return;
+    if (isAssetHref(clean)) return;
 
-    if (/\.(html?|js|css|png|jpg|jpeg|webp|svg|ico|json|txt|xml|pdf|mp4|webm|woff2?|ttf|stl)$/i
-        .test(clean)) return;
-
-    // Support multi-segment slugs for :param routes
     var fullSlug = clean.replace(/\/+$/, "");
-    var firstSeg = normalizeSlug(fullSlug.split("/")[0]);
-
-    var match = resolveRoute(fullSlug) || resolveRoute(firstSeg);
+    var match = resolveRoute(fullSlug) || resolveRoute(normalizeSlug(fullSlug.split("/")[0]));
     if (!match) return;
 
     _currentParams = match.params || {};
@@ -438,11 +456,10 @@
       match.file,
       window.location.search || "",
       window.location.hash  || "",
-      true  // replaceState so back-button works cleanly
+      true 
     );
   })();
 
-  // STEP B: 404 session-redirect recovery (Netlify / GitHub Pages)
   var _stored = null;
   try { _stored = sessionStorage.getItem("__vd_redirect__"); } catch(e) {}
 
@@ -464,7 +481,6 @@
     }
   }
 
-  // STEP C: Hash routing  (#/pricing)
   var _hash = window.location.hash || "";
   if (_hash) {
     var _hashPath = _hash.replace(/^#\/?/, "");
@@ -478,7 +494,6 @@
     }
   }
 
-  // STEP D: popstate (browser back/forward in SPA mode)
   if (SPA_MODE) {
     window.addEventListener("popstate", function(e) {
       var pathname = window.location.pathname;
@@ -499,18 +514,20 @@
 
 
   // ══════════════════════════════════════════════════════════
-  // ⑥  PUBLIC API   window.VDRouter
+  // ⑦  PUBLIC API   window.VDRouter
   // ══════════════════════════════════════════════════════════
   window.VDRouter = {
 
-    // ── Navigate to a slug or full URL ───────────────────
     go: function(slug, options) {
       options = options || {};
 
+      // If external/forced new tab -> Route to inframe modal
       if (isLikelyExternalHref(String(slug || ""))) {
-        if (options.newTab && !isInAppBrowser())
-          window.open(String(slug), "_blank", "noopener,noreferrer");
-        else window.location.href = String(slug);
+        if (options.newTab && !isInAppBrowser()) {
+          _openInframe(String(slug));
+        } else {
+          window.location.href = String(slug);
+        }
         return;
       }
 
@@ -519,9 +536,9 @@
 
       if (!match) {
         var fallback = origin() + joinURL(getBasePath(), norm + "/");
-        if (options.newTab && !isInAppBrowser())
-          window.open(fallback, "_blank", "noopener,noreferrer");
-        else safeReplace(fallback);
+        if (options.newTab && !isInAppBrowser()) {
+          _openInframe(fallback);
+        } else safeReplace(fallback);
         return;
       }
 
@@ -529,24 +546,22 @@
       var url = origin() + joinURL(getBasePath(), match.file) +
                 (options.search || "") + (options.hash || "");
 
-      if (options.newTab && !isInAppBrowser())
-        window.open(url, "_blank", "noopener,noreferrer");
-      else
+      if (options.newTab && !isInAppBrowser()) {
+        _openInframe(url);
+      } else {
         navigateTo(match.file, options.search || "", options.hash || "", false);
+      }
     },
 
-    // ── Pretty URL for a slug ────────────────────────────
     url: function(slug) {
       return joinURL(getBasePath(), normalizeSlug(slug) + "/");
     },
 
-    // ── Resolved file path for a slug ───────────────────
     resolve: function(slug) {
       var match = resolveRoute(normalizeSlug(slug));
       return match ? match.file : null;
     },
 
-    // ── Dump registered routes ───────────────────────────
     routes: function() {
       var out = {};
       for (var k in ROUTES)
@@ -554,27 +569,22 @@
       return out;
     },
 
-    // ── Register a new static route at runtime ───────────
     register: function(slug, file) {
       ROUTES[normalizeSlug(slug)] = String(file || "");
     },
 
-    // ── Register a dynamic :param route ─────────────────
     registerParam: function(pattern, file) {
       PARAM_ROUTES.push({ pattern: String(pattern), file: String(file) });
     },
 
-    // ── Set wildcard / catch-all ─────────────────────────
     setWildcard: function(file) {
       WILDCARD_FILE = file || null;
     },
 
-    // ── Current dynamic params (:param routes) ───────────
     params: function() {
       return Object.assign({}, _currentParams);
     },
 
-    // ── Parsed query string ──────────────────────────────
     query: function() {
       var out = {};
       try {
@@ -585,11 +595,9 @@
       return out;
     },
 
-    // ── Navigation history helpers ───────────────────────
     back: function()    { window.history.back(); },
     forward: function() { window.history.forward(); },
 
-    // ── Prefetch a route (SPA mode hint) ─────────────────
     prefetch: function(slug) {
       var match = resolveRoute(normalizeSlug(slug));
       if (!match || _prefetchCache[match.file]) return;
@@ -602,29 +610,16 @@
       } catch(e) {}
     },
 
-    // ── Middleware / lifecycle hooks ─────────────────────
-    /**
-     * beforeEach(fn)
-     * fn receives (context, next) where context = { from, to, file }
-     * Call next() to allow, return false / don't call next() to cancel.
-     */
     beforeEach: function(fn) {
       if (typeof fn === "function") _hooks.before.push(fn);
-      return window.VDRouter; // chainable
+      return window.VDRouter; 
     },
 
-    /** afterEach(fn) — fn receives { from, to, file } */
     afterEach: function(fn) {
       if (typeof fn === "function") _hooks.after.push(fn);
       return window.VDRouter;
     },
 
-    // ── Event bus ────────────────────────────────────────
-    /**
-     * VDRouter.on("routechange", fn)
-     * Events: routechange
-     * Also dispatched on window as CustomEvent "vd:routechange"
-     */
     on: function(event, fn) {
       if (!_listeners[event]) _listeners[event] = [];
       _listeners[event].push(fn);
@@ -642,12 +637,10 @@
       return window.VDRouter;
     },
 
-    // ── Enable / disable SPA mode ────────────────────────
     setSPAMode: function(enabled) {
       SPA_MODE = !!enabled;
     },
 
-    // ── Link interception ────────────────────────────────
     bindLinks: function(selector) {
       var sel = selector ||
         "a.subpage-card, nav a, header a, footer a, a[data-vd-route]";
@@ -657,7 +650,6 @@
         if (e.button && e.button !== 0) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
-        // [data-back] handler
         var backEl = e.target && e.target.closest
           ? e.target.closest("[data-back]") : null;
         if (backEl) {
@@ -673,8 +665,15 @@
           ? e.target.closest(sel) : null;
         if (!a) return;
 
+        // Inframe intercept for target="_blank"
         var target = (a.getAttribute("target") || "").toLowerCase();
-        if (target === "_blank") return;
+        var inframeAttr = (a.getAttribute("data-inframe") || "").toLowerCase();
+        
+        if (target === "_blank" || inframeAttr === "true") {
+          e.preventDefault();
+          _openInframe(a.href);
+          return;
+        }
 
         var hrefAttr = a.getAttribute("href") || "";
         if (!hrefAttr) return;
@@ -690,15 +689,6 @@
         var path = stripBasePrefix(url.pathname || "/", base);
         var clean = String(path || "/").replace(/^\/+/, "");
 
-        // reduce nested links to last segment
-        if (clean.indexOf("/") !== -1) {
-          var segs = clean.split("/").filter(Boolean);
-          var last = segs[segs.length - 1] || "";
-          if (last && (/\.(html?)$/i.test(last) || !/\./.test(last)))
-            clean = last;
-        }
-
-        // direct .html navigation
         if (/\.html?$/i.test(clean)) {
           e.preventDefault();
           navigateTo(clean, url.search || "", url.hash || "", false);
@@ -708,7 +698,8 @@
         var slug  = normalizeSlug(clean);
         if (!slug) return;
 
-        var match = resolveRoute(slug);
+        // Try mapping it as a full parameterized path first (e.g. printbydd-store/keychain)
+        var match = resolveRoute(clean.replace(/\/+$/, "")) || resolveRoute(slug);
         e.preventDefault();
 
         if (!match) {
@@ -720,7 +711,7 @@
         }
 
         _currentParams = match.params || {};
-        window.VDRouter.go(slug, {
+        window.VDRouter.go(clean.replace(/\/+$/, ""), {
           newTab: false,
           search: url.search || "",
           hash:   url.hash   || "",
@@ -731,7 +722,7 @@
 
 
   // ══════════════════════════════════════════════════════════
-  // ⑦  NAV HREF FIXER  (makes relative nav hrefs work on subpages)
+  // ⑧  NAV HREF FIXER  
   // ══════════════════════════════════════════════════════════
   function fixNavHrefs() {
     var base  = getBasePath();
@@ -757,13 +748,13 @@
       var s = parts.search || "";
       var h = parts.hash   || "";
 
-      if (p.indexOf("/") !== -1) {
+      if (p.indexOf("/") !== -1 && !p.startsWith("printbydd-store") && !p.startsWith("store") && !p.startsWith("blog")) {
         var segs = p.split("/").filter(Boolean);
         p = segs[segs.length - 1] || p;
       }
 
       if (p && !/\./.test(p)) {
-        a.setAttribute("href", joinURL(base, normalizeSlug(p) + "/") + s + h);
+        a.setAttribute("href", joinURL(base, p + "/") + s + h);
         continue;
       }
       if (/\.html?$/i.test(p)) {
@@ -789,7 +780,7 @@
 
 
   // ══════════════════════════════════════════════════════════
-  // ⑧  BUILT-IN 404 PAGE  (with "did you mean?" suggestions)
+  // ⑨  BUILT-IN 404 PAGE  
   // ══════════════════════════════════════════════════════════
   function renderNotFound(slug) {
     var hints = suggest(String(slug));
