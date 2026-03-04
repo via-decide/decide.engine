@@ -1,3 +1,4 @@
+
 /**
  * ═══════════════════════════════════════════════════════════
  * viadecide.com — UNIVERSAL ROUTER v3.1
@@ -26,6 +27,17 @@
   // Static paths go here.
   // ─────────────────────────────────────────────────────────
   var ROUTES = {
+    // ── Popular-tool dedicated subpages (add .html files to repo when ready) ──
+    // Swap "app-generator.html" for the real file as each page ships.
+    "interview-simulator":      "interview-simulator.html",
+    "interview-prep":           "interview-prep.html",
+    "restaurant-website":       "app-generator.html",   // replace when ready
+    "restaurant-builder":       "app-generator.html",   // alias
+    "finance-dashboard":        "finance-dashboard-msme.html",
+    "sales-dashboard":          "sales-dashboard.html",
+    "decision-tool":            "alchemist.html",
+    "app-generator":            "app-generator.html",
+
     // Core tools
     alchemist:          "alchemist.html",
     swipeos:            "SwipeOS.html",
@@ -205,65 +217,158 @@
   }
 
   // ══════════════════════════════════════════════════════════
-  // ②  INFRAME MODAL (Replaces "New Tab" CTA)
+  // ②  INFRAME OVERLAY  ─ shows subpage content inside the app
+  //     instead of redirecting to a new tab.
+  //     Triggered by: target="_blank" links, data-inframe="true",
+  //     and the modal's "Open in Tab" CTA (#m-tab).
   // ══════════════════════════════════════════════════════════
-  
-  function _openInframe(url) {
+
+  function _openInframe(url, opts) {
+    opts = opts || {};
     var overlayId = "vd-inframe-overlay";
-    var existing = document.getElementById(overlayId);
-    if (existing) document.body.removeChild(existing);
+    var existing  = document.getElementById(overlayId);
+    if (existing) existing.parentNode.removeChild(existing);
 
+    // ── resolve route so we open the canonical file, not a redirect ──
+    var resolvedUrl = url;
+    try {
+      var urlObj   = new URL(url, window.location.href);
+      var pathname = urlObj.pathname.replace(/^\\/+/, "");
+      var slug     = normalizeSlug(pathname);
+      var match    = resolveRoute(slug);
+      if (match) {
+        resolvedUrl = origin() + joinURL(getBasePath(), match.file) +
+                      (urlObj.search || "") + (urlObj.hash || "");
+      }
+    } catch(e) {}
+
+    // ── build overlay DOM ──
     var overlay = document.createElement("div");
-    overlay.id = overlayId;
-    overlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483647;background:rgba(4,8,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;opacity:0;transition:opacity 0.3s ease;";
-    
-    var header = document.createElement("div");
-    header.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#050505;border-bottom:1px solid rgba(255,255,255,0.1);";
-    
-    var urlSpan = document.createElement("span");
-    urlSpan.style.cssText = "color:#8a8a8a;font-family:monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;";
-    urlSpan.textContent = url;
+    overlay.id  = overlayId;
+    overlay.style.cssText = [
+      "position:fixed;top:0;left:0;width:100vw;height:100vh",
+      "z-index:2100;display:flex;flex-direction:column",
+      "background:rgba(4,6,12,0.7)",
+      "backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)",
+      "opacity:0;transition:opacity .3s ease"
+    ].join(";");
 
-    var actions = document.createElement("div");
-    actions.style.cssText = "display:flex;gap:10px;";
+    // top bar — matches #modal-top style
+    var bar = document.createElement("div");
+    bar.style.cssText = [
+      "display:flex;align-items:center;justify-content:space-between",
+      "padding:.75rem 1.25rem",
+      "background:#0c0e15",
+      "border-bottom:1px solid rgba(255,255,255,0.07)",
+      "flex-shrink:0;gap:1rem"
+    ].join(";");
 
-    // Fallback button in case iframe is blocked by external X-Frame-Options
+    // left: icon + title
+    var barLeft = document.createElement("div");
+    barLeft.style.cssText = "display:flex;align-items:center;gap:.55rem;min-width:0;";
+    var barIcon  = document.createElement("span");
+    barIcon.textContent = opts.icon || "↗";
+    barIcon.style.cssText = "font-size:1.1rem;flex-shrink:0";
+    var barTitle = document.createElement("span");
+    barTitle.textContent = opts.title || resolvedUrl;
+    barTitle.style.cssText = [
+      "font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600",
+      "color:#f0ede6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+    ].join(";");
+    barLeft.appendChild(barIcon);
+    barLeft.appendChild(barTitle);
+
+    // right: actions
+    var barRight = document.createElement("div");
+    barRight.style.cssText = "display:flex;align-items:center;gap:.5rem;flex-shrink:0";
+
+    // "Open in Tab" fallback (only if iframe genuinely blocked)
     var extBtn = document.createElement("a");
-    extBtn.href = url;
-    extBtn.target = "_blank";
-    extBtn.rel = "noopener noreferrer";
-    extBtn.textContent = "Open Tab ↗";
-    extBtn.style.cssText = "color:#ff671f;text-decoration:none;font-size:13px;font-weight:600;padding:6px 12px;border:1px solid rgba(255,103,31,0.3);border-radius:6px;transition:background 0.2s;display:flex;align-items:center;";
-    
+    extBtn.href      = resolvedUrl;
+    extBtn.target    = "_blank";
+    extBtn.rel       = "noopener noreferrer";
+    extBtn.id        = "vd-inframe-ext";
+    extBtn.textContent = "↗ New Tab";
+    extBtn.style.cssText = [
+      "font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:600",
+      "padding:.38rem .85rem;border-radius:8px",
+      "border:1px solid rgba(255,255,255,0.1);color:#8a8fa8",
+      "text-decoration:none;display:none;align-items:center",
+      "transition:border-color .2s,color .2s"
+    ].join(";");
+
+    // close button
     var closeBtn = document.createElement("button");
     closeBtn.textContent = "✕ Close";
-    closeBtn.style.cssText = "background:#ff671f;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;";
+    closeBtn.style.cssText = [
+      "font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:700",
+      "padding:.42rem 1rem;background:rgba(200,147,42,0.12)",
+      "color:#e8a830;border:1px solid rgba(200,147,42,0.3)",
+      "border-radius:8px;cursor:pointer;transition:background .2s"
+    ].join(";");
+    closeBtn.onmouseover = function(){ this.style.background = "rgba(200,147,42,0.22)"; };
+    closeBtn.onmouseout  = function(){ this.style.background = "rgba(200,147,42,0.12)"; };
     closeBtn.onclick = function() {
       overlay.style.opacity = "0";
-      setTimeout(function(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+      setTimeout(function(){
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        document.body.style.overflow = "";
+      }, 300);
     };
 
-    actions.appendChild(extBtn);
-    actions.appendChild(closeBtn);
-    header.appendChild(urlSpan);
-    header.appendChild(actions);
+    barRight.appendChild(extBtn);
+    barRight.appendChild(closeBtn);
+    bar.appendChild(barLeft);
+    bar.appendChild(barRight);
 
-    var iframeWrap = document.createElement("div");
-    iframeWrap.style.cssText = "flex:1;position:relative;background:#fff;border-radius:0 0 8px 8px;overflow:hidden;margin:0 auto;width:100%;max-width:1200px;"; 
-    
+    // iframe wrapper
+    var wrap = document.createElement("div");
+    wrap.style.cssText = [
+      "flex:1;position:relative;overflow:hidden",
+      "background:#080a0f"
+    ].join(";");
+
     var iframe = document.createElement("iframe");
-    iframe.src = url;
-    iframe.style.cssText = "width:100%;height:100%;border:none;position:absolute;top:0;left:0;";
-    
-    iframeWrap.appendChild(iframe);
-    overlay.appendChild(header);
-    overlay.appendChild(iframeWrap);
-    
+    iframe.src = resolvedUrl;
+    iframe.style.cssText = "width:100%;height:100%;border:none;display:block";
+    iframe.setAttribute("allowfullscreen", "");
+    iframe.setAttribute("sandbox",
+      "allow-scripts allow-same-origin allow-forms allow-popups " +
+      "allow-popups-to-escape-sandbox allow-modals"
+    );
+
+    // if iframe is blocked by X-Frame-Options, surface the "New Tab" link
+    iframe.onload = function() {
+      try {
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc || !doc.body || doc.body.innerHTML.trim() === "") {
+          extBtn.style.display = "inline-flex";
+        }
+      } catch(e) {
+        // cross-origin block → show fallback
+        extBtn.style.display = "inline-flex";
+      }
+    };
+
+    wrap.appendChild(iframe);
+    overlay.appendChild(bar);
+    overlay.appendChild(wrap);
     document.body.appendChild(overlay);
-    
-    // Trigger reflow for CSS fade animation
-    window.getComputedStyle(overlay).opacity;
-    overlay.style.opacity = "1";
+    document.body.style.overflow = "hidden";
+
+    // ESC to close
+    function onKey(e) {
+      if (e.key === "Escape") {
+        closeBtn.onclick();
+        document.removeEventListener("keydown", onKey);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+
+    // fade in
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ overlay.style.opacity = "1"; });
+    });
   }
 
   // ══════════════════════════════════════════════════════════
@@ -643,7 +748,7 @@
 
     bindLinks: function(selector) {
       var sel = selector ||
-        "a.subpage-card, nav a, header a, footer a, a[data-vd-route]";
+        "a.subpage-card, nav a, header a, footer a, a[data-vd-route], #m-tab";
 
       document.addEventListener("click", function(e) {
         if (e.defaultPrevented) return;
@@ -777,6 +882,37 @@
     document.addEventListener("DOMContentLoaded", bindNow);
   else
     bindNow();
+
+  // ── Wire the modal "Open in Tab" link to _openInframe ─────────────
+  // The #m-tab anchor in index.html opens in target="_blank" by default.
+  // We intercept that click and render the page inside the inframe overlay
+  // so users stay within the ViaDecide context.
+  (function wireModalTabBtn() {
+    function attach() {
+      var mTab = document.getElementById("m-tab");
+      if (!mTab) return;
+      mTab.addEventListener("click", function(e) {
+        var href = mTab.getAttribute("href") || "";
+        if (!href || href === "#") return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // read icon/title from the open modal
+        var icon  = (document.getElementById("m-icon")  || {}).textContent || "↗";
+        var title = (document.getElementById("m-name")  || {}).textContent || href;
+
+        // close the sheet modal first, then open inframe
+        if (typeof closeModal === "function") closeModal();
+        setTimeout(function(){
+          _openInframe(href, { icon: icon, title: title });
+        }, 380);  // matches modal close transition
+      });
+    }
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", attach);
+    else
+      attach();
+  })();
 
 
   // ══════════════════════════════════════════════════════════
