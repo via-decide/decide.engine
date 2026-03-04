@@ -357,7 +357,7 @@ section{position:relative;z-index:10}
 .thread-coming{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .65rem;border-radius:99px;background:var(--teal3);color:var(--teal2);border:1px solid rgba(34,180,160,.2)}
 .thread-ft{padding:1.1rem 1.25rem;border-top:1px solid var(--bd);font-size:.72rem;color:var(--tx3);text-align:center;line-height:1.5}
 
-/* MODAL — fixed iframe background to dark */
+/* MODAL */
 #modal{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .35s}
 #modal.open{opacity:1;pointer-events:auto}
 #modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
@@ -372,7 +372,6 @@ section{position:relative;z-index:10}
 .m-act:hover{background:rgba(200,147,42,.1);border-color:rgba(200,147,42,.3);color:var(--gold2)}
 #modal-close{width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:none;font-size:.85rem;transition:all .2s;flex-shrink:0}
 #modal-close:hover{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.25);color:#ff6b6b}
-/* ★ FIX: dark background so finance dashboard loads cleanly */
 #modal-frame{flex:1;border:none;background:#080c12;width:100%}
 #modal-err{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:3rem}
 #modal-err.show{display:flex}
@@ -421,7 +420,6 @@ section{position:relative;z-index:10}
 <canvas id="bg-canvas"></canvas>
 <div id="prog"></div>
 
-<!-- NAV -->
 <nav id="nav">
   <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <div class="brand-dot"></div>ViaDecide
@@ -441,7 +439,6 @@ section{position:relative;z-index:10}
   </div>
 </nav>
 
-<!-- HERO -->
 <section id="hero">
   <div class="hero-kicker"><div class="live-dot"></div>🇮🇳 India's Decision Engine · Built for Bharat</div>
   <h1 class="hero-h1">
@@ -469,7 +466,6 @@ section{position:relative;z-index:10}
   <div class="hero-scroll"><div class="scroll-mouse"></div>scroll to explore</div>
 </section>
 
-<!-- MARQUEE -->
 <div class="marquee-wrap">
   <div class="marquee-track">
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
@@ -505,7 +501,6 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
-<!-- [01] TOOLS -->
 <section id="cat-tools" data-cat="tools" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -527,7 +522,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- [02] COMMERCE -->
 <section id="cat-commerce" data-cat="commerce" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -557,7 +551,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- [03] GAMES -->
 <section id="cat-games" data-cat="games" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -571,7 +564,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- [04] SERVICES -->
 <section id="cat-services" data-cat="services" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -589,7 +581,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- [05] STORE -->
 <section id="cat-store" data-cat="store" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -604,7 +595,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- [06] BLOG -->
 <section id="cat-blog" data-cat="blog" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -621,7 +611,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- ★ [07] FINANCE — ALL openModal calls use finance-dashboard-msme.html -->
 <section id="cat-finance" data-cat="finance" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
@@ -629,7 +618,7 @@ section{position:relative;z-index:10}
         <div class="cat-num">07</div>
         <div class="cat-info">
           <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Finance & Analytics</span></div>
-          <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME owners. Upload data, get instant insights.</p>
+          <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME businesses. Upload data, get instant insights.</p>
         </div>
       </div>
       <button class="cat-cta" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
@@ -677,7 +666,6 @@ section{position:relative;z-index:10}
     </div>
 
     <div class="bento" style="margin-top:1.2rem">
-      <!-- ★ FIX: all finance modal calls use finance-dashboard-msme.html -->
       <div class="tc tc-feat tc-s8"
            onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')"
            data-cat="finance" data-orbit="fintrack"
@@ -712,6 +700,19 @@ section{position:relative;z-index:10}
         <div style="display:flex;gap:.4rem;margin-top:.75rem"><div class="tc-st msme">📈 CSV Upload</div><div class="tc-st live">● Live</div></div>
       </div>
 
+      <div class="tc tc-s4"
+           onclick="openModal('payment-register.html','👥','Payroll Register')"
+           data-cat="finance" data-orbit="payroll-register"
+           data-intent="payroll,salary,register,employee,pf,esi,pt,tds,deductions,payslip,india,msme"
+           role="button" tabindex="0"
+           style="background:linear-gradient(145deg,rgba(74,144,217,.09),rgba(34,180,160,.05));border-color:rgba(74,144,217,.2);">
+        <div class="tc-arr">↗</div>
+        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(74,144,217,.16),rgba(34,180,160,.08))">👥</div>
+        <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">Payroll Register</div>
+        <div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">India-ready salary sheets with PF, ESI, PT, and instant payslip generation.</div>
+        <div style="display:flex;gap:.4rem;margin-top:.75rem"><div class="tc-st svc">👥 HR & Payroll</div><div class="tc-st live">● Live</div></div>
+      </div>
+
       <div class="tc tc-s4" data-cat="finance" role="button" tabindex="0">
         <div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">🧾</span>
         <div class="tc-name">GST Calculator</div>
@@ -724,17 +725,10 @@ section{position:relative;z-index:10}
         <div class="tc-desc">SKU-level stock tracking with low-stock alerts and reorder triggers.</div>
         <div class="tc-st wip">◌ Coming Soon</div>
       </div>
-      <div class="tc tc-s4" data-cat="finance" role="button" tabindex="0">
-        <div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👥</span>
-        <div class="tc-name">Payroll Register</div>
-        <div class="tc-desc">Employee salary sheets with PF/ESI deductions and payslip generation.</div>
-        <div class="tc-st wip">◌ Coming Soon</div>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- ABOUT -->
 <section id="about">
   <div class="about-grid">
     <div>
@@ -757,7 +751,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- INSTALL -->
 <section id="install" style="border-top:1px solid var(--bd)">
   <div class="install-inner">
     <div>
@@ -787,7 +780,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- FOOTER CTA -->
 <section id="footer-cta">
   <div class="footer-inner">
     <div class="footer-eye">Ready to decide smarter?</div>
@@ -796,7 +788,6 @@ section{position:relative;z-index:10}
     <div class="footer-acts">
       <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
       <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
-      <!-- ★ FIX: correct filename -->
       <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
       <button class="btn-g" onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
     </div>
@@ -812,7 +803,6 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
-<!-- BANNERS -->
 <div id="install-banner">
   <div class="ib-inner">
     <div class="ib-icon">⚡</div>
@@ -843,7 +833,6 @@ section{position:relative;z-index:10}
   <div class="thread-ft">Decision Thread · Every tool you use, one connected story.</div>
 </div>
 
-<!-- MODAL -->
 <div id="modal">
   <div id="modal-bd" onclick="closeModal()"></div>
   <div id="modal-sheet">
@@ -926,7 +915,7 @@ var threadOpen=false;
 function toggleThread(){threadOpen=!threadOpen;document.getElementById('thread-panel').classList.toggle('open',threadOpen);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleThread();});
 
-/* ★ MODAL — fixed iframe load detection (ignores about:blank) */
+/* MODAL */
 let currentFile='';
 function openModal(file,icon,name){
   if(/^https?:\/\//i.test(file)){window.open(file,'_blank','noopener,noreferrer');return;}
@@ -938,22 +927,19 @@ function openModal(file,icon,name){
   document.getElementById('modal-err').classList.remove('show');
   const frame=document.getElementById('modal-frame');
   frame.style.display='block';
-  frame.src='';            // clear first to reset load event
-  setTimeout(()=>{ frame.src=file; },10);  // slight delay ensures clean load
+  frame.src='';            
+  setTimeout(()=>{ frame.src=file; },10);  
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
 
-/* ★ FIX: only trigger error for real failures, not about:blank */
 document.getElementById('modal-frame').addEventListener('load',function(){
   const src=this.src;
-  // Skip blank / empty states
   if(!src || src==='about:blank' || src===window.location.href+'#' || src==='') return;
   try{
     const d=this.contentDocument||this.contentWindow.document;
     if(!d||d.body===null||d.body.innerHTML.trim()===''){showModalError();}
   }catch(e){
-    // Cross-origin error = page loaded but has X-Frame-Options restriction
     showModalError();
   }
 });
