@@ -422,23 +422,36 @@ section{position:relative;z-index:10}
   .cat-num{font-size:clamp(3rem,6vw,5rem)}
 }
 /* ── MOBILE TOUCH UX ─────────────────────────────────── */
-/* CRITICAL: On touch devices, skip scroll-reveal opacity animations.
-   Cards that rely on IntersectionObserver to become visible are invisible
-   by default — this caused entire bento sections to appear empty on mobile. */
-@media(hover:none),(pointer:coarse){
-  /* Show cards instantly — no opacity-0 waiting for IO */
-  .tc, .pillar, .build-card, .pt-card {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
-  /* Keep the hover-lift effect still works on tap (active state) */
-  .tc:active, .build-card:active, .pt-card:active {
-    transform: scale(0.97) !important;
-    transition: transform 0.15s ease !important;
-  }
+/* On touch devices the IntersectionObserver often doesn't fire before
+   the user sees the section — cards stay opacity:0 forever, leaving
+   sections that look completely empty. We detect touch in <head> (see
+   the inline <script> right after </style>) and add .is-touch to <html>
+   immediately, then override the animation system here. */
+
+/* Cursor — hidden on all touch/pointer-coarse devices */
+@media (hover: none), (pointer: coarse) {
+  #cur, #cur-ring { display: none !important; }
+  body { cursor: auto; }
+  button, a, [onclick], .build-card, .pt-card, .tc { cursor: pointer; }
 }
-/* Ensure all interactive elements have comfortable tap targets on mobile */
+
+/* CARD VISIBILITY ON TOUCH — highest-specificity override */
+html.is-touch .tc,
+html.is-touch .pillar,
+html.is-touch .build-card,
+html.is-touch .pt-card {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  animation: none !important;
+  transition: transform 0.15s ease, border-color 0.2s, background 0.2s !important;
+}
+/* Tap feedback instead of hover lift */
+html.is-touch .tc:active,
+html.is-touch .build-card:active,
+html.is-touch .pt-card:active {
+  transform: scale(0.97) !important;
+  background: rgba(255,255,255,0.07) !important;
+}
 @media(max-width:640px){
   /* Nav: only brand + CTA on mobile */
   #nav{padding:.75rem 1rem}
@@ -526,6 +539,18 @@ section{position:relative;z-index:10}
   .footer-links{gap:.85rem;font-size:.72rem}
 }
 </style>
+<!-- Detect touch BEFORE first paint — adds .is-touch to <html> synchronously.
+     This prevents the opacity:0 card flash on mobile before JS can fix it. -->
+<script>
+(function(){
+  var isTouch = (
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia('(pointer: coarse)').matches
+  );
+  if (isTouch) document.documentElement.classList.add('is-touch');
+})();
+</script>
 </head>
 <body data-depth="surface">
 <div id="cur"></div>
@@ -791,13 +816,6 @@ section{position:relative;z-index:10}
 .build-card:nth-child(6).vis{animation-delay:.34s}
 
 /* ── MOBILE FIXES (touch devices only) ──────────────── */
-
-/* Hide custom cursor on ALL touch/pointer-coarse devices */
-@media(hover:none),(pointer:coarse){
-  #cur,#cur-ring{display:none!important}
-  body{cursor:auto}
-  button,a,[onclick],.build-card,.pt-card,.tc{cursor:pointer}
-}
 
 /* Prevent horizontal overflow */
 #build-section{overflow:hidden}
@@ -1149,14 +1167,15 @@ window.addEventListener('scroll',()=>{
 const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:0,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
 
-/* MOBILE FALLBACK: on touch devices show all cards after 600ms regardless */
-if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
-  setTimeout(()=>{
-    document.querySelectorAll('.tc,.pillar,.build-card,.pt-card').forEach(el=>{
+/* MOBILE FALLBACK: on touch devices show all cards after DOM loads */
+if(window.matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window){
+  document.documentElement.classList.add('is-touch');
+  // Also add .vis to all cards so any JS that checks for it works too
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.tc,.pillar,.build-card,.pt-card').forEach(function(el){
       el.classList.add('vis');
-      el.style.animationDuration='0s'; // instant, no janky replay
     });
-  },600);
+  });
 }
 
 /* KEYBOARD FOR .tc CARDS */
