@@ -1069,6 +1069,415 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║    POPULAR TOOLS BUILT ON VIADECIDE — SECTION       ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<style>
+/* ── POPULAR TOOLS ──────────────────────────────────────── */
+#popular-tools {
+  position: relative; z-index: 10;
+  padding: 7rem 0 6rem;
+  border-top: 1px solid var(--bd);
+  overflow: hidden;
+}
+#popular-tools::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 50%, rgba(200,147,42,.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 20%, rgba(34,180,160,.04) 0%, transparent 55%);
+}
+/* ghost word behind title */
+#popular-tools .pt-ghost {
+  position: absolute; top: 3.5rem; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(5rem, 14vw, 14rem);
+  font-weight: 700; letter-spacing: -.04em;
+  color: rgba(255,255,255,.018);
+  white-space: nowrap; pointer-events: none;
+  user-select: none; line-height: 1;
+}
+
+.pt-inner { max-width: 1280px; margin: 0 auto; padding: 0 2.5rem; }
+
+/* header row */
+.pt-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 2rem;
+  margin-bottom: 3.5rem; flex-wrap: wrap;
+}
+.pt-header-l { max-width: 540px; }
+.pt-eyebrow {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-size: .62rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gold2); margin-bottom: .85rem;
+}
+.pt-eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold2); animation: pdot 1.8s infinite;
+}
+.pt-h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
+  font-weight: 300; line-height: .97;
+  letter-spacing: -.03em; color: var(--tx);
+}
+.pt-h2 em { font-style: italic; color: var(--gold); }
+.pt-header-r {
+  font-size: .82rem; color: var(--tx3); line-height: 1.7;
+  max-width: 300px; text-align: right;
+}
+@media(max-width:640px){ .pt-header-r { display: none; } }
+
+/* ── GRID ────────────────────────────────────────────────── */
+.pt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .9rem;
+}
+
+/* base card */
+.pt-card {
+  position: relative; overflow: hidden;
+  background: var(--sf); border: 1px solid var(--bd);
+  border-radius: 22px; padding: 2rem;
+  display: flex; flex-direction: column;
+  cursor: none;
+  opacity: 0; transform: translateY(44px);
+  transition:
+    transform .38s cubic-bezier(.34,1.56,.64,1),
+    border-color .28s, background .28s, box-shadow .28s;
+}
+.pt-card.vis { animation: cardUp .75s cubic-bezier(.16,1,.3,1) forwards; }
+.pt-card:nth-child(1).vis{animation-delay:.05s}
+.pt-card:nth-child(2).vis{animation-delay:.12s}
+.pt-card:nth-child(3).vis{animation-delay:.19s}
+.pt-card:nth-child(4).vis{animation-delay:.26s}
+.pt-card:nth-child(5).vis{animation-delay:.33s}
+.pt-card:nth-child(6).vis{animation-delay:.40s}
+
+/* hover lift */
+.pt-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--bd2);
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 32px 70px rgba(0,0,0,.55);
+}
+.pt-card:hover .pt-card-cta { gap: .65rem; }
+.pt-card:hover .pt-num { opacity: .09; }
+
+/* top shimmer bar */
+.pt-card::after {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--pt-accent, var(--gold)) 50%, transparent 100%);
+  opacity: 0; transition: opacity .35s;
+}
+.pt-card:hover::after { opacity: 1; }
+
+/* accent per card via CSS custom prop */
+.pt-card[data-c="gold"]   { --pt-accent: var(--gold2); }
+.pt-card[data-c="teal"]   { --pt-accent: var(--teal2); }
+.pt-card[data-c="orange"] { --pt-accent: var(--cst); }
+.pt-card[data-c="green"]  { --pt-accent: var(--cfi); }
+.pt-card[data-c="purple"] { --pt-accent: var(--cb); }
+.pt-card[data-c="blue"]   { --pt-accent: var(--cs); }
+
+.pt-card[data-c="gold"]:hover   { border-color: rgba(200,147,42,.28); }
+.pt-card[data-c="teal"]:hover   { border-color: rgba(34,180,160,.28); }
+.pt-card[data-c="orange"]:hover { border-color: rgba(240,112,64,.28); }
+.pt-card[data-c="green"]:hover  { border-color: rgba(16,185,129,.28); }
+.pt-card[data-c="purple"]:hover { border-color: rgba(155,109,255,.28); }
+.pt-card[data-c="blue"]:hover   { border-color: rgba(74,144,217,.28); }
+
+/* ghost number */
+.pt-num {
+  position: absolute; top: -.2rem; right: 1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 6rem; font-weight: 700; line-height: 1;
+  color: rgba(255,255,255,.04);
+  letter-spacing: -.06em; user-select: none;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+
+/* icon row */
+.pt-icon-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+}
+.pt-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.03);
+  transition: transform .25s;
+}
+.pt-card:hover .pt-icon { transform: scale(1.08) rotate(-3deg); }
+
+/* category pill */
+.pt-pill {
+  font-size: .58rem; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: .22rem .65rem; border-radius: 99px;
+  border: 1px solid rgba(255,255,255,.07);
+  color: var(--pt-accent, var(--gold));
+  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 10%, transparent);
+}
+
+/* text */
+.pt-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem; font-weight: 600;
+  color: var(--tx); letter-spacing: -.015em;
+  line-height: 1.15; margin-bottom: .45rem;
+}
+.pt-desc {
+  font-size: .8rem; color: var(--tx3);
+  line-height: 1.72; flex: 1; margin-bottom: 1.2rem;
+}
+
+/* CTA */
+.pt-card-cta {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: .75rem; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  padding: .52rem 1.1rem .52rem .9rem;
+  border-radius: 99px; border: 1px solid;
+  align-self: flex-start; cursor: none;
+  transition: gap .22s, background .22s, box-shadow .22s, transform .22s;
+  color: var(--pt-accent, var(--gold));
+  border-color: color-mix(in srgb, var(--pt-accent, var(--gold)) 35%, transparent);
+  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 8%, transparent);
+}
+.pt-card-cta:hover {
+  background: color-mix(in srgb, var(--pt-accent, var(--gold)) 18%, transparent);
+  transform: translateX(3px);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--pt-accent, var(--gold)) 20%, transparent);
+}
+.pt-card-cta .cta-arrow {
+  display: inline-block;
+  transition: transform .22s;
+}
+.pt-card-cta:hover .cta-arrow { transform: translateX(3px); }
+
+/* divider line under header */
+.pt-rule {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, var(--gold3) 0%, transparent 80%);
+  margin-bottom: 3.5rem;
+}
+
+/* responsive */
+@media(max-width: 1024px) {
+  .pt-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 640px) {
+  .pt-grid { grid-template-columns: 1fr 1fr; gap: .7rem; }
+  .pt-card { padding: 1.35rem; border-radius: 18px; }
+  .pt-name { font-size: 1.2rem; }
+  .pt-num { font-size: 4.5rem; }
+  #popular-tools { padding: 5rem 0 4.5rem; }
+}
+@media(max-width: 420px) {
+  .pt-grid { grid-template-columns: 1fr; }
+}
+
+/* footer row: CTA + badge side by side */
+.pt-footer-row {
+  display: flex; align-items: center;
+  gap: .75rem; flex-wrap: wrap;
+  margin-top: auto;
+}
+
+/* status badges — mirrors existing .tc-st pattern */
+.pt-badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .6rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: .22rem .65rem; border-radius: 99px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.pt-badge--live {
+  background: var(--teal3); color: var(--teal2);
+  border: 1px solid rgba(34,180,160,.2);
+}
+.pt-badge--wip {
+  background: rgba(255,255,255,.05); color: var(--tx3);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* wip card: subtle dim treatment on the icon */
+.pt-card--wip .pt-icon { opacity: .65; }
+.pt-card--wip .pt-name { opacity: .85; }
+</style>
+
+<section id="popular-tools">
+  <div class="pt-ghost">Popular</div>
+
+  <div class="pt-inner">
+    <div class="pt-header">
+      <div class="pt-header-l">
+        <div class="pt-eyebrow">
+          <span class="pt-eyebrow-dot"></span>
+          Ready to use · No signup required
+        </div>
+        <h2 class="pt-h2">Popular tools built<br>on <em>ViaDecide</em></h2>
+      </div>
+      <div class="pt-header-r">Dedicated subpages launching soon — use existing tools now or watch for the new standalone pages.</div>
+    </div>
+
+    <div class="pt-rule"></div>
+
+    <div class="pt-grid" id="pt-grid">
+
+      <!-- 1 Interview Simulator · COMING SOON dedicated page -->
+      <div class="pt-card pt-card--wip" data-c="teal"
+           onclick="openModal('app-generator.html','🎤','Interview Simulator')"
+           role="button" tabindex="0">
+        <div class="pt-num">01</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">🎤</div>
+          <span class="pt-pill">Simulator</span>
+        </div>
+        <div class="pt-name">Interview Simulator</div>
+        <div class="pt-desc">Practice job interviews with a chat-style simulator. Get realistic questions, instant feedback, and build confidence before the real thing.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('app-generator.html','🎤','Interview Simulator')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
+        </div>
+      </div>
+
+      <!-- 2 Sales Dashboard · LIVE -->
+      <div class="pt-card" data-c="gold"
+           onclick="openModal('sales-dashboard.html','📊','Sales Dashboard')"
+           role="button" tabindex="0">
+        <div class="pt-num">02</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">📊</div>
+          <span class="pt-pill">Dashboard</span>
+        </div>
+        <div class="pt-name">Sales Dashboard</div>
+        <div class="pt-desc">Track revenue and visualize business performance. Upload a CSV or enter data manually for instant KPIs, pivot tables, and trend charts.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('sales-dashboard.html','📊','Sales Dashboard')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+      <!-- 3 Restaurant Website Builder · COMING SOON dedicated page -->
+      <div class="pt-card pt-card--wip" data-c="orange"
+           onclick="openModal('app-generator.html','🍽️','Restaurant Website Builder')"
+           role="button" tabindex="0">
+        <div class="pt-num">03</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">🍽️</div>
+          <span class="pt-pill">Builder</span>
+        </div>
+        <div class="pt-name">Restaurant Website Builder</div>
+        <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering — set up in minutes, no code required.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('app-generator.html','🍽️','Restaurant Website Builder')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--wip">◌ Subpage Soon</span>
+        </div>
+      </div>
+
+      <!-- 4 Finance Dashboard · LIVE -->
+      <div class="pt-card" data-c="green"
+           onclick="openModal('finance-dashboard-msme.html','💰','Finance Dashboard')"
+           role="button" tabindex="0">
+        <div class="pt-num">04</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">💰</div>
+          <span class="pt-pill">Finance</span>
+        </div>
+        <div class="pt-name">Finance Dashboard</div>
+        <div class="pt-desc">Visualize expenses, profit and cash flow with interactive P&amp;L charts, budget vs actual breakdowns, and Indian FY filters.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('finance-dashboard-msme.html','💰','Finance Dashboard')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+      <!-- 5 Decision Tool · LIVE -->
+      <div class="pt-card" data-c="purple"
+           onclick="openModal('alchemist.html','⚖️','Decision Tool')"
+           role="button" tabindex="0">
+        <div class="pt-num">05</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">⚖️</div>
+          <span class="pt-pill">Decision</span>
+        </div>
+        <div class="pt-name">Decision Tool</div>
+        <div class="pt-desc">Compare products and evaluate buying decisions. AI-powered structured frameworks surface clarity from complex, high-stakes choices.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('alchemist.html','⚖️','Decision Tool')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+      <!-- 6 Custom Web App Generator · LIVE -->
+      <div class="pt-card" data-c="blue"
+           onclick="openModal('app-generator.html','🔧','Custom Web App Generator')"
+           role="button" tabindex="0">
+        <div class="pt-num">06</div>
+        <div class="pt-icon-row">
+          <div class="pt-icon">🔧</div>
+          <span class="pt-pill">Generator</span>
+        </div>
+        <div class="pt-name">Custom Web App Generator</div>
+        <div class="pt-desc">Turn simple ideas into working web tools. Describe what you need and the engine generates a fully functional app on the spot.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta"
+                  onclick="event.stopPropagation();openModal('app-generator.html','🔧','Custom Web App Generator')">
+            Open Tool <span class="cta-arrow">→</span>
+          </button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+
+    </div><!-- /pt-grid -->
+  </div><!-- /pt-inner -->
+</section>
+
+<script>
+/* POPULAR TOOLS — scroll reveal + keyboard */
+(function(){
+  var ptIo = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('vis'); ptIo.unobserve(e.target); }
+    });
+  }, { threshold: .07 });
+  document.querySelectorAll('.pt-card').forEach(function(el){ ptIo.observe(el); });
+
+  document.querySelectorAll('.pt-card[role="button"]').forEach(function(card){
+    card.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.click(); }
+    });
+  });
+})();
+</script>
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+
 <section id="about">
   <div class="about-grid">
     <div>
