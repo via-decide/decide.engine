@@ -83,6 +83,7 @@ code,
   --ct:#22b4a0;--cc:#c8932a;--cg:#e06090;
   --cs:#4a90d9;--cst:#f07040;--cb:#9b6dff;
   --cfi:#10b981;--cfi2:#34d399;--cfi3:rgba(16,185,129,0.12);
+  --cpb:#c86898;--cpb2:#e888bb;--cpb3:rgba(200,104,152,0.12);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
@@ -135,6 +136,7 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 .nav-chip.nc-st:hover{color:var(--cst);background:rgba(240,112,64,.08);border-color:rgba(240,112,64,.2)}
 .nav-chip.nc-b:hover{color:var(--cb);background:rgba(155,109,255,.08);border-color:rgba(155,109,255,.2)}
 .nav-chip.nc-fi:hover{color:var(--cfi);background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2)}
+.nav-chip.nc-pb:hover{color:var(--cpb);background:rgba(200,104,152,.08);border-color:rgba(200,104,152,.2)}
 .nav-right{display:flex;align-items:center;gap:.5rem}
 .nav-cta{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.3rem;background:var(--gold);color:#fff;border-radius:99px;cursor:none;transition:all .22s;display:inline-flex;align-items:center;gap:.4rem}
 .nav-cta:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,147,42,.35)}
@@ -179,6 +181,7 @@ section{position:relative;z-index:10}
 .orb-chip[data-cat="store"]:hover{color:var(--cst);border-color:rgba(240,112,64,.35);background:rgba(240,112,64,.08)}
 .orb-chip[data-cat="blog"]:hover{color:var(--cb);border-color:rgba(155,109,255,.35);background:rgba(155,109,255,.08)}
 .orb-chip[data-cat="finance"]:hover{color:var(--cfi);border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08)}
+.orb-chip[data-cat="personal"]:hover{color:var(--cpb);border-color:rgba(200,104,152,.35);background:rgba(200,104,152,.08)}
 .hero-scroll{display:flex;flex-direction:column;align-items:center;gap:.5rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);opacity:0;animation:riseUp .8s 1.4s forwards;margin-top:3.5rem}
 .scroll-mouse{width:22px;height:34px;border:1.5px solid var(--tx3);border-radius:99px;display:flex;justify-content:center;padding-top:5px}
 .scroll-mouse::after{content:'';width:4px;height:7px;background:var(--gold);border-radius:99px;animation:scrollDown 1.6s ease-in-out infinite}
@@ -216,6 +219,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="store"]::before{background:linear-gradient(180deg,var(--cst) 0%,transparent 100%)}
 .cat-section[data-cat="blog"]::before{background:linear-gradient(180deg,var(--cb) 0%,transparent 100%)}
 .cat-section[data-cat="finance"]::before{background:linear-gradient(180deg,var(--cfi) 0%,transparent 100%)}
+.cat-section[data-cat="personal"]::before{background:linear-gradient(180deg,var(--cpb) 0%,transparent 100%)}
 .cat-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
 .cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
 .cat-header-l{display:flex;align-items:center;gap:2rem}
@@ -229,6 +233,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="store"] .cat-dot{background:var(--cst)}
 .cat-section[data-cat="blog"] .cat-dot{background:var(--cb)}
 .cat-section[data-cat="finance"] .cat-dot{background:var(--cfi)}
+.cat-section[data-cat="personal"] .cat-dot{background:var(--cpb)}
 .cat-name{font-size:1.4rem;font-weight:700;color:var(--tx);letter-spacing:-.01em}
 .cat-desc{font-size:.88rem;color:var(--tx3);line-height:1.6;max-width:380px}
 .cat-section[data-cat="tools"] .cat-cta{background:rgba(34,180,160,.12);color:var(--ct);border:1px solid rgba(34,180,160,.25)}
@@ -238,6 +243,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="store"] .cat-cta{background:rgba(240,112,64,.12);color:var(--cst);border:1px solid rgba(240,112,64,.25)}
 .cat-section[data-cat="blog"] .cat-cta{background:rgba(155,109,255,.12);color:var(--cb);border:1px solid rgba(155,109,255,.25)}
 .cat-section[data-cat="finance"] .cat-cta{background:rgba(16,185,129,.12);color:var(--cfi);border:1px solid rgba(16,185,129,.25)}
+.cat-section[data-cat="personal"] .cat-cta{background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25)}
 .cat-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:8px;cursor:none;transition:all .2s}
 .cat-cta:hover{filter:brightness(1.15);transform:translateY(-1px)}
 
@@ -263,6 +269,8 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"] .tc:hover{border-color:rgba(155,109,255,.25)}
 .cat-section[data-cat="finance"] .tc::before{background:linear-gradient(90deg,var(--cfi),rgba(16,185,129,.4))}
 .cat-section[data-cat="finance"] .tc:hover{border-color:rgba(16,185,129,.25)}
+.cat-section[data-cat="personal"] .tc::before{background:linear-gradient(90deg,var(--cpb),rgba(200,104,152,.4))}
+.cat-section[data-cat="personal"] .tc:hover{border-color:rgba(200,104,152,.25)}
 .tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.12),rgba(200,147,42,.05));border-color:rgba(26,140,125,.18)}
 .tc-s4{grid-column:span 4}.tc-s3{grid-column:span 3}.tc-s6{grid-column:span 6}
 .tc-s8{grid-column:span 8}.tc-s12{grid-column:span 12}.tc-s5{grid-column:span 5}
@@ -549,6 +557,7 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-st" href="#cat-store">🛍 Store</a>
     <a class="nav-chip nc-b" href="#cat-blog">✍️ Blog</a>
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
+    <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
@@ -1503,7 +1512,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="tc tc-s3" onclick="openModal('/CustomSwipeEngineForm/index.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine.</div><div class="tc-st svc">⊕ Custom Build</div></div>
       <div class="tc tc-s3" onclick="openModal('/pricing/index.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" onclick="openModal('/engine-activation-request/index.html','⚡','Engine Activation Request')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚡</span><div class="tc-name">Engine Activation</div><div class="tc-desc">Request access to the ViaDecide decision engine for your platform or product.</div><div class="tc-st svc">⊕ Request</div></div>
-      <div class="tc tc-s3" onclick="openModal('/AshokVerma/index.html','👤','Ashok Verma · 1:1 Sessions')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧑</span><div class="tc-name">Ashok Verma · 1:1</div><div class="tc-desc">Book a 1:1 session with the founder for decision research and strategy coaching.</div><div class="tc-st svc">⊕ Book Now</div></div>
     </div>
   </div>
 </section>
@@ -1761,6 +1769,19 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         <div class="tc-desc">SKU-level stock tracking with low-stock alerts and reorder triggers.</div>
         <div class="tc-st wip">◌ Coming Soon</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="cat-personal" data-cat="personal" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l"><div class="cat-num">08</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Personal Brand</span></div><p class="cat-desc">1:1 sessions, founder story, and direct access to the mind behind ViaDecide.</p></div></div>
+      <button class="cat-cta" onclick="openModal('/AshokVerma/index.html','🙋','Ashok Verma · 1:1 Sessions')">Book a Session ↗</button>
+    </div>
+    <div class="bento">
+      <div class="tc tc-feat tc-s8" onclick="openModal('/AshokVerma/index.html','🙋','Ashok Verma · 1:1 Sessions')" data-cat="personal" data-orbit="ashok-verma" data-intent="book,session,founder,1:1,coaching,strategy,consult" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,104,152,.18),rgba(200,147,42,.08))">🙋</div><div class="tc-name-lg">Ashok Verma · 1:1 Sessions</div><div class="tc-desc-lg">Book a focused 1:1 with the founder. Decision research, strategy coaching, and product clarity for builders and buyers.</div><div class="tc-st" style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25)">⊕ Book Now</div></div>
+      <div class="tc tc-s4" onclick="openModal('/founder/index.html','👤','Founder')" data-cat="personal" data-orbit="founder" data-intent="founder,story,about,mission" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● About</div></div>
     </div>
   </div>
 </section>
