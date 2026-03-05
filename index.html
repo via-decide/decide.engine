@@ -9,11 +9,69 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="ViaDecide"/>
 <meta name="description" content="India's Decision Engine — structured AI tools, ONDC integration, and decision frameworks built for Bharat."/>
-<link rel="manifest" href="manifest.json"/>
+<link rel="manifest" href="/manifest.json"/>
 <title>ViaDecide — India's Decision Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<!-- Router: loaded in <head> so VDRouter is available before any inline onclick fires -->
+<script src="/router.js" onerror="console.warn('[ViaDecide] router.js not found — routing disabled')"></script>
 <style>
+/* ============================================================
+   GLOBAL UX PATCH — tap highlight, focus rings, text selection
+   ============================================================ */
+
+/* 1. Remove tap highlight on ALL elements (iOS Safari + Android Chrome) */
+*,*::before,*::after{
+  -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+  tap-highlight-color: rgba(0,0,0,0) !important;
+}
+
+/* 2. Remove focus outline ONLY for mouse/pointer — keyboard stays visible */
+*:focus:not(:focus-visible){
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 3. Custom selection colour — prevents jarring blue flash on accidental text selection */
+::selection{
+  background: rgba(34,180,160,.22);
+  color: inherit;
+}
+::-moz-selection{
+  background: rgba(34,180,160,.22);
+  color: inherit;
+}
+
+/* 4. Disable text selection globally */
+body{
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 5. Re-enable selection inside inputs, textareas, contenteditable, code blocks */
+input,
+textarea,
+select,
+iframe,
+[contenteditable="true"],
+[contenteditable=""],
+pre,
+code,
+.allow-select{
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* ============================================================
+   END GLOBAL UX PATCH
+   ============================================================ */
+
 :root{
   --bg:#080a0f;--bg1:#0c0e15;--bg2:#10131c;--bg3:#161923;
   --sf:rgba(255,255,255,0.04);--sf2:rgba(255,255,255,0.07);
@@ -28,21 +86,37 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
-body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;cursor:none}
+body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
-button{font-family:inherit;cursor:none;border:none;background:none}
-a,button,.tc,[onclick],.nav-chip,.nav-cta,.cat-cta,.orb-chip{-webkit-tap-highlight-color:rgba(0,0,0,0);tap-highlight-color:rgba(0,0,0,0);}
-body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-input,textarea,iframe,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-a:focus,button:focus{outline:none}
-a:focus-visible,button:focus-visible{outline:2px solid rgba(34,180,160,.35);outline-offset:3px}
+button{font-family:inherit;border:none;background:none}
+/* Custom cursor only on true pointer devices */
+@media(pointer:fine){
+  body{cursor:none}
+  button{cursor:none}
+  a,button,.tc,[onclick],.nav-chip,.nav-cta,.cat-cta,.orb-chip{-webkit-tap-highlight-color:rgba(0,0,0,0);tap-highlight-color:rgba(0,0,0,0);}
+}
+@media(pointer:coarse){
+  #cur,#cur-ring{display:none!important}
+  body,button,a,[onclick],.tc,.build-card,.pt-card{cursor:auto}
+  a,button{cursor:pointer}
+}
+
+/* Keyboard focus — accessible outlines (replaces old a:focus,button:focus{outline:none}) */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible{
+  outline:2px solid rgba(34,180,160,.45);
+  outline-offset:3px;
+}
 
 /* CURSOR */
 #cur{position:fixed;width:10px;height:10px;background:var(--gold2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .15s}
 #cur-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(200,147,42,0.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .35s,height .35s,border-color .35s}
 body:has(a:hover) #cur,body:has(button:hover) #cur,body:has([onclick]:hover) #cur{width:6px;height:6px}
 body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:hover) #cur-ring{width:52px;height:52px;border-color:rgba(200,147,42,0.7)}
+@media(pointer:fine){body:has(a:hover) #cur,body:has(button:hover) #cur,body:has([onclick]:hover) #cur{width:6px;height:6px}}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:99px}
 
 /* NAV */
@@ -92,7 +166,7 @@ section{position:relative;z-index:10}
 .orb-bar{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;padding:.2rem .2rem .2rem 1.2rem;box-shadow:0 0 0 0 rgba(34,180,160,0);transition:box-shadow .3s,border-color .3s;position:relative}
 .orb-bar:focus-within{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 4px rgba(34,180,160,.07),0 8px 32px rgba(0,0,0,.4)}
 .orb-pulse-dot{width:8px;height:8px;background:var(--teal2);border-radius:50%;flex-shrink:0;animation:pdot 1.6s infinite;margin-right:.75rem}
-#orb-input{flex:1;background:none;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:1rem;color:var(--tx);padding:.8rem 0;cursor:none}
+#orb-input{flex:1;background:none;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:1rem;color:var(--tx);padding:.8rem 0;cursor:text}
 #orb-input::placeholder{color:var(--tx3)}
 .orb-go{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--teal);color:#fff;border-radius:12px;font-size:1.1rem;flex-shrink:0;cursor:none;transition:all .2s}
 .orb-go:hover{background:var(--teal2);transform:scale(1.06)}
@@ -112,7 +186,7 @@ section{position:relative;z-index:10}
 
 /* ORB SUGGEST */
 #orb-suggest{position:absolute;left:0;right:0;top:100%;margin-top:10px;background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;z-index:50}
-.orb-row{padding:12px 14px;border-top:1px solid rgba(255,255,255,.05);cursor:none;transition:background .15s,color .15s}
+.orb-row{padding:12px 14px;border-top:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s,color .15s}
 .orb-row:first-child{border-top:none}
 .orb-row:hover{background:rgba(255,255,255,.05)}
 .orb-row.active{background:rgba(34,180,160,.12)}
@@ -169,7 +243,7 @@ section{position:relative;z-index:10}
 
 /* BENTO */
 .bento{display:grid;grid-template-columns:repeat(12,1fr);gap:.9rem}
-.tc{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:1.75rem;cursor:none;transition:transform .35s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;position:relative;overflow:hidden;opacity:0;transform:translateY(40px)}
+.tc{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:1.75rem;cursor:pointer;transition:transform .35s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;position:relative;overflow:hidden;opacity:0;transform:translateY(40px)}
 .tc.vis{animation:cardUp .7s cubic-bezier(.16,1,.3,1) forwards}
 .tc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transform:scaleX(0);transform-origin:left;transition:transform .35s}
 .tc:hover{transform:translateY(-5px);border-color:var(--bd2);background:rgba(255,255,255,.06);box-shadow:0 20px 50px rgba(0,0,0,.5)}
@@ -289,17 +363,17 @@ section{position:relative;z-index:10}
 .step-txt strong{color:var(--tx)}
 .install-btns{display:flex;gap:.75rem;flex-wrap:wrap}
 #install-pwa-section{display:none}
-.btn-p{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--gold);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
+.btn-p{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--gold);color:#fff;border-radius:12px;cursor:pointer;transition:all .25s}
 .btn-p:hover{background:var(--gold2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(200,147,42,.38)}
-.btn-g{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--sf2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;cursor:none;transition:all .25s}
+.btn-g{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--sf2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;cursor:pointer;transition:all .25s}
 .btn-g:hover{background:rgba(255,255,255,.1);transform:translateY(-3px)}
-.btn-t{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--teal);color:#fff;border-radius:12px;cursor:none;transition:all .25s}
+.btn-t{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--teal);color:#fff;border-radius:12px;cursor:pointer;transition:all .25s}
 .btn-t:hover{background:var(--teal2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(26,140,125,.35)}
-.btn-fi{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--cfi);color:#000;border-radius:12px;cursor:none;transition:all .25s}
+.btn-fi{display:inline-flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:600;padding:.85rem 1.9rem;background:var(--cfi);color:#000;border-radius:12px;cursor:pointer;transition:all .25s}
 .btn-fi:hover{background:var(--cfi2);transform:translateY(-3px);box-shadow:0 10px 32px rgba(16,185,129,.35)}
 .install-r{background:var(--sf);border:1px solid var(--bd2);border-radius:20px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .dev-tabs{display:flex;gap:.3rem;justify-content:center;margin-bottom:1.5rem;background:var(--bg2);padding:.3rem;border-radius:10px}
-.dev-tab{padding:.4rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;color:var(--tx3);cursor:none;transition:all .2s}
+.dev-tab{padding:.4rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;color:var(--tx3);cursor:pointer;transition:all .2s}
 .dev-tab.active{background:var(--sf);color:var(--tx);box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .dev-instructions{font-size:.87rem;color:var(--tx2);line-height:1.7}
 .dev-instructions strong{display:block;font-size:.88rem;color:var(--tx);margin-bottom:.75rem}
@@ -316,7 +390,7 @@ section{position:relative;z-index:10}
 .footer-sub{font-size:.95rem;color:var(--tx2);line-height:1.75;margin-bottom:2.2rem}
 .footer-acts{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.8rem}
 .footer-links{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;font-size:.77rem;color:var(--tx3);padding-top:2rem;border-top:1px solid var(--bd)}
-.footer-links a,.footer-links span{transition:color .2s;cursor:none}
+.footer-links a,.footer-links span{transition:color .2s;cursor:pointer}
 .footer-links a:hover{color:var(--tx2)}
 
 /* PWA BANNERS */
@@ -327,20 +401,20 @@ section{position:relative;z-index:10}
 .ib-txt{flex:1}.ib-txt strong{display:block;font-size:.88rem;font-weight:600;color:var(--tx)}
 .ib-txt span{font-size:.76rem;color:var(--tx3)}
 .ib-acts{display:flex;gap:.5rem;align-items:center;flex-shrink:0}
-.ib-btn{display:inline-flex;align-items:center;font-size:.8rem;font-weight:700;padding:.5rem 1.1rem;background:var(--gold);color:#fff;border-radius:8px;cursor:none;transition:all .2s}
+.ib-btn{display:inline-flex;align-items:center;font-size:.8rem;font-weight:700;padding:.5rem 1.1rem;background:var(--gold);color:#fff;border-radius:8px;cursor:pointer;transition:all .2s}
 .ib-btn:hover{background:var(--gold2)}
-.ib-dismiss{background:none;border:none;color:var(--tx3);font-size:1.2rem;cursor:none;padding:.2rem .4rem;border-radius:6px;transition:color .2s}
+.ib-dismiss{background:none;border:none;color:var(--tx3);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem;border-radius:6px;transition:color .2s}
 .ib-dismiss:hover{color:var(--tx)}
 #ios-hint{display:none;position:fixed;bottom:0;left:0;right:0;z-index:850;background:var(--bg2);border-top:1px solid var(--bd2);padding:1.25rem 1.5rem 1.75rem;text-align:center;box-shadow:0 -8px 32px rgba(0,0,0,.4)}
 #ios-hint.show{display:block}
 #ios-hint strong{display:block;color:var(--tx);margin-bottom:.5rem;font-size:.95rem}
 #ios-hint p{font-size:.83rem;color:var(--tx2)}
 #ios-hint p strong{display:inline;color:var(--tx)}
-#ios-hint-close{position:absolute;top:.85rem;right:1.1rem;background:none;border:none;color:var(--tx3);font-size:1.1rem;cursor:none;transition:color .2s}
+#ios-hint-close{position:absolute;top:.85rem;right:1.1rem;background:none;border:none;color:var(--tx3);font-size:1.1rem;cursor:pointer;transition:color .2s}
 #ios-hint-close:hover{color:var(--tx)}
 
 /* THREAD PANEL */
-#thread-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:600;display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:rgba(34,180,160,.12);border:1px solid rgba(34,180,160,.25);border-right:none;border-radius:10px 0 0 10px;cursor:none;transition:all .25s;writing-mode:vertical-rl;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2);gap:.4rem}
+#thread-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:600;display:flex;align-items:center;justify-content:center;width:36px;height:64px;background:rgba(34,180,160,.12);border:1px solid rgba(34,180,160,.25);border-right:none;border-radius:10px 0 0 10px;cursor:pointer;transition:all .25s;writing-mode:vertical-rl;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal2);gap:.4rem}
 #thread-toggle:hover{background:rgba(34,180,160,.2);width:42px}
 #thread-toggle .tt-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:pdot 2s infinite;flex-shrink:0}
 #thread-panel{position:fixed;top:0;right:-340px;width:340px;height:100vh;z-index:650;background:var(--bg1);border-left:1px solid var(--bd2);transition:right .4s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
@@ -348,7 +422,7 @@ section{position:relative;z-index:10}
 .thread-hd{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.25rem;border-bottom:1px solid var(--bd);background:var(--bg2)}
 .thread-title{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:700;color:var(--tx)}
 .thread-badge{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:pdot 2s infinite}
-.thread-close{width:28px;height:28px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:none;transition:all .2s}
+.thread-close{width:28px;height:28px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:pointer;transition:all .2s}
 .thread-close:hover{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.25);color:#ff6b6b}
 .thread-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:2rem 1.5rem}
 .thread-empty-icon{font-size:2.5rem;opacity:.3}
@@ -368,17 +442,20 @@ section{position:relative;z-index:10}
 .m-t-icon{font-size:1.2rem}
 .m-t-name{font-size:.88rem;font-weight:600;color:var(--tx)}
 .m-acts{display:flex;gap:.5rem;align-items:center}
-.m-act{display:inline-flex;align-items:center;gap:.35rem;font-size:.74rem;font-weight:600;padding:.38rem .85rem;border-radius:8px;cursor:none;transition:all .2s;border:1px solid var(--bd2);color:var(--tx2);background:var(--sf2)}
+.m-act{display:inline-flex;align-items:center;gap:.35rem;font-size:.74rem;font-weight:600;padding:.38rem .85rem;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid var(--bd2);color:var(--tx2);background:var(--sf2)}
 .m-act:hover{background:rgba(200,147,42,.1);border-color:rgba(200,147,42,.3);color:var(--gold2)}
-#modal-close{width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:none;font-size:.85rem;transition:all .2s;flex-shrink:0}
+#modal-close{width:30px;height:30px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:all .2s;flex-shrink:0}
 #modal-close:hover{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.25);color:#ff6b6b}
 #modal-frame{flex:1;border:none;background:#080c12;width:100%}
+#modal-loading{position:absolute;top:0;left:0;right:0;height:2px;background:transparent;pointer-events:none;z-index:5;overflow:hidden}
+#modal-loading.active::after{content:'';display:block;height:100%;width:45%;background:linear-gradient(90deg,transparent,var(--gold2),var(--teal2),transparent);animation:mload 1.1s ease-in-out infinite}
+@keyframes mload{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
 #modal-err{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:3rem}
 #modal-err.show{display:flex}
 #modal-err .err-icon{font-size:3rem}
 #modal-err h3{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--tx)}
 #modal-err p{font-size:.9rem;color:var(--tx2);text-align:center;max-width:400px;line-height:1.7}
-.err-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.75rem 1.5rem;background:var(--gold);color:#fff;border-radius:10px;cursor:none;transition:all .2s}
+.err-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:600;padding:.75rem 1.5rem;background:var(--gold);color:#fff;border-radius:10px;cursor:pointer;transition:all .2s}
 .err-btn:hover{background:var(--gold2)}
 
 @media(max-width:640px){
@@ -404,9 +481,12 @@ section{position:relative;z-index:10}
   .bento{grid-template-columns:repeat(6,1fr)}
   .tc-s4,.tc-s5{grid-column:span 3}.tc-s3{grid-column:span 3}.tc-s6{grid-column:span 6}
   .tc-s8{grid-column:span 6}.tc-s12{grid-column:span 6}
-  .nav-mid{display:none}
+  .nav-mid{display:none!important}
   #thread-toggle{display:none}
   .cat-num{font-size:clamp(3rem,6vw,5rem)}
+}
+@media(min-width:961px){
+  .nav-mid{display:flex!important}
 }
 @media(hover:none),(pointer:coarse){
   .tc, .pillar, .build-card, .pt-card {opacity:1!important;transform:none!important;animation:none!important;}
@@ -456,14 +536,9 @@ section{position:relative;z-index:10}
 </style>
 </head>
 <body data-depth="surface">
-<div id="cur"></div>
-<div id="cur-ring"></div>
-<div class="noise"></div>
-<canvas id="bg-canvas"></canvas>
-<div id="prog"></div>
-
 <nav id="nav">
-  <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <!-- nav-brand: added role + tabindex for keyboard/a11y since it has onclick -->
+  <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})" role="button" tabindex="0" aria-label="Go to top">
     <div class="brand-dot"></div>ViaDecide
   </div>
   <div class="nav-mid">
@@ -477,9 +552,17 @@ section{position:relative;z-index:10}
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
-    <button class="nav-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Try ONDC ↗</button>
+    <button class="nav-cta" onclick="window.VDRouter?VDRouter.go('ondc-demo',{overlay:true}):openModal('/ONDC-demo/index.html','🛒','ONDC Live Demo')">Try ONDC ↗</button>
   </div>
 </nav>
+<main id="app">
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<div class="noise"></div>
+<canvas id="bg-canvas"></canvas>
+<div id="prog"></div>
+
+
 
 <section id="hero">
   <div class="hero-kicker"><div class="live-dot"></div>🇮🇳 India's Decision Engine · Built for Bharat</div>
@@ -559,12 +642,12 @@ section{position:relative;z-index:10}
 .build-search-glyph{font-size:1rem;flex-shrink:0;margin-right:.65rem;opacity:.4;pointer-events:none}
 #build-search-input{flex:1;background:none;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:.97rem;color:var(--tx);padding:.9rem 0;cursor:text;}
 #build-search-input::placeholder{color:var(--tx3)}
-.build-search-btn{display:inline-flex;align-items:center;justify-content:center;padding:.6rem 1.15rem;background:var(--gold);color:#fff;border-radius:12px;font-size:.8rem;font-weight:700;letter-spacing:.04em;flex-shrink:0;cursor:none;transition:all .22s;}
+.build-search-btn{display:inline-flex;align-items:center;justify-content:center;padding:.6rem 1.15rem;background:var(--gold);color:#fff;border-radius:12px;font-size:.8rem;font-weight:700;letter-spacing:.04em;flex-shrink:0;cursor:pointer;transition:all .22s;}
 .build-search-btn:hover{background:var(--gold2);transform:scale(1.04);box-shadow:0 6px 20px rgba(200,147,42,.32)}
 .build-search-hint{font-size:.69rem;color:var(--tx3);padding:.55rem 1.2rem .3rem;letter-spacing:.02em;line-height:1.5;}
 .build-search-hint strong{color:var(--tx2);font-weight:500}
 .build-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
-.build-card{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:1.8rem;cursor:none;position:relative;overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:translateY(40px);transition:transform .36s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;}
+.build-card{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:1.8rem;cursor:pointer;position:relative;overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:translateY(40px);transition:transform .36s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;}
 .build-card.vis{animation:cardUp .72s cubic-bezier(.16,1,.3,1) forwards}
 .build-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transform:scaleX(0);transform-origin:left;transition:transform .36s;}
 .build-card:hover{transform:translateY(-7px);background:rgba(255,255,255,.055);box-shadow:0 28px 60px rgba(0,0,0,.52);}
@@ -591,7 +674,7 @@ section{position:relative;z-index:10}
 .build-card[data-a="blue"] .build-card-icon{background:rgba(74,144,217,.1);border-color:rgba(74,144,217,.2)}
 .build-card-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:var(--tx);margin-bottom:.4rem;letter-spacing:-.01em;line-height:1.15;}
 .build-card-desc{font-size:.79rem;color:var(--tx3);line-height:1.7;flex:1;margin-bottom:1.4rem;}
-.build-card-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.76rem;font-weight:700;letter-spacing:.04em;padding:.48rem 1.05rem;border-radius:99px;border:1px solid transparent;cursor:none;transition:all .22s;align-self:flex-start;}
+.build-card-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.76rem;font-weight:700;letter-spacing:.04em;padding:.48rem 1.05rem;border-radius:99px;border:1px solid transparent;cursor:pointer;transition:all .22s;align-self:flex-start;}
 .build-card[data-a="teal"] .build-card-cta{background:rgba(34,180,160,.1);color:var(--teal2);border-color:rgba(34,180,160,.25)}
 .build-card[data-a="teal"] .build-card-cta:hover{background:rgba(34,180,160,.2);transform:translateX(3px)}
 .build-card[data-a="gold"] .build-card-cta{background:rgba(200,147,42,.1);color:var(--gold2);border-color:rgba(200,147,42,.25)}
@@ -642,41 +725,41 @@ section{position:relative;z-index:10}
       <div class="build-search-hint"><strong>e.g.</strong> interview simulator, restaurant site, sales dashboard</div>
     </div>
     <div class="build-grid" id="build-grid">
-      <div class="build-card" data-a="teal" onclick="openModal('interview-prep.html','🎤','Interview Simulator')" role="button" tabindex="0">
+      <div class="build-card" data-a="teal" onclick="openModal('/interview-prep/index.html','🎤','Interview Simulator')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">🎤</div>
         <div class="build-card-title">Interview Simulator</div>
         <div class="build-card-desc">Practice job interviews in a chat simulator. Get real-time feedback and build confidence before the real thing.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('interview-prep.html','🎤','Interview Simulator')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/interview-prep/index.html','🎤','Interview Simulator')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="gold" onclick="openModal('sales-dashboard.html','📊','Sales Dashboard')" role="button" tabindex="0">
+      <div class="build-card" data-a="gold" onclick="openModal('/sales-dashboard/index.html','📊','Sales Dashboard')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">📊</div>
         <div class="build-card-title">Sales Dashboard</div>
         <div class="build-card-desc">Track sales and visualize performance. Upload a CSV for instant KPIs, pivot tables, and charts.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('sales-dashboard.html','📊','Sales Dashboard')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/sales-dashboard/index.html','📊','Sales Dashboard')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="orange" onclick="openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website')" role="button" tabindex="0">
+      <div class="build-card" data-a="orange" onclick="openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">🍽️</div>
         <div class="build-card-title">Restaurant Website</div>
         <div class="build-card-desc">Create a simple restaurant website with menu and contact. See a live example — Jalaram Food Court, Rajkot.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="green" onclick="openModal('finance-dashboard-msme.html','💰','Finance Dashboard')" role="button" tabindex="0">
+      <div class="build-card" data-a="green" onclick="openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">💰</div>
         <div class="build-card-title">Finance Dashboard</div>
         <div class="build-card-desc">Visualize revenue, expenses and profit with interactive P&amp;L charts, budget vs actual, and FY filters.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('finance-dashboard-msme.html','💰','Finance Dashboard')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="purple" onclick="openModal('alchemist.html','⚖️','Decision Tools')" role="button" tabindex="0">
+      <div class="build-card" data-a="purple" onclick="openModal('/alchemist/index.html','⚖️','Decision Tools')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">⚖️</div>
         <div class="build-card-title">Decision Tools</div>
         <div class="build-card-desc">Compare products and research choices with AI-powered structured frameworks for clear, confident decisions.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('alchemist.html','⚖️','Decision Tools')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/alchemist/index.html','⚖️','Decision Tools')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="blue" onclick="openModal('app-generator.html','🔧','Custom Web Apps')" role="button" tabindex="0">
+      <div class="build-card" data-a="blue" onclick="openModal('/app-generator/index.html','🔧','Custom Web Apps')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">🔧</div>
         <div class="build-card-title">Custom Web Apps</div>
         <div class="build-card-desc">Turn simple ideas into working web tools. Describe what you need and the generator builds it on the spot.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('app-generator.html','🔧','Custom Web Apps')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/app-generator/index.html','🔧','Custom Web Apps')">Open Tool →</button>
       </div>
     </div>
   </div>
@@ -690,12 +773,12 @@ section{position:relative;z-index:10}
   var bInput=document.getElementById('build-search-input'),bGo=document.getElementById('build-search-go');
   if(!bInput||!bGo)return;
   var routes=[
-    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('interview-prep.html','🎤','Interview Simulator');}},
-    {kw:['sales','revenue','units','product','register','csv','excel','chart','kpi'],fn:function(){openModal('sales-dashboard.html','📊','Sales Dashboard');}},
-    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website');}},
-    {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('finance-dashboard-msme.html','💰','Finance Dashboard');}},
-    {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('alchemist.html','⚖️','Decision Tools');}},
-    {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('app-generator.html','🔧','Custom Web Apps');}},
+    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('/interview-prep/index.html','🎤','Interview Simulator');}},
+    {kw:['sales','revenue','units','product','register','csv','excel','chart','kpi'],fn:function(){openModal('/sales-dashboard/index.html','📊','Sales Dashboard');}},
+    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website');}},
+    {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard');}},
+    {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('/alchemist/index.html','⚖️','Decision Tools');}},
+    {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('/app-generator/index.html','🔧','Custom Web Apps');}},
   ];
   function runBuildSearch(q){if(!q)return;var lq=q.toLowerCase();var best=null,top=0;routes.forEach(function(r){var sc=r.kw.reduce(function(acc,k){return acc+(lq.includes(k)?1:0);},0);if(sc>top){top=sc;best=r;}});if(best&&top>0)best.fn();else{var el=document.getElementById('cat-tools');if(el)el.scrollIntoView({behavior:'smooth'});}}
   bGo.addEventListener('click',function(){runBuildSearch(bInput.value.trim());});
@@ -760,18 +843,18 @@ section{position:relative;z-index:10}
     <h2 class="footer-h2">Start with clarity.<em>Not confusion.</em></h2>
     <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.</p>
     <div class="footer-acts">
-      <button class="btn-p" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
-      <button class="btn-g" onclick="openModal('alchemist.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
-      <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
-      <button class="btn-g" onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
+      <button class="btn-p" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
+      <button class="btn-g" onclick="openModal('/alchemist/index.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
+      <button class="btn-fi" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
+      <button class="btn-g" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
     </div>
     <div class="footer-links">
-      <a onclick="openModal('contact.html','✉️','Contact')">Contact</a>
-      <a onclick="openModal('privacy.html','🔒','Privacy')">Privacy</a>
-      <a onclick="openModal('terms.html','📜','Terms')">Terms</a>
+      <a href="/contact" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
+      <a href="/privacy" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
+      <a href="/terms" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
       <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
       <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
-      <a onclick="openModal('founder.html','👤','Founder')">About</a>
+      <a href="/founder" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
       <span>· © 2025 ViaDecide · Amazon Associates IN (decideengine-21)</span>
     </div>
   </div>
@@ -817,6 +900,8 @@ section{position:relative;z-index:10}
         <button id="modal-close" onclick="closeModal()">✕</button>
       </div>
     </div>
+    <!-- Loading bar shown while iframe is fetching -->
+    <div id="modal-loading"></div>
     <div id="modal-err">
       <div class="err-icon">🔒</div>
       <h3>Can't load in iframe</h3>
@@ -828,8 +913,59 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
-<script src="router.js" onerror="console.warn('router.js not found, skipping')"></script>
 <script>
+/* ============================================================
+   TAP HIGHLIGHT SAFETY PATCH
+   Passive touchstart listener — prevents iOS Safari from
+   rendering any highlight state; does NOT block scrolling
+   or interfere with click events.
+   ============================================================ */
+(function(){
+  // Passive touchstart: just enough to flush iOS highlight state
+  document.addEventListener('touchstart', function(){}, {passive: true});
+
+  // Belt-and-suspenders: stamp all interactive elements inline
+  // (catches dynamically-added elements too via MutationObserver)
+  function stampNoHighlight(root){
+    var sel = 'a,button,[onclick],[role="button"],.tc,.build-card,.pt-card,.orb-chip,.nav-chip,.nav-cta,.cat-cta,.orb-go,.m-act,.dev-tab,.ib-btn,.ib-dismiss,.thread-close,.err-btn';
+    (root||document).querySelectorAll(sel).forEach(function(el){
+      el.style.webkitTapHighlightColor = 'rgba(0,0,0,0)';
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ stampNoHighlight(); });
+  } else {
+    stampNoHighlight();
+  }
+
+  // Watch for future DOM additions
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        m.addedNodes.forEach(function(n){
+          if(n.nodeType === 1) stampNoHighlight(n);
+        });
+      });
+    });
+    mo.observe(document.body, {childList:true, subtree:true});
+  }
+})();
+
+/* ============================================================
+   KEYBOARD SUPPORT — nav-brand (div with onclick)
+   ============================================================ */
+(function(){
+  var brand = document.querySelector('.nav-brand[role="button"]');
+  if(brand){
+    brand.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        window.scrollTo({top:0, behavior:'smooth'});
+      }
+    });
+  }
+})();
+
 /* CURSOR */
 const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -865,7 +1001,7 @@ window.addEventListener('scroll',()=>{
 });
 
 /* INTERSECTION OBSERVER */
-const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:0,rootMargin:'0px 0px -40px 0px'});
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:0,rootMargin:'60px 0px 0px 0px'});
 document.querySelectorAll('.tc,.pillar').forEach(el=>io.observe(el));
 
 /* MOBILE FALLBACK */
@@ -877,6 +1013,17 @@ if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
     });
   },600);
 }
+
+/* DESKTOP FALLBACK — guarantee all cards are visible after 1.2s no matter what */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    document.querySelectorAll('.tc,.pillar,.build-card,.pt-card').forEach(el=>{
+      if(!el.classList.contains('vis')){
+        el.classList.add('vis');
+      }
+    });
+  },1200);
+});
 
 /* KEYBOARD FOR .tc CARDS */
 document.querySelectorAll('.tc[role="button"]').forEach(card=>{
@@ -899,56 +1046,105 @@ var threadOpen=false;
 function toggleThread(){threadOpen=!threadOpen;document.getElementById('thread-panel').classList.toggle('open',threadOpen);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleThread();});
 
-/* MODAL */
-let currentFile='';
-function openModal(file,icon,name){
-  if(/^https?:\/\//i.test(file)){window.open(file,'_blank','noopener,noreferrer');return;}
-  currentFile=file;
-  document.getElementById('m-icon').textContent=icon;
-  document.getElementById('m-name').textContent=name;
-  document.getElementById('m-tab').href=file;
-  document.getElementById('err-open-link').href=file;
-  document.getElementById('modal-err').classList.remove('show');
-  const frame=document.getElementById('modal-frame');
-  frame.style.display='block';
-  frame.src='';
-  setTimeout(()=>{ frame.src=file; },10);
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow='hidden';
+/* ============================================================
+   MODAL — routes through VDRouter.openOverlay when available.
+   Falls back gracefully to direct iframe if router absent.
+   ============================================================ */
+let currentFile = '';
+
+function openModal(file, icon, name) {
+  // External URLs → new tab
+  if (/^https?:\/\//i.test(file)) {
+    window.open(file, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  // ── VDRouter path (preferred — router v2 always has openOverlay) ──
+  if (window.VDRouter && typeof window.VDRouter.openOverlay === 'function') {
+    // Derive the resolved file; pass icon+name via opts so META in router
+    // can also fill the header if caller didn't supply them.
+    const slug = file.replace(/\.html?$/i, '').replace(/^\.?\//, '');
+    const resolvedFile = (window.VDRouter.resolve ? window.VDRouter.resolve(slug) : null) || file;
+    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + '\u2009' : '') + (name || '') });
+    return;
+  }
+
+  // ── Iframe fallback (router not loaded) ────────────────────────────
+  _modalSetup(file, icon, name);
 }
 
-document.getElementById('modal-frame').addEventListener('load',function(){
-  const src=this.src;
-  if(!src || src==='about:blank' || src==='' || src===window.location.href) return;
-  try{
-    const d=this.contentDocument||this.contentWindow.document;
-    if(!d||d.body===null){showModalError();}
-    else if(d.body.innerHTML.trim()===''){
-      const f=this;
-      setTimeout(()=>{
-        try{
-          const d2=f.contentDocument||f.contentWindow.document;
-          if(!d2||d2.body===null||d2.body.innerHTML.trim()===''){showModalError();}
-        }catch(e2){showModalError();}
-      },800);
-    }
-  }catch(e){showModalError();}
-});
+function _modalSetup(file, icon, name) {
+  currentFile = file;
+  const mIcon = document.getElementById('m-icon');
+  const mName = document.getElementById('m-name');
+  const mTab  = document.getElementById('m-tab');
+  const errLk = document.getElementById('err-open-link');
+  const mErr  = document.getElementById('modal-err');
+  const frame = document.getElementById('modal-frame');
+  const mLoad = document.getElementById('modal-loading');
 
-function showModalError(){
-  document.getElementById('modal-frame').style.display='none';
+  if (mIcon) mIcon.textContent = icon || '🔬';
+  if (mName) mName.textContent = name || '';
+  if (mTab)  mTab.href = file;
+  if (errLk) errLk.href = file;
+  if (mErr)  mErr.classList.remove('show');
+  if (mLoad) mLoad.classList.add('active');
+
+  if (frame) {
+    frame.style.display = 'block';
+    frame.src = '';
+    setTimeout(() => { frame.src = file; }, 10);
+  }
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+/* iframe load / error detection */
+(function(){
+  const frame = document.getElementById('modal-frame');
+  if (!frame) return;
+  frame.addEventListener('load', function() {
+    const mLoad = document.getElementById('modal-loading');
+    if (mLoad) mLoad.classList.remove('active');
+    const src = this.src;
+    if (!src || src === 'about:blank' || src === '' || src === window.location.href) return;
+    try {
+      const d = this.contentDocument || this.contentWindow.document;
+      if (!d || d.body === null) { showModalError(); return; }
+      if (d.body.innerHTML.trim() === '') {
+        const f = this;
+        setTimeout(() => {
+          try {
+            const d2 = f.contentDocument || f.contentWindow.document;
+            if (!d2 || d2.body === null || d2.body.innerHTML.trim() === '') showModalError();
+          } catch(e2) { showModalError(); }
+        }, 800);
+      }
+    } catch(e) { /* cross-origin — assume loaded OK */ }
+  });
+})();
+
+function showModalError() {
+  const mLoad = document.getElementById('modal-loading');
+  if (mLoad) mLoad.classList.remove('active');
+  document.getElementById('modal-frame').style.display = 'none';
   document.getElementById('modal-err').classList.add('show');
 }
-function closeModal(){
+
+function closeModal() {
   document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow='';
-  setTimeout(()=>{
-    document.getElementById('modal-frame').src='about:blank';
-    document.getElementById('modal-frame').style.display='block';
+  document.body.style.overflow = '';
+  const mLoad = document.getElementById('modal-loading');
+  if (mLoad) mLoad.classList.remove('active');
+  setTimeout(() => {
+    const frame = document.getElementById('modal-frame');
+    frame.src = 'about:blank';
+    frame.style.display = 'block';
     document.getElementById('modal-err').classList.remove('show');
-  },400);
+  }, 400);
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!threadOpen)closeModal();});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpen) closeModal(); });
 
 /* ORB SEARCH */
 (function(){
@@ -1020,7 +1216,48 @@ if(bannerDismiss)bannerDismiss.addEventListener('click',function(){if(banner)ban
 if(isIOS&&!isInStandaloneMode){if(iosTriggerSection)iosTriggerSection.style.display='inline-flex';if(iosTriggerSection)iosTriggerSection.addEventListener('click',function(){if(iosHint)iosHint.classList.add('show');});setTimeout(function(){try{var d=sessionStorage.getItem('de-ios-dismissed');if(!d&&iosHint)iosHint.classList.add('show');}catch(e){}},4500);}
 if(iosHintClose)iosHintClose.addEventListener('click',function(){if(iosHint)iosHint.classList.remove('show');try{sessionStorage.setItem('de-ios-dismissed','1');}catch(e){}});
 window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns();});
-if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}
+
+/* ============================================================
+   ROUTER INTEGRATION
+   ============================================================ */
+(function(){
+  if(!window.VDRouter) return;
+
+  // 1. Re-bind links whenever the router finishes a route change
+  VDRouter.on('routechange', function(){
+    if(typeof VDRouter.bindLinks === 'function') VDRouter.bindLinks();
+  });
+
+  // 2. Prefetch on hover — for all clickable cards and nav chips
+  //    Extracts the file from onclick="openModal('/file.html',...)" or VDRouter.go('slug')
+  function prefetchFromEl(el){
+    var oc = el.getAttribute('onclick') || '';
+    var m  = oc.match(/openModal\('([^']+)'/);
+    if(m && m[1]){
+      var slug = m[1].replace(/\.html?$/i,'').replace(/^\.?\//,'');
+      VDRouter.prefetch(slug);
+    }
+    var m2 = oc.match(/VDRouter\.go\('([^']+)'/);
+    if(m2 && m2[1]) VDRouter.prefetch(m2[1]);
+    var href = el.getAttribute('href') || '';
+    if(href && !href.startsWith('#') && !href.startsWith('http')){
+      VDRouter.prefetch(href.replace(/^\/+/,'').replace(/\.html?$/i,''));
+    }
+  }
+
+  document.querySelectorAll('.tc[onclick],.pt-card[onclick],.build-card[onclick],.nav-chip,.orb-chip[onclick]').forEach(function(el){
+    el.addEventListener('mouseenter', function(){ prefetchFromEl(el); }, {once:true, passive:true});
+    // Touch devices: prefetch on touchstart
+    el.addEventListener('touchstart', function(){ prefetchFromEl(el); }, {once:true, passive:true});
+  });
+
+  // 3. Log registered route count for debugging
+  try{
+    var rc = Object.keys(VDRouter.routes()).length;
+    console.info('[ViaDecide] VDRouter ready — ' + rc + ' routes registered');
+  }catch(e){}
+})();
 </script>
 
 <!-- POPULAR TOOLS SECTION -->
@@ -1037,7 +1274,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 .pt-h2 em{font-style:italic;color:var(--gold);}
 .pt-header-r{font-size:.82rem;color:var(--tx3);line-height:1.7;max-width:300px;text-align:right;}
 .pt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;}
-.pt-card{position:relative;overflow:hidden;background:var(--sf);border:1px solid var(--bd);border-radius:22px;padding:2rem;display:flex;flex-direction:column;cursor:none;opacity:0;transform:translateY(44px);transition:transform .38s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;}
+.pt-card{position:relative;overflow:hidden;background:var(--sf);border:1px solid var(--bd);border-radius:22px;padding:2rem;display:flex;flex-direction:column;cursor:pointer;opacity:0;transform:translateY(44px);transition:transform .38s cubic-bezier(.34,1.56,.64,1),border-color .28s,background .28s,box-shadow .28s;}
 .pt-card.vis{animation:cardUp .75s cubic-bezier(.16,1,.3,1) forwards;}
 .pt-card:nth-child(1).vis{animation-delay:.05s}.pt-card:nth-child(2).vis{animation-delay:.12s}
 .pt-card:nth-child(3).vis{animation-delay:.19s}.pt-card:nth-child(4).vis{animation-delay:.26s}
@@ -1066,7 +1303,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 .pt-pill{font-size:.58rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.22rem .65rem;border-radius:99px;border:1px solid rgba(255,255,255,.07);color:var(--pt-accent,var(--gold));background:color-mix(in srgb, var(--pt-accent,var(--gold)) 10%, transparent);}
 .pt-name{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;color:var(--tx);letter-spacing:-.015em;line-height:1.15;margin-bottom:.45rem;}
 .pt-desc{font-size:.8rem;color:var(--tx3);line-height:1.72;flex:1;margin-bottom:1.2rem;}
-.pt-card-cta{display:inline-flex;align-items:center;gap:.45rem;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.52rem 1.1rem .52rem .9rem;border-radius:99px;border:1px solid;align-self:flex-start;cursor:none;transition:gap .22s,background .22s,box-shadow .22s,transform .22s;color:var(--pt-accent,var(--gold));border-color:color-mix(in srgb, var(--pt-accent,var(--gold)) 35%, transparent);background:color-mix(in srgb, var(--pt-accent,var(--gold)) 8%, transparent);}
+.pt-card-cta{display:inline-flex;align-items:center;gap:.45rem;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.52rem 1.1rem .52rem .9rem;border-radius:99px;border:1px solid;align-self:flex-start;cursor:pointer;transition:gap .22s,background .22s,box-shadow .22s,transform .22s;color:var(--pt-accent,var(--gold));border-color:color-mix(in srgb, var(--pt-accent,var(--gold)) 35%, transparent);background:color-mix(in srgb, var(--pt-accent,var(--gold)) 8%, transparent);}
 .pt-card-cta:hover{background:color-mix(in srgb, var(--pt-accent,var(--gold)) 18%, transparent);transform:translateX(3px);box-shadow:0 4px 18px color-mix(in srgb, var(--pt-accent,var(--gold)) 20%, transparent);}
 .pt-card-cta .cta-arrow{display:inline-block;transition:transform .22s;}
 .pt-card-cta:hover .cta-arrow{transform:translateX(3px);}
@@ -1108,63 +1345,63 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
     <div class="pt-rule"></div>
     <div class="pt-grid" id="pt-grid">
-      <div class="pt-card pt-card--wip" data-c="teal" onclick="openModal('interview-prep.html','🎤','Interview Simulator')" role="button" tabindex="0">
+      <div class="pt-card pt-card--wip" data-c="teal" onclick="openModal('/interview-prep/index.html','🎤','Interview Simulator')" role="button" tabindex="0">
         <div class="pt-num">01</div>
         <div class="pt-icon-row"><div class="pt-icon">🎤</div><span class="pt-pill">Simulator</span></div>
         <div class="pt-name">Interview Simulator</div>
         <div class="pt-desc">Practice job interviews with a chat-style simulator. Get realistic questions, instant feedback, and build confidence before the real thing.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('interview-prep.html','🎤','Interview Simulator')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/interview-prep/index.html','🎤','Interview Simulator')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="gold" onclick="openModal('sales-dashboard.html','📊','Sales Dashboard')" role="button" tabindex="0">
+      <div class="pt-card" data-c="gold" onclick="openModal('/sales-dashboard/index.html','📊','Sales Dashboard')" role="button" tabindex="0">
         <div class="pt-num">02</div>
         <div class="pt-icon-row"><div class="pt-icon">📊</div><span class="pt-pill">Dashboard</span></div>
         <div class="pt-name">Sales Dashboard</div>
         <div class="pt-desc">Track revenue and visualize business performance. Upload a CSV or enter data manually for instant KPIs, pivot tables, and trend charts.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('sales-dashboard.html','📊','Sales Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/sales-dashboard/index.html','📊','Sales Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="orange" onclick="openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website Builder')" role="button" tabindex="0">
+      <div class="pt-card" data-c="orange" onclick="openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website Builder')" role="button" tabindex="0">
         <div class="pt-num">03</div>
         <div class="pt-icon-row"><div class="pt-icon">🍽️</div><span class="pt-pill">Builder</span></div>
         <div class="pt-name">Restaurant Website Builder</div>
         <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering. Live example: Jalaram Food Court, Rajkot.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('Jalaram-food-court-rajkot.html','🍽️','Restaurant Website Builder')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website Builder')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="green" onclick="openModal('finance-dashboard-msme.html','💰','Finance Dashboard')" role="button" tabindex="0">
+      <div class="pt-card" data-c="green" onclick="openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')" role="button" tabindex="0">
         <div class="pt-num">04</div>
         <div class="pt-icon-row"><div class="pt-icon">💰</div><span class="pt-pill">Finance</span></div>
         <div class="pt-name">Finance Dashboard</div>
         <div class="pt-desc">Visualize expenses, profit and cash flow with interactive P&amp;L charts, budget vs actual breakdowns, and Indian FY filters.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('finance-dashboard-msme.html','💰','Finance Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="purple" onclick="openModal('alchemist.html','⚖️','Decision Tool')" role="button" tabindex="0">
+      <div class="pt-card" data-c="purple" onclick="openModal('/alchemist/index.html','⚖️','Decision Tool')" role="button" tabindex="0">
         <div class="pt-num">05</div>
         <div class="pt-icon-row"><div class="pt-icon">⚖️</div><span class="pt-pill">Decision</span></div>
         <div class="pt-name">Decision Tool</div>
         <div class="pt-desc">Compare products and evaluate buying decisions. AI-powered structured frameworks surface clarity from complex, high-stakes choices.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('alchemist.html','⚖️','Decision Tool')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/alchemist/index.html','⚖️','Decision Tool')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="blue" onclick="openModal('app-generator.html','🔧','Custom Web App Generator')" role="button" tabindex="0">
+      <div class="pt-card" data-c="blue" onclick="openModal('/app-generator/index.html','🔧','Custom Web App Generator')" role="button" tabindex="0">
         <div class="pt-num">06</div>
         <div class="pt-icon-row"><div class="pt-icon">🔧</div><span class="pt-pill">Generator</span></div>
         <div class="pt-name">Custom Web App Generator</div>
         <div class="pt-desc">Turn simple ideas into working web tools. Describe what you need and the engine generates a fully functional app on the spot.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('app-generator.html','🔧','Custom Web App Generator')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/app-generator/index.html','🔧','Custom Web App Generator')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
@@ -1173,7 +1410,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 </section>
 
 <script>
-/* POPULAR TOOLS — scroll reveal + keyboard (fixed: no duplicate IIFE) */
+/* POPULAR TOOLS — scroll reveal + keyboard */
 (function(){
   var ptIo=new IntersectionObserver(function(entries){
     entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');ptIo.unobserve(e.target);}});
@@ -1189,18 +1426,18 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">01</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Decision Tools</span></div><p class="cat-desc">AI-powered instruments to structure your thinking, build prompts, and decide with clarity.</p></div></div>
-      <button class="cat-cta" onclick="openModal('alchemist.html','✨','Alchemist')">Try Alchemist ✨</button>
+      <button class="cat-cta" onclick="openModal('/alchemist/index.html','✨','Alchemist')">Try Alchemist ✨</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="openModal('alchemist.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('memory.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('prompt-alchemy.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s5" onclick="openModal('sales-dashboard.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
-      <div class="tc tc-s4" onclick="openModal('app-generator.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('ViaGuide.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('StudyOS.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
-      <div class="tc tc-s3" onclick="openModal('brief.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('student-research.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-feat tc-s8" onclick="openModal('/alchemist/index.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/memory/index.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/prompt-alchemy/index.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s5" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
+      <div class="tc tc-s4" onclick="openModal('/app-generator/index.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/ViaGuide/index.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/StudyOS/index.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
+      <div class="tc tc-s3" onclick="openModal('/brief/index.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/student-research/index.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st wip">◌ Coming</div></div>
     </div>
   </div>
@@ -1210,7 +1447,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">02</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Commerce & Deals</span></div><p class="cat-desc">India's open commerce layer — real prices, real sellers, real cashback.</p></div></div>
-      <button class="cat-cta" onclick="openModal('ONDC-demo.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
+      <button class="cat-cta" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
     </div>
     <div class="ondc-strip">
       <div class="ondc-l">
@@ -1218,7 +1455,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         <h3>The future of commerce<br>is <em>open.</em></h3>
         <p>A live, working ONDC integration — discover real products from real sellers on the open network.</p>
         <div class="feat-tags"><span class="feat-tag">Live Seller Data</span><span class="feat-tag">Real-time Discovery</span><span class="feat-tag">ONDC Protocol</span><span class="feat-tag">Made in India 🇮🇳</span></div>
-        <button class="btn-t" onclick="openModal('ONDC-demo.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
+        <button class="btn-t" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
       </div>
       <div class="mockup">
         <div class="mockup-hd"><div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div><div class="m-title">ONDC · Live Feed</div></div>
@@ -1228,9 +1465,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       </div>
     </div>
     <div class="bento" style="margin-top:1.2rem">
-      <div class="tc tc-s4" onclick="openModal('engine-deals.html','🤝','Engine Deals')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🤝</span><div class="tc-name">Engine Deals</div><div class="tc-desc">AI-scored product comparisons with live Amazon pricing.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('discounts.html','🏷️','Discounts Hub')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏷️</span><div class="tc-name">Discounts Hub</div><div class="tc-desc">Verified cashback offers and deals curated for Indian buyers.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('cashback-rules.html','💸','Cashback Rules')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💸</span><div class="tc-name">Cashback Rules</div><div class="tc-desc">Understand exactly how to maximize bank cashback.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/engine-deals/index.html','🤝','Engine Deals')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🤝</span><div class="tc-name">Engine Deals</div><div class="tc-desc">AI-scored product comparisons with live Amazon pricing.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/discounts/index.html','🏷️','Discounts Hub')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏷️</span><div class="tc-name">Discounts Hub</div><div class="tc-desc">Verified cashback offers and deals curated for Indian buyers.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/cashback-rules/index.html','💸','Cashback Rules')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💸</span><div class="tc-name">Cashback Rules</div><div class="tc-desc">Understand exactly how to maximize bank cashback.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
@@ -1241,9 +1478,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="cat-header-l"><div class="cat-num">03</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Simulations & Games</span></div><p class="cat-desc">Decision-making at play. Strategy games and immersive sims.</p></div></div>
     </div>
     <div class="bento">
-      <div class="tc tc-s4" onclick="openModal('HexWars.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('HivaLand.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/HexWars/index.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game/index.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/HivaLand/index.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
@@ -1252,15 +1489,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">04</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Services</span></div><p class="cat-desc">Real-world offerings — human-assisted decision research, local services, and platform access for builders.</p></div></div>
-      <button class="cat-cta" onclick="openModal('decide-service.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
+      <button class="cat-cta" onclick="openModal('/decide-service/index.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s6" onclick="openModal('decide-service.html','🎯','Decide.Service')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name-lg">Decide.Service</div><div class="tc-desc-lg">White-glove decision research for complex, high-value purchases.</div><div class="tc-st svc">⊕ Paid Service</div></div>
-      <div class="tc tc-s6" onclick="openModal('decide-foodrajkot.html','🍽️','Decide Food · Rajkot')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🍽️</span><div class="tc-name-lg">Decide Food · Rajkot</div><div class="tc-desc-lg">Zero-commission local food delivery in Rajkot.</div><div class="tc-st svc">⊕ Local Service</div></div>
-      <div class="tc tc-s3" onclick="openModal('engine-license.html','⚙️','Engine License')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚙️</span><div class="tc-name">Engine License</div><div class="tc-desc">White-label the ViaDecide engine for your product.</div><div class="tc-st svc">⊕ License</div></div>
-      <div class="tc tc-s3" onclick="openModal('cohort-apply-here.html','🧪','Cohort Program')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧪</span><div class="tc-name">Cohort Program</div><div class="tc-desc">Join the decide.cohort — structured program for builders.</div><div class="tc-st beta">◆ Apply Now</div></div>
-      <div class="tc tc-s3" onclick="openModal('CustomSwipeEngineForm.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine.</div><div class="tc-st svc">⊕ Custom Build</div></div>
-      <div class="tc tc-s3" onclick="openModal('pricing.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-feat tc-s6" onclick="openModal('/decide-service/index.html','🎯','Decide.Service')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name-lg">Decide.Service</div><div class="tc-desc-lg">White-glove decision research for complex, high-value purchases.</div><div class="tc-st svc">⊕ Paid Service</div></div>
+      <div class="tc tc-s6" onclick="openModal('/decide-foodrajkot/index.html','🍽️','Decide Food · Rajkot')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🍽️</span><div class="tc-name-lg">Decide Food · Rajkot</div><div class="tc-desc-lg">Zero-commission local food delivery in Rajkot.</div><div class="tc-st svc">⊕ Local Service</div></div>
+      <div class="tc tc-s3" onclick="openModal('/engine-license/index.html','⚙️','Engine License')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚙️</span><div class="tc-name">Engine License</div><div class="tc-desc">White-label the ViaDecide engine for your product.</div><div class="tc-st svc">⊕ License</div></div>
+      <div class="tc tc-s3" onclick="openModal('/cohort-apply-here/index.html','🧪','Cohort Program')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧪</span><div class="tc-name">Cohort Program</div><div class="tc-desc">Join the decide.cohort — structured program for builders.</div><div class="tc-st beta">◆ Apply Now</div></div>
+      <div class="tc tc-s3" onclick="openModal('/CustomSwipeEngineForm/index.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine.</div><div class="tc-st svc">⊕ Custom Build</div></div>
+      <div class="tc tc-s3" onclick="openModal('/pricing/index.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
@@ -1269,12 +1506,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">05</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Store · PrintByDD</span></div><p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts.</p></div></div>
-      <a class="cat-cta" href="printbydd-store/index.html">Open Store ↗</a>
+      <a class="cat-cta" href="/printbydd-store">Open Store ↗</a>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s4" onclick="location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="location.href='printbydd-store/keychain.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔑</span><div class="tc-name">NFC Keychains</div><div class="tc-desc">Personalised NFC-enabled keychains with custom engraving.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="location.href='printbydd-store/gifts-that-mean-more.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-feat tc-s4" onclick="window.VDRouter?VDRouter.go('numberplate'):location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('keychain'):location.href='printbydd-store/keychain.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔑</span><div class="tc-name">NFC Keychains</div><div class="tc-desc">Personalised NFC-enabled keychains with custom engraving.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('gifts-that-mean-more'):location.href='printbydd-store/gifts-that-mean-more.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
@@ -1282,16 +1519,143 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 <section id="cat-blog" data-cat="blog" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l"><div class="cat-num">06</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Blog & Content</span></div><p class="cat-desc">Long-form thinking on decisions, commerce, AI, and India's digital future.</p></div></div>
-      <button class="cat-cta" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')">All Posts ↗</button>
+      <div class="cat-header-l"><div class="cat-num">06</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Blog & Content</span></div><p class="cat-desc">Long-form thinking on decisions, commerce, AI, and India's digital future. 9 posts · 2 formats.</p></div></div>
+      <button class="cat-cta" onclick="openModal('/Viadecide-blogs/index.html','✍️','ViaDecide Blogs')">All 9 Posts ↗</button>
     </div>
+
+    <!-- ── SUB-LABEL: Interactive Experiences ── -->
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
+      <span style="font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2);display:flex;align-items:center;gap:.4rem"><span style="display:block;width:16px;height:1px;background:var(--teal2)"></span>✦ Interactive Experiences</span>
+      <span style="font-size:.62rem;color:var(--tx3);font-family:'JetBrains Mono',monospace">App-style · Scroll-snapped · Immersive</span>
+    </div>
+
+    <div class="bento" style="margin-bottom:1.4rem">
+      <!-- Featured: Blog Hub -->
+      <div class="tc tc-feat tc-s8" onclick="openModal('/Viadecide-blogs/index.html','✍️','ViaDecide Research Hub')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(155,109,255,.1),rgba(34,180,160,.05));border-color:rgba(155,109,255,.2)">
+        <div class="tc-arr">↗</div>
+        <div class="tc-vis" style="background:linear-gradient(135deg,rgba(155,109,255,.18),rgba(34,180,160,.1))">✦
+          <svg width="110" height="36" viewBox="0 0 110 36" fill="none" style="position:absolute;bottom:6px;right:8px;opacity:.4">
+            <rect x="0" y="8" width="18" height="28" rx="3" fill="#9b6dff" opacity=".7"/>
+            <rect x="23" y="14" width="18" height="22" rx="3" fill="#22b4a0" opacity=".8"/>
+            <rect x="46" y="4" width="18" height="32" rx="3" fill="#c8932a" opacity=".7"/>
+            <rect x="69" y="10" width="18" height="26" rx="3" fill="#9b6dff" opacity=".9"/>
+            <rect x="92" y="2" width="18" height="34" rx="3" fill="#22b4a0"/>
+          </svg>
+        </div>
+        <div class="tc-name-lg">ViaDecide Research Hub</div>
+        <div class="tc-desc-lg">A Netflix-style, scroll-snapped interactive experience — product guides, decision frameworks, and buying tools all in one immersive interface.</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem">
+          <div class="tc-st" style="background:rgba(155,109,255,.12);color:var(--cb);border:1px solid rgba(155,109,255,.2)">✦ Interactive Hub</div>
+          <div class="tc-st live">● Live</div>
+        </div>
+      </div>
+
+      <!-- The Decision Stack -->
+      <div class="tc tc-s4" onclick="openModal('/the-decision-stack/index.html','📚','The Decision Stack')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(240,112,64,.04));border-color:rgba(200,147,42,.18)">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">📚</span>
+        <div class="tc-name">The Decision Stack</div>
+        <div class="tc-desc">A swipe-native app essay on the layers of structured thinking. Built like a product.</div>
+        <div class="tc-st" style="background:rgba(200,147,42,.1);color:var(--gold2)">✦ App-style</div>
+      </div>
+
+      <!-- Why Small Biz Don't Need SaaS -->
+      <div class="tc tc-s4" onclick="openModal('/why-small-businesses-dont-need-saas/index.html','🏗️','Why Small Businesses Don\'t Need SaaS')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.08),rgba(155,109,255,.04));border-color:rgba(74,144,217,.18)">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🏗️</span>
+        <div class="tc-name">Why SMBs Don't Need SaaS</div>
+        <div class="tc-desc">An interactive argument for structure over software. What MSMEs actually need.</div>
+        <div class="tc-st" style="background:rgba(74,144,217,.1);color:#6aaee8">✦ Immersive Essay</div>
+      </div>
+
+      <!-- Gifts That Mean More -->
+      <div class="tc tc-s4" onclick="openModal('/laptops-under-50000/index.html','🎁','Gifts That Mean More')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(224,96,144,.08),rgba(240,112,64,.04));border-color:rgba(224,96,144,.18)">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🎁</span>
+        <div class="tc-name">Gifts That Mean More</div>
+        <div class="tc-desc">Psychology of meaningful gifting — why ₹200 beats ₹5,000 generics. Beautifully designed.</div>
+        <div class="tc-st" style="background:rgba(224,96,144,.1);color:#e06090">✦ Styled Guide</div>
+      </div>
+    </div>
+
+    <!-- ── SUB-LABEL: Traditional Articles ── -->
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;margin-top:.5rem">
+      <span style="font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold2);display:flex;align-items:center;gap:.4rem"><span style="display:block;width:16px;height:1px;background:var(--gold2)"></span>📄 Long-form Articles</span>
+      <span style="font-size:.62rem;color:var(--tx3);font-family:'JetBrains Mono',monospace">Traditional scroll · Attributed · In-depth</span>
+    </div>
+
     <div class="bento">
-      <div class="tc tc-s6" onclick="openModal('Viadecide-blogs.html','✍️','ViaDecide Blogs')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✍️</span><div class="tc-name">ViaDecide Blog</div><div class="tc-desc">Essays on decision-making, consumer tech in India, ONDC, AI tools.</div><div class="tc-st live">● Active</div></div>
-      <div class="tc tc-s3" onclick="openModal('decision-infrastructure-india.html','🏗️','Decision Infrastructure')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Infrastructure</div><div class="tc-desc">Why India needs a decision layer.</div><div class="tc-st live">● Article</div></div>
-      <div class="tc tc-s3" onclick="openModal('ondc-for-bharat.html','🛒','ONDC for Bharat')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🇮🇳</span><div class="tc-name">ONDC for Bharat</div><div class="tc-desc">A deep-dive into India's Open Network for Digital Commerce.</div><div class="tc-st live">● Article</div></div>
-      <div class="tc tc-s3" onclick="openModal('laptops-under-50000.html','💻','Laptops Under 50k')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💻</span><div class="tc-name">Laptops Under ₹50k</div><div class="tc-desc">Structured buying guide with scoring matrix.</div><div class="tc-st live">● Guide</div></div>
-      <div class="tc tc-s3" onclick="openModal('founder.html','👤','Founder')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● About</div></div>
+      <!-- Decision Infrastructure - featured -->
+      <div class="tc tc-feat tc-s6" onclick="openModal('/decision-infrastructure-india/index.html','🏛️','Why India Needs Decision Infrastructure')" role="button" tabindex="0">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🏛️</span>
+        <div class="tc-name-lg">Why India Needs Decision Infrastructure</div>
+        <div class="tc-desc-lg">From Raisina Hill to Vidarbha — the synthesis gap costing India billions. A policy argument for civic decision tech.</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem">
+          <div class="tc-st" style="background:rgba(74,144,217,.1);color:#6aaee8;border:1px solid rgba(74,144,217,.2)">🏛️ Policy</div>
+          <div class="tc-st" style="background:rgba(255,255,255,.04);color:var(--tx3)">6 min read</div>
+          <div class="tc-st live">● Article</div>
+        </div>
+      </div>
+
+      <!-- ONDC for Bharat -->
+      <div class="tc tc-s6" onclick="openModal('/ondc-for-bharat/index.html','🇮🇳','ONDC for Bharat')" role="button" tabindex="0">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🇮🇳</span>
+        <div class="tc-name">ONDC: Open Commerce for Every Indian</div>
+        <div class="tc-desc">How ONDC levels the playing field for small sellers and what it means for Bharat's digital economy.</div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.7rem">
+          <div class="tc-st" style="background:var(--teal3);color:var(--teal2)">🛒 ONDC</div>
+          <div class="tc-st" style="background:rgba(255,255,255,.04);color:var(--tx3)">7 min</div>
+        </div>
+      </div>
+
+      <!-- IndiaAI Mission -->
+      <div class="tc tc-s4" onclick="openModal('/indiaai-mission-2025/index.html','🤖','IndiaAI Mission 2025')" role="button" tabindex="0">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🤖</span>
+        <div class="tc-name">IndiaAI Mission: What It Means for Builders</div>
+        <div class="tc-desc">₹10,371 crore. India's largest sovereign AI investment. What it unlocks for founders.</div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.7rem">
+          <div class="tc-st" style="background:rgba(155,109,255,.1);color:var(--cb)">🤖 IndiaAI</div>
+          <div class="tc-st" style="background:rgba(255,255,255,.04);color:var(--tx3)">8 min</div>
+        </div>
+      </div>
+
+      <!-- Multi-Source Research -->
+      <div class="tc tc-s4" onclick="openModal('/multi-source-research-explained/index.html','🔍','Multi-Source Research')" role="button" tabindex="0">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">🔍</span>
+        <div class="tc-name">Multi-Source Research: 4 Wikis, One Brief</div>
+        <div class="tc-desc">One query. Wikipedia, Wikivoyage, Wikibooks, Wikinews. One structured brief.</div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.7rem">
+          <div class="tc-st" style="background:var(--gold3);color:var(--gold2)">🔍 Research</div>
+          <div class="tc-st" style="background:rgba(255,255,255,.04);color:var(--tx3)">5 min</div>
+        </div>
+      </div>
+
+      <!-- Decision Brief Guide -->
+      <div class="tc tc-s4" onclick="openModal('/decision-brief-guide/index.html','📋','Build a Policy Brief')" role="button" tabindex="0">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">📋</span>
+        <div class="tc-name">Build a Policy Brief in 5 Minutes</div>
+        <div class="tc-desc">Step-by-step walkthrough of the Decision Brief tool — from input to shareable PDF.</div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.7rem">
+          <div class="tc-st" style="background:rgba(16,185,129,.1);color:var(--cfi)">📋 Guide</div>
+          <div class="tc-st" style="background:rgba(255,255,255,.04);color:var(--tx3)">4 min</div>
+        </div>
+      </div>
+
+      <!-- Founder / About -->
+      <div class="tc tc-s4" onclick="openModal('/founder/index.html','👤','Founder')" role="button" tabindex="0">
+        <div class="tc-arr">↗</div>
+        <span class="tc-icon">👤</span>
+        <div class="tc-name">Founder</div>
+        <div class="tc-desc">The story and mission behind India's decision engine.</div>
+        <div class="tc-st live">● About</div>
+      </div>
     </div>
+
   </div>
 </section>
 
@@ -1305,7 +1669,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME businesses. Upload data, get instant insights.</p>
         </div>
       </div>
-      <button class="cat-cta" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
+      <button class="cat-cta" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
     </div>
     <div class="finance-strip">
       <div class="fin-l">
@@ -1316,7 +1680,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <span class="fin-tag">₹ INR Native</span><span class="fin-tag">KPI Cards</span><span class="fin-tag">Pivot Tables</span>
           <span class="fin-tag">Budget vs Actual</span><span class="fin-tag">CSV Upload</span><span class="fin-tag">FY Filters 🇮🇳</span>
         </div>
-        <button class="btn-fi" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Launch FinTrack Dashboard ↗</button>
+        <button class="btn-fi" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')">Launch FinTrack Dashboard ↗</button>
       </div>
       <div class="fin-mockup">
         <div class="fin-mockup-hd"><div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div><div class="m-title" style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--tx3);margin-left:auto">FinTrack · India MSME</div></div>
@@ -1348,7 +1712,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       </div>
     </div>
     <div class="bento" style="margin-top:1.2rem">
-      <div class="tc tc-feat tc-s8" onclick="openModal('finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" data-cat="finance" data-orbit="fintrack" data-intent="finance,fintrack,cashflow,profit,loss,pnl,income,expense,gst,transaction,ledger,accounting,msme,india,dashboard" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(16,185,129,.1),rgba(52,211,153,.04));border-color:rgba(16,185,129,.2);">
+      <div class="tc tc-feat tc-s8" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')" data-cat="finance" data-orbit="fintrack" data-intent="finance,fintrack,cashflow,profit,loss,pnl,income,expense,gst,transaction,ledger,accounting,msme,india,dashboard" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(16,185,129,.1),rgba(52,211,153,.04));border-color:rgba(16,185,129,.2);">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(200,147,42,.08))">💰
           <svg width="120" height="38" viewBox="0 0 120 38" fill="none" style="position:absolute;bottom:6px;right:8px;opacity:.5">
@@ -1363,14 +1727,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <div class="tc-st fin">💰 P&L Tracker</div><div class="tc-st fin">📊 Pivot Tables</div><div class="tc-st fin">📈 Charts</div><div class="tc-st live">● Live</div>
         </div>
       </div>
-      <div class="tc tc-s4" onclick="openModal('sales-dashboard.html','📊','MSME Sales Register')" data-cat="finance" data-orbit="sales-register" data-intent="sales,register,msme,csv,excel,pivot,chart,revenue,units,region,product,india,upload" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.09),rgba(16,185,129,.05));border-color:rgba(200,147,42,.2);">
+      <div class="tc tc-s4" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Register')" data-cat="finance" data-orbit="sales-register" data-intent="sales,register,msme,csv,excel,pivot,chart,revenue,units,region,product,india,upload" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.09),rgba(16,185,129,.05));border-color:rgba(200,147,42,.2);">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.16),rgba(16,185,129,.08))">📊</div>
         <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Register</div>
         <div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload sales CSV or enter manually. Instant KPIs, pivot tables, and charts.</div>
         <div style="display:flex;gap:.4rem;margin-top:.75rem"><div class="tc-st msme">📈 CSV Upload</div><div class="tc-st live">● Live</div></div>
       </div>
-      <div class="tc tc-s4" onclick="openModal('payment-register.html','👥','Payroll Register')" data-cat="finance" data-orbit="payroll-register" data-intent="payroll,salary,register,employee,pf,esi,pt,tds,deductions,payslip,india,msme" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.09),rgba(34,180,160,.05));border-color:rgba(74,144,217,.2);">
+      <div class="tc tc-s4" onclick="openModal('/payment-register/index.html','👥','Payroll Register')" data-cat="finance" data-orbit="payroll-register" data-intent="payroll,salary,register,employee,pf,esi,pt,tds,deductions,payslip,india,msme" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.09),rgba(34,180,160,.05));border-color:rgba(74,144,217,.2);">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(74,144,217,.16),rgba(34,180,160,.08))">👥</div>
         <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">Payroll Register</div>
@@ -1392,6 +1756,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
   </div>
 </section>
+</main>
 
 </body>
-</html>
+                                                                                                                                                           </html>
