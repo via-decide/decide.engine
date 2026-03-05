@@ -595,6 +595,7 @@ section{position:relative;z-index:10}
       <button class="orb-chip" data-cat="games" onclick="document.getElementById('cat-games').scrollIntoView({behavior:'smooth'})">🎮 Sims</button>
       <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
       <button class="orb-chip" data-cat="finance" onclick="document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'})">📊 Finance</button>
+      <button class="orb-chip" data-cat="personal" onclick="document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'})">🙋 Personal</button>
     </div>
   </div>
   <div class="hero-scroll"><div class="scroll-mouse"></div>scroll to explore</div>
@@ -617,6 +618,7 @@ section{position:relative;z-index:10}
     <div class="marquee-item"><span class="cat-tag t">Tool</span> ViaGuide <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag" style="background:rgba(200,104,152,.1);color:var(--cpb)">Personal</span> Ashok Verma 1:1 <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> ONDC Demo <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag f">Finance</span> FinTrack Dashboard <span class="sep">◆</span></div>
@@ -632,6 +634,7 @@ section{position:relative;z-index:10}
     <div class="marquee-item"><span class="cat-tag t">Tool</span> ViaGuide <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag" style="background:rgba(200,104,152,.1);color:var(--cpb)">Personal</span> Ashok Verma 1:1 <span class="sep">◆</span></div>
   </div>
 </div>
 
@@ -801,10 +804,10 @@ section{position:relative;z-index:10}
       <div style="font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="display:block;width:24px;height:1px;background:var(--tx3)"></span>Our Philosophy</div>
       <h2 class="about-h2">Decisions deserve<br><em>infrastructure.</em></h2>
       <p class="about-p">Most Indian buyers make expensive, life-impacting decisions with incomplete information. We're building the layer that changes that.</p>
-      <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide. Seven categories. One engine.</p>
+      <p class="about-p">ViaDecide isn't a review site. It's a decision OS — with tools that think, remember, and guide. Eight categories. One engine.</p>
       <div class="stat-row">
-        <div class="a-stat"><div class="num">23<span>+</span></div><div class="lbl">Live Modules</div></div>
-        <div class="a-stat"><div class="num">7</div><div class="lbl">Categories</div></div>
+        <div class="a-stat"><div class="num">30<span>+</span></div><div class="lbl">Live Modules</div></div>
+        <div class="a-stat"><div class="num">8</div><div class="lbl">Categories</div></div>
         <div class="a-stat"><div class="num">∞</div><div class="lbl">Decisions</div></div>
       </div>
     </div>
@@ -864,7 +867,7 @@ section{position:relative;z-index:10}
       <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
       <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
       <a href="/founder" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
-      <span>· © 2025 ViaDecide · Amazon Associates IN (decideengine-21)</span>
+      <span>· © 2025–2026 ViaDecide · Amazon Associates IN (decideengine-21)</span>
     </div>
   </div>
 </section>
@@ -1189,6 +1192,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
     else if(/print|plate|keychain|gift|store/i.test(lv))document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
     else if(/blog|article|read|guide|learn/i.test(lv))document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
     else if(/service|hire|license|cohort/i.test(lv))document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
+    else if(/personal|ashok|founder|1:1|session|coaching|brand/i.test(lv))document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'});
     else document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
   }
   input.addEventListener('input',doSearch);
@@ -1448,9 +1452,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="tc tc-s3" onclick="openModal('/brief/index.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" onclick="openModal('/student-research/index.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st wip">◌ Coming</div></div>
-      <div class="tc tc-s3" onclick="openModal('/viadecide-decision-matrix/index.html','📐','Decision Matrix')" data-cat="tools" data-orbit="decision-matrix" data-intent="matrix,compare,score,decision,framework,weight" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/viadecide-opportunity-radar/index.html','📡','Opportunity Radar')" data-cat="tools" data-orbit="opportunity-radar" data-intent="opportunity,radar,scan,market,idea,signal" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📡</span><div class="tc-name">Opportunity Radar</div><div class="tc-desc">Scan and surface high-signal opportunities in your market or niche.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/viadecide-reality-check/index.html','🔎','Reality Check')" data-cat="tools" data-orbit="reality-check" data-intent="reality,check,calculator,bias,sanity,assumption" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔎</span><div class="tc-name">Reality Check</div><div class="tc-desc">Pressure-test your assumptions before committing to a decision.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st wip">◌ Coming</div></div>
+      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📡</span><div class="tc-name">Opportunity Radar</div><div class="tc-desc">Scan and surface high-signal opportunities in your market or niche.</div><div class="tc-st wip">◌ Coming</div></div>
+      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">🔎</span><div class="tc-name">Reality Check</div><div class="tc-desc">Pressure-test your assumptions before committing to a decision.</div><div class="tc-st wip">◌ Coming</div></div>
     </div>
   </div>
 </section>
@@ -1583,7 +1587,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       </div>
 
       <!-- Gifts That Mean More -->
-      <div class="tc tc-s4" onclick="openModal('/laptops-under-50000/index.html','🎁','Gifts That Mean More')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(224,96,144,.08),rgba(240,112,64,.04));border-color:rgba(224,96,144,.18)">
+      <div class="tc tc-s4" onclick="openModal('/printbydd-store/gifts-that-mean-more.html','🎁','Gifts That Mean More')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(224,96,144,.08),rgba(240,112,64,.04));border-color:rgba(224,96,144,.18)">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🎁</span>
         <div class="tc-name">Gifts That Mean More</div>
@@ -1660,14 +1664,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <!-- Founder / About -->
-      <div class="tc tc-s4" onclick="openModal('/founder/index.html','👤','Founder')" role="button" tabindex="0">
-        <div class="tc-arr">↗</div>
-        <span class="tc-icon">👤</span>
-        <div class="tc-name">Founder</div>
-        <div class="tc-desc">The story and mission behind India's decision engine.</div>
-        <div class="tc-st live">● About</div>
-      </div>
       <div class="tc tc-s4" onclick="openModal('/viadecide-public-beta/index.html','🚀','ViaDecide Public Beta Is Live')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Public Beta Is Live</div><div class="tc-desc">ViaDecide public beta launch — what's shipped, what's next for India's decision engine.</div><div class="tc-st live">● Post</div></div>
       <div class="tc tc-s4" onclick="openModal('/decision-brief/index.html','🏗️','Decision Architecture')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Architecture</div><div class="tc-desc">The structural framework and principles behind every ViaDecide decision module.</div><div class="tc-st live">● Article</div></div>
     </div>
@@ -1724,7 +1720,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <div class="fin-bar" style="height:48%;background:#ef4444;opacity:.9"></div>
           <div class="fin-bar" style="height:60%;background:#ef4444"></div>
         </div>
-        <div style="text-align:center;padding-top:.65rem;font-size:.64rem;color:var(--tx3)">Revenue vs Expense · Apr–Sep FY 2024</div>
+        <div style="text-align:center;padding-top:.65rem;font-size:.64rem;color:var(--tx3)">Revenue vs Expense · Apr–Sep FY 2025</div>
       </div>
     </div>
     <div class="bento" style="margin-top:1.2rem">
