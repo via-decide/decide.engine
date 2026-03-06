@@ -353,7 +353,7 @@
 
   /* ── Gemini API ─────────────────────────────────────────────────── */
   function callGemini(userText, histArr) {
-    var url = 'https://generativelanguage.googleapis.com/v1/models/' +
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
               selectedModel + ':generateContent?key=' + apiKey;
     var contents = histArr.map(function (m) {
       return { role: m.role, parts: [{ text: m.text }] };
