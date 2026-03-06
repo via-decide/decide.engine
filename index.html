@@ -1240,17 +1240,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     var rp=sessionStorage.getItem('__vd_redirect__');
     if(!rp)return;
     sessionStorage.removeItem('__vd_redirect__');
-    // Map known paths → openModal args
-    var map={
-      '/DharamDaxini':    ['/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions'],
-      '/DharamDaxini/':   ['/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions'],
-      '/DharamDaxini/index.html':['/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions'],
-      '/founder':         ['/founder.html','👤','Founder'],
-      '/founder/':        ['/founder.html','👤','Founder'],
-      '/founder.html':    ['/founder.html','👤','Founder'],
-    };
-    var args=map[rp]||(rp.endsWith('.html')?[rp,'','']:[rp+'/index.html','','']);
-    if(args){setTimeout(function(){openModal(args[0],args[1],args[2]);},400);}
+    // VDRouter handles this via its own boot-time sessionStorage handler.
+    // This fallback fires only when the router isn't available.
+    if(window.VDRouter)return;
+    var seg=rp.replace(/^\/+/,'').split('/')[0];
+    if(seg){setTimeout(function(){openModal('/'+seg+'/index.html','','');},400);}
   }catch(e){}
 })();
 

@@ -79,6 +79,30 @@
     "decide-service":        "decide-service.html",
     "app-generator":         "app-generator.html",
     "cohort-apply-here":     "cohort-apply-here.html",
+    "viadecide-public-beta": "viadecide-public-beta.html",
+
+    // Finance / Sales
+    "finance-dashboard-msme":  "finance-dashboard-msme.html",
+    "sales-register":          "sales-dashboard.html",
+    "payment-register":        "payment-register.html",
+    "payroll-register":        "payment-register.html",
+
+    // Personal Brand
+    "dharam-daxini-sessions":  "DharamDaxini/index.html",
+    "1-1-sessions":            "DharamDaxini/index.html",
+    "book-session":            "DharamDaxini/index.html",
+    "personal-brand":          "DharamDaxini/index.html",
+
+    // Tools
+    "custom-swipe-engine-form":  "CustomSwipeEngineForm.html",
+    customswipeengineform:       "CustomSwipeEngineForm.html",
+    "swipe-engine-form":         "CustomSwipeEngineForm.html",
+    "engine-activation-request": "Engine Activation Request.html",
+    "engine-activation":         "Engine Activation Request.html",
+
+    // Food / Rajkot
+    "decide-foodrajkot":   "decide-foodrajkot.html",
+    "food-rajkot":         "decide-foodrajkot.html",
 
     // Games / sims
     hexwars:                      "HexWars.html",
@@ -90,11 +114,16 @@
     printbydd:              "printbydd-store/index.html",
 
     // Blog Base
-    blogs:                           "Viadecide-blogs.html",
-    "viadecide-blogs":               "Viadecide-blogs.html",
-    "decision-infrastructure-india": "decision-infrastructure-india.html",
-    "ondc-for-bharat":               "ondc-for-bharat.html",
-    "laptops-under-50000":           "laptops-under-50000.html",
+    blogs:                                    "Viadecide-blogs.html",
+    "viadecide-blogs":                        "Viadecide-blogs.html",
+    "decision-infrastructure-india":          "decision-infrastructure-india.html",
+    "ondc-for-bharat":                        "ondc-for-bharat.html",
+    "laptops-under-50000":                    "laptops-under-50000.html",
+    "the-decision-stack":                     "The Decision Stack.html",
+    "decision-stack":                         "The Decision Stack.html",
+    "why-small-businesses-dont-need-saas":    "Why Most Small Businesses Don't Need SaaS — They Need Structure.html",
+    "why-small-businesses":                   "Why Most Small Businesses Don't Need SaaS — They Need Structure.html",
+    "small-businesses-saas":                  "Why Most Small Businesses Don't Need SaaS — They Need Structure.html",
   };
 
   // ─────────────────────────────────────────────────────────
@@ -106,9 +135,16 @@
     PromptAlchemy:  "prompt-alchemy",
     StudentResearch:"student-research",
     "ONDC-demo":    "ondc-demo",
+    "ondc-demo":    "ondc-demo",
     ondc:           "ondc-demo",
     ViaGuide:       "viaguide",
     StudyOS:        "studyos",
+    HexWars:        "hexwars",
+    HivaLand:       "hivaland",
+    DharamDaxini:   "dharam-daxini",
+    "Viadecide-blogs": "viadecide-blogs",
+    "Jalaram-food-court-rajkot": "jalaram-food-court",
+    "CustomSwipeEngineForm": "custom-swipe-engine-form",
     keychain:               "printbydd-store/keychain",
     numberplate:            "printbydd-store/numberplate",
     products:               "printbydd-store/products",
@@ -407,6 +443,13 @@
       if (Object.prototype.hasOwnProperty.call(ROUTES, key) &&
           String(key).toLowerCase() === lower)
         return { file: ROUTES[key], params: {} };
+    }
+
+    // Strip trailing /index and retry — handles openModal('/foo/index.html') → slug 'foo/index'
+    var withoutIndex = String(slug).replace(/\/index$/i, "");
+    if (withoutIndex !== slug) {
+      var retryMatch = resolveRoute(withoutIndex);
+      if (retryMatch) return retryMatch;
     }
 
     // Dynamic :param patterns (Interpolates params into the file path)
