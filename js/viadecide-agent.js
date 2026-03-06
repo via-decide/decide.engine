@@ -288,8 +288,8 @@
             '<select id="vd-model-select" class="vd-model-select">',
               '<option value="gemini-2.0-flash">Gemini 2.0 Flash (recommended)</option>',
               '<option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (fastest)</option>',
-              '<option value="gemini-1.5-pro">Gemini 1.5 Pro (most capable)</option>',
-              '<option value="gemini-1.5-flash">Gemini 1.5 Flash</option>',
+              '<option value="gemini-2.0-pro-exp">Gemini 2.0 Pro (most capable)</option>',
+              '<option value="gemini-2.5-pro-exp-03-25">Gemini 2.5 Pro (latest)</option>',
             '</select>',
             '<div class="vd-guide-section-title">About</div>',
             '<div class="vd-info-card"><b>ViaDecide Agent</b> knows all ViaDecide tools and links to them in responses. Your API key is stored in your browser only \u2014 never sent to ViaDecide servers.</div>',
@@ -353,7 +353,7 @@
 
   /* ── Gemini API ─────────────────────────────────────────────────── */
   function callGemini(userText, histArr) {
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+    var url = 'https://generativelanguage.googleapis.com/v1/models/' +
               selectedModel + ':generateContent?key=' + apiKey;
     var contents = histArr.map(function (m) {
       return { role: m.role, parts: [{ text: m.text }] };
