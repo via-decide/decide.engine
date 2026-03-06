@@ -3,9 +3,9 @@ const CORE = [
   "/",
   "/index.html",
   "/manifest.json",
-  "/router.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png"
+  // router.js intentionally excluded — always fetched fresh from network
 ];
 
 // Install: cache core
