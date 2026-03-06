@@ -51,6 +51,11 @@
         'viadecide-public-beta': 'viadecide-public-beta.html',
         'decision-brief': 'decision-brief.html',
         'dharamdaxini': 'DharamDaxini/index.html',
+        'dharamdaxini-legacy': 'DharamDaxini.html',
+        'swipeos': 'SwipeOS.html',
+        'swipeos-gandhidham': 'SwipeOS-gandhidham.html',
+        'agent': 'agent.html',
+        'laptops-under-50000': 'laptops-under-50000.html',
         'founder': 'founder.html',
         'contact': 'contact.html',
         'privacy': 'privacy.html',
@@ -219,7 +224,9 @@
                     }
                 } else {
                     // Backward navigation out of an overlay
-                    if (originalCloseModal) {
+                    if (typeof global.closeModal === 'function') {
+                        global.closeModal();
+                    } else if (originalCloseModal) {
                         originalCloseModal();
                     } else {
                         const modal = document.getElementById('modal');
