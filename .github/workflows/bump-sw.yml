@@ -1,0 +1,32 @@
+name: Bump SW Cache Version
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  bump-cache:
+    # Skip bot's own [skip ci] commits to prevent infinite loop
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump SW cache version to deploy timestamp
+        run: |
+          TS=$(date -u +%Y%m%d%H%M%S)
+          sed -i "s/viadecide-pwa-[^\"']*/viadecide-pwa-${TS}/" sw.js
+          echo "Bumped SW cache to: viadecide-pwa-${TS}"
+
+      - name: Commit and push bumped version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sw.js
+          git diff --staged --quiet || git commit -m "chore: bump SW cache version [skip ci]"
+          git push

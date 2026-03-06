@@ -1232,6 +1232,23 @@ window.addEventListener('appinstalled',function(){dP=null;hideInstallBtns();});
 if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}
 
 /* ============================================================
+   404 REDIRECT RESTORE — opens the correct modal after GitHub
+   Pages 404.html bounces the user back to index.html.
+   ============================================================ */
+(function(){
+  try{
+    var rp=sessionStorage.getItem('__vd_redirect__');
+    if(!rp)return;
+    sessionStorage.removeItem('__vd_redirect__');
+    // VDRouter handles this via its own boot-time sessionStorage handler.
+    // This fallback fires only when the router isn't available.
+    if(window.VDRouter)return;
+    var seg=rp.replace(/^\/+/,'').split('/')[0];
+    if(seg){setTimeout(function(){openModal('/'+seg+'/index.html','','');},400);}
+  }catch(e){}
+})();
+
+/* ============================================================
    ROUTER INTEGRATION
    ============================================================ */
 (function(){
@@ -1776,7 +1793,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <button class="cat-cta" onclick="openModal('/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions')">Book a Session ↗</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="openModal('/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions')" data-cat="personal" data-orbit="dharam-daxini" data-intent="book,session,founder,1:1,coaching,strategy,consult,decision,research" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,104,152,.18),rgba(200,147,42,.08))">🧭</div><div class="tc-name-lg">Dharam Daxini · 1:1 Sessions</div><div class="tc-desc-lg">Book a focused 1:1 with the founder. Decision research, strategy coaching, and product clarity for builders and buyers.</div><div class="tc-st" style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25)">⊕ Book Now</div></div>
+      <div class="tc tc-feat tc-s8" onclick="openModal('/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions')" data-cat="personal" data-orbit="dharam-daxini" data-intent="book,session,founder,1:1,coaching,strategy,consult,decision,research" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,104,152,.18),rgba(200,147,42,.08))">🧭</div><div class="tc-name-lg">Dharam Daxini · 1:1 Sessions</div><div class="tc-desc-lg">Book a focused 1:1 with the founder. Decision research, strategy coaching, and product clarity for builders and buyers.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">● Discovery Call · Free</span><span style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">⊕ Decision Research · ₹999</span><span style="background:rgba(232,160,48,.12);color:#e8a030;border:1px solid rgba(232,160,48,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">↗ Product Clarity · ₹999</span></div><div class="tc-st" style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25);margin-top:12px">⊕ Book Now</div></div>
       <div class="tc tc-s4" onclick="openModal('/founder/index.html','👤','Founder')" data-cat="personal" data-orbit="founder" data-intent="founder,story,about,mission" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● About</div></div>
     </div>
   </div>
