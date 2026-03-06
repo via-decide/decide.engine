@@ -72,17 +72,32 @@
             return routesMap;
         },
 
-        resolve(slug) {
-            if (!slug) return '';
-            const cleanSlug = slug.replace(/^\/+|\/+$/g, '').replace(/\.html$/i, '');
-            const lowerSlug = cleanSlug.toLowerCase();
+        resolve(pathOrSlug) {
+            if (!pathOrSlug) return '';
             
+            // 1. Clean input: remove leading/trailing slashes to ensure paths are strictly relative
+            let cleanPath = pathOrSlug.replace(/^\/+|\/+$/g, '');
+            
+            // 2. Normalize for dictionary lookup: strip .html and /index to match raw slug names
+            const lowerSlug = cleanPath.toLowerCase().replace(/\.html$/i, '').replace(/\/index$/i, '');
+            
+            // 3. Look up in our known routes dictionary
             if (routesMap[lowerSlug]) {
                 return routesMap[lowerSlug];
             }
             
-            // Fallback: assume the slug is a directory containing an index.html
-            return `${cleanSlug}/index.html`;
+            // 4. If it already has an HTML extension, trust it and return the relative path
+            if (cleanPath.endsWith('.html')) {
+                return cleanPath;
+            }
+            
+            // 5. If it ends in /index but is missing the extension, correct it
+            if (cleanPath.endsWith('/index')) {
+                return cleanPath + '.html';
+            }
+            
+            // 6. Default fallback: treat as a folder and append /index.html
+            return `${cleanPath}/index.html`;
         },
 
         prefetch(slug) {
@@ -107,7 +122,8 @@
                     icon = parts[0];
                     name = parts.slice(1).join('\u2009');
                 } else {
-                    const match = options.title.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*(.*)/u);
+                    // Safe regex fallback to extract emoji if present
+                    const match = options.title.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|\S)\s*(.*)/);
                     if (match) {
                         icon = match[1];
                         name = match[2];
@@ -117,10 +133,16 @@
                 }
             }
 
-            // Sync with browser history
+            // Sync with browser history without breaking GitHub Pages paths
             const url = new URL(window.location);
+            url.searchParams.delete('m');
             url.searchParams.set('m', encodeURIComponent(file));
-            window.history.pushState({ modalOpen: true, file, icon, name }, '', url);
+            
+            // Avoid duplicate state pushes if clicking the same tool twice
+            const currentState = window.history.state;
+            if (!currentState || currentState.file !== file) {
+                window.history.pushState({ modalOpen: true, file, icon, name }, '', url);
+            }
 
             if (typeof window._modalSetup === 'function') {
                 window._modalSetup(file, icon, name);
@@ -139,7 +161,7 @@
         },
 
         bindLinks() {
-            // Redundancy binding for programmatic calls, primary logic is in index.html
+            // Secondary catch-all for programmatic anchor links
             document.querySelectorAll('a[data-router]').forEach(el => {
                 if (!el._routerBound) {
                     el.addEventListener('click', (e) => {
@@ -161,7 +183,6 @@
                     sessionStorage.removeItem('__vd_redirect__');
                     const params = new URLSearchParams(window.location.search);
                     
-                    // If the redirect already converted to a modal param, skip
                     if (!params.has('m')) {
                         const slug = redirect.replace(/^\/+|\/+$/g, '').split('/')[0];
                         if (slug) {
@@ -188,7 +209,7 @@
                 window.history.replaceState({ modalOpen: false }, '', window.location.href);
             }
 
-            // 3. Handle Back/Forward Browser Navigation
+            // 3. Handle Back/Forward Browser Navigation (Popstate)
             window.addEventListener('popstate', (e) => {
                 if (e.state && e.state.modalOpen) {
                     // Forward navigation into an overlay
@@ -200,7 +221,8 @@
                     if (originalCloseModal) {
                         originalCloseModal();
                     } else {
-                        document.getElementById('modal').classList.remove('open');
+                        const modal = document.getElementById('modal');
+                        if(modal) modal.classList.remove('open');
                         document.body.style.overflow = '';
                         setTimeout(() => {
                             const frame = document.getElementById('modal-frame');
@@ -221,24 +243,24 @@
 
     global.VDRouter = VDRouter;
 
-    // Initialize once the DOM is ready and inject the history patch onto closeModal
+    // Initialize once the DOM is ready and securely inject the history patch onto closeModal
     document.addEventListener('DOMContentLoaded', () => {
         VDRouter.init();
 
-        // Monkey-patch closeModal from index.html so manual clicking of 'X' or 'Esc' correctly rewinds browser history
+        // Monkey-patch closeModal from index.html so manual clicking of 'X' or 'Esc' rewinds browser history
         if (typeof global.closeModal === 'function' && !global._vdRouterHooked) {
             originalCloseModal = global.closeModal;
             global.closeModal = function() {
                 if (global.history.state && global.history.state.modalOpen) {
-                    global.history.back(); // This fires popstate, executing the actual close logic
+                    global.history.back(); // This fires popstate, executing the actual close logic seamlessly
                 } else {
                     originalCloseModal();
                     
-                    // Clean URL just in case
+                    // Cleanup URL query params if fallback is hit
                     const url = new URL(window.location);
                     if (url.searchParams.has('m')) {
                         url.searchParams.delete('m');
-                        window.history.replaceState({ modalOpen: false }, '', url.pathname);
+                        window.history.replaceState({ modalOpen: false }, '', url.pathname + url.search);
                     }
                 }
             };
