@@ -80,6 +80,7 @@
     "app-generator":         "app-generator.html",
     "cohort-apply-here":     "cohort-apply-here.html",
     "viadecide-public-beta": "viadecide-public-beta.html",
+    "agent":                 "agent.html",
 
     // Finance / Sales
     "finance-dashboard-msme":  "finance-dashboard-msme.html",

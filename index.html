@@ -1071,18 +1071,22 @@ function openModal(file, icon, name) {
     return;
   }
 
+  // Derive slug once — used by both paths below
+  const slug = file.replace(/\.html?$/i, '').replace(/^\.?\//, '');
+
   // ── VDRouter path (preferred — router v2 always has openOverlay) ──
   if (window.VDRouter && typeof window.VDRouter.openOverlay === 'function') {
-    // Derive the resolved file; pass icon+name via opts so META in router
-    // can also fill the header if caller didn't supply them.
-    const slug = file.replace(/\.html?$/i, '').replace(/^\.?\//, '');
     const resolvedFile = (window.VDRouter.resolve ? window.VDRouter.resolve(slug) : null) || file;
     window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + '\u2009' : '') + (name || '') });
     return;
   }
 
-  // ── Iframe fallback (router not loaded) ────────────────────────────
-  _modalSetup(file, icon, name);
+  // ── Iframe fallback — resolve slug to actual .html file first so
+  //    Vercel serves the real page instead of rewriting to index.html ──
+  const resolvedFile = (window.VDRouter && window.VDRouter.resolve)
+    ? (window.VDRouter.resolve(slug) || file)
+    : file;
+  _modalSetup(resolvedFile, icon, name);
 }
 
 function _modalSetup(file, icon, name) {
@@ -1800,5 +1804,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 </section>
 </main>
 
+<!-- ViaDecide Agent Widget — embeds the AI chat assistant on all pages -->
+<script src="/js/viadecide-agent.js"></script>
 </body>
   </html>
