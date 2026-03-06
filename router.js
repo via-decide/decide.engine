@@ -617,6 +617,7 @@
     var clean = pathname.replace(/^\/+/, "");
     if (!clean || clean === "index.html" || clean === "index.htm") return;
     if (isAssetHref(clean)) return;
+    if (/\.html?$/i.test(clean)) return; // skip .html paths to prevent redirect loop
 
     var fullSlug = clean.replace(/\/+$/, "");
     var match = resolveRoute(fullSlug) || resolveRoute(normalizeSlug(fullSlug.split("/")[0]));
