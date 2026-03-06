@@ -150,7 +150,10 @@
     numberplate:            "printbydd-store/numberplate",
     products:               "printbydd-store/products",
     "gifts-that-mean-more": "printbydd-store/gifts-that-mean-more",
-    gifts:                  "printbydd-store/gifts-that-mean-more"
+    gifts:                  "printbydd-store/gifts-that-mean-more",
+    "smarttag-lite":        "printbydd-store/smarttag-lite",
+    smarttag:               "printbydd-store/smarttag-lite",
+    "gift-psychology":      "printbydd-store/gift-psychology"
   };
 
   // ─────────────────────────────────────────────────────────
@@ -433,10 +436,14 @@
     // Static exact match
     if (ROUTES[slug]) return { file: ROUTES[slug], params: {} };
 
-    // Alias
+    // Alias — resolve target through full routing (supports PARAM_ROUTES destinations)
     var aliasTarget = ALIASES[slug] || ALIASES[String(slug).toLowerCase()];
-    if (aliasTarget && ROUTES[aliasTarget])
-      return { file: ROUTES[aliasTarget], params: {} };
+    if (aliasTarget) {
+      var aliasMatch = ROUTES[aliasTarget]
+        ? { file: ROUTES[aliasTarget], params: {} }
+        : resolveRoute(aliasTarget);
+      if (aliasMatch) return aliasMatch;
+    }
 
     // Case-insensitive static match
     var lower = String(slug).toLowerCase();
