@@ -1059,6 +1059,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleTh
    Falls back gracefully to direct iframe if router absent.
    ============================================================ */
 let currentFile = '';
+let modalIsClosing = false;
+let modalLoadCheckTimer = null;
 
 function normalizeInternalPath(file) {
   if (!file) return '';
@@ -1096,6 +1098,11 @@ function openModal(file, icon, name) {
 }
 
 function _modalSetup(file, icon, name) {
+  modalIsClosing = false;
+  if (modalLoadCheckTimer) {
+    clearTimeout(modalLoadCheckTimer);
+    modalLoadCheckTimer = null;
+  }
   const normalizedPath = normalizeInternalPath(file);
   currentFile = normalizedPath;
   const mIcon = document.getElementById('m-icon');
@@ -1136,11 +1143,13 @@ function _modalSetup(file, icon, name) {
       if (!d || d.body === null) { showModalError(); return; }
       if (d.body.innerHTML.trim() === '') {
         const f = this;
-        setTimeout(() => {
+        if (modalLoadCheckTimer) clearTimeout(modalLoadCheckTimer);
+        modalLoadCheckTimer = setTimeout(() => {
           try {
             const d2 = f.contentDocument || f.contentWindow.document;
             if (!d2 || d2.body === null || d2.body.innerHTML.trim() === '') showModalError();
           } catch(e2) { showModalError(); }
+          modalLoadCheckTimer = null;
         }, 800);
       }
     } catch(e) { /* cross-origin — assume loaded OK */ }
@@ -1148,6 +1157,8 @@ function _modalSetup(file, icon, name) {
 })();
 
 function showModalError() {
+  const modal = document.getElementById('modal');
+  if (!modal || !modal.classList.contains('open') || modalIsClosing) return;
   const mLoad = document.getElementById('modal-loading');
   if (mLoad) mLoad.classList.remove('active');
   document.getElementById('modal-frame').style.display = 'none';
@@ -1155,6 +1166,11 @@ function showModalError() {
 }
 
 function closeModal() {
+  modalIsClosing = true;
+  if (modalLoadCheckTimer) {
+    clearTimeout(modalLoadCheckTimer);
+    modalLoadCheckTimer = null;
+  }
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow = '';
   const mLoad = document.getElementById('modal-loading');
