@@ -385,7 +385,11 @@
         // SPA navigate forward
         navigate(state.route, false);
       } else {
-        // Back out of modal: close it
+        // Back out of modal: debounce so VD_CLOSE_MODAL + popstate don't both fire
+        if (global._vdIsClosingModal) return;
+        global._vdIsClosingModal = true;
+        setTimeout(function () { global._vdIsClosingModal = false; }, 600);
+
         var closeFn = _originalCloseModal || global.closeModal;
         if (typeof closeFn === 'function') {
           closeFn();
@@ -422,12 +426,17 @@
       if (!e.data || typeof e.data !== 'object') return;
 
       if (e.data.type === 'VD_CLOSE_MODAL') {
-        // Trigger close via the hooked closeModal() so history stays in sync
+        // Debounce: ignore if already closing
+        if (global._vdIsClosingModal) return;
+        global._vdIsClosingModal = true;
+        setTimeout(function () { global._vdIsClosingModal = false; }, 600);
+
+        // Ensure closeModal is patched before invoking
+        _patchCloseModal();
         var closeFn = global.closeModal || _originalCloseModal;
         if (typeof closeFn === 'function') {
           closeFn();
         } else {
-          // Bare fallback
           var modal = document.getElementById('modal');
           if (modal) {
             modal.classList.remove('open');
@@ -440,7 +449,6 @@
       }
 
       if (e.data.type === 'VD_HOME') {
-        // Navigate to index, closing any open modal first
         var closeFn2 = global.closeModal || _originalCloseModal;
         if (typeof closeFn2 === 'function') closeFn2();
         window.location.href = 'index.html';
@@ -485,8 +493,11 @@
     }
 
     var decodedFile = decodeURIComponent(mParam);
-    var slug  = decodedFile.replace(/\.html?$/i, '').replace(/^\/+/, '').split('/')[0];
+    var slug  = decodedFile.replace(/\.html?$/i, '').replace(/^\/+/, '').replace(/\/index$/i, '').split('/')[0].toLowerCase();
     var meta  = moduleMetaMap[slug] || {};
+
+    // Ensure closeModal is hooked before the modal opens
+    _patchCloseModal();
 
     setTimeout(function () {
       if (typeof window._modalSetup === 'function') {
@@ -531,10 +542,30 @@
    * also pushes a history.back() to keep URL in sync.
    * ══════════════════════════════════════════════════════════ */
   function _patchCloseModal() {
-    if (typeof global.closeModal !== 'function' || global._vdRouterHooked) return;
+    // Already hooked — nothing to do.
+    if (global._vdRouterHooked) return;
+
+    // closeModal not yet defined — retry every 50ms (up to 3s).
+    if (typeof global.closeModal !== 'function') {
+      var _retries = 0;
+      var _retry = setInterval(function () {
+        _retries++;
+        if (typeof global.closeModal === 'function') {
+          clearInterval(_retry);
+          _patchCloseModal();
+        } else if (_retries > 60) {
+          clearInterval(_retry); // give up after 3s
+        }
+      }, 50);
+      return;
+    }
 
     _originalCloseModal = global.closeModal;
     global.closeModal = function () {
+      if (global._vdIsClosingModal) return; // debounce double-close
+      global._vdIsClosingModal = true;
+      setTimeout(function () { global._vdIsClosingModal = false; }, 600);
+
       if (window.history.state && window.history.state.modalOpen) {
         window.history.back();
       } else {
@@ -561,7 +592,7 @@
     bindLinks();
     on('routechange', bindLinks);
     _wirePrefetch();
-    setTimeout(_patchCloseModal, 100);
+    _patchCloseModal(); // starts polling retry loop internally if closeModal not ready yet
 
     try {
       console.info('[VDRouter v3] Ready — ' + Object.keys(routesMap).length + ' routes registered.');
@@ -570,7 +601,6 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     init();
-    setTimeout(_patchCloseModal, 200);
   });
 
   /* ══════════════════════════════════════════════════════════
