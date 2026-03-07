@@ -1,5 +1,5 @@
 /* ================================================================
-   ViaDecide Agent — Standalone Embeddable Widget v1.0
+   ViaDecide Agent — Standalone Embeddable Widget v2.0
    Usage: <script src="/js/viadecide-agent.js"></script>
    Safe to include multiple times — duplicate guard prevents double mount.
    © ViaDecide
@@ -7,11 +7,21 @@
 (function () {
   'use strict';
 
-  /* A) Duplicate guard */
+  /* ── Duplicate guard ─────────────────────────────────────────── */
   if (window.VDAgentLoaded) return;
   window.VDAgentLoaded = true;
 
-  /* D) ViaDecide internal route map */
+  /* ── Constants ──────────────────────────────────────────────── */
+  var STORAGE_KEY   = 'vd_agent_key';
+  var STORAGE_MODEL = 'vd_agent_model';
+  var STORAGE_TASKS = 'vd_tasks';
+  var DEFAULT_MODEL = 'gemini-2.5-flash';
+  var MODEL_OPTIONS = [
+    { value: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash (recommended)' },
+    { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite (fastest)'  },
+    { value: 'gemini-2.5-pro',        label: 'Gemini 2.5 Pro (most capable)'    },
+  ];
+
   var VD_ROUTES = {
     '/app-generator'          : 'App Generator',
     '/alchemist'              : 'Prompt Alchemist',
@@ -26,26 +36,26 @@
     '/HexWars'                : 'HexWars',
     '/printbydd-store'        : 'PrintByDD Store',
     '/founder'                : 'Founder Page',
-    '/DharamDaxini'           : 'Dharam Daxini — Sessions',
+    '/DharamDaxini'           : 'Dharam Daxini \u2014 Sessions',
     '/cohort-apply-here'      : 'Cohort Application',
     '/pricing'                : 'Pricing',
     '/contact'                : 'Contact',
   };
 
-  /* State */
+  /* ── State ──────────────────────────────────────────────────── */
   var isOpen        = false;
   var currentTab    = 'chat';
   var isThinking    = false;
   var _docxPromise  = null;
-  var apiKey        = localStorage.getItem('vd_agent_key') || '';
-  var selectedModel = localStorage.getItem('vd_agent_model') || 'gemini-2.0-flash';
-  var tasks         = JSON.parse(localStorage.getItem('vd_tasks') || '[]');
+  var apiKey        = localStorage.getItem(STORAGE_KEY)   || '';
+  var selectedModel = localStorage.getItem(STORAGE_MODEL) || DEFAULT_MODEL;
+  var tasks         = JSON.parse(localStorage.getItem(STORAGE_TASKS) || '[]');
   var history       = [];
 
-  /* DOM helper */
+  /* ── DOM helper ─────────────────────────────────────────────── */
   function $id(id) { return document.getElementById(id); }
 
-  /* C) Page context */
+  /* ── Page context ───────────────────────────────────────────── */
   function getPageContext() {
     var descEl = document.querySelector('meta[name="description"]');
     return {
@@ -56,81 +66,88 @@
     };
   }
 
-  /* G) HTML escape */
+  /* ── HTML escape ─────────────────────────────────────────────── */
   function esc(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return String(str == null ? '' : str)
+      .replace(/&/g,  '&amp;')
+      .replace(/</g,  '&lt;')
+      .replace(/>/g,  '&gt;')
+      .replace(/"/g,  '&quot;');
   }
 
-  /* E) XSS-safe markup renderer */
+  /* ── Safe markup renderer ────────────────────────────────────── */
   function formatText(raw) {
-    /* 1. Escape first */
     var s = esc(raw);
-    /* 2. Internal links only */
+    /* Internal links only */
     s = s.replace(
       /\[([^\]]{1,80})\]\((\/[A-Za-z0-9\-_./#]{1,120})\)/g,
-      '<a href="$2" target="_self">$1 ↗</a>'
+      '<a href="$2" target="_self">$1 \u2197</a>'
     );
-    /* 3. Bold */
+    /* Bold */
     s = s.replace(/\*\*([^*\n]{1,200}?)\*\*/g, '<strong>$1</strong>');
-    /* 4. Lists */
-    var lines = s.split('\n');
-    var out = [];
-    var inList = false;
+    /* Lists */
+    var lines = s.split('\n'), out = [], inList = false;
     for (var i = 0; i < lines.length; i++) {
-      var line = lines[i];
-      var isBullet = /^[-•*]\s+/.test(line);
+      var line     = lines[i];
+      var isBullet = /^[-\u2022*]\s+/.test(line);
       if (isBullet) {
         if (!inList) { out.push('<ul>'); inList = true; }
-        out.push('<li>' + line.replace(/^[-•*]\s+/, '') + '</li>');
+        out.push('<li>' + line.replace(/^[-\u2022*]\s+/, '') + '</li>');
       } else {
         if (inList) { out.push('</ul>'); inList = false; }
         out.push(line);
       }
     }
     if (inList) out.push('</ul>');
-    /* 5. Line breaks */
     return out.join('\n')
-      .replace(/\n?(<ul>)/g, '$1')
-      .replace(/(<\/ul>)\n?/g, '$1')
-      .replace(/\n/g, '<br>');
+      .replace(/\n?(<ul>)/g,    '$1')
+      .replace(/(<\/ul>)\n?/g,  '$1')
+      .replace(/\n/g,           '<br>');
   }
 
-  /* H) System prompt */
+  /* ── System prompt ───────────────────────────────────────────── */
   function buildSystemPrompt() {
     var ctx = getPageContext();
-    var routeList = Object.keys(VD_ROUTES).map(function (path) {
-      return '  [' + VD_ROUTES[path] + '](' + path + ')';
+    var routeList = Object.keys(VD_ROUTES).map(function (p) {
+      return '  [' + VD_ROUTES[p] + '](' + p + ')';
     }).join('\n');
     var activeTasks = tasks.filter(function (t) { return !t.done; });
     var taskList = activeTasks.length
       ? activeTasks.map(function (t) { return '  - ' + t.title; }).join('\n')
       : '  (none)';
-    return 'You are the ViaDecide AI Agent — a decision assistant, planning companion, and site guide for ViaDecide (viadecide.com).\n\n' +
-      'Current page: ' + ctx.title + ' (' + ctx.path + ')\n' +
-      (ctx.desc ? 'Page description: ' + ctx.desc + '\n' : '') +
-      '\nViaDecide tools — link to them when relevant:\n' + routeList + '\n' +
-      '\nUser\'s active tasks:\n' + taskList + '\n' +
-      '\nGuidelines:\n' +
-      '- Be concise and actionable\n' +
-      '- Use **bold** for key terms\n' +
-      '- Use bullet lists (- item) for options or steps\n' +
-      '- When suggesting a ViaDecide tool, use its [Tool Name](/path) markdown link\n' +
-      '- Only use internal links (paths starting with /); no external URLs\n' +
-      '- Do not include the full URL — only the path';
+    return [
+      'You are the ViaDecide AI Agent \u2014 a decision assistant, planning companion, and site guide for ViaDecide (viadecide.com).',
+      '',
+      'Current page: ' + ctx.title + ' (' + ctx.path + ')',
+      ctx.desc ? 'Page description: ' + ctx.desc : '',
+      '',
+      'ViaDecide tools \u2014 link to them when relevant:',
+      routeList,
+      '',
+      "User's active tasks:",
+      taskList,
+      '',
+      'Guidelines:',
+      '- Be concise and actionable',
+      '- Use **bold** for key terms',
+      '- Use bullet lists (- item) for options or steps',
+      '- When suggesting a ViaDecide tool, use its [Tool Name](/path) markdown link',
+      '- Only use internal links (paths starting with /); no external URLs',
+      '- Do not include the full URL \u2014 only the path',
+    ].filter(function (l) { return l !== null; }).join('\n');
   }
 
-  /* B) Lazy docx */
+  /* ── Lazy docx loader ────────────────────────────────────────── */
   function loadDocx() {
     if (_docxPromise) return _docxPromise;
     _docxPromise = new Promise(function (resolve, reject) {
       if (window.docx) { resolve(window.docx); return; }
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
-      s.onload  = function () { resolve(window.docx); };
+      var s    = document.createElement('script');
+      s.src    = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
+      s.onload = function () {
+        if (window.docx) resolve(window.docx);
+        else { _docxPromise = null; reject(new Error('Document library did not initialize.')); }
+      };
       s.onerror = function () {
         _docxPromise = null;
         reject(new Error('Failed to load document library. Check your internet connection.'));
@@ -140,176 +157,256 @@
     return _docxPromise;
   }
 
-  /* ── I) Self-inject widget CSS + DOM ──────────────────────────── */
-  function injectStyles() {
-    if ($id('vd-agent-styles')) return;
-    var style = document.createElement('style');
-    style.id = 'vd-agent-styles';
-    style.textContent = [
-      '#vd-agent-root{--vd-accent:#818cf8;--vd-accent2:#c084fc;--vd-bg:#111217;--vd-surface:#16181d;--vd-border:#1e2530;--vd-text:#e2e8f0;--vd-muted:#64748b;--vd-radius:16px;font-family:"Inter",system-ui,sans-serif}',
-      '#vd-agent-fab{position:fixed;bottom:24px;right:24px;z-index:9998;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#c084fc);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(129,140,248,.45);transition:transform .2s,box-shadow .2s}',
-      '#vd-agent-fab:hover{transform:scale(1.08);box-shadow:0 6px 32px rgba(129,140,248,.6)}',
-      '#vd-agent-fab svg{width:24px;height:24px;color:#fff}',
-      '#vd-agent-panel{position:fixed;bottom:92px;right:24px;z-index:9999;width:380px;height:560px;background:var(--vd-bg);border:1px solid var(--vd-border);border-radius:var(--vd-radius);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7);opacity:0;transform:translateY(16px) scale(.97);pointer-events:none;transition:opacity .22s ease,transform .22s ease}',
-      '#vd-agent-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}',
-      '@media(max-width:480px){#vd-agent-panel{width:calc(100vw - 16px);right:8px;bottom:84px;height:calc(100vh - 100px)}}',
-      '.vd-header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--vd-border);background:var(--vd-surface);flex-shrink:0}',
-      '.vd-logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#818cf8,#c084fc);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}',
-      '.vd-logo-text{font-size:13px;font-weight:600;color:var(--vd-text)}.vd-logo-sub{font-size:10px;color:var(--vd-muted)}',
-      '.vd-tabs{display:flex;gap:2px;margin-left:auto;background:rgba(255,255,255,.04);border-radius:8px;padding:3px}',
-      '.vd-tabs button{background:none;border:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--vd-muted);padding:5px 10px;border-radius:6px;transition:background .15s,color .15s}',
-      '.vd-tabs button.active{background:var(--vd-accent);color:#fff}',
-      '.vd-close-btn{background:none;border:none;cursor:pointer;color:var(--vd-muted);font-size:16px;padding:4px 6px;border-radius:6px;line-height:1;transition:color .15s,background .15s}',
-      '.vd-close-btn:hover{color:var(--vd-text);background:rgba(255,255,255,.06)}',
-      '.vd-pane{display:flex;flex-direction:column;flex:1;overflow:hidden}',
-      '.vd-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}',
-      '.vd-messages::-webkit-scrollbar{width:4px}.vd-messages::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}',
-      '.vd-bubble{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55;word-break:break-word}',
-      '.vd-bubble-user{align-self:flex-end;background:var(--vd-accent);color:#fff;border-bottom-right-radius:4px}',
-      '.vd-bubble-model{align-self:flex-start;background:var(--vd-surface);color:var(--vd-text);border:1px solid var(--vd-border);border-bottom-left-radius:4px}',
-      '.vd-bubble a{color:#a5b4fc;text-decoration:underline}.vd-bubble strong{font-weight:600;color:#f1f5f9}',
-      '.vd-bubble ul{padding-left:16px;margin:4px 0}.vd-bubble li{margin-bottom:2px}',
-      '.vd-thinking{display:flex;align-items:center;gap:5px;padding:12px 14px}',
-      '.vd-thinking span{width:6px;height:6px;border-radius:50%;background:var(--vd-muted);display:inline-block;animation:vd-bounce .9s ease-in-out infinite}',
-      '.vd-thinking span:nth-child(2){animation-delay:.15s}.vd-thinking span:nth-child(3){animation-delay:.3s}',
+  /* ── Inject CSS ──────────────────────────────────────────────── */
+  function injectStyle() {
+    if ($id('vd-agent-style')) return;
+    var s = document.createElement('style');
+    s.id  = 'vd-agent-style';
+    s.textContent = [
+      /* Root — single fixed anchor for both FAB and panel */
+      '#vd-agent-root{position:fixed;right:18px;bottom:18px;z-index:1600;font-family:\'Outfit\',system-ui,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;color:#f4efe7}',
+      '#vd-agent-root *,#vd-agent-root *::before,#vd-agent-root *::after{box-sizing:border-box}',
+      /* FAB */
+      '#vd-agent-root .vd-fab{width:60px;height:60px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(34,180,160,.96),rgba(200,147,42,.92));box-shadow:0 18px 48px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;cursor:pointer;transition:transform .22s,box-shadow .22s}',
+      '#vd-agent-root .vd-fab:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 22px 56px rgba(0,0,0,.46)}',
+      '#vd-agent-root.vd-open .vd-fab{transform:scale(.96)}',
+      /* Panel */
+      '#vd-agent-root .vd-panel{position:absolute;right:0;bottom:76px;width:min(420px,calc(100vw - 24px));height:min(720px,calc(100vh - 108px));display:flex;flex-direction:column;border-radius:24px;overflow:hidden;background:rgba(11,14,22,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 90px rgba(0,0,0,.55);opacity:0;pointer-events:none;transform:translateY(10px) scale(.98);transition:opacity .22s,transform .22s}',
+      '#vd-agent-root.vd-open .vd-panel{opacity:1;pointer-events:auto;transform:none}',
+      /* Shell */
+      '#vd-agent-root .vd-shell{display:flex;flex-direction:column;height:100%;min-height:0}',
+      /* Header */
+      '#vd-agent-root .vd-head{padding:14px 16px 0;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}',
+      '#vd-agent-root .vd-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px}',
+      '#vd-agent-root .vd-brand{display:flex;align-items:center;gap:10px}',
+      '#vd-agent-root .vd-brandmark{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(34,180,160,.22),rgba(200,147,42,.24));border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font-size:17px}',
+      '#vd-agent-root .vd-title{font-size:15px;font-weight:700;letter-spacing:.01em}',
+      '#vd-agent-root .vd-sub{font-size:12px;color:rgba(240,237,230,.55);margin-top:1px}',
+      '#vd-agent-root .vd-head-actions{display:flex;align-items:center;gap:8px}',
+      '#vd-agent-root .vd-head-btn{width:34px;height:34px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:#f4efe7;cursor:pointer;font-size:14px;transition:background .2s}',
+      '#vd-agent-root .vd-head-btn:hover{background:rgba(255,255,255,.09)}',
+      /* Tabs */
+      '#vd-agent-root .vd-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-bottom:12px}',
+      '#vd-agent-root .vd-tab{border:none;border-radius:12px;padding:9px 0;background:rgba(255,255,255,.04);color:rgba(240,237,230,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s}',
+      '#vd-agent-root .vd-tab.vd-active{background:linear-gradient(135deg,rgba(34,180,160,.2),rgba(200,147,42,.15));color:#fff;border:1px solid rgba(255,255,255,.09)}',
+      /* Body */
+      '#vd-agent-root .vd-body{flex:1;min-height:0;padding:14px 16px 16px;overflow:hidden}',
+      '#vd-agent-root .vd-pane{height:100%;display:none;flex-direction:column}',
+      '#vd-agent-root .vd-pane.vd-active{display:flex}',
+      /* Card */
+      '#vd-agent-root .vd-card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);border-radius:16px;padding:12px}',
+      /* Context bar */
+      '#vd-agent-root .vd-ctx{margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}',
+      '#vd-agent-root .vd-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);font-size:11px;color:rgba(240,237,230,.65)}',
+      /* Messages */
+      '#vd-agent-root .vd-messages{flex:1;min-height:0;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:8px}',
+      '#vd-agent-root .vd-messages::-webkit-scrollbar{width:5px}',
+      '#vd-agent-root .vd-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}',
+      '#vd-agent-root .vd-bubble{max-width:86%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.58;word-break:break-word;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);color:#f4efe7}',
+      '#vd-agent-root .vd-bubble-user{align-self:flex-end;background:linear-gradient(135deg,rgba(34,180,160,.16),rgba(200,147,42,.12));border-color:rgba(255,255,255,.09)}',
+      '#vd-agent-root .vd-bubble-model{align-self:flex-start}',
+      '#vd-agent-root .vd-bubble a{color:#8be5d8;text-decoration:none;border-bottom:1px solid rgba(139,229,216,.28)}',
+      '#vd-agent-root .vd-bubble a:hover{color:#c6f3eb}',
+      '#vd-agent-root .vd-bubble strong{font-weight:700}',
+      '#vd-agent-root .vd-bubble ul{margin:6px 0 0 16px;padding:0}',
+      '#vd-agent-root .vd-bubble li{margin-bottom:2px}',
+      /* Thinking dots */
+      '#vd-agent-root .vd-thinking{display:flex;align-items:center;gap:5px;padding:12px 13px}',
+      '#vd-agent-root .vd-thinking span{width:6px;height:6px;border-radius:50%;background:rgba(240,237,230,.5);display:inline-block;animation:vd-bounce .9s ease-in-out infinite}',
+      '#vd-agent-root .vd-thinking span:nth-child(2){animation-delay:.15s}',
+      '#vd-agent-root .vd-thinking span:nth-child(3){animation-delay:.3s}',
       '@keyframes vd-bounce{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.1);opacity:1}}',
-      '.vd-empty-state{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--vd-muted);font-size:13px;text-align:center;padding:24px}',
-      '.vd-empty-state .icon{font-size:28px;margin-bottom:4px}',
-      '.vd-quick-row{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap;flex-shrink:0;border-top:1px solid var(--vd-border)}',
-      '.vd-chip{background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.2);color:#a5b4fc;font-size:11px;font-weight:500;border-radius:20px;padding:4px 10px;cursor:pointer;white-space:nowrap;transition:background .15s;font-family:inherit}',
-      '.vd-chip:hover{background:rgba(129,140,248,.22)}',
-      '.vd-input-row{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;border-top:1px solid var(--vd-border);flex-shrink:0}',
-      '#vd-chat-input{flex:1;background:var(--vd-surface);border:1px solid var(--vd-border);border-radius:10px;color:var(--vd-text);font-size:13px;font-family:inherit;padding:9px 12px;resize:none;max-height:96px;outline:none;line-height:1.5;transition:border-color .15s}',
-      '#vd-chat-input:focus{border-color:var(--vd-accent)}',
-      '#vd-chat-input::placeholder{color:var(--vd-muted)}',
-      '#vd-send-btn{width:36px;height:36px;border-radius:10px;border:none;background:var(--vd-accent);color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s,opacity .15s;flex-shrink:0}',
-      '#vd-send-btn:hover{background:#6d7ff5}#vd-send-btn:disabled{opacity:.5;cursor:not-allowed}',
-      '.vd-status{font-size:11px;transition:opacity .4s;opacity:0;padding:0 12px 6px;flex-shrink:0}',
-      '.vd-task-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px}',
-      '.vd-task-item{display:flex;align-items:center;gap:10px;background:var(--vd-surface);border:1px solid var(--vd-border);border-radius:8px;padding:10px 12px;transition:opacity .15s}',
-      '.vd-task-item.done{opacity:.5}',
-      '.vd-task-item input[type=checkbox]{cursor:pointer;accent-color:var(--vd-accent);flex-shrink:0}',
-      '.vd-task-title{flex:1;font-size:13px;color:var(--vd-text)}',
-      '.vd-task-item.done .vd-task-title{text-decoration:line-through;color:var(--vd-muted)}',
-      '.vd-task-del{background:none;border:none;cursor:pointer;color:var(--vd-muted);font-size:12px;padding:2px 5px;border-radius:4px;flex-shrink:0;transition:color .15s,background .15s;font-family:inherit}',
-      '.vd-task-del:hover{color:#f87171;background:rgba(248,113,113,.1)}',
-      '.vd-add-form{display:none;gap:8px;padding:10px 12px;border-top:1px solid var(--vd-border);flex-shrink:0}',
-      '#vd-task-input{flex:1;background:var(--vd-surface);border:1px solid var(--vd-border);border-radius:8px;color:var(--vd-text);font-size:13px;font-family:inherit;padding:8px 12px;outline:none;transition:border-color .15s}',
-      '#vd-task-input:focus{border-color:var(--vd-accent)}',
-      '#vd-task-input::placeholder{color:var(--vd-muted)}',
-      '.vd-task-footer{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--vd-border);flex-shrink:0}',
-      '.vd-btn{background:rgba(255,255,255,.06);border:1px solid var(--vd-border);color:var(--vd-text);font-size:12px;font-weight:500;font-family:inherit;border-radius:8px;padding:8px 14px;cursor:pointer;transition:background .15s,border-color .15s}',
-      '.vd-btn:hover{background:rgba(255,255,255,.1)}',
-      '.vd-btn-primary{background:var(--vd-accent);border-color:var(--vd-accent);color:#fff}',
-      '.vd-btn-primary:hover{background:#6d7ff5}',
-      '.vd-btn-sm{padding:6px 10px;font-size:11px}',
-      '.vd-guide-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}',
-      '.vd-guide-body::-webkit-scrollbar{width:4px}.vd-guide-body::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}',
-      '.vd-guide-body label{font-size:11px;font-weight:600;color:var(--vd-muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:-8px}',
-      '.vd-input-field{background:var(--vd-surface);border:1px solid var(--vd-border);border-radius:8px;color:var(--vd-text);font-size:13px;font-family:inherit;padding:9px 12px;outline:none;width:100%;transition:border-color .15s}',
-      '.vd-input-field:focus{border-color:var(--vd-accent)}',
-      '.vd-input-field::placeholder{color:var(--vd-muted)}',
-      '.vd-row{display:flex;gap:6px;align-items:stretch}.vd-row .vd-input-field{flex:1}',
-      '.vd-guide-section-title{font-size:11px;font-weight:700;color:var(--vd-accent);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--vd-border);padding-bottom:6px;margin-top:4px}',
-      '.vd-info-card{background:var(--vd-surface);border:1px solid var(--vd-border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--vd-muted);line-height:1.55}',
-      '.vd-info-card b{color:var(--vd-text)}.vd-info-card a{color:#a5b4fc}',
-      '.vd-model-select{background:var(--vd-surface);border:1px solid var(--vd-border);border-radius:8px;color:var(--vd-text);font-size:13px;font-family:inherit;padding:9px 12px;outline:none;width:100%;cursor:pointer}',
-      '.vd-model-select:focus{border-color:var(--vd-accent)}',
+      /* Quick chips */
+      '#vd-agent-root .vd-quick{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;flex-shrink:0}',
+      '#vd-agent-root .vd-quick button{border:none;border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#f4efe7;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s}',
+      '#vd-agent-root .vd-quick button:hover{background:rgba(255,255,255,.09)}',
+      /* Input */
+      '#vd-agent-root .vd-input-wrap{flex-shrink:0;margin-top:10px}',
+      '#vd-agent-root .vd-input{width:100%;min-height:80px;resize:none;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);padding:11px 12px;color:#f4efe7;font:inherit;font-size:13px;outline:none}',
+      '#vd-agent-root .vd-input:focus{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 3px rgba(34,180,160,.08)}',
+      '#vd-agent-root .vd-row{display:flex;gap:8px;align-items:center}',
+      '#vd-agent-root .vd-row-wrap{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px}',
+      '#vd-agent-root .vd-status-line{font-size:12px;color:rgba(240,237,230,.52)}',
+      /* Buttons */
+      '#vd-agent-root .vd-btn{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:9px 13px;background:rgba(255,255,255,.06);color:#f4efe7;font-weight:600;cursor:pointer;font:inherit;font-size:13px;transition:background .18s}',
+      '#vd-agent-root .vd-btn:hover{background:rgba(255,255,255,.1)}',
+      '#vd-agent-root .vd-btn:disabled{opacity:.5;cursor:not-allowed}',
+      '#vd-agent-root .vd-btn-primary{background:linear-gradient(135deg,rgba(34,180,160,.9),rgba(200,147,42,.88));color:#fff;border:none}',
+      '#vd-agent-root .vd-btn-primary:hover{filter:brightness(1.08)}',
+      '#vd-agent-root .vd-muted{font-size:12px;color:rgba(240,237,230,.52)}',
+      /* Banner */
+      '#vd-agent-root .vd-banner{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:12px;line-height:1.5;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);display:none}',
+      '#vd-agent-root .vd-banner.vd-show{display:block}',
+      '#vd-agent-root .vd-banner[data-tone="ok"]{border-color:rgba(34,180,160,.3);background:rgba(34,180,160,.1);color:#bff4eb}',
+      '#vd-agent-root .vd-banner[data-tone="warn"]{border-color:rgba(200,147,42,.3);background:rgba(200,147,42,.1);color:#f3ddb1}',
+      '#vd-agent-root .vd-banner[data-tone="error"]{border-color:rgba(255,99,99,.25);background:rgba(255,99,99,.1);color:#ffd1d1}',
+      /* Tasks pane */
+      '#vd-agent-root .vd-task-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0}',
+      '#vd-agent-root .vd-task-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}',
+      '#vd-agent-root .vd-task-list::-webkit-scrollbar{width:5px}',
+      '#vd-agent-root .vd-task-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}',
+      '#vd-agent-root .vd-task-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}',
+      '#vd-agent-root .vd-task-item input[type=checkbox]{cursor:pointer;accent-color:#22b4a0;flex-shrink:0;width:16px;height:16px}',
+      '#vd-agent-root .vd-task-name{font-size:13px;font-weight:600}',
+      '#vd-agent-root .vd-task-item.done .vd-task-name{text-decoration:line-through;color:rgba(240,237,230,.42)}',
+      '#vd-agent-root .vd-task-del{width:30px;height:30px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#f4efe7;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}',
+      '#vd-agent-root .vd-task-del:hover{background:rgba(248,113,113,.15);color:#f87171;border-color:rgba(248,113,113,.2)}',
+      '#vd-agent-root .vd-task-footer{display:flex;gap:8px;margin-top:10px;flex-shrink:0}',
+      '#vd-agent-root .vd-add-form{display:none;gap:8px;margin-bottom:10px;flex-shrink:0}',
+      '#vd-agent-root .vd-add-form.vd-open{display:flex}',
+      '#vd-agent-root .vd-task-input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:#f4efe7;font:inherit;font-size:13px;padding:9px 12px;outline:none}',
+      '#vd-agent-root .vd-task-input:focus{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 3px rgba(34,180,160,.08)}',
+      /* Empty state */
+      '#vd-agent-root .vd-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:rgba(240,237,230,.45);font-size:13px;text-align:center;padding:24px}',
+      '#vd-agent-root .vd-empty .icon{font-size:28px;margin-bottom:4px}',
+      /* Setup pane */
+      '#vd-agent-root .vd-setup-scroll{flex:1;min-height:0;overflow-y:auto;display:grid;gap:12px;padding-right:4px;align-content:start}',
+      '#vd-agent-root .vd-setup-scroll::-webkit-scrollbar{width:5px}',
+      '#vd-agent-root .vd-setup-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}',
+      '#vd-agent-root .vd-field{display:grid;gap:6px}',
+      '#vd-agent-root .vd-label{font-size:12px;color:rgba(240,237,230,.68)}',
+      '#vd-agent-root .vd-text,#vd-agent-root .vd-select{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);padding:10px 12px;color:#f4efe7;font:inherit;font-size:13px;outline:none}',
+      '#vd-agent-root .vd-text:focus,#vd-agent-root .vd-select:focus{border-color:rgba(34,180,160,.4);box-shadow:0 0 0 3px rgba(34,180,160,.08)}',
+      '#vd-agent-root .vd-kv{display:grid;grid-template-columns:1fr auto;gap:8px}',
+      '#vd-agent-root .vd-card-title{font-size:14px;font-weight:700;margin-bottom:10px}',
+      '#vd-agent-root .vd-card ul{margin:8px 0 0 18px;padding:0}',
+      '#vd-agent-root .vd-card li{margin:5px 0;color:rgba(240,237,230,.78);font-size:13px;line-height:1.65}',
+      '#vd-agent-root .vd-card a{color:#8be5d8;text-decoration:none}',
+      '#vd-agent-root .vd-footnote{font-size:11px;color:rgba(240,237,230,.42);margin-top:8px}',
+      /* Mobile */
+      '@media(max-width:640px){#vd-agent-root{right:12px;bottom:12px}#vd-agent-root .vd-panel{width:calc(100vw - 12px);height:min(78vh,680px)}}',
     ].join('');
-    document.head.appendChild(style);
+    document.head.appendChild(s);
   }
 
+  /* ── Inject widget DOM ───────────────────────────────────────── */
   function injectDOM() {
-    if ($id('vd-agent-root')) return; /* already present */
+    if ($id('vd-agent-root')) return;
     var root = document.createElement('div');
-    root.id = 'vd-agent-root';
+    root.id  = 'vd-agent-root';
     root.innerHTML = [
-      /* FAB */
-      '<button id="vd-agent-fab" onclick="window.VDAgent.toggle()" aria-label="Open ViaDecide Agent" aria-expanded="false">',
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">',
-          '<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>',
-          '<path stroke-linecap="round" stroke-linejoin="round" d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>',
-        '</svg>',
-      '</button>',
       /* Panel */
-      '<div id="vd-agent-panel" role="dialog" aria-label="ViaDecide Agent" aria-modal="true">',
-        /* Header */
-        '<div class="vd-header">',
-          '<div class="vd-logo-mark">V</div>',
-          '<div><div class="vd-logo-text">VD Agent</div><div class="vd-logo-sub">Powered by Gemini</div></div>',
-          '<div class="vd-tabs">',
-            '<button id="vd-tab-chat"  onclick="window.VDAgent.switchTab(\'chat\')"  class="active">Chat</button>',
-            '<button id="vd-tab-tasks" onclick="window.VDAgent.switchTab(\'tasks\')">Tasks</button>',
-            '<button id="vd-tab-guide" onclick="window.VDAgent.switchTab(\'guide\')">Guide</button>',
-          '</div>',
-          '<button class="vd-close-btn" onclick="window.VDAgent.toggle()" aria-label="Close widget">\u2715</button>',
-        '</div>',
-        /* Chat pane */
-        '<div id="vd-pane-chat" class="vd-pane">',
-          '<div id="vd-chat-messages" class="vd-messages"></div>',
-          '<div class="vd-quick-row">',
-            '<button class="vd-chip" onclick="window.VDAgent.quickSend(\'What tools does ViaDecide have?\')">Tools</button>',
-            '<button class="vd-chip" onclick="window.VDAgent.quickSend(\'Help me make a decision\')">Decisions</button>',
-            '<button class="vd-chip" onclick="window.VDAgent.quickSend(\'Summarize my active tasks\')">My tasks</button>',
-          '</div>',
-          '<div class="vd-input-row">',
-            '<textarea id="vd-chat-input" placeholder="Ask anything\u2026" rows="1"></textarea>',
-            '<button id="vd-send-btn" onclick="window.VDAgent.send()" aria-label="Send">',
-              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"/></svg>',
-            '</button>',
-          '</div>',
-          '<span id="vd-send-status" class="vd-status" aria-live="polite"></span>',
-        '</div>',
-        /* Tasks pane */
-        '<div id="vd-pane-tasks" class="vd-pane" style="display:none">',
-          '<div id="vd-task-list" class="vd-task-list"></div>',
-          '<div id="vd-add-form" class="vd-add-form">',
-            '<input id="vd-task-input" class="vd-input-field" placeholder="Task title\u2026" type="text"/>',
-            '<button class="vd-btn vd-btn-primary vd-btn-sm" onclick="window.VDAgent.addTask()">Add</button>',
-          '</div>',
-          '<div class="vd-task-footer">',
-            '<button class="vd-btn" style="flex:1" onclick="window.VDAgent.toggleAddForm()">+ New task</button>',
-            '<button id="vd-docx-btn" class="vd-btn" onclick="window.VDAgent.saveDocx()">\u2B07 Save .docx</button>',
-          '</div>',
-        '</div>',
-        /* Guide pane */
-        '<div id="vd-pane-guide" class="vd-pane" style="display:none">',
-          '<div class="vd-guide-body">',
-            '<div class="vd-guide-section-title">API Key</div>',
-            '<label for="vd-key-input">Gemini API Key</label>',
-            '<div class="vd-row"><input id="vd-key-input" class="vd-input-field" type="password" placeholder="AIzaSy\u2026" autocomplete="off"/></div>',
-            '<div class="vd-row">',
-              '<button class="vd-btn vd-btn-primary" style="flex:1" onclick="window.VDAgent.saveKey()">Save key</button>',
-              '<button class="vd-btn" onclick="window.VDAgent.clearKey()">Clear</button>',
-              '<button class="vd-btn" onclick="window.VDAgent.testKey()">Test</button>',
+      '<div class="vd-panel" role="dialog" aria-label="ViaDecide Agent" aria-modal="true">',
+        '<div class="vd-shell">',
+          /* Header */
+          '<div class="vd-head">',
+            '<div class="vd-topline">',
+              '<div class="vd-brand">',
+                '<div class="vd-brandmark">\u2726</div>',
+                '<div>',
+                  '<div class="vd-title">ViaDecide Agent</div>',
+                  '<div class="vd-sub">Decision, planning &amp; site guidance</div>',
+                '</div>',
+              '</div>',
+              '<div class="vd-head-actions">',
+                '<button id="vd-export-btn" class="vd-head-btn" title="Export .docx">\u2B07</button>',
+                '<button id="vd-close-btn"  class="vd-head-btn" title="Close">\u2715</button>',
+              '</div>',
             '</div>',
-            '<span id="vd-key-status" class="vd-status" style="padding:0" aria-live="polite"></span>',
-            '<div class="vd-guide-section-title">Model</div>',
-            '<select id="vd-model-select" class="vd-model-select">',
-              '<option value="gemini-2.0-flash">Gemini 2.0 Flash (recommended)</option>',
-              '<option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (fastest)</option>',
-              '<option value="gemini-2.0-pro-exp">Gemini 2.0 Pro (most capable)</option>',
-              '<option value="gemini-2.5-pro-exp-03-25">Gemini 2.5 Pro (latest)</option>',
-            '</select>',
-            '<div class="vd-guide-section-title">About</div>',
-            '<div class="vd-info-card"><b>ViaDecide Agent</b> knows all ViaDecide tools and links to them in responses. Your API key is stored in your browser only \u2014 never sent to ViaDecide servers.</div>',
-            '<div class="vd-info-card">Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio \u2197</a>.</div>',
+            '<div class="vd-tabs">',
+              '<button id="vd-tab-chat"  class="vd-tab">Chat</button>',
+              '<button id="vd-tab-tasks" class="vd-tab">Tasks</button>',
+              '<button id="vd-tab-guide" class="vd-tab">Setup</button>',
+            '</div>',
           '</div>',
-        '</div>',
-      '</div>', /* /panel */
+
+          /* Body */
+          '<div class="vd-body">',
+
+            /* ── Chat pane ── */
+            '<div id="vd-pane-chat" class="vd-pane">',
+              '<div id="vd-ctx-bar" class="vd-ctx"></div>',
+              '<div id="vd-chat-messages" class="vd-messages" aria-live="polite"></div>',
+              '<div class="vd-quick">',
+                '<button data-quick="What tools does ViaDecide have?">Site tools</button>',
+                '<button data-quick="Help me choose the right ViaDecide tool for my goal.">Find tool</button>',
+                '<button data-quick="Summarize this page and tell me what I can do here.">Summarize</button>',
+              '</div>',
+              '<div class="vd-input-wrap">',
+                '<textarea id="vd-chat-input" class="vd-input" rows="3" placeholder="Ask for decisions, plans, or the right ViaDecide tool\u2026"></textarea>',
+                '<div class="vd-row-wrap">',
+                  '<span id="vd-send-status" class="vd-status-line">Ready.</span>',
+                  '<div class="vd-row">',
+                    '<button id="vd-clear-btn" class="vd-btn">Clear</button>',
+                    '<button id="vd-send-btn" class="vd-btn vd-btn-primary">Send</button>',
+                  '</div>',
+                '</div>',
+              '</div>',
+            '</div>',
+
+            /* ── Tasks pane ── */
+            '<div id="vd-pane-tasks" class="vd-pane">',
+              '<div class="vd-task-toolbar">',
+                '<div>',
+                  '<div class="vd-title" style="font-size:14px">Tasks</div>',
+                  '<div class="vd-muted">Lightweight action items stored locally.</div>',
+                '</div>',
+                '<button id="vd-add-task-btn" class="vd-btn vd-btn-primary">+ Add</button>',
+              '</div>',
+              '<div id="vd-add-form" class="vd-add-form">',
+                '<input id="vd-task-input" class="vd-task-input" type="text" placeholder="Task title\u2026" />',
+                '<button id="vd-save-task-btn" class="vd-btn vd-btn-primary">Save</button>',
+              '</div>',
+              '<div id="vd-task-list" class="vd-task-list"></div>',
+              '<div class="vd-task-footer">',
+                '<button id="vd-docx-btn" class="vd-btn" style="flex:1">\u2B07 Export .docx</button>',
+              '</div>',
+            '</div>',
+
+            /* ── Setup pane ── */
+            '<div id="vd-pane-guide" class="vd-pane">',
+              '<div class="vd-setup-scroll">',
+                '<div class="vd-card">',
+                  '<div class="vd-field">',
+                    '<label class="vd-label" for="vd-key-input">Gemini API key</label>',
+                    '<div class="vd-kv">',
+                      '<input id="vd-key-input" class="vd-text" type="password" autocomplete="off" placeholder="Paste your API key\u2026" />',
+                      '<button id="vd-save-key-btn" class="vd-btn vd-btn-primary">Save</button>',
+                    '</div>',
+                  '</div>',
+                  '<div class="vd-field" style="margin-top:10px">',
+                    '<label class="vd-label" for="vd-model-select">Model</label>',
+                    '<select id="vd-model-select" class="vd-select"></select>',
+                  '</div>',
+                  '<div class="vd-row" style="justify-content:flex-end;margin-top:8px;gap:8px">',
+                    '<button id="vd-clear-key-btn" class="vd-btn">Clear key</button>',
+                    '<button id="vd-test-key-btn"  class="vd-btn">Test key</button>',
+                  '</div>',
+                  '<div id="vd-key-status" class="vd-banner"></div>',
+                '</div>',
+                '<div class="vd-card">',
+                  '<div class="vd-card-title">Setup guide</div>',
+                  '<ul>',
+                    '<li>Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio \u2197</a>.</li>',
+                    '<li><strong>Gemini 2.5 Flash</strong> is a good default for fast, browser-based usage.</li>',
+                    '<li>Your key, model, tasks, and chat history stay in <strong>localStorage</strong> on this device only.</li>',
+                    '<li>Ask &ldquo;Which ViaDecide tool should I use?&rdquo; for clickable route suggestions.</li>',
+                    '<li>Use Export \u2B07 to download your conversation and tasks as a .docx file.</li>',
+                  '</ul>',
+                  '<div class="vd-footnote">Keys are never sent to ViaDecide servers \u2014 only to Google Gemini directly from your browser.</div>',
+                '</div>',
+              '</div>',
+            '</div>',
+
+          '</div>', /* /vd-body */
+        '</div>', /* /vd-shell */
+      '</div>', /* /vd-panel */
+
+      /* FAB */
+      '<button id="vd-agent-fab" class="vd-fab" aria-label="Open ViaDecide Agent" aria-expanded="false">\u2726</button>',
     ].join('');
     document.body.appendChild(root);
   }
 
-  /* ── Render helpers ────────────────────────────────────────────── */
+  /* ── Render ──────────────────────────────────────────────────── */
   function renderMessages() {
     var box = $id('vd-chat-messages');
     if (!box) return;
     if (!history.length) {
       box.innerHTML =
-        '<div class="vd-empty-state">' +
+        '<div class="vd-empty">' +
           '<div class="icon">\uD83E\uDD14</div>' +
-          '<div>Ask me anything about ViaDecide,<br>your decisions, or your tasks.</div>' +
+          '<div>Ask me anything about ViaDecide,<br>decisions, or your tasks.</div>' +
         '</div>';
       return;
     }
@@ -325,46 +422,62 @@
     if (!list) return;
     if (!tasks.length) {
       list.innerHTML =
-        '<div class="vd-empty-state">' +
+        '<div class="vd-empty">' +
           '<div class="icon">\u2705</div>' +
-          '<div>No tasks yet. Add one below.</div>' +
+          '<div>No tasks yet.<br>Click <strong>+ Add</strong> to create one.</div>' +
         '</div>';
       return;
     }
     list.innerHTML = tasks.map(function (t, i) {
-      return '<div class="vd-task-item' + (t.done ? ' done' : '') + '">' +
-        '<input type="checkbox"' + (t.done ? ' checked' : '') +
-          ' onchange="window.VDAgent.toggleTask(' + i + ')"/>' +
-        '<span class="vd-task-title">' + esc(t.title) + '</span>' +
-        '<button class="vd-task-del" onclick="window.VDAgent.deleteTask(' + i + ')">\u2715</button>' +
-      '</div>';
+      return (
+        '<div class="vd-task-item' + (t.done ? ' done' : '') + '">' +
+          '<input type="checkbox"' + (t.done ? ' checked' : '') + ' data-idx="' + i + '" />' +
+          '<span class="vd-task-name">' + esc(t.title) + '</span>' +
+          '<button class="vd-task-del" data-del="' + i + '">\u2715</button>' +
+        '</div>'
+      );
     }).join('');
   }
 
-  /* ── Status helper ─────────────────────────────────────────────── */
-  function showStatus(elId, msg, color) {
-    var el = $id(elId);
-    if (!el) return;
-    el.textContent = msg;
-    el.style.color = color || '#94a3b8';
-    el.style.opacity = '1';
-    setTimeout(function () { el.style.opacity = '0'; }, 3500);
+  function syncCtxBar() {
+    var bar = $id('vd-ctx-bar');
+    if (!bar) return;
+    var ctx = getPageContext();
+    bar.innerHTML =
+      '<span class="vd-chip">Site: <strong>' + esc(ctx.site) + '</strong></span>' +
+      '<span class="vd-chip">Page: <strong>' + esc(ctx.path) + '</strong></span>';
   }
 
-  /* ── Gemini API ─────────────────────────────────────────────────── */
+  /* ── Status / banner ─────────────────────────────────────────── */
+  function setStatus(msg) {
+    var el = $id('vd-send-status');
+    if (el) el.textContent = msg;
+  }
+
+  function setBanner(text, tone) {
+    var el = $id('vd-key-status');
+    if (!el) return;
+    if (!text) { el.classList.remove('vd-show'); el.textContent = ''; return; }
+    el.textContent = text;
+    el.setAttribute('data-tone', tone || 'warn');
+    el.classList.add('vd-show');
+  }
+
+  /* ── Gemini API (multi-turn) ─────────────────────────────────── */
   function callGemini(userText, histArr) {
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
-              selectedModel + ':generateContent?key=' + apiKey;
+              encodeURIComponent(selectedModel) + ':generateContent?key=' + apiKey;
     var contents = histArr.map(function (m) {
       return { role: m.role, parts: [{ text: m.text }] };
     }).concat([{ role: 'user', parts: [{ text: userText }] }]);
+
     return fetch(url, {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body   : JSON.stringify({
         system_instruction: { parts: [{ text: buildSystemPrompt() }] },
-        contents: contents,
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        contents          : contents,
+        generationConfig  : { temperature: 0.7, maxOutputTokens: 1024 },
       }),
     }).then(function (resp) {
       if (!resp.ok) {
@@ -374,23 +487,26 @@
       }
       return resp.json();
     }).then(function (data) {
-      return (data &&
+      return (
+        data &&
         data.candidates &&
         data.candidates[0] &&
         data.candidates[0].content &&
         data.candidates[0].content.parts &&
         data.candidates[0].content.parts[0] &&
-        data.candidates[0].content.parts[0].text) || '';
+        data.candidates[0].content.parts[0].text
+      ) || '';
     });
   }
 
-  /* ── Public widget functions ──────────────────────────────────── */
+  /* ── Widget functions ────────────────────────────────────────── */
   function toggle() {
     isOpen = !isOpen;
-    var panel = $id('vd-agent-panel');
-    var fab   = $id('vd-agent-fab');
-    if (panel) panel.classList.toggle('open', isOpen);
-    if (fab)   fab.setAttribute('aria-expanded', String(isOpen));
+    var root = $id('vd-agent-root');
+    var fab  = $id('vd-agent-fab');
+    if (root) root.classList.toggle('vd-open', isOpen);
+    if (fab)  fab.setAttribute('aria-expanded', String(isOpen));
+    if (isOpen) { syncCtxBar(); renderMessages(); renderTasks(); }
   }
 
   function switchTab(tab) {
@@ -398,10 +514,11 @@
     ['chat', 'tasks', 'guide'].forEach(function (t) {
       var btn  = $id('vd-tab-' + t);
       var pane = $id('vd-pane-' + t);
-      if (btn)  btn.classList.toggle('active', t === tab);
-      if (pane) pane.style.display = t === tab ? 'flex' : 'none';
+      if (btn)  btn.classList.toggle('vd-active',  t === tab);
+      if (pane) pane.classList.toggle('vd-active', t === tab);
     });
     if (tab === 'tasks') renderTasks();
+    if (tab === 'chat')  { renderMessages(); syncCtxBar(); }
   }
 
   function saveKey() {
@@ -409,34 +526,34 @@
     if (!input) return;
     apiKey = input.value.trim();
     if (apiKey) {
-      localStorage.setItem('vd_agent_key', apiKey);
-      showStatus('vd-key-status', '\u2713 Key saved', '#4ade80');
+      localStorage.setItem(STORAGE_KEY, apiKey);
+      setBanner('\u2713 API key saved in this browser.', 'ok');
     } else {
-      localStorage.removeItem('vd_agent_key');
-      showStatus('vd-key-status', 'Key cleared', '#f87171');
+      localStorage.removeItem(STORAGE_KEY);
+      setBanner('Key cleared.', 'warn');
     }
+    setStatus(apiKey ? 'API key saved.' : 'API key cleared.');
   }
 
   function clearKey() {
     apiKey = '';
-    localStorage.removeItem('vd_agent_key');
+    localStorage.removeItem(STORAGE_KEY);
     var input = $id('vd-key-input');
     if (input) input.value = '';
-    showStatus('vd-key-status', 'Key cleared', '#f87171');
+    setBanner('API key removed.', 'warn');
+    setStatus('API key cleared.');
   }
 
   function testKey() {
-    if (!apiKey) {
-      showStatus('vd-key-status', '\u26A0 Enter a key first', '#f87171');
-      return;
-    }
-    showStatus('vd-key-status', '\u23F3 Testing\u2026', '#94a3b8');
+    if (!apiKey) { setBanner('\u26A0 Enter and save a key first.', 'error'); return; }
+    setBanner('\u23F3 Testing\u2026', 'warn');
     callGemini('Reply with the single word OK.', []).then(function (reply) {
-      showStatus('vd-key-status',
+      setBanner(
         reply ? '\u2713 Connected \u00B7 ' + selectedModel : '\u2717 No response',
-        reply ? '#4ade80' : '#f87171');
+        reply ? 'ok' : 'error'
+      );
     }).catch(function (e) {
-      showStatus('vd-key-status', '\u2717 ' + e.message.slice(0, 50), '#f87171');
+      setBanner('\u2717 ' + e.message.slice(0, 90), 'error');
     });
   }
 
@@ -446,22 +563,26 @@
     var text = input.value.trim();
     if (!text || isThinking) return;
     if (!apiKey) {
-      showStatus('vd-send-status', '\u26A0 Add your API key in the Guide tab', '#f87171');
+      switchTab('guide');
+      setBanner('\u26A0 Add your Gemini API key before chatting.', 'warn');
+      setStatus('API key required.');
       return;
     }
     input.value = '';
-    input.style.height = 'auto';
     history.push({ role: 'user', text: text });
     renderMessages();
     isThinking = true;
     var btn = $id('vd-send-btn');
     if (btn) btn.disabled = true;
-    var box = $id('vd-chat-messages');
-    var thinking = document.createElement('div');
-    thinking.id = 'vd-thinking';
-    thinking.className = 'vd-bubble vd-bubble-model vd-thinking';
-    thinking.innerHTML = '<span></span><span></span><span></span>';
-    if (box) { box.appendChild(thinking); box.scrollTop = box.scrollHeight; }
+    setStatus('Thinking\u2026');
+    /* Thinking animation */
+    var box  = $id('vd-chat-messages');
+    var dots = document.createElement('div');
+    dots.id        = 'vd-thinking-dots';
+    dots.className = 'vd-bubble vd-bubble-model vd-thinking';
+    dots.innerHTML = '<span></span><span></span><span></span>';
+    if (box) { box.appendChild(dots); box.scrollTop = box.scrollHeight; }
+
     callGemini(text, history.slice(0, -1)).then(function (reply) {
       history.push({ role: 'model', text: reply || '(no response)' });
     }).catch(function (e) {
@@ -469,24 +590,32 @@
     }).finally(function () {
       isThinking = false;
       if (btn) btn.disabled = false;
-      var t = $id('vd-thinking');
-      if (t) t.remove();
+      var d = $id('vd-thinking-dots');
+      if (d) d.remove();
       renderMessages();
+      setStatus('Ready.');
     });
   }
 
   function quickSend(text) {
     var input = $id('vd-chat-input');
     if (input) input.value = text;
+    switchTab('chat');
     send();
+  }
+
+  function clearChat() {
+    history = [];
+    renderMessages();
+    setStatus('Chat cleared.');
   }
 
   function toggleAddForm() {
     var form = $id('vd-add-form');
     if (!form) return;
-    var visible = form.style.display !== 'none';
-    form.style.display = visible ? 'none' : 'flex';
-    if (!visible) { var inp = $id('vd-task-input'); if (inp) inp.focus(); }
+    var open = !form.classList.contains('vd-open');
+    form.classList.toggle('vd-open', open);
+    if (open) { var inp = $id('vd-task-input'); if (inp) inp.focus(); }
   }
 
   function addTask() {
@@ -495,29 +624,32 @@
     var title = input.value.trim();
     if (!title) return;
     tasks.push({ title: title, done: false });
-    localStorage.setItem('vd_tasks', JSON.stringify(tasks));
+    localStorage.setItem(STORAGE_TASKS, JSON.stringify(tasks));
     input.value = '';
     toggleAddForm();
     renderTasks();
+    setStatus('Task saved.');
   }
 
   function toggleTask(i) {
     if (tasks[i] !== undefined) {
       tasks[i].done = !tasks[i].done;
-      localStorage.setItem('vd_tasks', JSON.stringify(tasks));
+      localStorage.setItem(STORAGE_TASKS, JSON.stringify(tasks));
       renderTasks();
     }
   }
 
   function deleteTask(i) {
     tasks.splice(i, 1);
-    localStorage.setItem('vd_tasks', JSON.stringify(tasks));
+    localStorage.setItem(STORAGE_TASKS, JSON.stringify(tasks));
     renderTasks();
   }
 
   function saveDocx() {
     var btn = $id('vd-docx-btn');
     if (btn) { btn.disabled = true; btn.textContent = '\u23F3 Loading\u2026'; }
+    setStatus('Preparing export\u2026');
+
     loadDocx().then(function (lib) {
       var children = [
         new lib.Paragraph({ text: 'ViaDecide Agent \u2014 Export', heading: lib.HeadingLevel.HEADING_1 }),
@@ -544,55 +676,135 @@
       return lib.Packer.toBlob(doc);
     }).then(function (blob) {
       var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = 'viadecide-agent-' + Date.now() + '.docx';
-      document.body.appendChild(a); a.click();
+      var a   = document.createElement('a');
+      a.href  = url;
+      a.download = 'viadecide-agent-' + Date.now() + '.docx';
+      document.body.appendChild(a);
+      a.click();
       setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+      setStatus('Export ready.');
     }).catch(function (e) {
-      alert('Export failed: ' + e.message);
+      /* Alert is visible regardless of which tab is active */
+      alert('Export failed: ' + (e && e.message || 'Unknown error'));
+      setStatus('Export failed.');
     }).finally(function () {
-      if (btn) { btn.disabled = false; btn.textContent = '\u2B07 Save .docx'; }
+      if (btn) { btn.disabled = false; btn.textContent = '\u2B07 Export .docx'; }
     });
   }
 
-  /* ── Init ──────────────────────────────────────────────────────── */
+  /* ── Init — all events via addEventListener ──────────────────── */
   function init() {
-    var modelSel = $id('vd-model-select');
-    if (modelSel) {
-      modelSel.value = selectedModel;
-      modelSel.addEventListener('change', function () {
-        selectedModel = modelSel.value;
-        localStorage.setItem('vd_agent_model', selectedModel);
-      });
-    }
-    var keyInput = $id('vd-key-input');
-    if (keyInput) {
-      keyInput.value = apiKey;
-      keyInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') saveKey(); });
-    }
+    /* FAB & close */
+    var fab = $id('vd-agent-fab');
+    if (fab) fab.addEventListener('click', toggle);
+
+    var closeBtn = $id('vd-close-btn');
+    if (closeBtn) closeBtn.addEventListener('click', toggle);
+
+    /* Header export */
+    var exportBtn = $id('vd-export-btn');
+    if (exportBtn) exportBtn.addEventListener('click', saveDocx);
+
+    /* Tabs */
+    ['chat', 'tasks', 'guide'].forEach(function (t) {
+      var btn = $id('vd-tab-' + t);
+      if (btn) btn.addEventListener('click', function () { switchTab(t); });
+    });
+
+    /* Chat */
+    var sendBtn = $id('vd-send-btn');
+    if (sendBtn) sendBtn.addEventListener('click', send);
+
     var chatInput = $id('vd-chat-input');
     if (chatInput) {
       chatInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
       });
-      chatInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 96) + 'px';
+    }
+
+    var clearBtn = $id('vd-clear-btn');
+    if (clearBtn) clearBtn.addEventListener('click', clearChat);
+
+    /* Quick chips — delegation */
+    var quickRow = document.querySelector('#vd-agent-root .vd-quick');
+    if (quickRow) {
+      quickRow.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-quick]');
+        if (btn) quickSend(btn.getAttribute('data-quick'));
       });
     }
+
+    /* Tasks */
+    var addTaskBtn = $id('vd-add-task-btn');
+    if (addTaskBtn) addTaskBtn.addEventListener('click', toggleAddForm);
+
+    var saveTaskBtn = $id('vd-save-task-btn');
+    if (saveTaskBtn) saveTaskBtn.addEventListener('click', addTask);
+
     var taskInput = $id('vd-task-input');
-    if (taskInput) {
-      taskInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') addTask(); });
+    if (taskInput) taskInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') addTask(); });
+
+    /* Task list — event delegation for checkbox + delete */
+    var taskList = $id('vd-task-list');
+    if (taskList) {
+      taskList.addEventListener('change', function (e) {
+        if (e.target.type === 'checkbox') {
+          var idx = parseInt(e.target.getAttribute('data-idx'), 10);
+          if (!isNaN(idx)) toggleTask(idx);
+        }
+      });
+      taskList.addEventListener('click', function (e) {
+        var delBtn = e.target.closest('[data-del]');
+        if (delBtn) {
+          var idx = parseInt(delBtn.getAttribute('data-del'), 10);
+          if (!isNaN(idx)) deleteTask(idx);
+        }
+      });
     }
+
+    /* Export from tasks tab */
+    var docxBtn = $id('vd-docx-btn');
+    if (docxBtn) docxBtn.addEventListener('click', saveDocx);
+
+    /* Setup */
+    var saveKeyBtn = $id('vd-save-key-btn');
+    if (saveKeyBtn) saveKeyBtn.addEventListener('click', saveKey);
+
+    var clearKeyBtn = $id('vd-clear-key-btn');
+    if (clearKeyBtn) clearKeyBtn.addEventListener('click', clearKey);
+
+    var testKeyBtn = $id('vd-test-key-btn');
+    if (testKeyBtn) testKeyBtn.addEventListener('click', testKey);
+
+    var keyInput = $id('vd-key-input');
+    if (keyInput) {
+      keyInput.value = apiKey;
+      keyInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') saveKey(); });
+    }
+
+    /* Model select */
+    var modelSel = $id('vd-model-select');
+    if (modelSel) {
+      MODEL_OPTIONS.forEach(function (m) {
+        var opt = document.createElement('option');
+        opt.value = m.value; opt.textContent = m.label;
+        modelSel.appendChild(opt);
+      });
+      modelSel.value = selectedModel;
+      modelSel.addEventListener('change', function () {
+        selectedModel = modelSel.value;
+        localStorage.setItem(STORAGE_MODEL, selectedModel);
+      });
+    }
+
     switchTab('chat');
     renderMessages();
+    syncCtxBar();
   }
 
-  /* F) Performance-safe boot */
+  /* ── Boot ────────────────────────────────────────────────────── */
   function boot() {
-    /* Always inject styles + DOM first (safe to call before body exists only if
-       called after DOMContentLoaded, which the readyState check ensures) */
-    injectStyles();
+    injectStyle();
     injectDOM();
     init();
   }
@@ -605,20 +817,11 @@
     setTimeout(boot, 0);
   }
 
-  /* H) Expose as window.VDAgent */
+  /* Minimal public API — kept for any external callers */
   window.VDAgent = {
-    toggle        : toggle,
-    switchTab     : switchTab,
-    saveKey       : saveKey,
-    clearKey      : clearKey,
-    testKey       : testKey,
-    send          : send,
-    quickSend     : quickSend,
-    toggleAddForm : toggleAddForm,
-    addTask       : addTask,
-    toggleTask    : toggleTask,
-    deleteTask    : deleteTask,
-    saveDocx      : saveDocx,
+    toggle    : toggle,
+    switchTab : switchTab,
+    saveDocx  : saveDocx,
   };
 
 }());
