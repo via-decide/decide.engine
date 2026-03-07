@@ -414,6 +414,41 @@
   }
 
   /* ══════════════════════════════════════════════════════════
+   * postMessage listener — receives VD_CLOSE_MODAL from iframe
+   * subpages (sent by vd-nav-fix.js when user clicks Back/Close)
+   * ══════════════════════════════════════════════════════════ */
+  function _handleIframeMessages() {
+    window.addEventListener('message', function (e) {
+      if (!e.data || typeof e.data !== 'object') return;
+
+      if (e.data.type === 'VD_CLOSE_MODAL') {
+        // Trigger close via the hooked closeModal() so history stays in sync
+        var closeFn = global.closeModal || _originalCloseModal;
+        if (typeof closeFn === 'function') {
+          closeFn();
+        } else {
+          // Bare fallback
+          var modal = document.getElementById('modal');
+          if (modal) {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+          }
+          if (window.history.state && window.history.state.modalOpen) {
+            window.history.back();
+          }
+        }
+      }
+
+      if (e.data.type === 'VD_HOME') {
+        // Navigate to index, closing any open modal first
+        var closeFn2 = global.closeModal || _originalCloseModal;
+        if (typeof closeFn2 === 'function') closeFn2();
+        window.location.href = 'index.html';
+      }
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════
    * GitHub Pages 404 redirect restore
    * ══════════════════════════════════════════════════════════ */
   function _handle404Redirect() {
@@ -518,6 +553,7 @@
     _handle404Redirect();
     _handleModalParam();
     _handlePopState();
+    _handleIframeMessages();
     bindLinks();
     on('routechange', bindLinks);
     _wirePrefetch();
