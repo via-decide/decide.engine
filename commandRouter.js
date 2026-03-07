@@ -116,6 +116,14 @@
       aliases:  ['cashbackrules'],
     },
     {
+      slug:     'wings-of-fire-quiz',
+      icon:     '🔥',
+      name:     'Wings of Fire Quiz',
+      keywords: ['wings of fire', 'kalam', 'quiz', 'multiplayer quiz', 'knowledge battle', 'apj', 'missile quiz', 'book quiz', 'kalam quiz'],
+      verbs:    ['play','launch','open','start','quiz'],
+      aliases:  ['wof','kalamquiz','wofquiz','wingfire'],
+    },
+    {
       slug:     'hexwars',
       icon:     '⬡',
       name:     'HexWars',
