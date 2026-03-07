@@ -29,8 +29,7 @@
     '/decision-brief'              : 'Decision Brief',
     '/brief'                       : 'Quick Decision Brief',
     '/student-research'            : 'Student Research Tool',
-    '/finance-dashboard-msme'      : 'MSME Finance Dashboard',
-    '/sales-dashboard'             : 'MSME Sales Dashboard',
+      '/sales-dashboard'             : 'MSME Sales Dashboard',
     '/studyos'                     : 'StudyOS',
     '/viaguide'                    : 'ViaGuide',
     '/ondc-demo'                   : 'ONDC Demo',
@@ -527,7 +526,11 @@
 
     // Try index.html's openModal directly
     if (typeof window.openModal === 'function') {
-      window.openModal(path + (path.endsWith('.html') ? '' : '/index.html'), '🔗', name);
+      // Use slug+'.html' for root-level tools; sub-paths (containing '/') need '/index.html'
+      var filePath = path.endsWith('.html')
+        ? path
+        : (slug.indexOf('/') === -1 ? slug + '.html' : path + '/index.html');
+      window.openModal(filePath, '🔗', name);
       return;
     }
 

@@ -77,6 +77,7 @@
     'engine-activation-request':      'Engine Activation Request.html',
     // Store
     'printbydd-store':                'printbydd-store/index.html',
+    'printbydd':                      'printbydd-store/index.html',
     'numberplate':                    'printbydd-store/numberplate.html',
     'keychain':                       'printbydd-store/keychain.html',
     'gifts-that-mean-more':           'printbydd-store/gifts-that-mean-more.html',
