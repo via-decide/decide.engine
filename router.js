@@ -37,6 +37,7 @@
         'pricing': 'pricing.html',
         'engine-activation-request': 'Engine Activation Request.html',
         'payment-register': 'payment-register.html',
+        'printbydd-store': 'printbydd-store/index.html',
         'numberplate': 'printbydd-store/numberplate.html',
         'keychain': 'printbydd-store/keychain.html',
         'gifts-that-mean-more': 'printbydd-store/gifts-that-mean-more.html',
@@ -102,7 +103,12 @@
                 return cleanPath + '.html';
             }
             
-            // 6. Default fallback: treat as a folder and append /index.html
+            // 6. Default fallback:
+            //    - single segment slugs are usually flat *.html pages
+            //    - nested paths keep folder/index.html behavior
+            if (!cleanPath.includes('/')) {
+                return `${cleanPath}.html`;
+            }
             return `${cleanPath}/index.html`;
         },
 
