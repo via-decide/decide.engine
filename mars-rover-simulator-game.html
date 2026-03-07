@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Mars Survival Decision Lab — Constraint Learning Engine</title>
+<!-- Firebase compat SDK (works in plain HTML, no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne+Mono&family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -359,6 +362,21 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
 .bench-fill { height:100%;transition:width 0.8s; }
 
 /* ══════════════════════════════════════════════════════════════
+   MAP SLIDE-UP OVERLAY (in-game, preserves state)
+══════════════════════════════════════════════════════════════ */
+.map-overlay { position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;background:var(--void2);transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);pointer-events:none; }
+.map-overlay.open { transform:translateY(0);pointer-events:all; }
+.map-overlay-head { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0; }
+.map-overlay-title { font-family:var(--display);font-size:20px;color:var(--text);letter-spacing:2px;display:flex;align-items:center;gap:8px; }
+.map-close-btn { font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);background:var(--panel2);border:1px solid var(--border);padding:8px 14px;cursor:pointer;touch-action:manipulation; }
+.map-close-btn:active { background:rgba(214,64,0,.15);color:var(--mars-glow);border-color:var(--mars); }
+.map-overlay-body { flex:1;overflow-y:auto;padding:10px 12px; }
+
+/* ── In-ctrl MAP button ── */
+.map-quick-btn { font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--mars-glow);background:rgba(214,64,0,.08);border:1px solid var(--border2);padding:5px 10px;cursor:pointer;touch-action:manipulation;text-transform:uppercase;align-self:stretch;display:flex;align-items:center;gap:5px;justify-content:center;transition:all 0.15s; }
+.map-quick-btn:active { background:rgba(214,64,0,.2); }
+
+/* ══════════════════════════════════════════════════════════════
    CALLSIGN INPUT
 ══════════════════════════════════════════════════════════════ */
 .callsign-wrap { opacity:0;animation:rise 0.6s 0.9s forwards;margin-bottom:20px;width:100%;max-width:360px;position:relative;z-index:10; }
@@ -611,9 +629,9 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
 <div class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="nav-btn" id="nav-sim"      onclick="showScreen('sim')">      <span class="nav-icon">🎮</span>MISSION</button>
   <button class="nav-btn" id="nav-missions" onclick="showScreen('missions')"> <span class="nav-icon">📋</span>MISSIONS</button>
-  <button class="nav-btn" id="nav-map"      onclick="showScreen('map');buildMarsMap()"><span class="nav-icon">🪐</span>MAP</button>
   <button class="nav-btn" id="nav-board"    onclick="showScreen('board');buildLeaderboard()"><span class="nav-icon">🏆</span>BOARD</button>
   <button class="nav-btn" id="nav-dar"      onclick="showScreen('dar')">      <span class="nav-icon">📊</span>REPORT</button>
+  <button class="nav-btn" id="nav-teacher"  onclick="showScreen('teacher')">  <span class="nav-icon">👩‍🏫</span>TEACHER</button>
 </div>
 
 <!-- ══ SCREEN 1 — SIMULATOR ══ -->
@@ -739,6 +757,7 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
     </div>
     <div class="ctrl-panel">
       <div class="panel-lbl" style="align-self:stretch">// MOVEMENT — TAP OR SWIPE</div>
+      <button class="map-quick-btn" onclick="openMapOverlay()">🪐 MAP — CAPTURED SECTORS</button>
       <div class="dir-grid">
         <div class="dir-btn" onclick="move('NW')">↖</div>
         <div class="dir-btn" onclick="move('N')">↑</div>
@@ -941,6 +960,44 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
   </div>
 </div>
 
+<!-- ══ MAP OVERLAY (slide-up, preserves game state) ══ -->
+<div class="map-overlay" id="mapOverlay">
+  <div class="map-overlay-head">
+    <div class="map-overlay-title">🪐 MARS MAP</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:5px">
+        <div class="live-dot-board"></div>
+        <span class="pill mars" id="map-captured-badge-ov">0 SECTORS</span>
+      </div>
+      <button class="map-close-btn" onclick="closeMapOverlay()">✕ RESUME MISSION</button>
+    </div>
+  </div>
+  <div class="map-overlay-body">
+    <!-- Region info panel -->
+    <div class="region-info" id="regionInfoPanelOv" style="margin-bottom:10px">
+      <div class="ri-icon">🪐</div>
+      <div style="flex:1">
+        <div class="ri-name" id="ri-name-ov">Select a region</div>
+        <div class="ri-desc" id="ri-desc-ov">Tap any sector to view capture status and difficulty</div>
+        <div class="ri-diff" id="ri-diff-ov"></div>
+        <div class="ri-owner" id="ri-owner-ov"></div>
+      </div>
+    </div>
+    <!-- Map SVG -->
+    <div id="marsMapContainerOv" style="max-width:700px;margin:0 auto 10px;position:relative;overflow:hidden;border:1px solid var(--border);background:#050308">
+      <svg id="marsMapSvgOv" viewBox="0 0 300 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+    </div>
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(255,255,255,.04)"></div>UNCLAIMED</div>
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(214,64,0,.4)"></div>YOUR SECTOR</div>
+      <div class="legend-entry">⬛=DIFF 1 · ⬜=DIFF 5</div>
+    </div>
+    <!-- Territory strip -->
+    <div class="territory-strip" id="territoryStripOv"></div>
+  </div>
+</div>
+
 <!-- ══ MODALS ══ -->
 <div class="modal-bg" id="nodeModal">
   <div class="modal">
@@ -1086,43 +1143,90 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
 
 <script>
 /* ══════════════════════════════════════════════════════
-   MULTIPLAYER ENGINE
-   Uses localStorage + BroadcastChannel for same-device
-   tab sync. Swap _MP.set / _MP.get with Firebase calls
-   when you have a project config ready.
-
-   Firebase drop-in: replace _MP.set(key,val) with
-     db.ref('mars/'+key).set(val)
-   and _MP.get(key) with
-     db.ref('mars/'+key).once('value').then(s=>s.val())
+   FIREBASE — LIVE MULTIPLAYER ENGINE
+   Project: mars-decision-lab
+   Realtime Database: live map + leaderboard sync
 ══════════════════════════════════════════════════════ */
-const _BC = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('mars_mp') : null;
-
-const _MP = {
-  _pfx: 'mars_mp_',
-  set(key, val){
-    try { localStorage.setItem(this._pfx+key, JSON.stringify(val)); } catch(e){}
-    if(_BC) _BC.postMessage({key, val});
-  },
-  get(key){
-    try { const s=localStorage.getItem(this._pfx+key); return s?JSON.parse(s):null; } catch(e){ return null; }
-  },
-  sub(key, cb){
-    if(_BC) _BC.onmessage = (e)=>{ if(e.data?.key===key) cb(e.data.val); };
-  }
+const _FB_CONFIG = {
+  apiKey:            "AIzaSyC3u2wZSM3M6NKZUMbdSnbr_aJ6uTVAMYM",
+  authDomain:        "mars-decision-lab.firebaseapp.com",
+  databaseURL:       "https://mars-decision-lab-default-rtdb.firebaseio.com",
+  projectId:         "mars-decision-lab",
+  storageBucket:     "mars-decision-lab.firebasestorage.app",
+  messagingSenderId: "202720833150",
+  appId:             "1:202720833150:web:e542f56e874fe85ec9322f",
+  measurementId:     "G-16WEGVK0ME"
 };
 
-// BroadcastChannel listener — keeps map/board live across tabs
-if(_BC){
-  _BC.onmessage = (e)=>{
-    const { key, val } = e.data || {};
-    if(key === 'regions'){ REGION_STATE = val || {}; _refreshMapIfActive(); _refreshTerritory(); }
-    if(key === 'leaderboard'){ _BOARD_DATA = Object.values(val||{}); _refreshBoardIfActive(); }
-  };
+let _db = null;
+let _fbReady = false;
+
+(function _initFirebase(){
+  try {
+    firebase.initializeApp(_FB_CONFIG);
+    _db = firebase.database();
+    _fbReady = true;
+    console.info('[Mars] Firebase connected — live mode active');
+
+    // Monitor connection state → update status dot
+    _db.ref('.info/connected').on('value', snap=>{
+      const connected = snap.val() === true;
+      const dot = document.getElementById('fbStatusDot');
+      if(dot){
+        dot.style.background = connected ? 'var(--green)' : 'var(--amber)';
+        dot.title = connected ? 'LIVE — Firebase connected' : 'RECONNECTING...';
+      }
+      // Update board header dot too
+      const boardDot = document.querySelector('.live-dot-board');
+      if(boardDot) boardDot.style.background = connected ? 'var(--green)' : 'var(--amber)';
+    });
+
+    _listenRegions();
+    _listenLeaderboard();
+  } catch(e){
+    console.warn('[Mars] Firebase failed — localStorage fallback active', e);
+  }
+})();
+
+/* Real-time listeners — push updates to all connected players instantly */
+function _listenRegions(){
+  if(!_fbReady) return;
+  _db.ref('mars/regions').on('value', snap=>{
+    const data = snap.val();
+    if(data){
+      REGION_STATE = data;
+      try { localStorage.setItem('mars_regions_cache', JSON.stringify(data)); } catch(e){}
+    }
+    _refreshMapIfActive();
+    _refreshTerritory();
+    updateMapBadge();
+  });
 }
 
+function _listenLeaderboard(){
+  if(!_fbReady) return;
+  _db.ref('mars/leaderboard').on('value', snap=>{
+    const data = snap.val();
+    if(data){
+      const live = Object.values(data);
+      live.forEach(p=>{
+        const idx = _BOARD_DATA.findIndex(x=>x.callsign===p.callsign);
+        if(idx>=0) _BOARD_DATA[idx]=p; else _BOARD_DATA.push(p);
+      });
+    }
+    _refreshBoardIfActive();
+  });
+}
+
+/* localStorage fallback (used when Firebase is unavailable) */
+const _MP = {
+  _pfx: 'mars_mp_',
+  set(key,val){ try{ localStorage.setItem(this._pfx+key, JSON.stringify(val)); }catch(e){} },
+  get(key){ try{ const s=localStorage.getItem(this._pfx+key); return s?JSON.parse(s):null; }catch(e){ return null; } }
+};
+
 function _refreshMapIfActive(){
-  if(document.getElementById('screen-map')?.classList.contains('active')) buildMarsMap();
+  if(document.getElementById('mapOverlay')?.classList.contains('open')) buildMarsMap();
 }
 function _refreshBoardIfActive(){
   if(document.getElementById('screen-board')?.classList.contains('active')) buildLeaderboard();
@@ -1212,17 +1316,20 @@ const TERRAIN_REGION_MAP = {
 let REGION_STATE = {}; // { regionId: { callsign, color, score, capturedAt } }
 
 function _loadLocalRegions(){
-  const saved = _MP.get('regions');
-  if(saved) REGION_STATE = saved;
+  // Load from localStorage cache while Firebase connects
+  try {
+    const cache = localStorage.getItem('mars_regions_cache');
+    if(cache) REGION_STATE = JSON.parse(cache);
+  } catch(e){}
 }
 function _saveLocalRegions(){
-  _MP.set('regions', REGION_STATE);
+  // No-op: Firebase listener keeps REGION_STATE fresh
+  // Direct writes happen in attemptCapture via _db.ref().set()
+  try { localStorage.setItem('mars_regions_cache', JSON.stringify(REGION_STATE)); } catch(e){}
 }
 _loadLocalRegions();
 
-/* Firebase listeners — stub, wired via _BC above */
-function _listenRegions(){} 
-function _listenLeaderboard(){}
+/* Firebase listeners initialized in _initFirebase() above */
 
 /* Leaderboard data (seeded + live) */
 let _BOARD_DATA = [
@@ -1284,8 +1391,13 @@ function attemptCapture(terrainName, survivalIndex){
   // Capture!
   const capture = { callsign:PLAYER.callsign, color:PLAYER.color, score, capturedAt:Date.now(), diff:region.diff };
   REGION_STATE[regionId] = capture;
-  _saveLocalRegions();
-  _updateLocalLeaderboard(score, regionId, region.diff);
+  _saveLocalRegions(); // cache for offline
+  _updateLeaderboard(score, regionId, region.diff);
+
+  // Write to Firebase (triggers _listenRegions -> all players update)
+  if(_fbReady && _db){
+    _db.ref('mars/regions/'+regionId).set(capture).catch(e=>console.warn('[Mars] region write failed',e));
+  }
 
   if(!PLAYER.regions.includes(regionId)) PLAYER.regions.push(regionId);
   PLAYER.score += score;
@@ -1299,27 +1411,70 @@ function attemptCapture(terrainName, survivalIndex){
   _refreshBoardIfActive();
 }
 
-function _updateLocalLeaderboard(addScore, regionId, diff){
+function _updateLeaderboard(addScore, regionId, diff){
+  // Update local board data
   let me = _BOARD_DATA.find(p=>p.callsign===PLAYER.callsign);
   if(!me){
-    me = {callsign:PLAYER.callsign,color:PLAYER.color,score:0,regions:[],avgDiff:0};
+    me = {callsign:PLAYER.callsign, color:PLAYER.color, score:0, regions:[], avgDiff:0};
     _BOARD_DATA.push(me);
   }
   if(!me.regions.includes(regionId)) me.regions.push(regionId);
   me.score = (me.score||0) + addScore;
   const totalDiff = me.regions.reduce((s,rid)=>{ const r=MARS_REGIONS.find(x=>x.id===rid); return s+(r?.diff||1); },0);
   me.avgDiff = me.regions.length>0 ? +(totalDiff/me.regions.length).toFixed(1) : 0;
-  // Persist board to localStorage + broadcast to other tabs
-  const boardObj = {};
-  _BOARD_DATA.forEach(p=>{ boardObj[p.callsign]=p; });
-  _MP.set('leaderboard', boardObj);
+
+  // Write to Firebase via transaction (prevents race conditions between players)
+  if(_fbReady && _db){
+    const ref = _db.ref('mars/leaderboard/'+PLAYER.callsign);
+    ref.transaction(cur=>{
+      const base = cur || {callsign:PLAYER.callsign, color:PLAYER.color, score:0, regions:[], avgDiff:0};
+      const regions = [...new Set([...(base.regions||[]), regionId])];
+      const tDiff = regions.reduce((s,rid)=>{ const r=MARS_REGIONS.find(x=>x.id===rid); return s+(r?.diff||1); },0);
+      return {
+        callsign: PLAYER.callsign,
+        color:    PLAYER.color,
+        score:    (base.score||0) + addScore,
+        regions,
+        avgDiff:  regions.length>0 ? +(tDiff/regions.length).toFixed(1) : 0,
+        lastActive: Date.now()
+      };
+    }).catch(e=>console.warn('[Mars] leaderboard write failed',e));
+  } else {
+    // localStorage fallback
+    const boardObj = {};
+    _BOARD_DATA.forEach(p=>{ boardObj[p.callsign]=p; });
+    _MP.set('leaderboard', boardObj);
+  }
 }
+// Legacy alias
+function _updateLocalLeaderboard(a,b,c){ _updateLeaderboard(a,b,c); }
 
 /* ══════════════════════════════════════════════════════
-   MARS MAP SVG BUILDER
+   MAP OVERLAY — open/close without leaving sim screen
 ══════════════════════════════════════════════════════ */
+function openMapOverlay(){
+  document.getElementById('mapOverlay').classList.add('open');
+  buildMarsMap();
+}
+function closeMapOverlay(){
+  document.getElementById('mapOverlay').classList.remove('open');
+}
+// Swipe down to close overlay
+(function(){
+  let _startY = 0;
+  document.addEventListener('touchstart', e=>{
+    const ov = document.getElementById('mapOverlay');
+    if(ov?.classList.contains('open')) _startY = e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchend', e=>{
+    const ov = document.getElementById('mapOverlay');
+    if(!ov?.classList.contains('open')) return;
+    const dy = e.changedTouches[0].clientY - _startY;
+    if(dy > 80) closeMapOverlay(); // swipe down >80px = close
+  },{passive:true});
+})();
 function buildMarsMap(){
-  const svg = document.getElementById('marsMapSvg');
+  const svg = document.getElementById('marsMapSvgOv');
   if(!svg) return;
   svg.innerHTML = '';
 
@@ -1438,11 +1593,11 @@ function selectRegion(regionId){
   if(!region) return;
   const state = REGION_STATE[regionId];
 
-  document.getElementById('ri-name').textContent = region.icon+' '+region.name;
-  document.getElementById('ri-desc').textContent = region.desc;
+  document.getElementById('ri-name-ov').textContent = region.icon+' '+region.name;
+  document.getElementById('ri-desc-ov').textContent = region.desc;
 
   // Difficulty pips
-  const diffEl = document.getElementById('ri-diff');
+  const diffEl = document.getElementById('ri-diff-ov');
   diffEl.innerHTML = '';
   for(let i=0;i<5;i++){
     const pip = document.createElement('div');
@@ -1452,7 +1607,7 @@ function selectRegion(regionId){
   }
   diffEl.innerHTML += `<span style="font-family:var(--mono);font-size:8px;color:var(--text-dim);margin-left:6px">DIFFICULTY ${region.diff} · SCORE MULT ${region.diff}×</span>`;
 
-  const ownerEl = document.getElementById('ri-owner');
+  const ownerEl = document.getElementById('ri-owner-ov');
   if(state){
     const isMe = state.callsign===PLAYER.callsign;
     ownerEl.innerHTML = `<span style="color:${state.color||'#888'}">◉</span> <b>${state.callsign}</b> <span style="color:var(--text-dim)">· ${isMe?'YOUR TERRITORY':'OPPONENT'} · SCORE: ${state.score}</span>`;
@@ -1473,12 +1628,12 @@ function _flashMapCapture(regionId){
 
 function updateMapBadge(){
   const mine = Object.values(REGION_STATE).filter(s=>s.callsign===PLAYER.callsign).length;
-  const badge = document.getElementById('map-captured-badge');
+  const badge = document.getElementById('map-captured-badge-ov') || document.getElementById('map-captured-badge');
   if(badge) badge.textContent = mine+' / '+MARS_REGIONS.length+' SECTORS';
 }
 
 function _refreshTerritory(){
-  const strip = document.getElementById('territoryStrip');
+  const strip = document.getElementById('territoryStripOv') || document.getElementById('territoryStrip');
   if(!strip) return;
 
   // Group by player
@@ -1560,7 +1715,8 @@ function buildLeaderboard(){
     if(wrap) wrap.innerHTML=`<div class="callsign-badge" style="border-color:${PLAYER.color}88">◈ ${saved} <span style="opacity:.5;margin-left:4px">ACTIVE</span></div>`;
   }
   // Restore persisted leaderboard
-  const savedBoard = _MP.get('leaderboard');
+  // Load board from localStorage cache; Firebase listener will update it live
+  const savedBoard = (()=>{ try{ const s=localStorage.getItem('mars_mp_leaderboard'); return s?JSON.parse(s):null; }catch(e){return null;} })();
   if(savedBoard) _BOARD_DATA = [..._BOARD_DATA, ...Object.values(savedBoard).filter(p=>!_BOARD_DATA.find(x=>x.callsign===p.callsign))];
 })();
 
@@ -2409,7 +2565,6 @@ function showScreen(id){
   if(id==='cert') buildCerts();
   if(id==='teacher') buildTeacherDash();
   if(id==='missions') buildMissions();
-  if(id==='map') buildMarsMap();
   if(id==='board') buildLeaderboard();
   if(id==='dar') buildDAR();
 }
@@ -2714,7 +2869,7 @@ function submitMissionReview(mode){
   const body = encodeURIComponent(human + '\n\n--- JSON ---\n' + JSON.stringify(payload));
 
   if(mode === 'email'){
-    window.open(`mailto:hello@viadecide.com?subject=${subject}&body=${body}`);
+    window.open(`mailto:dharam@viadecide.com?subject=${subject}&body=${body}`);
   } else if(mode === 'whatsapp'){
     const msg = encodeURIComponent(`🚀 Mars Mission Debrief\n\n${payload.operator} — ${payload.mission?.name}\nSurvival: ${payload.performance?.survivalIndex}% | Accuracy: ${payload.performance?.decisionAccuracy}%\nVerdict: ${payload.verdict}\n\nFull report: ${window.location.href}`);
     window.open('https://wa.me/?text='+msg);
