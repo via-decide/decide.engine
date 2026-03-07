@@ -24,23 +24,52 @@
   ];
 
   var VD_ROUTES = {
-    '/app-generator'          : 'App Generator',
-    '/alchemist'              : 'Prompt Alchemist',
-    '/decision-brief'         : 'Decision Brief',
-    '/brief'                  : 'Quick Decision Brief',
-    '/student-research'       : 'Student Research Tool',
-    '/finance-dashboard-msme' : 'MSME Finance Dashboard',
-    '/sales-dashboard'        : 'MSME Sales Dashboard',
-    '/StudyOS'                : 'StudyOS',
-    '/ViaGuide'               : 'ViaGuide',
-    '/ONDC-demo'              : 'ONDC Demo',
-    '/HexWars'                : 'HexWars',
-    '/printbydd-store'        : 'PrintByDD Store',
-    '/founder'                : 'Founder Page',
-    '/DharamDaxini'           : 'Dharam Daxini \u2014 Sessions',
-    '/cohort-apply-here'      : 'Cohort Application',
-    '/pricing'                : 'Pricing',
-    '/contact'                : 'Contact',
+    '/app-generator'               : 'App Generator',
+    '/alchemist'                   : 'Alchemist',
+    '/decision-brief'              : 'Decision Brief',
+    '/brief'                       : 'Quick Decision Brief',
+    '/student-research'            : 'Student Research Tool',
+    '/finance-dashboard-msme'      : 'MSME Finance Dashboard',
+    '/sales-dashboard'             : 'MSME Sales Dashboard',
+    '/studyos'                     : 'StudyOS',
+    '/viaguide'                    : 'ViaGuide',
+    '/ondc-demo'                   : 'ONDC Demo',
+    '/hexwars'                     : 'HexWars',
+    '/wings-of-fire-quiz'          : 'Wings of Fire Quiz',
+    '/mars-rover-simulator-game'   : 'Mars Rover Simulator',
+    '/hivaland'                    : 'HivaLand',
+    '/interview-prep'              : 'Interview Simulator',
+    '/prompt-alchemy'              : 'Prompt Alchemy',
+    '/memory'                      : 'Memory Engine',
+    '/swipeos'                     : 'SwipeOS',
+    '/swipeos-gandhidham'          : 'SwipeOS \u00B7 Gandhidham',
+    '/agent'                       : 'ViaDecide Agent',
+    '/printbydd-store'             : 'PrintByDD Store',
+    '/printbydd'                   : 'PrintByDD Store',
+    '/engine-deals'                : 'Engine Deals',
+    '/discounts'                   : 'Discounts Hub',
+    '/cashback-rules'              : 'Cashback Rules',
+    '/cashback-claim'              : 'Cashback Claim',
+    '/decide-service'              : 'Decide.Service',
+    '/decide-foodrajkot'           : 'Decide Food \u00B7 Rajkot',
+    '/engine-license'              : 'Engine License',
+    '/cohort-apply-here'           : 'Cohort Program',
+    '/pricing'                     : 'Pricing',
+    '/engine-activation-request'   : 'Engine Activation',
+    '/founder'                     : 'Founder',
+    '/dharamdaxini'                : 'Dharam Daxini \u2014 Sessions',
+    '/contact'                     : 'Contact',
+    '/privacy'                     : 'Privacy',
+    '/terms'                       : 'Terms',
+    '/viadecide-blogs'             : 'ViaDecide Blogs',
+    '/decision-infrastructure-india': 'Decision Infrastructure India',
+    '/ondc-for-bharat'             : 'ONDC for Bharat',
+    '/indiaai-mission-2025'        : 'IndiaAI Mission 2025',
+    '/viadecide-public-beta'       : 'ViaDecide Public Beta',
+    '/jalaram-food-court-rajkot'   : 'Jalaram Food Court',
+    '/payment-register'            : 'Payroll Register',
+    '/laptops-under-50000'         : 'Laptops Under \u20B950k',
+    '/finance-dashboard-msme'      : 'FinTrack \u2014 Finance Dashboard',
   };
 
   /* ── State ──────────────────────────────────────────────────── */
@@ -83,10 +112,10 @@
   /* ── Safe markup renderer ────────────────────────────────────── */
   function formatText(raw) {
     var s = esc(raw);
-    /* Internal links only */
+    /* Internal links only — data-vd-route lets the click handler open the modal */
     s = s.replace(
       /\[([^\]]{1,80})\]\((\/[A-Za-z0-9\-_./#]{1,120})\)/g,
-      '<a href="$2" target="_self">$1 \u2197</a>'
+      '<a href="$2" data-vd-route="$2" target="_self">$1 \u2197</a>'
     );
     /* Bold */
     s = s.replace(/\*\*([^*\n]{1,200}?)\*\*/g, '<strong>$1</strong>');
@@ -481,6 +510,31 @@
     el.classList.add('vd-show');
   }
 
+  /* ── Route link handler — opens subpage in modal, not full nav ── */
+  function openRoute(path) {
+    // Normalise: strip leading slash for slug lookup
+    var slug = path.replace(/^\/+/, '').replace(/\/.*$/, '').toLowerCase();
+
+    // Look up name+icon from VD_ROUTES (keys are /slug format)
+    var routeKey = '/' + slug;
+    var name = VD_ROUTES[routeKey] || slug.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+
+    // Try VDRouter first (preferred — handles history + URL sync)
+    if (window.VDRouter && typeof window.VDRouter.go === 'function') {
+      window.VDRouter.go(slug, { overlay: true, title: name });
+      return;
+    }
+
+    // Try index.html's openModal directly
+    if (typeof window.openModal === 'function') {
+      window.openModal(path + (path.endsWith('.html') ? '' : '/index.html'), '🔗', name);
+      return;
+    }
+
+    // Last resort: navigate (user leaves page — acceptable fallback)
+    window.location.href = path;
+  }
+
   /* ── Bug 1 fix: persist history ─────────────────────────────── */
   function saveHistory() {
     try {
@@ -777,6 +831,17 @@
 
     var clearBtn = $id('vd-clear-btn');
     if (clearBtn) clearBtn.addEventListener('click', clearChat);
+
+    /* Internal route links in chat bubbles — open modal instead of navigating away */
+    var msgBox = $id('vd-chat-messages');
+    if (msgBox) {
+      msgBox.addEventListener('click', function (e) {
+        var link = e.target.closest('a[data-vd-route]');
+        if (!link) return;
+        e.preventDefault();
+        openRoute(link.getAttribute('data-vd-route'));
+      });
+    }
 
     /* Quick chips — delegation */
     var quickRow = document.querySelector('#vd-agent-root .vd-quick');
