@@ -64,6 +64,7 @@
     'cashback-claim':                 'cashback-claim.html',
     // Games & Sims
     'hexwars':                        'HexWars.html',
+    'wings-of-fire-quiz':             'wings-of-fire-quiz.html',
     'mars-rover-simulator-game':      'mars-rover-simulator-game.html',
     'hivaland':                       'HivaLand.html',
     // Services
@@ -122,6 +123,7 @@
     'cashback-rules':                 { icon: '💸', name: 'Cashback Rules' },
     'cashback-claim':                 { icon: '🧾', name: 'Cashback Claim' },
     'hexwars':                        { icon: '⬡',  name: 'HexWars' },
+    'wings-of-fire-quiz':             { icon: '🔥', name: 'Wings of Fire Quiz' },
     'mars-rover-simulator-game':      { icon: '🚀', name: 'Mars Rover' },
     'hivaland':                       { icon: '🌍', name: 'HivaLand' },
     'decide-service':                 { icon: '🎯', name: 'Decide.Service' },
