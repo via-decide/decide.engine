@@ -1071,7 +1071,12 @@ function normalizeInternalPath(file) {
 
 function deriveSlug(file) {
   if (!file) return '';
-  return file.replace(/\.html?$/i, '').replace(/^\/+/, '');
+  return file
+    .replace(/\.html?$/i, '')   // strip .html / .htm
+    .replace(/\/index$/i, '')   // strip trailing /index
+    .replace(/^\/+/, '')        // strip leading slashes
+    .split('/')[0]              // take only first path segment (the slug)
+    .toLowerCase();             // normalise case
 }
 
 function openModal(file, icon, name) {
@@ -1124,11 +1129,13 @@ function _modalSetup(file, icon, name) {
   if (frame) {
     frame.style.display = 'block';
     frame.src = '';
-    setTimeout(() => { frame.src = normalizedPath; }, 10);
+    setTimeout(() => { frame.src = normalizedPath; }, 80); // 80ms — prevents blank/flicker
   }
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+// Expose for router.js (calls window._modalSetup at popstate / ?m= time)
+window._modalSetup = _modalSetup;
 
 /* iframe load / error detection */
 (function(){
@@ -1167,6 +1174,7 @@ function showModalError() {
 }
 
 function closeModal() {
+  if (modalIsClosing) return; // re-entry guard — prevents double-close race
   modalIsClosing = true;
   if (modalLoadCheckTimer) {
     clearTimeout(modalLoadCheckTimer);
@@ -1181,6 +1189,7 @@ function closeModal() {
     frame.src = 'about:blank';
     frame.style.display = 'block';
     document.getElementById('modal-err').classList.remove('show');
+    modalIsClosing = false; // reset AFTER animation completes
   }, 400);
 }
 
