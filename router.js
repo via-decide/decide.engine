@@ -452,6 +452,8 @@
    * GitHub Pages 404 redirect restore
    * ══════════════════════════════════════════════════════════ */
   function _handle404Redirect() {
+    // Never run inside an iframe — prevents sessionStorage feedback loops
+    try { if (window.self !== window.top) return; } catch (e) { return; }
     try {
       var rp = sessionStorage.getItem('__vd_redirect__');
       if (!rp) return;
@@ -472,6 +474,8 @@
 
   /* Handle ?m= direct URL visits (bookmarks, shared links) */
   function _handleModalParam() {
+    // Never run inside an iframe — the modal lives only on the top frame
+    try { if (window.self !== window.top) return; } catch (e) { return; }
     var url    = new URL(window.location.href);
     var mParam = url.searchParams.get('m');
 
