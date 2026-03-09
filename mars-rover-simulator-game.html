@@ -1831,6 +1831,7 @@ async function demoUnlock(){
   if(!v){
     if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
     if(inp) inp.focus();
+    if(inp) inp.focus();
     return;
   }
 
@@ -2289,6 +2290,8 @@ function maybeTriggerTerrainEvent(){
   bind('terrainSafeBtn',evt.safe);
   bind('terrainAggBtn',evt.aggr);
   openModal('terrainEventModal');
+}
+
 }
 function getDifficultyPreset(){
   return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
