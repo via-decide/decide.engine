@@ -5,12 +5,24 @@ function json(data, status = 200) {
   });
 }
 
+function safeParse(raw, fallback = null) {
+  try {
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
 export async function onRequest({ request, env }) {
   const db = env.DB;
   const url = new URL(request.url);
 
   if (request.method === "GET") {
     const category = url.searchParams.get("category");
+
+    if (!category) {
+      return json({ ok: false, error: "Missing required query param: category" }, 400);
+    }
 
     const { results } = await db.prepare(
       `SELECT * FROM products WHERE category = ?`
@@ -21,8 +33,8 @@ export async function onRequest({ request, env }) {
       items: results.map(r => ({
         name: r.name,
         price: r.price,
-        attr: JSON.parse(r.attrs_json),
-        dna: r.dna_json ? JSON.parse(r.dna_json) : null
+        attr: safeParse(r.attrs_json, {}),
+        dna: safeParse(r.dna_json, null)
       }))
     });
   }
