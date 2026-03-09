@@ -1816,6 +1816,9 @@ let _demoUnlockBusy = false;
 let _guestBypass = false;
 let _pendingEnterRole = null;
 let _demoUnlockBusy = false;
+let _guestBypass = false;
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
 
 function isInAppBrowser(){
   const ua = navigator.userAgent || "";
@@ -2522,6 +2525,8 @@ function maybeTriggerTerrainEvent(){
   bind('terrainSafeBtn',evt.safe);
   bind('terrainAggBtn',evt.aggr);
   openModal('terrainEventModal');
+}
+
 }
 
 }

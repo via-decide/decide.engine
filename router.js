@@ -57,6 +57,8 @@
         'hexwars': 'HexWars.html',
         'mars-rover-simulator-game': 'mars-rover-simulator-game.html',
         'hivaland': 'HivaLand.html',
+        'wings-of-fire': 'WingsOfFire.html',
+        'wingsoffire': 'WingsOfFire.html',
         'decide-service': 'decide-service.html',
         'decide-foodrajkot': 'decide-foodrajkot.html',
         'engine-license': 'engine-license.html',
