@@ -728,7 +728,21 @@ function toggleAssetLog() {
 }
 
 // ─── IMG ONERROR ───────────────────────────────────────────────
+function tryRootFallback(path) {
+    const prefix = 'assets/audio-log/';
+    if (!path || !path.startsWith(prefix)) return null;
+    return path.slice(prefix.length);
+}
+
 function handleImgError(imgEl, filename) {
+    const fallbackSrc = tryRootFallback(imgEl?.getAttribute('src') || filename);
+    if (fallbackSrc && imgEl && !imgEl.dataset.fallbackTried) {
+        imgEl.dataset.fallbackTried = '1';
+        imgEl.src = fallbackSrc;
+        logAsset(filename, 'OK', `Fallback loaded from /${fallbackSrc}`);
+        return;
+    }
+
     logAsset(filename, 'FAIL', 'Image not found');
     const wrapper = imgEl.closest('.img-wrapper');
     if (wrapper) wrapper.classList.add('failed');
@@ -736,8 +750,25 @@ function handleImgError(imgEl, filename) {
 
 // ─── VIDEO ONERROR ─────────────────────────────────────────────
 function handleVidError(wrapId, filename) {
-    logAsset(filename, 'FAIL', 'Video not found or codec error');
     const wrap = document.getElementById(wrapId);
+    const video = wrap ? wrap.querySelector('video') : null;
+    const fallbackSrc = tryRootFallback(video?.getAttribute('src') || filename);
+
+    if (video && fallbackSrc && !video.dataset.fallbackTried) {
+        video.dataset.fallbackTried = '1';
+        video.src = fallbackSrc;
+
+        const poster = video.getAttribute('poster');
+        const fallbackPoster = tryRootFallback(poster);
+        if (fallbackPoster) video.setAttribute('poster', fallbackPoster);
+
+        video.load();
+        video.play().catch(() => {});
+        logAsset(filename, 'OK', `Fallback loaded from /${fallbackSrc}`);
+        return;
+    }
+
+    logAsset(filename, 'FAIL', 'Video not found or codec error');
     if (wrap) wrap.classList.add('failed');
 }
 
