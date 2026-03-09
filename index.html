@@ -853,17 +853,17 @@ section{position:relative;z-index:10}
     <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.</p>
     <div class="footer-acts">
       <button class="btn-p" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
-      <button class="btn-g" onclick="openModal('/alchemist/index.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
+      <button class="btn-g" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
       <button class="btn-fi" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
       <button class="btn-g" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
     </div>
     <div class="footer-links">
-      <a href="/contact" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
-      <a href="/privacy" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
-      <a href="/terms" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
+      <a href="/contact.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
+      <a href="/privacy.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
+      <a href="/terms.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
       <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
       <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
-      <a href="/founder" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
+      <a href="/founder.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
       <span>· © 2025–2026 ViaDecide · Amazon Associates IN (decideengine-21)</span>
     </div>
   </div>
@@ -1059,6 +1059,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleTh
    Falls back gracefully to direct iframe if router absent.
    ============================================================ */
 let currentFile = '';
+let modalIsClosing = false;
+let modalLoadCheckTimer = null;
 
 function normalizeInternalPath(file) {
   if (!file) return '';
@@ -1096,6 +1098,11 @@ function openModal(file, icon, name) {
 }
 
 function _modalSetup(file, icon, name) {
+  modalIsClosing = false;
+  if (modalLoadCheckTimer) {
+    clearTimeout(modalLoadCheckTimer);
+    modalLoadCheckTimer = null;
+  }
   const normalizedPath = normalizeInternalPath(file);
   currentFile = normalizedPath;
   const mIcon = document.getElementById('m-icon');
@@ -1136,11 +1143,13 @@ function _modalSetup(file, icon, name) {
       if (!d || d.body === null) { showModalError(); return; }
       if (d.body.innerHTML.trim() === '') {
         const f = this;
-        setTimeout(() => {
+        if (modalLoadCheckTimer) clearTimeout(modalLoadCheckTimer);
+        modalLoadCheckTimer = setTimeout(() => {
           try {
             const d2 = f.contentDocument || f.contentWindow.document;
             if (!d2 || d2.body === null || d2.body.innerHTML.trim() === '') showModalError();
           } catch(e2) { showModalError(); }
+          modalLoadCheckTimer = null;
         }, 800);
       }
     } catch(e) { /* cross-origin — assume loaded OK */ }
@@ -1148,6 +1157,8 @@ function _modalSetup(file, icon, name) {
 })();
 
 function showModalError() {
+  const modal = document.getElementById('modal');
+  if (!modal || !modal.classList.contains('open') || modalIsClosing) return;
   const mLoad = document.getElementById('modal-loading');
   if (mLoad) mLoad.classList.remove('active');
   document.getElementById('modal-frame').style.display = 'none';
@@ -1155,6 +1166,11 @@ function showModalError() {
 }
 
 function closeModal() {
+  modalIsClosing = true;
+  if (modalLoadCheckTimer) {
+    clearTimeout(modalLoadCheckTimer);
+    modalLoadCheckTimer = null;
+  }
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow = '';
   const mLoad = document.getElementById('modal-loading');
@@ -1268,6 +1284,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   // 1. Re-bind links whenever the router finishes a route change
   VDRouter.on('routechange', function(){
     if(typeof VDRouter.bindLinks === 'function') VDRouter.bindLinks();
+    if(typeof VDRouter.bindBackLinks === 'function') VDRouter.bindBackLinks();
   });
 
   // 2. Prefetch on hover — for all clickable cards and nav chips
@@ -1466,22 +1483,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">01</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Decision Tools</span></div><p class="cat-desc">AI-powered instruments to structure your thinking, build prompts, and decide with clarity.</p></div></div>
-      <button class="cat-cta" onclick="openModal('/alchemist/index.html','✨','Alchemist')">Try Alchemist ✨</button>
+      <button class="cat-cta" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'">Try Alchemist ✨</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="openModal('/alchemist/index.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/memory/index.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/prompt-alchemy/index.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s5" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
-      <div class="tc tc-s4" onclick="openModal('/app-generator/index.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/ViaGuide/index.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/StudyOS/index.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
-      <div class="tc tc-s3" onclick="openModal('/brief/index.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/student-research/index.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st wip">◌ Coming</div></div>
+      <div class="tc tc-feat tc-s8" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('memory'):location.href='memory.html'" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('prompt-alchemy'):location.href='prompt-alchemy.html'" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s5" onclick="window.VDRouter?VDRouter.go('sales-dashboard'):location.href='sales-dashboard.html'" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('app-generator'):location.href='app-generator.html'" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('viaguide'):location.href='ViaGuide.html'" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('studyos'):location.href='StudyOS.html'" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('brief'):location.href='brief.html'" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('student-research'):location.href='student-research.html'" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('swipeos'):location.href='SwipeOS.html'" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,products,rapid" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st wip">◌ Coming</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📡</span><div class="tc-name">Opportunity Radar</div><div class="tc-desc">Scan and surface high-signal opportunities in your market or niche.</div><div class="tc-st wip">◌ Coming</div></div>
-      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">🔎</span><div class="tc-name">Reality Check</div><div class="tc-desc">Pressure-test your assumptions before committing to a decision.</div><div class="tc-st wip">◌ Coming</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('agent'):location.href='agent.html'" data-cat="tools" data-orbit="viadecide-agent" data-intent="agent,assistant,workflow,decision" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🤖</span><div class="tc-name">ViaDecide Agent</div><div class="tc-desc">AI decision assistant for guided flows, context capture, and execution prompts.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
@@ -1551,7 +1568,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">05</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Store · PrintByDD</span></div><p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts.</p></div></div>
-      <a class="cat-cta" href="/printbydd-store">Open Store ↗</a>
+      <a class="cat-cta" href="/printbydd-store/index.html">Open Store ↗</a>
     </div>
     <div class="bento">
       <div class="tc tc-feat tc-s4" onclick="window.VDRouter?VDRouter.go('numberplate'):location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
