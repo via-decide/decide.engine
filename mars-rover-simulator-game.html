@@ -1105,6 +1105,13 @@ function showDemoApiFailSafe(errEl){
     });
     btn._bound = true;
   }
+  const resp = await fetch('/api/demo-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await resp.json().catch(() => ({ ok: false }));
+  return Boolean(resp.ok && data && data.ok);
 }
 
 async function demoUnlock(){
@@ -1140,6 +1147,12 @@ async function demoUnlock(){
         err.style.display = "block";
       }
       if(inp) inp.focus();
+    }
+    if(inp) inp.focus();
+  } catch(_) {
+    if(err){
+      err.textContent = 'Unable to verify code right now. Please try again.';
+      err.style.display = 'block';
     }
   } finally {
     _demoUnlockBusy = false;
