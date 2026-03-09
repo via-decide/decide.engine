@@ -3,1101 +3,179 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ViaDecide Agent — Setup Guide</title>
-  <meta name="description" content="ViaDecide AI Agent — your decision assistant, planning companion, and site guide for viadecide.com." />
+  <meta name="theme-color" content="#0b0e15" />
+  <meta name="description" content="ViaDecide Agent demo page — production-ready global widget with Gemini chat, tasks, setup guidance, internal routing, and lazy DOCX export." />
+  <title>ViaDecide Agent — Production Demo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── Demo page base ───────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: #0a0a0a;
-      color: #e2e8f0;
+      font-family: 'Outfit', system-ui, sans-serif;
+      background: #0b0e15;
+      color: #f4efe7;
       min-height: 100vh;
-      line-height: 1.6;
+      line-height: 1.65;
     }
-    a { color: #818cf8; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    :root {
+      --teal: #22b4a0;
+      --gold: #c8932a;
+      --tx: #f4efe7;
+      --tx2: rgba(240,237,230,.65);
+      --sf: rgba(255,255,255,.03);
+      --bd: rgba(255,255,255,.09);
+    }
+    .shell { max-width: 980px; margin: 0 auto; padding: 0 24px 120px; }
 
     /* Nav */
     .demo-nav {
       position: sticky; top: 0; z-index: 50;
-      background: rgba(10,10,10,.92);
+      background: rgba(11,14,21,.93);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid #1e293b;
+      border-bottom: 1px solid var(--bd);
       padding: 14px 24px;
-      display: flex; align-items: center; gap: 16px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .demo-nav .logo {
-      font-weight: 700; font-size: 16px;
-      background: linear-gradient(135deg,#818cf8,#c084fc);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    .demo-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
+    .demo-dot {
+      width: 8px; height: 8px; border-radius: 999px;
+      background: var(--gold);
+      box-shadow: 0 0 0 6px rgba(200,147,42,.1);
     }
-    .demo-nav .badge {
-      font-size: 11px; font-weight: 600; letter-spacing: .04em;
-      background: #1e293b; color: #94a3b8;
-      border: 1px solid #334155; border-radius: 20px;
-      padding: 2px 10px;
+    .demo-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .demo-links a {
+      color: var(--tx2); text-decoration: none; font-size: 13px;
+      padding: 7px 12px; border: 1px solid var(--bd);
+      border-radius: 999px; background: var(--sf);
+      transition: border-color .2s, color .2s;
     }
-    .demo-nav .back { margin-left: auto; font-size: 13px; color: #64748b; }
+    .demo-links a:hover { border-color: rgba(255,255,255,.2); color: var(--tx); }
 
-    /* Guide page */
-    .guide-wrap {
-      max-width: 760px; margin: 0 auto;
-      padding: 48px 24px 120px;
+    /* Hero */
+    .hero { padding: 56px 0 32px; display: grid; gap: 20px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: .16em;
+      color: var(--teal); font-weight: 700;
     }
-    .guide-hero { text-align: center; margin-bottom: 56px; }
-    .guide-hero h1 {
-      font-size: clamp(28px, 5vw, 44px); font-weight: 700; line-height: 1.2;
-      background: linear-gradient(135deg,#e2e8f0,#94a3b8);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      margin-bottom: 12px;
+    .eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--teal); opacity: .7; }
+    h1 {
+      margin: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      line-height: .95; font-weight: 500; letter-spacing: -.03em;
     }
-    .guide-hero p { color: #64748b; font-size: 15px; max-width: 520px; margin: 0 auto; }
-    .guide-hero .hero-badge {
-      display: inline-block; margin-bottom: 20px;
-      font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-      background: rgba(129,140,248,.12); color: #818cf8;
-      border: 1px solid rgba(129,140,248,.25); border-radius: 20px;
-      padding: 4px 14px;
-    }
-
-    .guide-section { margin-bottom: 40px; }
-    .guide-section h2 {
-      font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-      color: #818cf8; margin-bottom: 16px;
-    }
-    .guide-card {
-      background: #111; border: 1px solid #1e293b; border-radius: 12px;
-      padding: 20px 24px;
-    }
-    .guide-card + .guide-card { margin-top: 12px; }
-    .guide-card h3 { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; }
-    .guide-card p, .guide-card li { font-size: 14px; color: #64748b; }
-    .guide-card ul { padding-left: 18px; }
-    .guide-card li { margin-bottom: 4px; }
-    .guide-card code {
-      font-family: 'Menlo', 'Consolas', monospace; font-size: 12px;
-      background: #1e293b; color: #a5b4fc; border-radius: 4px; padding: 1px 6px;
-    }
-    .step-num {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px; border-radius: 50%;
-      background: rgba(129,140,248,.15); color: #818cf8;
-      font-size: 12px; font-weight: 700; margin-right: 10px; flex-shrink: 0;
-    }
-    .step-row { display: flex; align-items: flex-start; gap: 0; margin-bottom: 12px; }
-    .step-row:last-child { margin-bottom: 0; }
-    .step-content { flex: 1; }
-    .step-content h3 { margin-bottom: 4px; }
-
-    .feature-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
-    }
-    .feature-card {
-      background: #111; border: 1px solid #1e293b; border-radius: 10px; padding: 16px;
-    }
-    .feature-card .icon { font-size: 20px; margin-bottom: 8px; }
-    .feature-card h3 { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
-    .feature-card p { font-size: 12px; color: #64748b; }
-
-    /* ── Widget CSS (scoped to #vd-agent-root) ────────────────────── */
-    #vd-agent-root {
-      --vd-accent: #818cf8;
-      --vd-accent2: #c084fc;
-      --vd-bg: #111217;
-      --vd-surface: #16181d;
-      --vd-border: #1e2530;
-      --vd-text: #e2e8f0;
-      --vd-muted: #64748b;
-      --vd-radius: 16px;
-      font-family: 'Inter', system-ui, sans-serif;
+    .hero p { max-width: 720px; color: var(--tx2); font-size: 17px; line-height: 1.8; }
+    .kbd {
+      display: inline-block; padding: 2px 7px;
+      border-radius: 7px; background: rgba(255,255,255,.06);
+      border: 1px solid var(--bd); font-size: 12px;
     }
 
-    /* FAB */
-    #vd-agent-fab {
-      position: fixed; bottom: 24px; right: 24px; z-index: 9998;
-      width: 56px; height: 56px; border-radius: 50%;
-      background: linear-gradient(135deg, #818cf8, #c084fc);
-      border: none; cursor: pointer;
+    /* Grid */
+    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; margin-top: 16px; }
+    .card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--bd);
+      border-radius: 22px; padding: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.22);
+    }
+    .card h2 { margin: 0 0 12px; font-size: 18px; font-weight: 700; }
+    .card p, .card li { color: var(--tx2); line-height: 1.8; font-size: 14px; }
+    .card ul { margin: 10px 0 0 18px; padding: 0; }
+
+    /* Steps */
+    .steps { display: grid; gap: 10px; }
+    .step {
+      display: grid; grid-template-columns: auto 1fr; gap: 12px;
+      align-items: flex-start; padding: 13px;
+      border-radius: 16px; background: rgba(255,255,255,.03);
+      border: 1px solid var(--bd);
+    }
+    .step-n {
+      width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 24px rgba(129,140,248,.45);
-      transition: transform .2s, box-shadow .2s;
+      background: rgba(34,180,160,.12); color: var(--teal);
+      font-weight: 700; font-size: 13px;
     }
-    #vd-agent-fab:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(129,140,248,.6); }
-    #vd-agent-fab svg { width: 24px; height: 24px; color: #fff; }
+    .step p { font-size: 13px; color: var(--tx2); line-height: 1.7; margin: 0; }
 
-    /* Panel */
-    #vd-agent-panel {
-      position: fixed; bottom: 92px; right: 24px; z-index: 9999;
-      width: 380px; height: 560px;
-      background: var(--vd-bg);
-      border: 1px solid var(--vd-border);
-      border-radius: var(--vd-radius);
-      display: flex; flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,.7);
-      opacity: 0; transform: translateY(16px) scale(.97);
-      pointer-events: none;
-      transition: opacity .22s ease, transform .22s ease;
-    }
-    #vd-agent-panel.open {
-      opacity: 1; transform: translateY(0) scale(1);
-      pointer-events: all;
-    }
-    @media (max-width: 480px) {
-      #vd-agent-panel {
-        width: calc(100vw - 16px);
-        right: 8px; bottom: 84px;
-        height: calc(100vh - 100px);
-      }
-    }
+    .foot { margin-top: 16px; font-size: 13px; color: var(--tx2); }
 
-    /* Header */
-    .vd-header {
-      display: flex; align-items: center; gap: 8px;
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--vd-border);
-      background: var(--vd-surface);
-      flex-shrink: 0;
-    }
-    .vd-logo-mark {
-      width: 28px; height: 28px; border-radius: 8px;
-      background: linear-gradient(135deg, #818cf8, #c084fc);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
-    }
-    .vd-logo-text {
-      font-size: 13px; font-weight: 600; color: var(--vd-text);
-    }
-    .vd-logo-sub { font-size: 10px; color: var(--vd-muted); }
-    .vd-tabs {
-      display: flex; gap: 2px; margin-left: auto;
-      background: rgba(255,255,255,.04); border-radius: 8px; padding: 3px;
-    }
-    .vd-tabs button {
-      background: none; border: none; cursor: pointer;
-      font-size: 12px; font-weight: 500; color: var(--vd-muted);
-      padding: 5px 10px; border-radius: 6px;
-      transition: background .15s, color .15s;
-    }
-    .vd-tabs button.active { background: var(--vd-accent); color: #fff; }
-    .vd-close-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--vd-muted); font-size: 16px; padding: 4px 6px;
-      border-radius: 6px; line-height: 1;
-      transition: color .15s, background .15s;
-    }
-    .vd-close-btn:hover { color: var(--vd-text); background: rgba(255,255,255,.06); }
-
-    /* Panes */
-    .vd-pane { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-
-    /* Chat */
-    .vd-messages {
-      flex: 1; overflow-y: auto; padding: 12px;
-      display: flex; flex-direction: column; gap: 8px;
-      scroll-behavior: smooth;
-    }
-    .vd-messages::-webkit-scrollbar { width: 4px; }
-    .vd-messages::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-
-    .vd-bubble {
-      max-width: 88%; padding: 10px 13px;
-      border-radius: 12px; font-size: 13px; line-height: 1.55;
-      word-break: break-word;
-    }
-    .vd-bubble-user {
-      align-self: flex-end;
-      background: var(--vd-accent); color: #fff;
-      border-bottom-right-radius: 4px;
-    }
-    .vd-bubble-model {
-      align-self: flex-start;
-      background: var(--vd-surface); color: var(--vd-text);
-      border: 1px solid var(--vd-border);
-      border-bottom-left-radius: 4px;
-    }
-    .vd-bubble a { color: #a5b4fc; text-decoration: underline; }
-    .vd-bubble strong { font-weight: 600; color: #f1f5f9; }
-    .vd-bubble ul { padding-left: 16px; margin: 4px 0; }
-    .vd-bubble li { margin-bottom: 2px; }
-
-    .vd-thinking { display: flex; align-items: center; gap: 5px; padding: 12px 14px; }
-    .vd-thinking span {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--vd-muted); display: inline-block;
-      animation: vd-bounce .9s ease-in-out infinite;
-    }
-    .vd-thinking span:nth-child(2) { animation-delay: .15s; }
-    .vd-thinking span:nth-child(3) { animation-delay: .3s; }
-    @keyframes vd-bounce {
-      0%, 80%, 100% { transform: scale(.8); opacity: .4; }
-      40% { transform: scale(1.1); opacity: 1; }
-    }
-
-    .vd-empty-state {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 8px;
-      color: var(--vd-muted); font-size: 13px; text-align: center; padding: 24px;
-    }
-    .vd-empty-state .icon { font-size: 28px; margin-bottom: 4px; }
-
-    .vd-quick-row {
-      display: flex; gap: 6px; padding: 8px 12px;
-      flex-wrap: wrap; flex-shrink: 0;
-      border-top: 1px solid var(--vd-border);
-    }
-    .vd-chip {
-      background: rgba(129,140,248,.1);
-      border: 1px solid rgba(129,140,248,.2);
-      color: #a5b4fc; font-size: 11px; font-weight: 500;
-      border-radius: 20px; padding: 4px 10px;
-      cursor: pointer; white-space: nowrap;
-      transition: background .15s;
-    }
-    .vd-chip:hover { background: rgba(129,140,248,.22); }
-
-    .vd-input-row {
-      display: flex; gap: 8px; align-items: flex-end;
-      padding: 10px 12px; border-top: 1px solid var(--vd-border);
-      flex-shrink: 0;
-    }
-    #vd-chat-input {
-      flex: 1; background: var(--vd-surface);
-      border: 1px solid var(--vd-border); border-radius: 10px;
-      color: var(--vd-text); font-size: 13px; font-family: inherit;
-      padding: 9px 12px; resize: none; max-height: 96px;
-      outline: none; line-height: 1.5;
-      transition: border-color .15s;
-    }
-    #vd-chat-input:focus { border-color: var(--vd-accent); }
-    #vd-chat-input::placeholder { color: var(--vd-muted); }
-    #vd-send-btn {
-      width: 36px; height: 36px; border-radius: 10px; border: none;
-      background: var(--vd-accent); color: #fff; cursor: pointer;
-      font-size: 16px; display: flex; align-items: center; justify-content: center;
-      transition: background .15s, opacity .15s; flex-shrink: 0;
-    }
-    #vd-send-btn:hover { background: #6d7ff5; }
-    #vd-send-btn:disabled { opacity: .5; cursor: not-allowed; }
-    .vd-status {
-      font-size: 11px; transition: opacity .4s; opacity: 0;
-      padding: 0 12px 6px; flex-shrink: 0;
-    }
-
-    /* Tasks */
-    .vd-task-list {
-      flex: 1; overflow-y: auto; padding: 10px;
-      display: flex; flex-direction: column; gap: 4px;
-    }
-    .vd-task-item {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--vd-surface); border: 1px solid var(--vd-border);
-      border-radius: 8px; padding: 10px 12px;
-      transition: opacity .15s;
-    }
-    .vd-task-item.done { opacity: .5; }
-    .vd-task-item input[type=checkbox] { cursor: pointer; accent-color: var(--vd-accent); flex-shrink: 0; }
-    .vd-task-title { flex: 1; font-size: 13px; color: var(--vd-text); }
-    .vd-task-item.done .vd-task-title { text-decoration: line-through; color: var(--vd-muted); }
-    .vd-task-del {
-      background: none; border: none; cursor: pointer; color: var(--vd-muted);
-      font-size: 12px; padding: 2px 5px; border-radius: 4px; flex-shrink: 0;
-      transition: color .15s, background .15s;
-    }
-    .vd-task-del:hover { color: #f87171; background: rgba(248,113,113,.1); }
-
-    .vd-add-form {
-      display: none; gap: 8px; padding: 10px 12px;
-      border-top: 1px solid var(--vd-border); flex-shrink: 0;
-    }
-    #vd-task-input {
-      flex: 1; background: var(--vd-surface);
-      border: 1px solid var(--vd-border); border-radius: 8px;
-      color: var(--vd-text); font-size: 13px; font-family: inherit;
-      padding: 8px 12px; outline: none;
-      transition: border-color .15s;
-    }
-    #vd-task-input:focus { border-color: var(--vd-accent); }
-    #vd-task-input::placeholder { color: var(--vd-muted); }
-
-    .vd-task-footer {
-      display: flex; gap: 8px; padding: 10px 12px;
-      border-top: 1px solid var(--vd-border); flex-shrink: 0;
-    }
-
-    /* Buttons (generic) */
-    .vd-btn {
-      background: rgba(255,255,255,.06); border: 1px solid var(--vd-border);
-      color: var(--vd-text); font-size: 12px; font-weight: 500; font-family: inherit;
-      border-radius: 8px; padding: 8px 14px; cursor: pointer;
-      transition: background .15s, border-color .15s;
-    }
-    .vd-btn:hover { background: rgba(255,255,255,.1); }
-    .vd-btn-primary {
-      background: var(--vd-accent); border-color: var(--vd-accent); color: #fff;
-    }
-    .vd-btn-primary:hover { background: #6d7ff5; }
-    .vd-btn-sm { padding: 6px 10px; font-size: 11px; }
-
-    /* Guide pane */
-    .vd-guide-body {
-      flex: 1; overflow-y: auto; padding: 16px;
-      display: flex; flex-direction: column; gap: 14px;
-    }
-    .vd-guide-body::-webkit-scrollbar { width: 4px; }
-    .vd-guide-body::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-    .vd-guide-body label {
-      font-size: 11px; font-weight: 600; color: var(--vd-muted);
-      letter-spacing: .04em; text-transform: uppercase; margin-bottom: -8px;
-    }
-    .vd-input-field {
-      background: var(--vd-surface); border: 1px solid var(--vd-border);
-      border-radius: 8px; color: var(--vd-text); font-size: 13px; font-family: inherit;
-      padding: 9px 12px; outline: none; width: 100%;
-      transition: border-color .15s;
-    }
-    .vd-input-field:focus { border-color: var(--vd-accent); }
-    .vd-input-field::placeholder { color: var(--vd-muted); }
-    .vd-row { display: flex; gap: 6px; align-items: stretch; }
-    .vd-row .vd-input-field { flex: 1; }
-
-    .vd-guide-section-title {
-      font-size: 11px; font-weight: 700; color: var(--vd-accent);
-      letter-spacing: .06em; text-transform: uppercase;
-      border-bottom: 1px solid var(--vd-border); padding-bottom: 6px;
-      margin-top: 4px;
-    }
-    .vd-info-card {
-      background: var(--vd-surface); border: 1px solid var(--vd-border);
-      border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--vd-muted);
-      line-height: 1.55;
-    }
-    .vd-info-card b { color: var(--vd-text); }
-
-    .vd-model-select {
-      background: var(--vd-surface); border: 1px solid var(--vd-border);
-      border-radius: 8px; color: var(--vd-text); font-size: 13px; font-family: inherit;
-      padding: 9px 12px; outline: none; width: 100%; cursor: pointer;
-    }
-    .vd-model-select:focus { border-color: var(--vd-accent); }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .demo-links { display: none; } }
   </style>
 </head>
 <body>
 
-  <!-- Demo nav -->
   <nav class="demo-nav">
-    <span class="logo">ViaDecide</span>
-    <span class="badge">Agent Demo</span>
-    <a href="/" class="back">← Back to site</a>
+    <div class="demo-brand">
+      <span class="demo-dot"></span>
+      ViaDecide Agent
+    </div>
+    <div class="demo-links">
+      <a href="/alchemist">Alchemist</a>
+      <a href="/app-generator">App Generator</a>
+      <a href="/sales-dashboard">Sales Dashboard</a>
+      <a href="/finance-dashboard-msme">Finance Dashboard</a>
+    </div>
   </nav>
 
-  <!-- Guide page content -->
-  <div class="guide-wrap">
-    <div class="guide-hero">
-      <div class="hero-badge">AI-Powered</div>
-      <h1>ViaDecide Agent</h1>
-      <p>Your decision assistant, planning companion, and ViaDecide site guide — powered by Google Gemini. Click the button in the bottom-right to open the widget.</p>
-    </div>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Production Widget</div>
+      <h1>Global widget.<br>Safe by default.</h1>
+      <p>
+        This page embeds the production-ready ViaDecide Agent widget via
+        <span class="kbd">/js/viadecide-agent.js</span>.
+        Drop the same script tag into any ViaDecide page &mdash; no extra markup needed.
+      </p>
+    </section>
 
-    <div class="guide-section">
-      <h2>Features</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="icon">🧠</div>
-          <h3>Smart Chat</h3>
-          <p>Ask questions about decisions, policy, research, or any ViaDecide tool.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">✅</div>
-          <h3>Task Manager</h3>
-          <p>Track action items and export them alongside your chat to a .docx file.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">🗺️</div>
-          <h3>Site Navigator</h3>
-          <p>Agent knows all ViaDecide tools and links to them directly in responses.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">📄</div>
-          <h3>Export .docx</h3>
-          <p>Download your conversation and tasks as a Word document — shareable instantly.</p>
-        </div>
-      </div>
-    </div>
+    <div class="grid">
+      <article class="card">
+        <h2>What&rsquo;s included</h2>
+        <ul>
+          <li>Duplicate-injection guard via <span class="kbd">window.VDAgentLoaded</span>.</li>
+          <li>Multi-turn chat &mdash; full conversation history sent to Gemini on every message.</li>
+          <li>Tasks tab &mdash; add, complete, and delete action items stored in localStorage.</li>
+          <li>Internal route intelligence &mdash; suggests clickable ViaDecide pages based on your question.</li>
+          <li>Lazy DOCX export &mdash; document library loads only when you click export.</li>
+          <li>Fresh page context on every send: pathname, title, and meta description.</li>
+          <li>All interactions bound via <span class="kbd">addEventListener</span> &mdash; no global onclick attributes.</li>
+        </ul>
+      </article>
 
-    <div class="guide-section">
-      <h2>Quick Start</h2>
-      <div class="guide-card">
-        <div class="step-row">
-          <span class="step-num">1</span>
-          <div class="step-content">
-            <h3>Get a Gemini API Key</h3>
-            <p>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> and create a free API key. No credit card needed for the free tier.</p>
+      <aside class="card">
+        <h2>Quick test</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-n">1</div>
+            <p>Open the floating <strong>&#10022;</strong> button in the bottom-right corner.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">2</div>
+            <p>Go to <strong>Setup</strong>, paste a Gemini API key, and click <strong>Test key</strong>.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">3</div>
+            <p>Go to <strong>Tasks</strong>, click <strong>+ Add</strong>, type a task, and press <strong>Save</strong>.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">4</div>
+            <p>Click <strong>&#11015; Export .docx</strong> to download your session.</p>
           </div>
         </div>
-        <div class="step-row">
-          <span class="step-num">2</span>
-          <div class="step-content">
-            <h3>Open the Agent Widget</h3>
-            <p>Click the purple button in the bottom-right corner of this page to open the agent panel.</p>
-          </div>
-        </div>
-        <div class="step-row">
-          <span class="step-num">3</span>
-          <div class="step-content">
-            <h3>Enter Your Key</h3>
-            <p>Go to the <strong>Guide</strong> tab inside the widget, paste your key in the field, and click <strong>Save</strong>. Then hit <strong>Test</strong> to verify the connection.</p>
-          </div>
-        </div>
-        <div class="step-row">
-          <span class="step-num">4</span>
-          <div class="step-content">
-            <h3>Start Chatting</h3>
-            <p>Switch to the <strong>Chat</strong> tab and ask anything. Your key is stored in <code>localStorage</code> — never sent to our servers.</p>
-          </div>
-        </div>
-      </div>
+      </aside>
     </div>
 
-    <div class="guide-section">
-      <h2>Privacy &amp; Security</h2>
-      <div class="guide-card">
-        <p>Your Gemini API key is stored in your browser's <code>localStorage</code> and sent <strong>directly</strong> to Google's API — it never touches ViaDecide servers. Your chat history exists only in memory and is cleared when you refresh. You can clear your key at any time from the Guide tab.</p>
-      </div>
-    </div>
-
-    <div class="guide-section">
-      <h2>Embedding on Any Page</h2>
-      <div class="guide-card">
-        <h3>One-line install</h3>
-        <p style="margin-top:6px">Add this before <code>&lt;/body&gt;</code> to embed the widget on any ViaDecide page:</p>
-        <pre style="margin-top:10px;background:#0a0a0a;border:1px solid #1e293b;border-radius:8px;padding:12px;font-size:12px;color:#a5b4fc;overflow-x:auto"><code>&lt;script src="/js/viadecide-agent.js"&gt;&lt;/script&gt;</code></pre>
-        <p style="margin-top:8px">The script is idempotent — including it twice has no effect.</p>
-      </div>
-    </div>
+    <p class="foot">
+      The widget injects its own scoped DOM and CSS &mdash; works on any page without markup conflicts.
+    </p>
   </div>
 
-  <!-- ── ViaDecide Agent Widget ─────────────────────────────────── -->
-  <div id="vd-agent-root">
-
-    <!-- FAB -->
-    <button id="vd-agent-fab" onclick="window.VDAgent.toggle()" aria-label="Open ViaDecide Agent" aria-expanded="false">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-      </svg>
-    </button>
-
-    <!-- Panel -->
-    <div id="vd-agent-panel" role="dialog" aria-label="ViaDecide Agent" aria-modal="true">
-
-      <!-- Header -->
-      <div class="vd-header">
-        <div class="vd-logo-mark">V</div>
-        <div>
-          <div class="vd-logo-text">VD Agent</div>
-          <div class="vd-logo-sub">Powered by Gemini</div>
-        </div>
-        <div class="vd-tabs">
-          <button id="vd-tab-chat"  onclick="window.VDAgent.switchTab('chat')"  class="active">Chat</button>
-          <button id="vd-tab-tasks" onclick="window.VDAgent.switchTab('tasks')">Tasks</button>
-          <button id="vd-tab-guide" onclick="window.VDAgent.switchTab('guide')">Guide</button>
-        </div>
-        <button class="vd-close-btn" onclick="window.VDAgent.toggle()" aria-label="Close widget">✕</button>
-      </div>
-
-      <!-- ── Chat Pane ── -->
-      <div id="vd-pane-chat" class="vd-pane">
-        <div id="vd-chat-messages" class="vd-messages">
-          <!-- populated by JS -->
-        </div>
-        <div class="vd-quick-row">
-          <button class="vd-chip" onclick="window.VDAgent.quickSend('What tools does ViaDecide have?')">Tools</button>
-          <button class="vd-chip" onclick="window.VDAgent.quickSend('Help me make a decision')">Decisions</button>
-          <button class="vd-chip" onclick="window.VDAgent.quickSend('Summarize my active tasks')">My tasks</button>
-          <button class="vd-chip" onclick="window.VDAgent.quickSend('What is ViaDecide?')">About</button>
-        </div>
-        <div class="vd-input-row">
-          <textarea id="vd-chat-input" placeholder="Ask anything…" rows="1"></textarea>
-          <button id="vd-send-btn" onclick="window.VDAgent.send()" aria-label="Send message">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" width="16" height="16">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-            </svg>
-          </button>
-        </div>
-        <span id="vd-send-status" class="vd-status" aria-live="polite"></span>
-      </div>
-
-      <!-- ── Tasks Pane ── -->
-      <div id="vd-pane-tasks" class="vd-pane" style="display:none">
-        <div id="vd-task-list" class="vd-task-list">
-          <!-- populated by JS -->
-        </div>
-        <div id="vd-add-form" class="vd-add-form">
-          <input id="vd-task-input" class="vd-input-field" placeholder="Task title…" type="text" />
-          <button class="vd-btn vd-btn-primary vd-btn-sm" onclick="window.VDAgent.addTask()">Add</button>
-        </div>
-        <div class="vd-task-footer">
-          <button class="vd-btn" style="flex:1" onclick="window.VDAgent.toggleAddForm()">+ New task</button>
-          <button id="vd-docx-btn" class="vd-btn" onclick="window.VDAgent.saveDocx()">⬇ Save .docx</button>
-        </div>
-      </div>
-
-      <!-- ── Guide Pane ── -->
-      <div id="vd-pane-guide" class="vd-pane" style="display:none">
-        <div class="vd-guide-body">
-          <div class="vd-guide-section-title">API Key</div>
-          <label for="vd-key-input">Gemini API Key</label>
-          <div class="vd-row">
-            <input id="vd-key-input" class="vd-input-field" type="password" placeholder="AIzaSy…" autocomplete="off" />
-          </div>
-          <div class="vd-row">
-            <button class="vd-btn vd-btn-primary" style="flex:1" onclick="window.VDAgent.saveKey()">Save key</button>
-            <button class="vd-btn" onclick="window.VDAgent.clearKey()">Clear</button>
-            <button class="vd-btn" onclick="window.VDAgent.testKey()">Test</button>
-          </div>
-          <span id="vd-key-status" class="vd-status" style="padding:0" aria-live="polite"></span>
-
-          <div class="vd-guide-section-title">Model</div>
-          <select id="vd-model-select" class="vd-model-select">
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (recommended)</option>
-            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (fastest)</option>
-            <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro (most capable)</option>
-            <option value="gemini-2.5-pro-exp-03-25">Gemini 2.5 Pro (latest)</option>
-          </select>
-
-          <div class="vd-guide-section-title">About</div>
-          <div class="vd-info-card">
-            <b>ViaDecide Agent</b> is your AI-powered decision assistant. It knows all ViaDecide tools and can guide you to the right one. Your API key stays in your browser — it is never sent to ViaDecide servers.
-          </div>
-          <div class="vd-info-card">
-            <b>Get a free API key</b> at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#a5b4fc">Google AI Studio ↗</a>. The free tier is generous for personal use.
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /vd-agent-panel -->
-  </div><!-- /vd-agent-root -->
-
-  <script>
-  /* ================================================================
-     ViaDecide Agent — Production Widget v1.0
-     © ViaDecide. Embeddable on any page.
-  ================================================================ */
-  (function () {
-    'use strict';
-
-    /* A) Duplicate guard — prevents double mount if script included twice */
-    if (window.VDAgentLoaded) return;
-    window.VDAgentLoaded = true;
-
-    /* D) ViaDecide internal route map */
-    var VD_ROUTES = {
-      '/app-generator'          : 'App Generator',
-      '/alchemist'              : 'Prompt Alchemist',
-      '/decision-brief'         : 'Decision Brief',
-      '/brief'                  : 'Quick Decision Brief',
-      '/student-research'       : 'Student Research Tool',
-      '/finance-dashboard-msme' : 'MSME Finance Dashboard',
-      '/sales-dashboard'        : 'MSME Sales Dashboard',
-      '/StudyOS'                : 'StudyOS',
-      '/ViaGuide'               : 'ViaGuide',
-      '/ONDC-demo'              : 'ONDC Demo',
-      '/HexWars'                : 'HexWars',
-      '/printbydd-store'        : 'PrintByDD Store',
-      '/founder'                : 'Founder Page',
-      '/DharamDaxini'           : 'Dharam Daxini — Sessions',
-      '/cohort-apply-here'      : 'Cohort Application',
-      '/pricing'                : 'Pricing',
-      '/contact'                : 'Contact',
-    };
-
-    /* State */
-    var isOpen       = false;
-    var currentTab   = 'chat';
-    var isThinking   = false;
-    var _docxPromise = null;
-    var apiKey       = localStorage.getItem('vd_agent_key') || '';
-    var selectedModel = localStorage.getItem('vd_agent_model') || 'gemini-2.0-flash';
-    var tasks        = JSON.parse(localStorage.getItem('vd_tasks') || '[]');
-    var history      = [];
-
-    /* DOM helper */
-    function $id(id) { return document.getElementById(id); }
-
-    /* C) Page context — called fresh each time */
-    function getPageContext() {
-      var descEl = document.querySelector('meta[name="description"]');
-      return {
-        site : 'ViaDecide',
-        path : window.location.pathname,
-        title: document.title || 'ViaDecide',
-        desc : descEl ? (descEl.content || '') : '',
-      };
-    }
-
-    /* G) HTML escape — used everywhere text is injected into innerHTML */
-    function esc(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    /* E) XSS-safe markup renderer
-       Order: escape → internal links → bold → lists → line breaks */
-    function formatText(raw) {
-      /* 1. Escape all HTML first — prevents XSS from model output */
-      var s = esc(raw);
-
-      /* 2. Safe internal links only: [label](/path)
-            path regex: starts with /, only safe chars, max 120 chars */
-      s = s.replace(
-        /\[([^\]]{1,80})\]\((\/[A-Za-z0-9\-_./#]{1,120})\)/g,
-        '<a href="$2" target="_self">$1 ↗</a>'
-      );
-
-      /* 3. Bold: **text** */
-      s = s.replace(/\*\*([^*\n]{1,200}?)\*\*/g, '<strong>$1</strong>');
-
-      /* 4. Group consecutive bullet lines into <ul><li> */
-      var lines = s.split('\n');
-      var out = [];
-      var inList = false;
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        var isBullet = /^[-•*]\s+/.test(line);
-        if (isBullet) {
-          if (!inList) { out.push('<ul>'); inList = true; }
-          out.push('<li>' + line.replace(/^[-•*]\s+/, '') + '</li>');
-        } else {
-          if (inList) { out.push('</ul>'); inList = false; }
-          out.push(line);
-        }
-      }
-      if (inList) out.push('</ul>');
-
-      /* 5. Join with <br>, suppress breaks inside list tags */
-      return out.join('\n')
-        .replace(/\n?(<ul>)/g, '$1')
-        .replace(/(<\/ul>)\n?/g, '$1')
-        .replace(/\n/g, '<br>');
-    }
-
-    /* H) System prompt — built fresh on every send() */
-    function buildSystemPrompt() {
-      var ctx = getPageContext();
-      var routeList = Object.keys(VD_ROUTES).map(function (path) {
-        return '  [' + VD_ROUTES[path] + '](' + path + ')';
-      }).join('\n');
-      var activeTasks = tasks.filter(function (t) { return !t.done; });
-      var taskList = activeTasks.length
-        ? activeTasks.map(function (t) { return '  - ' + t.title; }).join('\n')
-        : '  (none)';
-
-      return 'You are the ViaDecide AI Agent — a decision assistant, planning companion, and site guide for ViaDecide (viadecide.com).\n\n' +
-        'Current page: ' + ctx.title + ' (' + ctx.path + ')\n' +
-        (ctx.desc ? 'Page description: ' + ctx.desc + '\n' : '') +
-        '\nViaDecide tools — link to them when relevant:\n' + routeList + '\n' +
-        '\nUser\'s active tasks:\n' + taskList + '\n' +
-        '\nGuidelines:\n' +
-        '- Be concise and actionable\n' +
-        '- Use **bold** for key terms\n' +
-        '- Use bullet lists (- item) for options or steps\n' +
-        '- When suggesting a ViaDecide tool, use its [Tool Name](/path) markdown link\n' +
-        '- Only use internal links (paths starting with /); no external URLs\n' +
-        '- Do not include the full URL — only the path';
-    }
-
-    /* B) Lazy docx loader — 500KB loaded only when user requests export */
-    function loadDocx() {
-      if (_docxPromise) return _docxPromise;
-      _docxPromise = new Promise(function (resolve, reject) {
-        if (window.docx) { resolve(window.docx); return; }
-        var s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
-        s.onload  = function () { resolve(window.docx); };
-        s.onerror = function () {
-          _docxPromise = null;
-          reject(new Error('Failed to load document library. Check your internet connection.'));
-        };
-        document.head.appendChild(s);
-      });
-      return _docxPromise;
-    }
-
-    /* ── Render helpers ────────────────────────────────────────── */
-    function renderMessages() {
-      var box = $id('vd-chat-messages');
-      if (!box) return;
-      if (!history.length) {
-        box.innerHTML =
-          '<div class="vd-empty-state">' +
-            '<div class="icon">🤔</div>' +
-            '<div>Ask me anything about ViaDecide,<br>your decisions, or your tasks.</div>' +
-          '</div>';
-        return;
-      }
-      box.innerHTML = history.map(function (m) {
-        var content = m.role === 'model' ? formatText(m.text) : esc(m.text);
-        return '<div class="vd-bubble vd-bubble-' + m.role + '">' + content + '</div>';
-      }).join('');
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function renderTasks() {
-      var list = $id('vd-task-list');
-      if (!list) return;
-      if (!tasks.length) {
-        list.innerHTML =
-          '<div class="vd-empty-state">' +
-            '<div class="icon">✅</div>' +
-            '<div>No tasks yet. Add one below.</div>' +
-          '</div>';
-        return;
-      }
-      list.innerHTML = tasks.map(function (t, i) {
-        return '<div class="vd-task-item' + (t.done ? ' done' : '') + '">' +
-          '<input type="checkbox"' + (t.done ? ' checked' : '') +
-            ' onchange="window.VDAgent.toggleTask(' + i + ')" />' +
-          '<span class="vd-task-title">' + esc(t.title) + '</span>' +
-          '<button class="vd-task-del" onclick="window.VDAgent.deleteTask(' + i + ')">✕</button>' +
-        '</div>';
-      }).join('');
-    }
-
-    /* ── Status helper ─────────────────────────────────────────── */
-    function showStatus(elId, msg, color) {
-      var el = $id(elId);
-      if (!el) return;
-      el.textContent = msg;
-      el.style.color = color || '#94a3b8';
-      el.style.opacity = '1';
-      setTimeout(function () { el.style.opacity = '0'; }, 3500);
-    }
-
-    /* ── Gemini API call ────────────────────────────────────────── */
-    function callGemini(userText, histArr) {
-      var model = selectedModel;
-      var url = 'https://generativelanguage.googleapis.com/v1/models/' +
-                model + ':generateContent?key=' + apiKey;
-      var contents = histArr.map(function (m) {
-        return { role: m.role, parts: [{ text: m.text }] };
-      }).concat([{ role: 'user', parts: [{ text: userText }] }]);
-
-      return fetch(url, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({
-          system_instruction: { parts: [{ text: buildSystemPrompt() }] },
-          contents: contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-        }),
-      }).then(function (resp) {
-        if (!resp.ok) {
-          return resp.json().catch(function () { return {}; }).then(function (err) {
-            throw new Error((err && err.error && err.error.message) || ('HTTP ' + resp.status));
-          });
-        }
-        return resp.json();
-      }).then(function (data) {
-        return (data &&
-          data.candidates &&
-          data.candidates[0] &&
-          data.candidates[0].content &&
-          data.candidates[0].content.parts &&
-          data.candidates[0].content.parts[0] &&
-          data.candidates[0].content.parts[0].text) || '';
-      });
-    }
-
-    /* ── Public widget functions ────────────────────────────────── */
-    function toggle() {
-      isOpen = !isOpen;
-      var panel = $id('vd-agent-panel');
-      var fab   = $id('vd-agent-fab');
-      if (panel) panel.classList.toggle('open', isOpen);
-      if (fab)   fab.setAttribute('aria-expanded', String(isOpen));
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      ['chat', 'tasks', 'guide'].forEach(function (t) {
-        var btn  = $id('vd-tab-' + t);
-        var pane = $id('vd-pane-' + t);
-        if (btn)  btn.classList.toggle('active', t === tab);
-        if (pane) pane.style.display = t === tab ? 'flex' : 'none';
-      });
-      if (tab === 'tasks') renderTasks();
-    }
-
-    function saveKey() {
-      var input = $id('vd-key-input');
-      if (!input) return;
-      apiKey = input.value.trim();
-      if (apiKey) {
-        localStorage.setItem('vd_agent_key', apiKey);
-        showStatus('vd-key-status', '✓ Key saved', '#4ade80');
-      } else {
-        localStorage.removeItem('vd_agent_key');
-        showStatus('vd-key-status', 'Key cleared', '#f87171');
-      }
-    }
-
-    function clearKey() {
-      apiKey = '';
-      localStorage.removeItem('vd_agent_key');
-      var input = $id('vd-key-input');
-      if (input) input.value = '';
-      showStatus('vd-key-status', 'Key cleared', '#f87171');
-    }
-
-    function testKey() {
-      if (!apiKey) {
-        showStatus('vd-key-status', '⚠ Enter a key first', '#f87171');
-        return;
-      }
-      showStatus('vd-key-status', '⏳ Testing…', '#94a3b8');
-      callGemini('Reply with the single word OK.', []).then(function (reply) {
-        showStatus('vd-key-status',
-          reply ? '✓ Connected · ' + selectedModel : '✗ No response',
-          reply ? '#4ade80' : '#f87171');
-      }).catch(function (e) {
-        showStatus('vd-key-status', '✗ ' + e.message.slice(0, 50), '#f87171');
-      });
-    }
-
-    function send() {
-      var input = $id('vd-chat-input');
-      if (!input) return;
-      var text = input.value.trim();
-      if (!text || isThinking) return;
-      if (!apiKey) {
-        showStatus('vd-send-status', '⚠ Add your API key in the Guide tab', '#f87171');
-        return;
-      }
-
-      input.value = '';
-      /* auto-resize textarea back to 1 row */
-      input.style.height = 'auto';
-
-      history.push({ role: 'user', text: text });
-      renderMessages();
-
-      isThinking = true;
-      var btn = $id('vd-send-btn');
-      if (btn) btn.disabled = true;
-
-      /* Thinking dots */
-      var box = $id('vd-chat-messages');
-      var thinking = document.createElement('div');
-      thinking.id = 'vd-thinking';
-      thinking.className = 'vd-bubble vd-bubble-model vd-thinking';
-      thinking.innerHTML = '<span></span><span></span><span></span>';
-      if (box) { box.appendChild(thinking); box.scrollTop = box.scrollHeight; }
-
-      /* Pass history without the last user message (already in contents) */
-      callGemini(text, history.slice(0, -1)).then(function (reply) {
-        history.push({ role: 'model', text: reply || '(no response)' });
-      }).catch(function (e) {
-        history.push({ role: 'model', text: '**Error:** ' + e.message });
-      }).finally(function () {
-        isThinking = false;
-        if (btn) btn.disabled = false;
-        var t = $id('vd-thinking');
-        if (t) t.remove();
-        renderMessages();
-      });
-    }
-
-    function quickSend(text) {
-      var input = $id('vd-chat-input');
-      if (input) input.value = text;
-      send();
-    }
-
-    function toggleAddForm() {
-      var form = $id('vd-add-form');
-      if (!form) return;
-      var visible = form.style.display !== 'none';
-      form.style.display = visible ? 'none' : 'flex';
-      if (!visible) {
-        var inp = $id('vd-task-input');
-        if (inp) inp.focus();
-      }
-    }
-
-    function addTask() {
-      var input = $id('vd-task-input');
-      if (!input) return;
-      var title = input.value.trim();
-      if (!title) return;
-      tasks.push({ title: title, done: false });
-      localStorage.setItem('vd_tasks', JSON.stringify(tasks));
-      input.value = '';
-      toggleAddForm();
-      renderTasks();
-    }
-
-    function toggleTask(i) {
-      if (tasks[i] !== undefined) {
-        tasks[i].done = !tasks[i].done;
-        localStorage.setItem('vd_tasks', JSON.stringify(tasks));
-        renderTasks();
-      }
-    }
-
-    function deleteTask(i) {
-      tasks.splice(i, 1);
-      localStorage.setItem('vd_tasks', JSON.stringify(tasks));
-      renderTasks();
-    }
-
-    function saveDocx() {
-      var btn = $id('vd-docx-btn');
-      if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading…'; }
-
-      loadDocx().then(function (lib) {
-        var Document   = lib.Document;
-        var Paragraph  = lib.Paragraph;
-        var TextRun    = lib.TextRun;
-        var Packer     = lib.Packer;
-        var HeadingLevel = lib.HeadingLevel;
-
-        var children = [
-          new Paragraph({ text: 'ViaDecide Agent — Export', heading: HeadingLevel.HEADING_1 }),
-          new Paragraph({ text: 'Exported: ' + new Date().toLocaleString() }),
-          new Paragraph({ text: '' }),
-        ];
-
-        if (history.length) {
-          children.push(new Paragraph({ text: 'Chat', heading: HeadingLevel.HEADING_2 }));
-          history.forEach(function (m) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: (m.role === 'user' ? 'You' : 'Agent') + ': ', bold: true })],
-            }));
-            /* Strip markdown for docx */
-            var plain = m.text.replace(/\*\*(.*?)\*\*/g, '$1');
-            children.push(new Paragraph({ text: plain }));
-            children.push(new Paragraph({ text: '' }));
-          });
-        }
-
-        if (tasks.length) {
-          children.push(new Paragraph({ text: 'Tasks', heading: HeadingLevel.HEADING_2 }));
-          tasks.forEach(function (t) {
-            children.push(new Paragraph({ text: (t.done ? '✓ ' : '○ ') + t.title }));
-          });
-        }
-
-        var doc = new Document({ sections: [{ children: children }] });
-        return Packer.toBlob(doc);
-      }).then(function (blob) {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'viadecide-agent-' + Date.now() + '.docx';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
-      }).catch(function (e) {
-        alert('Export failed: ' + e.message);
-      }).finally(function () {
-        if (btn) { btn.disabled = false; btn.textContent = '⬇ Save .docx'; }
-      });
-    }
-
-    /* ── Init ─────────────────────────────────────────────────── */
-    function init() {
-      /* Model selector */
-      var modelSel = $id('vd-model-select');
-      if (modelSel) {
-        modelSel.value = selectedModel;
-        modelSel.addEventListener('change', function () {
-          selectedModel = modelSel.value;
-          localStorage.setItem('vd_agent_model', selectedModel);
-        });
-      }
-
-      /* Key input */
-      var keyInput = $id('vd-key-input');
-      if (keyInput) {
-        keyInput.value = apiKey;
-        keyInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') saveKey();
-        });
-      }
-
-      /* Chat input — auto-resize + Enter to send */
-      var chatInput = $id('vd-chat-input');
-      if (chatInput) {
-        chatInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            send();
-          }
-        });
-        chatInput.addEventListener('input', function () {
-          this.style.height = 'auto';
-          this.style.height = Math.min(this.scrollHeight, 96) + 'px';
-        });
-      }
-
-      /* Task input — Enter to add */
-      var taskInput = $id('vd-task-input');
-      if (taskInput) {
-        taskInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') addTask();
-        });
-      }
-
-      /* Show chat tab by default */
-      switchTab('chat');
-      renderMessages();
-    }
-
-    /* F) Performance-safe boot — no blocking work on page load */
-    function boot() {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else if ('requestIdleCallback' in window) {
-        requestIdleCallback(init, { timeout: 2000 });
-      } else {
-        setTimeout(init, 0);
-      }
-    }
-    boot();
-
-    /* H) Expose as window.VDAgent — required for onclick="window.VDAgent.*" */
-    window.VDAgent = {
-      toggle        : toggle,
-      switchTab     : switchTab,
-      saveKey       : saveKey,
-      clearKey      : clearKey,
-      testKey       : testKey,
-      send          : send,
-      quickSend     : quickSend,
-      toggleAddForm : toggleAddForm,
-      addTask       : addTask,
-      toggleTask    : toggleTask,
-      deleteTask    : deleteTask,
-      saveDocx      : saveDocx,
-    };
-
-  }());
-  </script>
-
+  <script src="/js/viadecide-agent.js"></script>
 </body>
 </html>

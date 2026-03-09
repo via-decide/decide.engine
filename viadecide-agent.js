@@ -15,42 +15,75 @@
   var STORAGE_KEY   = 'vd_agent_key';
   var STORAGE_MODEL = 'vd_agent_model';
   var STORAGE_TASKS = 'vd_tasks';
+  var STORAGE_HIST  = 'vd_agent_history';   // Bug 1 fix
   var DEFAULT_MODEL = 'gemini-2.5-flash';
   var MODEL_OPTIONS = [
-    { value: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash (recommended)' },
-    { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite (fastest)'  },
-    { value: 'gemini-2.5-pro',        label: 'Gemini 2.5 Pro (most capable)'    },
+    { value: 'gemini-2.5-flash',         label: 'Gemini 2.5 Flash (recommended)' },
+    { value: 'gemini-2.5-flash-8b',      label: 'Gemini 2.5 Flash 8B (fastest)'  }, // Bug 5: was 'gemini-2.5-flash-lite' (invalid)
+    { value: 'gemini-2.5-pro',           label: 'Gemini 2.5 Pro (most capable)'   },
   ];
 
   var VD_ROUTES = {
-    '/app-generator'          : 'App Generator',
-    '/alchemist'              : 'Prompt Alchemist',
-    '/decision-brief'         : 'Decision Brief',
-    '/brief'                  : 'Quick Decision Brief',
-    '/student-research'       : 'Student Research Tool',
-    '/finance-dashboard-msme' : 'MSME Finance Dashboard',
-    '/sales-dashboard'        : 'MSME Sales Dashboard',
-    '/StudyOS'                : 'StudyOS',
-    '/ViaGuide'               : 'ViaGuide',
-    '/ONDC-demo'              : 'ONDC Demo',
-    '/HexWars'                : 'HexWars',
-    '/printbydd-store'        : 'PrintByDD Store',
-    '/founder'                : 'Founder Page',
-    '/DharamDaxini'           : 'Dharam Daxini \u2014 Sessions',
-    '/cohort-apply-here'      : 'Cohort Application',
-    '/pricing'                : 'Pricing',
-    '/contact'                : 'Contact',
+    '/app-generator'               : 'App Generator',
+    '/alchemist'                   : 'Alchemist',
+    '/decision-brief'              : 'Decision Brief',
+    '/brief'                       : 'Quick Decision Brief',
+    '/student-research'            : 'Student Research Tool',
+      '/sales-dashboard'             : 'MSME Sales Dashboard',
+    '/studyos'                     : 'StudyOS',
+    '/viaguide'                    : 'ViaGuide',
+    '/ondc-demo'                   : 'ONDC Demo',
+    '/hexwars'                     : 'HexWars',
+    '/wings-of-fire-quiz'          : 'Wings of Fire Quiz',
+    '/mars-rover-simulator-game'   : 'Mars Rover Simulator',
+    '/hivaland'                    : 'HivaLand',
+    '/interview-prep'              : 'Interview Simulator',
+    '/prompt-alchemy'              : 'Prompt Alchemy',
+    '/memory'                      : 'Memory Engine',
+    '/swipeos'                     : 'SwipeOS',
+    '/swipeos-gandhidham'          : 'SwipeOS \u00B7 Gandhidham',
+    '/agent'                       : 'ViaDecide Agent',
+    '/printbydd-store'             : 'PrintByDD Store',
+    '/printbydd'                   : 'PrintByDD Store',
+    '/engine-deals'                : 'Engine Deals',
+    '/discounts'                   : 'Discounts Hub',
+    '/cashback-rules'              : 'Cashback Rules',
+    '/cashback-claim'              : 'Cashback Claim',
+    '/decide-service'              : 'Decide.Service',
+    '/decide-foodrajkot'           : 'Decide Food \u00B7 Rajkot',
+    '/engine-license'              : 'Engine License',
+    '/cohort-apply-here'           : 'Cohort Program',
+    '/pricing'                     : 'Pricing',
+    '/engine-activation-request'   : 'Engine Activation',
+    '/founder'                     : 'Founder',
+    '/dharamdaxini'                : 'Dharam Daxini \u2014 Sessions',
+    '/contact'                     : 'Contact',
+    '/privacy'                     : 'Privacy',
+    '/terms'                       : 'Terms',
+    '/viadecide-blogs'             : 'ViaDecide Blogs',
+    '/decision-infrastructure-india': 'Decision Infrastructure India',
+    '/ondc-for-bharat'             : 'ONDC for Bharat',
+    '/indiaai-mission-2025'        : 'IndiaAI Mission 2025',
+    '/viadecide-public-beta'       : 'ViaDecide Public Beta',
+    '/jalaram-food-court-rajkot'   : 'Jalaram Food Court',
+    '/payment-register'            : 'Payroll Register',
+    '/laptops-under-50000'         : 'Laptops Under \u20B950k',
+    '/finance-dashboard-msme'      : 'FinTrack \u2014 Finance Dashboard',
   };
 
   /* ── State ──────────────────────────────────────────────────── */
-  var isOpen        = false;
-  var currentTab    = 'chat';
-  var isThinking    = false;
-  var _docxPromise  = null;
-  var apiKey        = localStorage.getItem(STORAGE_KEY)   || '';
-  var selectedModel = localStorage.getItem(STORAGE_MODEL) || DEFAULT_MODEL;
-  var tasks         = JSON.parse(localStorage.getItem(STORAGE_TASKS) || '[]');
-  var history       = [];
+  var isOpen         = false;
+  var currentTab     = 'chat';
+  var isThinking     = false;
+  var _sendGeneration = 0;          // Bug 2 fix — invalidates in-flight requests on clearChat
+  var _docxPromise   = null;
+  var apiKey         = localStorage.getItem(STORAGE_KEY)   || '';
+  var selectedModel  = localStorage.getItem(STORAGE_MODEL) || DEFAULT_MODEL;
+  var tasks          = JSON.parse(localStorage.getItem(STORAGE_TASKS) || '[]');
+  var history        = (function () {                       // Bug 1 fix — persist chat history
+    try { return JSON.parse(localStorage.getItem(STORAGE_HIST) || '[]'); }
+    catch (e) { return []; }
+  }());
 
   /* ── DOM helper ─────────────────────────────────────────────── */
   function $id(id) { return document.getElementById(id); }
@@ -78,21 +111,34 @@
   /* ── Safe markup renderer ────────────────────────────────────── */
   function formatText(raw) {
     var s = esc(raw);
-    /* Internal links only */
+    /* Internal links only — data-vd-route lets the click handler open the modal */
     s = s.replace(
       /\[([^\]]{1,80})\]\((\/[A-Za-z0-9\-_./#]{1,120})\)/g,
-      '<a href="$2" target="_self">$1 \u2197</a>'
+      '<a href="$2" data-vd-route="$2" target="_self">$1 \u2197</a>'
     );
     /* Bold */
     s = s.replace(/\*\*([^*\n]{1,200}?)\*\*/g, '<strong>$1</strong>');
-    /* Lists */
+    /* Lists — Bug 3 fix: blank lines between bullets don't close the ul prematurely */
     var lines = s.split('\n'), out = [], inList = false;
     for (var i = 0; i < lines.length; i++) {
       var line     = lines[i];
       var isBullet = /^[-\u2022*]\s+/.test(line);
+      var isEmpty  = line.trim() === '';
+
       if (isBullet) {
         if (!inList) { out.push('<ul>'); inList = true; }
         out.push('<li>' + line.replace(/^[-\u2022*]\s+/, '') + '</li>');
+      } else if (isEmpty && inList) {
+        /* Peek ahead: if the next non-empty line is also a bullet, stay in list */
+        var nextIsBullet = false;
+        for (var j = i + 1; j < lines.length; j++) {
+          if (lines[j].trim() === '') continue;
+          nextIsBullet = /^[-\u2022*]\s+/.test(lines[j]);
+          break;
+        }
+        if (!nextIsBullet) { out.push('</ul>'); inList = false; }
+        /* skip emitting the blank line inside a continuing list */
+        if (!nextIsBullet) out.push(line);
       } else {
         if (inList) { out.push('</ul>'); inList = false; }
         out.push(line);
@@ -379,7 +425,7 @@
                   '<ul>',
                     '<li>Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio \u2197</a>.</li>',
                     '<li><strong>Gemini 2.5 Flash</strong> is a good default for fast, browser-based usage.</li>',
-                    '<li>Your key, model, tasks, and chat history stay in <strong>localStorage</strong> on this device only.</li>',
+                    '<li>Your key, model, tasks, and chat history are all saved in <strong>localStorage</strong> on this device. History is trimmed to the last 60 messages.</li>',
                     '<li>Ask &ldquo;Which ViaDecide tool should I use?&rdquo; for clickable route suggestions.</li>',
                     '<li>Use Export \u2B07 to download your conversation and tasks as a .docx file.</li>',
                   '</ul>',
@@ -463,11 +509,61 @@
     el.classList.add('vd-show');
   }
 
+  /* ── Route link handler — opens subpage in modal, not full nav ── */
+  function openRoute(path) {
+    // Normalise: strip leading slash for slug lookup
+    var slug = path.replace(/^\/+/, '').replace(/\/.*$/, '').toLowerCase();
+
+    // Look up name+icon from VD_ROUTES (keys are /slug format)
+    var routeKey = '/' + slug;
+    var name = VD_ROUTES[routeKey] || slug.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+
+    // Try VDRouter first (preferred — handles history + URL sync)
+    if (window.VDRouter && typeof window.VDRouter.go === 'function') {
+      window.VDRouter.go(slug, { overlay: true, title: name });
+      return;
+    }
+
+    // Try index.html's openModal directly
+    if (typeof window.openModal === 'function') {
+      // Use slug+'.html' for root-level tools; sub-paths (containing '/') need '/index.html'
+      var filePath = path.endsWith('.html')
+        ? path
+        : (slug.indexOf('/') === -1 ? slug + '.html' : path + '/index.html');
+      window.openModal(filePath, '🔗', name);
+      return;
+    }
+
+    // Last resort: navigate (user leaves page — acceptable fallback)
+    window.location.href = path;
+  }
+
+  /* ── Bug 1 fix: persist history ─────────────────────────────── */
+  function saveHistory() {
+    try {
+      // Keep last 60 messages to stay within localStorage limits
+      localStorage.setItem(STORAGE_HIST, JSON.stringify(history.slice(-60)));
+    } catch (e) { /* localStorage full — fail silently */ }
+  }
+
+  /* ── Bug 4 fix: Gemini requires strictly alternating roles ───── */
+  function sanitizeHistory(hist) {
+    var out = [], lastRole = null;
+    for (var i = 0; i < hist.length; i++) {
+      if (hist[i].role !== lastRole) {
+        out.push(hist[i]);
+        lastRole = hist[i].role;
+      }
+    }
+    return out;
+  }
+
   /* ── Gemini API (multi-turn) ─────────────────────────────────── */
   function callGemini(userText, histArr) {
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
               encodeURIComponent(selectedModel) + ':generateContent?key=' + apiKey;
-    var contents = histArr.map(function (m) {
+    // Bug 4 fix: sanitize to guarantee alternating user/model roles
+    var contents = sanitizeHistory(histArr).map(function (m) {
       return { role: m.role, parts: [{ text: m.text }] };
     }).concat([{ role: 'user', parts: [{ text: userText }] }]);
 
@@ -570,8 +666,10 @@
     }
     input.value = '';
     history.push({ role: 'user', text: text });
+    saveHistory();                                // Bug 1 fix
     renderMessages();
     isThinking = true;
+    var gen = ++_sendGeneration;                  // Bug 2 fix — snapshot generation
     var btn = $id('vd-send-btn');
     if (btn) btn.disabled = true;
     setStatus('Thinking\u2026');
@@ -584,10 +682,15 @@
     if (box) { box.appendChild(dots); box.scrollTop = box.scrollHeight; }
 
     callGemini(text, history.slice(0, -1)).then(function (reply) {
+      if (gen !== _sendGeneration) return;        // Bug 2 fix — discard stale response
       history.push({ role: 'model', text: reply || '(no response)' });
+      saveHistory();                              // Bug 1 fix
     }).catch(function (e) {
+      if (gen !== _sendGeneration) return;        // Bug 2 fix
       history.push({ role: 'model', text: '**Error:** ' + e.message });
+      saveHistory();                              // Bug 1 fix
     }).finally(function () {
+      if (gen !== _sendGeneration) return;        // Bug 2 fix — skip stale UI update
       isThinking = false;
       if (btn) btn.disabled = false;
       var d = $id('vd-thinking-dots');
@@ -605,7 +708,14 @@
   }
 
   function clearChat() {
+    _sendGeneration++;                              // Bug 2 fix — invalidate any in-flight request
+    isThinking = false;
+    var btn = $id('vd-send-btn');
+    if (btn) btn.disabled = false;
+    var dots = $id('vd-thinking-dots');
+    if (dots) dots.remove();
     history = [];
+    localStorage.removeItem(STORAGE_HIST);          // Bug 1 fix — clear persisted history
     renderMessages();
     setStatus('Chat cleared.');
   }
@@ -724,6 +834,17 @@
 
     var clearBtn = $id('vd-clear-btn');
     if (clearBtn) clearBtn.addEventListener('click', clearChat);
+
+    /* Internal route links in chat bubbles — open modal instead of navigating away */
+    var msgBox = $id('vd-chat-messages');
+    if (msgBox) {
+      msgBox.addEventListener('click', function (e) {
+        var link = e.target.closest('a[data-vd-route]');
+        if (!link) return;
+        e.preventDefault();
+        openRoute(link.getAttribute('data-vd-route'));
+      });
+    }
 
     /* Quick chips — delegation */
     var quickRow = document.querySelector('#vd-agent-root .vd-quick');
