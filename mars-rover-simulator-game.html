@@ -1855,6 +1855,26 @@ async function demoUnlock(){
   if(!v){
     if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
     if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
+    if(inp) inp.focus();
     if(inp) inp.focus();
     return;
   }
@@ -2335,6 +2355,8 @@ function maybeTriggerTerrainEvent(){
   bind('terrainSafeBtn',evt.safe);
   bind('terrainAggBtn',evt.aggr);
   openModal('terrainEventModal');
+}
+
 }
 function getDifficultyPreset(){
   return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
