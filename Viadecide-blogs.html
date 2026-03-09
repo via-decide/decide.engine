@@ -53,6 +53,7 @@
     /* ── SECTIONS ────────────────────────────────────────────── */
     .section {
       scroll-snap-align: start;
+      scroll-snap-stop: always;
       min-height: 100dvh;
       display: flex;
       align-items: center;
@@ -72,10 +73,11 @@
       transform: translateY(0) scale(1);
     }
     .section.infographics-section {
-      min-height: auto;
+      min-height: 100dvh;
       align-items: flex-start;
       padding: 100px 0 60px 20px; /* Adjusted padding to let carousels bleed to the edge */
-      scroll-snap-align: none;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
     .section.infographics-section .section-inner { max-width: 100%; padding-right: 20px; }
     .infographics-header { max-width: 780px; margin: 0 auto 56px auto; }
@@ -578,18 +580,52 @@ const FOOTER = {
   company: [ { label: "About Us", route: "about" }, { label: "Methodology", route: "methodology" } ]
 };
 
+
+const BLOG_ROUTE_MAP = {
+  compare: 'alchemist',
+  tools: 'alchemist',
+  guides: 'viaguide',
+  'price-fairness': 'alchemist',
+  'red-flag-detector': 'alchemist',
+  'laptops-under-50000': 'laptops-under-50000',
+  'earbuds-under-3000': 'viadecide-blogs',
+  'mid-range-phones-2025': 'viadecide-blogs',
+  about: 'founder',
+  methodology: 'founder'
+};
+function toHref(route){
+  const slug = BLOG_ROUTE_MAP[route] || route;
+  if (window.VDRouter && window.VDRouter.resolve) {
+    return '/' + window.VDRouter.resolve(slug);
+  }
+  return '/' + slug + '.html';
+}
+function bindRouteLinks(){
+  document.querySelectorAll('a[data-route]').forEach(a=>{
+    if(a._bound) return;
+    a.addEventListener('click', (e)=>{
+      const route = a.getAttribute('data-route');
+      const slug = BLOG_ROUTE_MAP[route] || route;
+      if(window.VDRouter){
+        e.preventDefault();
+        window.VDRouter.go(slug);
+      }
+    });
+    a._bound = true;
+  });
+}
 (function renderSiteNav() {
   const nav = document.getElementById('siteNav');
   if (!nav) return;
   nav.innerHTML = `<a class="brand" href="/">ViaDecide</a><div class="nav-links"></div>`;
   const links = nav.querySelector('.nav-links');
-  TOP_NAV.forEach(item => links.innerHTML += `<a class="nav-link" href="${item.route}">${item.label}</a>`);
+  TOP_NAV.forEach(item => links.innerHTML += `<a class=\"nav-link\" href=\"${toHref(item.route)}\" data-route=\"${item.route}\">${item.label}</a>`);
 })();
 
 (function renderCarousels() {
   const tGrid = document.getElementById('toolsGrid');
   if (tGrid) TOOLS_GRID.forEach(t => tGrid.innerHTML += `
-    <a href="${t.route}" class="carousel-card">
+    <a href="${toHref(t.route)}" data-route="${t.route}" class="carousel-card">
       <div class="card-thumb"></div>
       <h4>${t.title}</h4><p>${t.desc}</p>
       <span class="cta-link">${t.cta} →</span>
@@ -597,7 +633,7 @@ const FOOTER = {
 
   const gGrid = document.getElementById('guidesGrid');
   if (gGrid) LATEST_GUIDES.forEach(g => gGrid.innerHTML += `
-    <a href="${g.route}" class="carousel-card">
+    <a href="${toHref(g.route)}" data-route="${g.route}" class="carousel-card">
       <div class="card-thumb"></div>
       <div style="font-size:11px;color:var(--acc);letter-spacing:.05em;">${g.tag.toUpperCase()}</div>
       <h4>${g.title}</h4>
@@ -615,10 +651,12 @@ const FOOTER = {
   const el = document.getElementById('footerNavGrid');
   if (!el) return;
   [{ h: 'Tools', i: FOOTER.tools }, { h: 'Guides', i: FOOTER.guides }, { h: 'Company', i: FOOTER.company }].forEach(col => {
-    let lis = col.i.map(item => `<li><a href="${item.route}">${item.label}</a></li>`).join('');
+    let lis = col.i.map(item => `<li><a href="${toHref(item.route)}" data-route="${item.route}">${item.label}</a></li>`).join('');
     el.innerHTML += `<div class="footer-col"><h5>${col.h}</h5><ul>${lis}</ul></div>`;
   });
 })();
+
+bindRouteLinks();
 
 const sections = Array.from(document.querySelectorAll('.section'));
 const secNumEl = document.getElementById('secNum');

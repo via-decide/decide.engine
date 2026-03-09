@@ -4,58 +4,109 @@
     {
       "source": "/sw.js",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Pragma",        "value": "no-cache" },
-        { "key": "Expires",       "value": "0" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
       ]
     },
     {
       "source": "/(.*).html",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Pragma",        "value": "no-cache" },
-        { "key": "Expires",       "value": "0" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
       ]
     },
     {
       "source": "/manifest.json",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Content-Type",  "value": "application/manifest+json" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
       ]
     },
     {
       "source": "/router.js",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Pragma",        "value": "no-cache" },
-        { "key": "Expires",       "value": "0" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
       ]
     },
     {
       "source": "/(.*).js",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
       ]
     },
     {
       "source": "/(.*).css",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
       ]
     },
     {
       "source": "/.well-known/assetlinks.json",
       "headers": [
-        { "key": "Cache-Control",  "value": "no-cache" },
-        { "key": "Content-Type",   "value": "application/json" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
       ]
     }
   ],
@@ -63,6 +114,158 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/ONDC-demo/index.html",
+      "destination": "/ONDC-demo.html",
+      "permanent": true
+    },
+    {
+      "source": "/alchemist/index.html",
+      "destination": "/alchemist.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-generator/index.html",
+      "destination": "/app-generator.html",
+      "permanent": true
+    },
+    {
+      "source": "/cashback-claim/index.html",
+      "destination": "/cashback-claim.html",
+      "permanent": true
+    },
+    {
+      "source": "/cashback-rules/index.html",
+      "destination": "/cashback-rules.html",
+      "permanent": true
+    },
+    {
+      "source": "/cohort-apply-here/index.html",
+      "destination": "/cohort-apply-here.html",
+      "permanent": true
+    },
+    {
+      "source": "/CustomSwipeEngineForm/index.html",
+      "destination": "/CustomSwipeEngineForm.html",
+      "permanent": true
+    },
+    {
+      "source": "/decide-foodrajkot/index.html",
+      "destination": "/decide-foodrajkot.html",
+      "permanent": true
+    },
+    {
+      "source": "/decide-service/index.html",
+      "destination": "/decide-service.html",
+      "permanent": true
+    },
+    {
+      "source": "/decision-brief-guide/index.html",
+      "destination": "/decision-brief-guide.html",
+      "permanent": true
+    },
+    {
+      "source": "/decision-brief/index.html",
+      "destination": "/decision-brief.html",
+      "permanent": true
+    },
+    {
+      "source": "/decision-infrastructure-india/index.html",
+      "destination": "/decision-infrastructure-india.html",
+      "permanent": true
+    },
+    {
+      "source": "/discounts/index.html",
+      "destination": "/discounts.html",
+      "permanent": true
+    },
+    {
+      "source": "/engine-activation-request/index.html",
+      "destination": "/engine-license.html",
+      "permanent": true
+    },
+    {
+      "source": "/engine-deals/index.html",
+      "destination": "/engine-deals.html",
+      "permanent": true
+    },
+    {
+      "source": "/engine-license/index.html",
+      "destination": "/engine-license.html",
+      "permanent": true
+    },
+    {
+      "source": "/finance-dashboard-msme/index.html",
+      "destination": "/finance-dashboard-msme.html",
+      "permanent": true
+    },
+    {
+      "source": "/founder/index.html",
+      "destination": "/founder.html",
+      "permanent": true
+    },
+    {
+      "source": "/indiaai-mission-2025/index.html",
+      "destination": "/indiaai-mission-2025.html",
+      "permanent": true
+    },
+    {
+      "source": "/interview-prep/index.html",
+      "destination": "/interview-prep.html",
+      "permanent": true
+    },
+    {
+      "source": "/Jalaram-food-court-rajkot/index.html",
+      "destination": "/Jalaram-food-court-rajkot.html",
+      "permanent": true
+    },
+    {
+      "source": "/multi-source-research-explained/index.html",
+      "destination": "/multi-source-research-explained.html",
+      "permanent": true
+    },
+    {
+      "source": "/ondc-for-bharat/index.html",
+      "destination": "/ondc-for-bharat.html",
+      "permanent": true
+    },
+    {
+      "source": "/payment-register/index.html",
+      "destination": "/payment-register.html",
+      "permanent": true
+    },
+    {
+      "source": "/pricing/index.html",
+      "destination": "/pricing.html",
+      "permanent": true
+    },
+    {
+      "source": "/sales-dashboard/index.html",
+      "destination": "/sales-dashboard.html",
+      "permanent": true
+    },
+    {
+      "source": "/the-decision-stack/index.html",
+      "destination": "/Viadecide-blogs.html",
+      "permanent": true
+    },
+    {
+      "source": "/why-small-businesses-dont-need-saas/index.html",
+      "destination": "/Viadecide-blogs.html",
+      "permanent": true
+    },
+    {
+      "source": "/viadecide-public-beta/index.html",
+      "destination": "/viadecide-public-beta.html",
+      "permanent": true
+    },
+    {
+      "source": "/DharamDaxini/index.html",
+      "destination": "/DharamDaxini.html",
+      "permanent": true
     }
   ]
 }
