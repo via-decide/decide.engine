@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Wings of Fire — Multiplayer Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#080a0f;--bg1:#0d1018;--bg2:#141820;
+  --gold:#d4a853;--gold2:#f0c96b;--teal:#1de9b6;--teal2:#00bfa5;
+  --red:#ff4d6d;--red2:#c9184a;--green:#39d353;
+  --bd:#1e2535;--bd2:#2a3347;
+  --text:#e8ecf4;--muted:#6b7a99;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow:hidden;}
+
+/* ── BACKGROUNDS ── */
+.bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.bg-fx::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 20% 80%,rgba(212,168,83,.06) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 80% at 80% 20%,rgba(29,233,182,.05) 0%,transparent 60%);
+}
+.stars{position:absolute;inset:0;}
+.stars span{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0;
+  animation:twinkle var(--d,3s) var(--dd,0s) infinite;}
+@keyframes twinkle{0%,100%{opacity:0}50%{opacity:var(--op,.5)}}
+
+/* ── LAYOUT ── */
+#app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:700px;padding:20px;}
+.screen.active{display:flex;}
+
+/* ── TITLE ── */
+.title-badge{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,6vw,4rem);
+  font-weight:600;
+  letter-spacing:-.02em;
+  background:linear-gradient(135deg,var(--gold2) 0%,var(--gold) 50%,var(--teal) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-align:center;line-height:1.1;
+}
+.subtitle{color:var(--muted);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;margin-top:6px;text-align:center;}
+
+/* ── CARDS ── */
+.card{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:32px;width:100%;}
+.card.glow-gold{border-color:rgba(212,168,83,.3);box-shadow:0 0 40px rgba(212,168,83,.08);}
+.card.glow-teal{border-color:rgba(29,233,182,.3);box-shadow:0 0 40px rgba(29,233,182,.08);}
+
+/* ── INPUTS ── */
+.inp{
+  width:100%;background:var(--bg2);border:1px solid var(--bd2);border-radius:10px;
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:1rem;
+  padding:14px 18px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.inp::placeholder{color:var(--muted);}
+.inp:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,83,.12);}
+.inp-lg{font-size:1.4rem;letter-spacing:.12em;text-align:center;font-family:'JetBrains Mono',monospace;text-transform:uppercase;}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:none;border-radius:12px;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-weight:600;font-size:.95rem;padding:14px 28px;transition:all .2s;
+  user-select:none;
+}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080a0f;}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,168,83,.35);}
+.btn-teal{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#080a0f;}
+.btn-teal:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(29,233,182,.3);}
+.btn-ghost{background:transparent;border:1px solid var(--bd2);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+.btn-lg{font-size:1.1rem;padding:18px 36px;border-radius:14px;}
+
+/* ── HOME SCREEN ── */
+#s-home .logo-wrap{margin-bottom:32px;text-align:center;}
+#s-home .logo-wrap .flame{font-size:3rem;display:block;animation:flameDance 2s ease-in-out infinite;}
+@keyframes flameDance{0%,100%{transform:scale(1) rotate(-2deg)}50%{transform:scale(1.08) rotate(2deg)}}
+#s-home .modes{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;margin:28px 0;}
+#s-home .mode-card{
+  background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);
+  padding:24px;text-align:center;cursor:pointer;transition:all .25s;
+}
+#s-home .mode-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 12px 32px rgba(212,168,83,.1);}
+#s-home .mode-card .icon{font-size:2rem;display:block;margin-bottom:10px;}
+#s-home .mode-card .name{font-weight:600;font-size:1rem;}
+#s-home .mode-card .desc{color:var(--muted);font-size:.8rem;margin-top:4px;}
+
+/* ── SETUP FORMS ── */
+.form-group{margin-bottom:20px;width:100%;}
+.form-group label{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.row{display:flex;gap:12px;}
+.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.8rem;margin:20px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bd);}
+
+/* ── LOBBY ── */
+#s-lobby{max-width:800px;}
+.lobby-header{display:flex;justify-content:space-between;align-items:flex-start;width:100%;margin-bottom:28px;}
+.room-code-display{
+  background:var(--bg2);border:1px solid var(--bd2);border-radius:12px;
+  padding:12px 24px;text-align:center;
+}
+.room-code-display .label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+.room-code-display .code{
+  font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:500;
+  color:var(--gold2);letter-spacing:.2em;margin-top:4px;
+}
+.player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;width:100%;}
+.player-slot{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:12px;
+  padding:16px;display:flex;align-items:center;gap:12px;
+  transition:border-color .3s;
+}
+.player-slot.filled{border-color:rgba(29,233,182,.3);}
+.player-slot.filled.host{border-color:rgba(212,168,83,.4);}
+.player-slot .avatar{
+  width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+}
+.player-slot .pname{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-slot .ptag{font-size:.75rem;color:var(--muted);}
+.player-slot.empty .pname{color:var(--muted);font-weight:400;}
+.lobby-actions{display:flex;gap:12px;width:100%;margin-top:24px;}
+.wait-msg{color:var(--muted);font-size:.9rem;text-align:center;padding:12px;}
+.wait-msg .dot{display:inline-block;animation:blink 1.2s infinite;}
+.wait-msg .dot:nth-child(2){animation-delay:.2s;}
+.wait-msg .dot:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* ── COUNTDOWN SCREEN ── */
+#s-countdown{max-width:400px;text-align:center;}
+.countdown-ring{
+  width:140px;height:140px;position:relative;margin:0 auto 24px;
+}
+.countdown-ring svg{transform:rotate(-90deg);}
+.countdown-ring circle{fill:none;stroke-width:8;}
+.cr-bg{stroke:var(--bd2);}
+.cr-fill{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset .9s linear;}
+.countdown-ring .num{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:3.5rem;font-weight:400;color:var(--gold2);
+}
+.q-num-badge{
+  background:rgba(212,168,83,.1);border:1px solid rgba(212,168,83,.2);
+  border-radius:6px;padding:4px 12px;font-size:.8rem;color:var(--gold);
+  letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;
+}
+
+/* ── QUESTION SCREEN ── */
+#s-question{max-width:800px;width:100%;}
+.q-top{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:24px;}
+.q-progress{flex:1;height:4px;background:var(--bd2);border-radius:2px;margin:0 16px;overflow:hidden;}
+.q-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--teal));border-radius:2px;transition:width .3s;}
+.q-timer{
+  min-width:56px;height:56px;background:var(--bg2);border:2px solid var(--bd2);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:500;
+  transition:border-color .3s,color .3s;
+}
+.q-timer.urgent{border-color:var(--red);color:var(--red);animation:pulse .5s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.q-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.2rem,3.5vw,1.8rem);
+  font-weight:600;line-height:1.4;
+  text-align:center;margin-bottom:32px;
+  width:100%;padding:28px;
+  background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);
+}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;}
+.ans-btn{
+  background:var(--bg2);border:2px solid var(--bd2);border-radius:14px;
+  padding:18px 20px;font-family:'Outfit',sans-serif;font-size:.95rem;
+  cursor:pointer;text-align:left;color:var(--text);transition:all .2s;
+  display:flex;align-items:center;gap:12px;
+}
+.ans-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(212,168,83,.06);transform:translateY(-1px);}
+.ans-btn:disabled{cursor:not-allowed;}
+.ans-btn .ans-label{
+  min-width:28px;height:28px;border-radius:8px;background:var(--bd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;flex-shrink:0;transition:background .2s;
+}
+.ans-btn.selected{border-color:var(--gold);background:rgba(212,168,83,.1);}
+.ans-btn.selected .ans-label{background:var(--gold);color:#080a0f;}
+.ans-btn.correct{border-color:var(--green)!important;background:rgba(57,211,83,.12)!important;animation:correctFlash .4s ease;}
+.ans-btn.correct .ans-label{background:var(--green)!important;color:#080a0f!important;}
+.ans-btn.wrong{border-color:var(--red)!important;background:rgba(255,77,109,.1)!important;}
+.ans-btn.wrong .ans-label{background:var(--red)!important;color:#fff!important;}
+@keyframes correctFlash{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+.ans-btn .ans-text{font-size:.9rem;line-height:1.4;}
+
+/* ── RESULTS ── */
+.result-banner{
+  width:100%;text-align:center;padding:20px;border-radius:var(--r);
+  font-size:1.1rem;font-weight:600;margin-bottom:24px;
+  transition:all .3s;
+}
+.result-banner.correct-res{background:rgba(57,211,83,.15);border:1px solid rgba(57,211,83,.3);color:var(--green);}
+.result-banner.wrong-res{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.2);color:var(--red);}
+.result-banner.timeout-res{background:rgba(107,122,153,.1);border:1px solid rgba(107,122,153,.2);color:var(--muted);}
+.pts-earn{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:500;}
+
+/* ── LEADERBOARD ── */
+#s-leaderboard{max-width:600px;}
+.lb-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--gold2);margin-bottom:24px;text-align:center;}
+.lb-list{width:100%;display:flex;flex-direction:column;gap:10px;}
+.lb-row{
+  display:flex;align-items:center;gap:14px;
+  background:var(--bg2);border:1px solid var(--bd);border-radius:12px;
+  padding:14px 18px;transition:all .3s;
+}
+.lb-row.me{border-color:rgba(212,168,83,.4);background:rgba(212,168,83,.05);}
+.lb-row .rank{
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;flex-shrink:0;
+}
+.rank-1{background:linear-gradient(135deg,#ffd700,#ff9800);color:#080a0f;}
+.rank-2{background:linear-gradient(135deg,#e0e0e0,#bdbdbd);color:#080a0f;}
+.rank-3{background:linear-gradient(135deg,#cd7f32,#a0522d);color:#fff;}
+.rank-n{background:var(--bg);border:1px solid var(--bd);color:var(--muted);}
+.lb-row .lname{flex:1;font-weight:600;}
+.lb-row .lpts{
+  font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;
+  color:var(--gold);
+}
+.lb-row .ldelta{font-size:.8rem;color:var(--green);margin-left:4px;}
+.lb-actions{display:flex;gap:12px;width:100%;margin-top:24px;}
+
+/* ── FINAL SCREEN ── */
+#s-final{max-width:600px;text-align:center;}
+.winner-crown{font-size:4rem;display:block;animation:crownBounce 1s ease-in-out infinite;}
+@keyframes crownBounce{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(5deg)}}
+.winner-name{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:700;color:var(--gold2);margin-top:8px;}
+.final-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin:24px 0;}
+.stat-box{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px;text-align:center;}
+.stat-box .sv{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:500;color:var(--gold);}
+.stat-box .sl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+
+/* ── SOLO QUICK PLAY ── */
+#s-solo{max-width:800px;width:100%;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--bg1);border:1px solid var(--bd2);border-radius:10px;
+  padding:12px 20px;font-size:.9rem;font-weight:500;z-index:999;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:rgba(57,211,83,.4);color:var(--green);}
+.toast.error{border-color:rgba(255,77,109,.4);color:var(--red);}
+.toast.info{border-color:rgba(212,168,83,.4);color:var(--gold);}
+
+/* ── CONFETTI ── */
+.confetti-piece{
+  position:fixed;width:10px;height:10px;z-index:998;pointer-events:none;
+  animation:confettiFall linear forwards;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0;}
+}
+
+/* ── STREAK BADGE ── */
+.streak-badge{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080a0f;
+  font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;
+  padding:16px 32px;border-radius:var(--r);z-index:990;pointer-events:none;
+  animation:streakPop .6s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes streakPop{0%{transform:translate(-50%,-50%) scale(0)}60%{transform:translate(-50%,-50%) scale(1.1)}100%{transform:translate(-50%,-50%) scale(1);opacity:0;transition:opacity .4s .2s}}
+
+/* ── SCROLL for LB ── */
+.scroll-wrap{width:100%;max-height:50vh;overflow-y:auto;padding-right:4px;}
+.scroll-wrap::-webkit-scrollbar{width:4px;}
+.scroll-wrap::-webkit-scrollbar-track{background:var(--bg);}
+.scroll-wrap::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:540px){
+  .answers{grid-template-columns:1fr;}
+  #s-home .modes{grid-template-columns:1fr;}
+  .final-stats{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-fx">
+  <div class="stars" id="stars"></div>
+</div>
+
+<div id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="s-home">
+    <div class="logo-wrap">
+      <span class="flame">🔥</span>
+      <div class="title-badge">Wings of Fire</div>
+      <div class="subtitle">Multiplayer Knowledge Battle</div>
+    </div>
+    <div class="modes">
+      <div class="mode-card" onclick="showCreate()">
+        <span class="icon">👑</span>
+        <div class="name">Create Room</div>
+        <div class="desc">Host a game for friends</div>
+      </div>
+      <div class="mode-card" onclick="showJoin()">
+        <span class="icon">🚀</span>
+        <div class="name">Join Room</div>
+        <div class="desc">Enter with a room code</div>
+      </div>
+    </div>
+    <div class="divider">or</div>
+    <button class="btn btn-ghost btn-full" onclick="startSolo()">⚡ Solo Quick Play</button>
+  </div>
+
+  <!-- CREATE -->
+  <div class="screen" id="s-create">
+    <div class="title-badge" style="font-size:2rem;margin-bottom:8px;">Create Room</div>
+    <div class="subtitle" style="margin-bottom:28px;">You'll be the host</div>
+    <div class="card glow-gold" style="max-width:440px;width:100%;">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input class="inp" id="create-name" placeholder="Enter your name" maxlength="20"/>
+      </div>
+      <div class="form-group">
+        <label>Number of Questions</label>
+        <select class="inp" id="q-count">
+          <option value="10">10 Questions</option>
+          <option value="15">15 Questions</option>
+          <option value="20" selected>20 Questions</option>
+          <option value="30">30 Questions (Full)</option>
+        </select>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" onclick="goHome()">← Back</button>
+        <button class="btn btn-gold btn-full" onclick="createRoom()">Create Room →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOIN -->
+  <div class="screen" id="s-join">
+    <div class="title-badge" style="font-size:2rem;margin-bottom:8px;">Join Room</div>
+    <div class="subtitle" style="margin-bottom:28px;">Enter the 6-letter room code</div>
+    <div class="card glow-teal" style="max-width:440px;width:100%;">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input class="inp" id="join-name" placeholder="Enter your name" maxlength="20"/>
+      </div>
+      <div class="form-group">
+        <label>Room Code</label>
+        <input class="inp inp-lg" id="join-code" placeholder="ABCDEF" maxlength="6"/>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" onclick="goHome()">← Back</button>
+        <button class="btn btn-teal btn-full" onclick="joinRoom()">Join Game →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOBBY -->
+  <div class="screen" id="s-lobby">
+    <div class="lobby-header">
+      <div>
+        <div class="title-badge" style="font-size:1.6rem;text-align:left;">Waiting Room</div>
+        <div class="subtitle" style="text-align:left;margin-top:4px;">Share the code with friends in other tabs</div>
+      </div>
+      <div class="room-code-display">
+        <div class="label">Room Code</div>
+        <div class="code" id="display-code">------</div>
+      </div>
+    </div>
+    <div class="player-grid" id="player-grid"></div>
+    <div class="lobby-actions">
+      <button class="btn btn-ghost" onclick="leaveRoom()">Leave</button>
+      <button class="btn btn-gold btn-full btn-lg" id="start-btn" onclick="startGame()" disabled>Start Game</button>
+    </div>
+    <div class="wait-msg" id="wait-msg"><span class="dot">●</span><span class="dot">●</span><span class="dot">●</span> Waiting for players</div>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div class="screen" id="s-countdown">
+    <div class="q-num-badge" id="q-num-badge">Question 1 of 20</div>
+    <div class="countdown-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="cr-bg" cx="70" cy="70" r="62"/>
+        <circle class="cr-fill" id="cr-fill" cx="70" cy="70" r="62"
+          stroke-dasharray="389.6" stroke-dashoffset="0"/>
+      </svg>
+      <div class="num" id="cd-num">3</div>
+    </div>
+    <div class="title-badge" style="font-size:1.4rem;">Get Ready!</div>
+    <div class="subtitle" id="cd-sub">Next question incoming...</div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="s-question">
+    <div class="q-top">
+      <div class="q-num-badge" id="q-badge">Q 1</div>
+      <div class="q-progress"><div class="q-progress-fill" id="q-prog" style="width:0%"></div></div>
+      <div class="q-timer" id="q-timer">15</div>
+    </div>
+    <div class="q-text" id="q-text">Question text here</div>
+    <div class="answers" id="answers"></div>
+  </div>
+
+  <!-- LEADERBOARD (between questions) -->
+  <div class="screen" id="s-leaderboard">
+    <div class="lb-title">📊 Standings</div>
+    <div class="scroll-wrap">
+      <div class="lb-list" id="lb-list"></div>
+    </div>
+    <div class="lb-actions">
+      <button class="btn btn-gold btn-full btn-lg" id="lb-next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+  <div class="screen" id="s-final">
+    <span class="winner-crown">👑</span>
+    <div class="winner-name" id="winner-name">Player Name</div>
+    <div class="subtitle" style="margin-top:4px;">WINS THE GAME!</div>
+    <div class="final-stats">
+      <div class="stat-box"><div class="sv" id="fs-score">0</div><div class="sl">Your Score</div></div>
+      <div class="stat-box"><div class="sv" id="fs-correct">0/0</div><div class="sl">Correct</div></div>
+      <div class="stat-box"><div class="sv" id="fs-streak">0</div><div class="sl">Best Streak</div></div>
+    </div>
+    <div class="scroll-wrap" style="max-height:35vh;">
+      <div class="lb-list" id="final-lb"></div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:20px;width:100%;">
+      <button class="btn btn-gold btn-full btn-lg" onclick="playAgain()">🔄 Play Again</button>
+      <button class="btn btn-ghost" onclick="goHome()">Home</button>
+    </div>
+  </div>
+
+  <!-- SOLO (repurposed question + lb screens, so same s-question / s-leaderboard) -->
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  QUESTIONS DATABASE — Wings of Fire
+// ═══════════════════════════════════════════
+const ALL_QUESTIONS = [
+  // EARLY LIFE
+  {q:"In which town was APJ Abdul Kalam born?",a:"Rameswaram",opts:["Madurai","Rameswaram","Chennai","Trivandrum"],exp:"Kalam was born in Rameswaram, an island town in the erstwhile Madras state."},
+  {q:"What was the full name of Kalam's father?",a:"Jainulabdeen",opts:["Jainulabdeen","Ahmed Jallaluddin","Samsuddin","Pakshi Lakshmana"],exp:"His father's full name was Jainulabdeen, a man of great wisdom despite limited formal education."},
+  {q:"What occupation did Kalam's father pursue to take pilgrims across the sea?",a:"Boatowner",opts:["Fisherman","Boatowner","Merchant","Priest"],exp:"Kalam's father built a wooden sailboat to ferry pilgrims between Rameswaram and Dhanuskodi."},
+  {q:"Who was Kalam's first cousin who distributed newspapers in Rameswaram?",a:"Samsuddin",opts:["Ahmed Jallaluddin","Samsuddin","Ramanadha Sastry","Sivasubramania"],exp:"Samsuddin was the sole distributor of newspapers in Rameswaram and helped Kalam earn his first wages."},
+  {q:"What did Kalam sell to earn money during World War II as a child?",a:"Tamarind seeds",opts:["Newspapers","Seashells","Tamarind seeds","Coconuts"],exp:"During WWII, a sudden demand for tamarind seeds erupted; Kalam collected and sold them for one anna per day."},
+  {q:"What was the name of the high priest of Rameswaram temple who was close friends with Kalam's father?",a:"Pakshi Lakshmana Sastry",opts:["Sivasubramania Iyer","Pakshi Lakshmana Sastry","Iyadurai Solomon","Ramakrishna Iyer"],exp:"Pakshi Lakshmana Sastry, the head priest of the Rameswaram temple, was a very close friend of Kalam's father."},
+  {q:"What was the name of the school in Ramanathapuram where Kalam studied?",a:"Schwartz High School",opts:["St. Joseph's College","Schwartz High School","Rameswaram Elementary School","MIT"],exp:"After leaving Rameswaram, Kalam enrolled at Schwartz High School in Ramanathapuram."},
+  {q:"Which teacher at Schwartz High School told Kalam 'To succeed in life, you must master desire, belief, and expectation'?",a:"Iyadurai Solomon",opts:["Ramakrishna Iyer","Iyadurai Solomon","Sivasubramania Iyer","Rev. Father Sequeira"],exp:"Iyadurai Solomon said this to Kalam and later became a Reverend."},
+  {q:"Where did Kalam study for his intermediate examination?",a:"St. Joseph's College, Trichi",opts:["MIT Chennai","Madras University","St. Joseph's College, Trichi","IIT Madras"],exp:"In 1950, Kalam arrived at St. Joseph's College, Trichinopoly (Trichi), for his Intermediate examination."},
+  {q:"Who mortgaged her gold bangles to pay Kalam's admission fee to MIT?",a:"Zohara (his sister)",opts:["His mother Ashiamma","Zohara (his sister)","His aunt","His cousin"],exp:"Kalam's sister Zohara mortgaged her gold bangles and chain so Kalam could gain admission to MIT."},
+  {q:"Which branch of engineering did Kalam choose at MIT?",a:"Aeronautical engineering",opts:["Mechanical engineering","Civil engineering","Aeronautical engineering","Electrical engineering"],exp:"Fascinated by the decommissioned aircraft at MIT, Kalam chose aeronautical engineering."},
+  {q:"Which Austrian professor at MIT taught Kalam technical aerodynamics?",a:"Prof. Sponder",opts:["Prof. Pandalai","Prof. Narasingha Rao","Prof. Sponder","Dr Kurt Tank"],exp:"Prof. Sponder, an Austrian with rich practical experience, taught Kalam technical aerodynamics at MIT."},
+  {q:"Why did Kalam fail to enter the Indian Air Force?",a:"He ranked ninth out of 25 for eight positions",opts:["He failed the physical test","He ranked ninth out of 25 for eight positions","He withdrew his application","He failed the written exam"],exp:"Kalam could only finish ninth in the batch of 25 examined to select eight Air Force officers."},
+  {q:"After failing the Air Force selection, which organisation gave Kalam his first job?",a:"DTD&P (Air), Ministry of Defence",opts:["HAL Bangalore","DTD&P (Air), Ministry of Defence","INCOSPAR","ADE Bangalore"],exp:"Kalam joined DTD&P(Air) as Senior Scientific Assistant at a basic salary of Rs 250 per month."},
+
+  // CAREER & SCIENCE
+  {q:"What was the name of the hovercraft prototype that Kalam's team built at ADE?",a:"Nandi",opts:["Rohini","Nandi","Menaka","Agni"],exp:"The hovercraft was christened Nandi, after the bull ridden by Lord Shiva."},
+  {q:"Which TIFR director gave Kalam a ride in his hovercraft and later arranged his INCOSPAR interview?",a:"Prof. MGK Menon",opts:["Prof. Vikram Sarabhai","Prof. MGK Menon","Dr Brahm Prakash","Prof. Satish Dhawan"],exp:"Prof. MGK Menon, Director of TIFR, took a hovercraft ride and subsequently facilitated Kalam's move to INCOSPAR."},
+  {q:"India's first rocket launch station was established at which village in Kerala?",a:"Thumba",opts:["Sriharikota","Kovalam","Thumba","Veli"],exp:"INCOSPAR set up the Equatorial Rocket Launching Station at Thumba, near Trivandrum."},
+  {q:"What was the name of India's first rocket launch in November 1963?",a:"Nike-Apache",opts:["Rohini","Nike-Apache","Menaka","Agni"],exp:"India's first rocket, the Nike-Apache sounding rocket (made at NASA), was launched on 21 November 1963."},
+  {q:"The St. Mary Magdalene church at Thumba served as which facility for India's early space programme?",a:"First office and laboratory",opts:["Living quarters","First office and laboratory","Control room","Fuel storage"],exp:"The church housed the first office of the Thumba Space Centre; the prayer room was Kalam's first laboratory."},
+  {q:"What were the two Indian sounding rockets named after mythological dancers?",a:"Rohini and Menaka",opts:["Agni and Prithvi","Rohini and Menaka","Trishul and Nag","Akash and Rohini"],exp:"The two rockets were named Rohini and Menaka, after mythological dancers in the court of Indra."},
+  {q:"Which visionary scientist did Kalam regard as the 'Mahatma Gandhi of Indian science'?",a:"Prof. Vikram Sarabhai",opts:["Dr Brahm Prakash","Prof. Satish Dhawan","Prof. Vikram Sarabhai","Prof. MGK Menon"],exp:"Kalam wrote: 'I consider Prof. Sarabhai as the Mahatma Gandhi of Indian science.'"},
+  {q:"On which date did Prof. Vikram Sarabhai pass away?",a:"30 December 1971",opts:["20 November 1967","30 December 1971","21 November 1963","8 October 1972"],exp:"Sarabhai passed away on 30 December 1971 following a cardiac arrest, shocking Kalam who had spoken to him just hours before."},
+  {q:"The rocket launch station near Madras was selected at which island?",a:"Sriharikota",opts:["Thumba","Dhanuskodi","Sriharikota","Pamban"],exp:"Prof. Sarabhai selected Sriharikota island, 100 km north of Madras, and thus SHAR was born."},
+  {q:"What was the weight of the satellite that SLV-3 was designed to place into orbit?",a:"40 kg",opts:["10 kg","25 kg","40 kg","100 kg"],exp:"SLV-3's mission was to launch a 40 kg satellite into a 400 km circular orbit around the earth."},
+  {q:"What was the code name of the DRDO surface-to-air missile project sanctioned in February 1972?",a:"Devil",opts:["Nandi","Devil","Agni","Prithvi"],exp:"The SA-2 indigenization project was sanctioned with the code name Devil."},
+  {q:"The RATO system was successfully tested on which aircraft at Bareilly Air Force Station in 1972?",a:"Sukhoi-16",opts:["HF-24 Marut","Gnat Mk I","Sukhoi-16","MiG-21"],exp:"On 8 October 1972, a Sukhoi-16 became airborne after a short run of 1200 m using the RATO system."},
+  {q:"What was Tipu Sultan's army's contribution to rocket technology that impressed Kalam?",a:"Rockets used in battle against the British",opts:["Invention of gunpowder","Rockets used in battle against the British","Building India's first artillery","Designing iron cannons"],exp:"Tipu Sultan's army had 27 rocket brigades. Over 700 rockets were captured by the British in 1799."},
+  {q:"Which country's RATO motor provided the reference design for India's indigenous RATO programme?",a:"Russia",opts:["USA","Germany","France","Russia"],exp:"Prof. Sarabhai showed Kalam and Gp Capt Narayanan a Russian RATO motor at Tilpat Range."},
+  {q:"What was the first weight of the Rohini rocket's solid propulsion motor?",a:"32 kg",opts:["7 kg","32 kg","100 kg","220 kg"],exp:"The first Rohini rocket consisted of a single solid propulsion motor weighing 32 kg, lifting a 7 kg payload."},
+  {q:"What prestigious civilian award did APJ Abdul Kalam receive, mentioned in the book's introduction?",a:"Bharat Ratna",opts:["Padma Bhushan","Padma Vibhushan","Bharat Ratna","Rajiv Gandhi National Award"],exp:"The book states Kalam had a career 'culminating in the highest civilian award of India, the Bharat Ratna.'"},
+
+  // PHILOSOPHY & MENTORS
+  {q:"What does Kalam's father say happens when you pray?",a:"You transcend your body and become part of the cosmos",opts:["God grants your wishes immediately","You transcend your body and become part of the cosmos","You gain power over others","Your mind becomes clearer"],exp:"Kalam's father said: 'When you pray, you transcend your body and become a part of the cosmos, which knows no division of wealth, age, caste, or creed.'"},
+  {q:"What was the central message Swami Sivananda gave Kalam after his Air Force rejection?",a:"Accept your destiny and search for your true purpose",opts:["Join the civilian services","Accept your destiny and search for your true purpose","Return to Rameswaram","Study harder and try again"],exp:"Swami Sivananda said: 'Accept your destiny and go ahead with your life... Search, instead, for the true purpose of your existence.'"},
+  {q:"How many hours a day did Kalam reportedly work?",a:"18 hours",opts:["12 hours","16 hours","18 hours","20 hours"],exp:"The book's description says Kalam worked 18 hours a day."},
+  {q:"At which NASA centre did Kalam begin his training in sounding rocket techniques?",a:"Langley Research Centre (LRC)",opts:["Kennedy Space Centre","Goddard Space Flight Centre","Langley Research Centre (LRC)","Wallops Flight Facility"],exp:"Kalam started his work at NASA at the Langley Research Centre in Hampton, Virginia."},
+  {q:"A painting at which NASA facility showed Tipu Sultan's army launching rockets against the British?",a:"Wallops Flight Facility",opts:["Langley Research Centre","Goddard Space Flight Centre","Wallops Flight Facility","Johnson Space Centre"],exp:"The painting was prominently displayed in the reception lobby at the Wallops Flight Facility."},
+  {q:"What instrument does Kalam practice, as mentioned in the book's introduction?",a:"Veena",opts:["Sitar","Flute","Veena","Tabla"],exp:"The introduction notes that Kalam maintained the ascetic rigour of his personal life while 'practicing the veena.'"},
+  {q:"Who authored the book Wings of Fire as a biographer working under Kalam?",a:"Arun Tiwari",opts:["YS Rajan","A Sivathanu Pillai","Arun Tiwari","RN Agarwal"],exp:"Arun Tiwari worked under Dr Kalam for over a decade at DRDL, Hyderabad, and wrote the biography."},
+];
+
+// ═══════════════════════════════════════════
+//  AVATAR COLORS
+// ═══════════════════════════════════════════
+const AVATAR_COLORS = ['#d4a853','#1de9b6','#ff4d6d','#818cf8','#fb923c','#34d399','#f472b6','#60a5fa'];
+const AVATAR_EMOJIS = ['🦁','🐯','🦅','🐉','🌙','⚡','🔥','🚀','🎯','💫','🌊','🏹'];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let state = {
+  mode: null, // 'host' | 'guest' | 'solo'
+  roomCode: null,
+  myName: '',
+  myId: null,
+  players: [], // {id, name, score, avatar, avatarColor, isHost}
+  questions: [],
+  qIndex: 0,
+  answered: false,
+  timerVal: 15,
+  timerInterval: null,
+  streak: 0,
+  bestStreak: 0,
+  correctCount: 0,
+  myScore: 0,
+  channel: null, // BroadcastChannel
+  lastDeltas: {}, // per-round score gains
+};
+
+// ═══════════════════════════════════════════
+//  STARS BG
+// ═══════════════════════════════════════════
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('span');
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--dd:${Math.random()*4}s;--op:${.2+Math.random()*.6}`;
+    c.appendChild(s);
+  }
+})();
+
+// ═══════════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){
+  cleanupChannel();
+  resetState();
+  showScreen('s-home');
+}
+function showCreate(){ showScreen('s-create'); }
+function showJoin(){ showScreen('s-join'); }
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=`toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ═══════════════════════════════════════════
+//  BROADCAST CHANNEL (cross-tab multiplayer)
+// ═══════════════════════════════════════════
+function setupChannel(code){
+  if(state.channel) state.channel.close();
+  state.channel = new BroadcastChannel('wof-quiz-'+code);
+  state.channel.onmessage = handleMsg;
+}
+function cleanupChannel(){
+  if(state.channel){ state.channel.close(); state.channel=null; }
+}
+function broadcast(type, data={}){
+  if(!state.channel) return;
+  state.channel.postMessage({type, ...data});
+}
+
+function handleMsg(e){
+  const msg=e.data;
+  if(msg.type==='player-join'){
+    // Host receives new player
+    if(state.mode==='host'){
+      const exists=state.players.find(p=>p.id===msg.player.id);
+      if(!exists){
+        state.players.push({...msg.player, score:0});
+        updateLobby();
+        // Send current player list to all
+        broadcast('player-list',{players:state.players});
+        showToast(`${msg.player.name} joined! 🎉`,'info');
+      }
+    }
+  }
+  if(msg.type==='player-list'){
+    // Guest receives updated player list
+    if(state.mode==='guest'){
+      state.players=msg.players;
+      updateLobby();
+    }
+  }
+  if(msg.type==='game-start'){
+    // Guest receives game start
+    if(state.mode==='guest'){
+      state.questions=msg.questions;
+      state.qIndex=0;
+      state.myScore=0;
+      state.correctCount=0;
+      state.streak=0;
+      state.bestStreak=0;
+      // Reset scores
+      state.players.forEach(p=>p.score=0);
+      startCountdown();
+    }
+  }
+  if(msg.type==='answer-submitted'){
+    // Host collects answers (optional: for tracking)
+    if(state.mode==='host'){
+      // Could show live buzz if wanted
+    }
+  }
+  if(msg.type==='score-update'){
+    // From any player — host aggregates and rebroadcasts
+    if(state.mode==='host'){
+      const p=state.players.find(pl=>pl.id===msg.playerId);
+      if(p){ p.score=msg.score; }
+      broadcast('scores',{players:state.players, deltas: state.lastDeltas});
+    }
+  }
+  if(msg.type==='scores'){
+    // All receive score updates
+    if(state.mode==='guest'){
+      // Merge scores
+      msg.players.forEach(rp=>{
+        const lp=state.players.find(p=>p.id===rp.id);
+        if(lp) lp.score=rp.score;
+      });
+    }
+  }
+  if(msg.type==='next-q'){
+    if(state.mode==='guest'){
+      state.qIndex=msg.qIndex;
+      startCountdown();
+    }
+  }
+  if(msg.type==='game-end'){
+    if(state.mode==='guest'){
+      state.players=msg.players;
+      showFinal();
+    }
+  }
+  if(msg.type==='player-leave'){
+    if(state.mode==='host'){
+      state.players=state.players.filter(p=>p.id!==msg.playerId);
+      updateLobby();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+//  ROOM MANAGEMENT
+// ═══════════════════════════════════════════
+function genCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c='';for(let i=0;i<6;i++) c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+function genId(){return Math.random().toString(36).slice(2,10);}
+function genAvatar(name){
+  const i=Math.abs([...name].reduce((a,c)=>a+c.charCodeAt(0),0))%AVATAR_EMOJIS.length;
+  const ci=Math.abs([...name].reduce((a,c)=>a*31+c.charCodeAt(0),0))%AVATAR_COLORS.length;
+  return {emoji:AVATAR_EMOJIS[i], color:AVATAR_COLORS[ci]};
+}
+
+function createRoom(){
+  const name=document.getElementById('create-name').value.trim();
+  if(!name){showToast('Please enter your name','error');return;}
+  const code=genCode();
+  const av=genAvatar(name);
+  state.mode='host';
+  state.roomCode=code;
+  state.myId=genId();
+  state.myName=name;
+  state.players=[{id:state.myId, name, score:0, avatar:av.emoji, avatarColor:av.color, isHost:true}];
+  setupChannel(code);
+  document.getElementById('display-code').textContent=code;
+  updateLobby();
+  showScreen('s-lobby');
+  showToast(`Room ${code} created! Share the code 👑`,'info');
+}
+
+function joinRoom(){
+  const name=document.getElementById('join-name').value.trim();
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
+  if(!name){showToast('Please enter your name','error');return;}
+  if(code.length!==6){showToast('Room code must be 6 characters','error');return;}
+  const av=genAvatar(name);
+  state.mode='guest';
+  state.roomCode=code;
+  state.myId=genId();
+  state.myName=name;
+  state.players=[{id:state.myId, name, score:0, avatar:av.emoji, avatarColor:av.color, isHost:false}];
+  setupChannel(code);
+  document.getElementById('display-code').textContent=code;
+  // Announce join
+  broadcast('player-join',{player:{id:state.myId, name, score:0, avatar:av.emoji, avatarColor:av.color, isHost:false}});
+  updateLobby();
+  showScreen('s-lobby');
+  showToast(`Joined room ${code}! Waiting for host... 🚀`,'info');
+}
+
+function leaveRoom(){
+  if(state.channel) broadcast('player-leave',{playerId:state.myId});
+  goHome();
+}
+
+function updateLobby(){
+  const grid=document.getElementById('player-grid');
+  const slots=Math.max(8, state.players.length + (state.players.length%2===0?2:1));
+  let html='';
+  for(let i=0;i<Math.min(slots,12);i++){
+    const p=state.players[i];
+    if(p){
+      html+=`<div class="player-slot filled${p.isHost?' host':''}">
+        <div class="avatar" style="background:${p.avatarColor}22;border:1.5px solid ${p.avatarColor}44">${p.avatar}</div>
+        <div><div class="pname">${esc(p.name)}</div><div class="ptag">${p.isHost?'👑 Host':'Player'}</div></div>
+      </div>`;
+    } else {
+      html+=`<div class="player-slot empty">
+        <div class="avatar" style="background:var(--bg);border:1px dashed var(--bd2)">+</div>
+        <div><div class="pname">Waiting...</div></div>
+      </div>`;
+    }
+  }
+  grid.innerHTML=html;
+  const startBtn=document.getElementById('start-btn');
+  const waitMsg=document.getElementById('wait-msg');
+  if(state.mode==='host'){
+    startBtn.disabled=state.players.length<1;
+    startBtn.style.display='flex';
+    waitMsg.textContent=state.players.length===1?'⚠️ You can start solo or wait for more players':'✅ '+state.players.length+' players ready — start when you like!';
+    waitMsg.querySelector && (waitMsg.innerHTML = state.players.length===1
+      ? '⚠️ You can start solo or wait for more players in other tabs'
+      : `✅ <strong>${state.players.length} players</strong> ready — start when you like!`);
+  } else {
+    startBtn.style.display='none';
+    waitMsg.innerHTML=`<span class="dot">●</span><span class="dot">●</span><span class="dot">●</span> Waiting for host to start...`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  GAME START
+// ═══════════════════════════════════════════
+function shuffleArr(arr){ return [...arr].sort(()=>Math.random()-.5); }
+
+function startGame(){
+  if(state.mode!=='host') return;
+  const count=parseInt(document.getElementById('q-count').value)||20;
+  const qs=shuffleArr(ALL_QUESTIONS).slice(0,count);
+  state.questions=qs;
+  state.qIndex=0;
+  state.myScore=0;
+  state.correctCount=0;
+  state.streak=0;
+  state.bestStreak=0;
+  state.players.forEach(p=>p.score=0);
+  // Tell guests
+  broadcast('game-start',{questions:qs});
+  startCountdown();
+}
+
+function startSolo(){
+  state.mode='solo';
+  state.myId=genId();
+  state.myName='You';
+  state.questions=shuffleArr(ALL_QUESTIONS).slice(0,20);
+  state.qIndex=0;
+  state.myScore=0;
+  state.correctCount=0;
+  state.streak=0;
+  state.bestStreak=0;
+  state.players=[{id:state.myId,name:'You',score:0,avatar:'🎯',avatarColor:AVATAR_COLORS[0],isHost:true}];
+  startCountdown();
+}
+
+// ═══════════════════════════════════════════
+//  COUNTDOWN
+// ═══════════════════════════════════════════
+function startCountdown(){
+  const idx=state.qIndex;
+  const total=state.questions.length;
+  document.getElementById('q-num-badge').textContent=`Question ${idx+1} of ${total}`;
+  document.getElementById('cd-sub').textContent=state.questions[idx].q.slice(0,50)+'...';
+  showScreen('s-countdown');
+  let c=3;
+  const circumference=389.6;
+  document.getElementById('cd-num').textContent=c;
+  const fill=document.getElementById('cr-fill');
+  fill.style.strokeDashoffset=0;
+  
+  const cdi=setInterval(()=>{
+    c--;
+    if(c<=0){ clearInterval(cdi); showQuestion(); return; }
+    document.getElementById('cd-num').textContent=c;
+    fill.style.strokeDashoffset=(circumference*(3-c)/3);
+  },1000);
+}
+
+// ═══════════════════════════════════════════
+//  QUESTION
+// ═══════════════════════════════════════════
+function showQuestion(){
+  const q=state.questions[state.qIndex];
+  const total=state.questions.length;
+  state.answered=false;
+  state.timerVal=15;
+  
+  document.getElementById('q-badge').textContent=`Q ${state.qIndex+1}`;
+  document.getElementById('q-prog').style.width=((state.qIndex/total)*100)+'%';
+  document.getElementById('q-text').textContent=q.q;
+  
+  // Build answer buttons
+  const opts=shuffleArr(q.opts);
+  const labels=['A','B','C','D'];
+  const ans=document.getElementById('answers');
+  ans.innerHTML=opts.map((opt,i)=>`
+    <button class="ans-btn" onclick="selectAnswer(this,'${opt.replace(/'/g,"\\'")}')">
+      <span class="ans-label">${labels[i]}</span>
+      <span class="ans-text">${esc(opt)}</span>
+    </button>
+  `).join('');
+  
+  showScreen('s-question');
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(state.timerInterval);
+  const timerEl=document.getElementById('q-timer');
+  timerEl.textContent=state.timerVal;
+  timerEl.className='q-timer';
+  
+  state.timerInterval=setInterval(()=>{
+    state.timerVal--;
+    timerEl.textContent=state.timerVal;
+    if(state.timerVal<=5) timerEl.className='q-timer urgent';
+    if(state.timerVal<=0){
+      clearInterval(state.timerInterval);
+      if(!state.answered) timeOut();
+    }
+  },1000);
+}
+
+function selectAnswer(btn, selected){
+  if(state.answered) return;
+  state.answered=true;
+  clearInterval(state.timerInterval);
+  
+  const q=state.questions[state.qIndex];
+  const correct=q.a;
+  const isCorrect=(selected===correct);
+  
+  // Mark buttons
+  document.querySelectorAll('.ans-btn').forEach(b=>{
+    b.disabled=true;
+    const txt=b.querySelector('.ans-text').textContent;
+    if(txt===correct) b.classList.add('correct');
+    else if(b===btn && !isCorrect) b.classList.add('wrong');
+  });
+  btn.classList.add('selected');
+  
+  // Scoring: time-based, 1000 max
+  let pts=0;
+  if(isCorrect){
+    pts=Math.max(200, Math.round(200 + (state.timerVal/15)*800));
+    state.myScore+=pts;
+    state.correctCount++;
+    state.streak++;
+    if(state.streak>state.bestStreak) state.bestStreak=state.streak;
+    if(state.streak>=3) showStreakBadge();
+  } else {
+    state.streak=0;
+  }
+  
+  // Update my player's score
+  const me=state.players.find(p=>p.id===state.myId);
+  if(me) me.score=state.myScore;
+  
+  // Broadcast score if multiplayer
+  if(state.mode!=='solo'){
+    broadcast('answer-submitted',{playerId:state.myId, correct:isCorrect});
+    if(state.mode==='guest'){
+      broadcast('score-update',{playerId:state.myId, score:state.myScore});
+    }
+    if(state.mode==='host'){
+      state.lastDeltas[state.myId]=pts;
+      broadcast('scores',{players:state.players, deltas:state.lastDeltas});
+    }
+  }
+  
+  showResultBanner(isCorrect, pts, q.exp);
+  setTimeout(()=>showLeaderboard(isCorrect), 1800);
+}
+
+function timeOut(){
+  state.answered=true;
+  state.streak=0;
+  const q=state.questions[state.qIndex];
+  document.querySelectorAll('.ans-btn').forEach(b=>{
+    b.disabled=true;
+    if(b.querySelector('.ans-text').textContent===q.a) b.classList.add('correct');
+  });
+  showResultBanner(null, 0, q.exp);
+  setTimeout(()=>showLeaderboard(false), 1800);
+}
+
+function showResultBanner(correct, pts, exp){
+  // Brief flash over question
+  const el=document.querySelector('.q-text');
+  if(correct===true){
+    el.style.borderColor='var(--green)';
+    el.style.background='rgba(57,211,83,.08)';
+  } else if(correct===false){
+    el.style.borderColor='var(--red)';
+    el.style.background='rgba(255,77,109,.06)';
+  } else {
+    el.style.borderColor='var(--muted)';
+  }
+  setTimeout(()=>{
+    el.style.borderColor='';el.style.background='';
+  },1600);
+}
+
+function showStreakBadge(){
+  const badge=document.createElement('div');
+  badge.className='streak-badge';
+  badge.textContent=`🔥 ${state.streak}× Streak!`;
+  document.body.appendChild(badge);
+  setTimeout(()=>badge.remove(), 1400);
+}
+
+// ═══════════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════════
+function showLeaderboard(){
+  const sorted=[...state.players].sort((a,b)=>b.score-a.score);
+  const nextBtn=document.getElementById('lb-next-btn');
+  const isLast=(state.qIndex>=state.questions.length-1);
+  
+  nextBtn.textContent=isLast?'🏆 See Final Results →':'Next Question →';
+  nextBtn.style.display=(state.mode==='host'||state.mode==='solo')?'flex':'none';
+  
+  if(state.mode==='guest'){
+    const waitP=document.createElement('p');
+    waitP.className='wait-msg';
+    waitP.innerHTML=`<span class="dot">●</span><span class="dot">●</span><span class="dot">●</span> Waiting for host...`;
+    document.getElementById('lb-list').after(waitP);
+  }
+  
+  document.getElementById('lb-list').innerHTML=sorted.map((p,i)=>{
+    const rankClass=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+    const isMe=p.id===state.myId;
+    const delta=state.lastDeltas[p.id];
+    return `<div class="lb-row${isMe?' me':''}">
+      <div class="rank ${rankClass}">${i+1}</div>
+      <div class="avatar" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${p.avatarColor}22;font-size:.85rem;">${p.avatar}</div>
+      <div class="lname">${esc(p.name)}${isMe?' <span style="color:var(--muted);font-size:.75rem;">(you)</span>':''}</div>
+      <div class="lpts">${p.score.toLocaleString()}<span class="ldelta">${delta?'+'+delta:''}</span></div>
+    </div>`;
+  }).join('');
+  
+  state.lastDeltas={};
+  showScreen('s-leaderboard');
+}
+
+function nextQuestion(){
+  state.qIndex++;
+  if(state.qIndex>=state.questions.length){
+    if(state.mode==='host') broadcast('game-end',{players:state.players});
+    showFinal();
+  } else {
+    if(state.mode==='host') broadcast('next-q',{qIndex:state.qIndex});
+    startCountdown();
+  }
+}
+
+// ═══════════════════════════════════════════
+//  FINAL SCREEN
+// ═══════════════════════════════════════════
+function showFinal(){
+  const sorted=[...state.players].sort((a,b)=>b.score-a.score);
+  const winner=sorted[0];
+  const isWinner=winner.id===state.myId;
+  
+  document.getElementById('winner-name').textContent=winner.name;
+  document.getElementById('fs-score').textContent=state.myScore.toLocaleString();
+  document.getElementById('fs-correct').textContent=`${state.correctCount}/${state.questions.length}`;
+  document.getElementById('fs-streak').textContent=state.bestStreak+'×';
+  
+  document.getElementById('final-lb').innerHTML=sorted.map((p,i)=>{
+    const rankClass=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+    const isMe=p.id===state.myId;
+    return `<div class="lb-row${isMe?' me':''}">
+      <div class="rank ${rankClass}">${i+1}</div>
+      <div class="avatar" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${p.avatarColor}22;font-size:.85rem;">${p.avatar}</div>
+      <div class="lname">${esc(p.name)}${isMe?' <span style="color:var(--muted);font-size:.75rem;">(you)</span>':''}</div>
+      <div class="lpts">${p.score.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  
+  showScreen('s-final');
+  if(isWinner) launchConfetti();
+}
+
+function launchConfetti(){
+  const colors=['#d4a853','#f0c96b','#1de9b6','#ff4d6d','#818cf8','#34d399'];
+  for(let i=0;i<80;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-piece';
+      el.style.cssText=`
+        left:${Math.random()*100}vw;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+        animation-duration:${1.5+Math.random()*2}s;
+        animation-delay:${Math.random()*.5}s;
+        transform:rotate(${Math.random()*360}deg);
+      `;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),3500);
+    },Math.random()*600);
+  }
+}
+
+function playAgain(){
+  if(state.mode==='solo') startSolo();
+  else if(state.mode==='host'){
+    state.qIndex=0;
+    state.myScore=0;
+    state.correctCount=0;
+    state.streak=0;
+    state.bestStreak=0;
+    state.players.forEach(p=>p.score=0);
+    state.questions=shuffleArr(ALL_QUESTIONS).slice(0,state.questions.length);
+    broadcast('game-start',{questions:state.questions});
+    startCountdown();
+  } else {
+    goHome();
+  }
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function resetState(){
+  clearInterval(state.timerInterval);
+  state = {
+    mode:null,roomCode:null,myName:'',myId:null,
+    players:[],questions:[],qIndex:0,answered:false,
+    timerVal:15,timerInterval:null,streak:0,bestStreak:0,
+    correctCount:0,myScore:0,channel:null,lastDeltas:{}
+  };
+}
+
+// ═══════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  const screen=document.querySelector('.screen.active');
+  if(!screen) return;
+  if(screen.id==='s-question' && !state.answered){
+    const map={1:0,2:1,3:2,4:3};
+    const idx=map[e.key];
+    if(idx!==undefined){
+      const btns=document.querySelectorAll('.ans-btn');
+      if(btns[idx]) btns[idx].click();
+    }
+  }
+  if(e.key==='Enter'){
+    const id=screen.id;
+    if(id==='s-create') createRoom();
+    if(id==='s-join') joinRoom();
+    if(id==='s-leaderboard'){
+      const btn=document.getElementById('lb-next-btn');
+      if(btn && btn.style.display!=='none') nextQuestion();
+    }
+  }
+});
+</script>
+</body>
+</html>
