@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Mars Survival Decision Lab — Constraint Learning Engine</title>
+<!-- Firebase compat SDK (works in plain HTML, no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne+Mono&family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -163,10 +166,31 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
 
 /* ── VIEWPORT ── */
 .sim-viewport { flex: 1; position: relative; overflow: hidden; background: #030405; cursor: crosshair; min-height: 0; }
-.sky { position: absolute; inset: 0; background: linear-gradient(180deg, #060309 0%, #0D0810 40%, #1A0C08 70%, #2A1208 100%); z-index: 0; }
-.stars { position: absolute; top: 0; left: 0; right: 0; height: 60%; z-index: 1; }
-.horizon-glow { position: absolute; bottom: 35%; left: 0; right: 0; height: 80px; background: linear-gradient(180deg, transparent, rgba(200,80,20,0.15)); z-index: 2; }
+.sky { position: absolute; inset: 0; background: linear-gradient(180deg, #060309 0%, #0D0810 40%, #1A0C08 70%, #2A1208 100%); z-index: 0; transition: background 8s ease; }
+.stars { position: absolute; top: 0; left: 0; right: 0; height: 60%; z-index: 1; transition: opacity 4s ease; }
+.horizon-glow { position: absolute; bottom: 35%; left: 0; right: 0; height: 80px; background: linear-gradient(180deg, transparent, rgba(200,80,20,0.15)); z-index: 2; transition: background 6s ease; }
 .ground { position: absolute; bottom: 0; left: 0; right: 0; height: 37%; background: linear-gradient(180deg, #1A0E06 0%, #0F0A04 100%); clip-path: polygon(0% 25%,4% 10%,10% 22%,18% 5%,26% 18%,34% 3%,42% 16%,50% 2%,58% 15%,66% 4%,74% 18%,82% 6%,90% 20%,96% 8%,100% 18%,100% 100%,0% 100%); z-index: 3; }
+
+/* ── NODE PROXIMITY BAR (bottom of viewport) ── */
+.proximity-bar { position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.04);z-index:20; }
+.proximity-fill { height:100%;width:0%;background:linear-gradient(90deg,var(--mars-deep),var(--mars-glow));transition:width 0.4s ease; }
+.proximity-label { position:absolute;right:8px;bottom:4px;font-family:var(--mono);font-size:7px;color:var(--mars-glow);letter-spacing:2px;z-index:21;opacity:0;transition:opacity 0.3s; }
+.proximity-label.show { opacity:1; }
+
+/* ── COMPASS ROSE ── */
+.compass { position:absolute;bottom:10px;left:10px;z-index:20;width:42px;height:42px;pointer-events:none; }
+.compass-ring { fill:none;stroke:rgba(255,255,255,.12);stroke-width:1.5; }
+.compass-n { fill:var(--mars-glow); }
+.compass-s { fill:rgba(255,255,255,.25); }
+.compass-label { font-family:var(--mono);font-size:8px;fill:rgba(255,255,255,.5); }
+
+/* ── ROVER CHASSIS ── */
+.rover-body-wrap { display:flex;flex-direction:column;align-items:center;position:relative; }
+.rover-solar { width:76px;height:5px;background:linear-gradient(90deg,#1a3a5a,#2a7ab0,#1a3a5a);border:1px solid #3a6a90;border-radius:1px;margin-bottom:2px; }
+.rover-chassis { width:58px;height:16px;background:linear-gradient(180deg,#2e2e2e,#1c1c1c);border:1px solid #484848;border-radius:4px 4px 2px 2px;position:relative; }
+.rover-wheels { display:flex;justify-content:space-between;padding:0 3px;margin-top:1px;width:64px;align-self:center; }
+.rover-wheel { width:14px;height:9px;background:radial-gradient(circle at 40% 40%,#3a3a3a,#111);border:1.5px solid #555;border-radius:40%;display:flex;align-items:center;justify-content:center; }
+.rover-wheel::after { content:'';width:3px;height:3px;background:#666;border-radius:50%; }
 
 /* Rover */
 .rover-mast { position: absolute; bottom: 34%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; animation: idle-bob 4s ease-in-out infinite; z-index: 8; }
@@ -376,8 +400,88 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
 .bench-fill { height:100%;transition:width 0.8s; }
 
 /* ══════════════════════════════════════════════════════════════
-   SCREEN 4 — MISSION SELECT
+   MAP SLIDE-UP OVERLAY (in-game, preserves state)
 ══════════════════════════════════════════════════════════════ */
+.map-overlay { position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;background:var(--void2);transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);pointer-events:none; }
+.map-overlay.open { transform:translateY(0);pointer-events:all; }
+.map-overlay-head { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0; }
+.map-overlay-title { font-family:var(--display);font-size:20px;color:var(--text);letter-spacing:2px;display:flex;align-items:center;gap:8px; }
+.map-close-btn { font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);background:var(--panel2);border:1px solid var(--border);padding:8px 14px;cursor:pointer;touch-action:manipulation; }
+.map-close-btn:active { background:rgba(214,64,0,.15);color:var(--mars-glow);border-color:var(--mars); }
+.map-overlay-body { flex:1;overflow-y:auto;padding:10px 12px; }
+
+/* ── In-ctrl MAP button ── */
+.map-quick-btn { font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--mars-glow);background:rgba(214,64,0,.08);border:1px solid var(--border2);padding:5px 10px;cursor:pointer;touch-action:manipulation;text-transform:uppercase;align-self:stretch;display:flex;align-items:center;gap:5px;justify-content:center;transition:all 0.15s; }
+.map-quick-btn:active { background:rgba(214,64,0,.2); }
+
+/* ══════════════════════════════════════════════════════════════
+   CALLSIGN INPUT
+══════════════════════════════════════════════════════════════ */
+.callsign-wrap { opacity:0;animation:rise 0.6s 0.9s forwards;margin-bottom:20px;width:100%;max-width:360px;position:relative;z-index:10; }
+.callsign-label { font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px; }
+.callsign-row { display:flex;gap:8px;align-items:center; }
+.callsign-input { flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 14px;outline:none;letter-spacing:2px;text-transform:uppercase; }
+.callsign-input:focus { border-color:var(--border2); }
+.callsign-confirm { background:var(--mars);color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:2px;padding:10px 14px;border:none;cursor:pointer;white-space:nowrap; }
+.callsign-confirm:hover { background:var(--mars-glow); }
+.callsign-badge { display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--mars-glow);border:1px solid var(--border2);padding:4px 10px;background:rgba(214,64,0,.08); }
+
+/* ══════════════════════════════════════════════════════════════
+   MARS MAP SCREEN
+══════════════════════════════════════════════════════════════ */
+#screen-map { background:var(--void2);display:flex;flex-direction:column;padding-top:var(--sat);padding-bottom:var(--sab); }
+.map-body { flex:1;overflow-y:auto;padding:12px; }
+.mars-map-svg { width:100%;max-width:700px;display:block;margin:0 auto; }
+.map-region { cursor:pointer;transition:all 0.2s; }
+.map-region:hover rect,.map-region:hover ellipse { filter:brightness(1.3); }
+.map-region rect,.map-region ellipse { stroke-width:1; }
+.region-unclaimed rect,.region-unclaimed ellipse { fill:rgba(255,255,255,.04);stroke:rgba(255,255,255,.12); }
+.region-unclaimed text { fill:rgba(255,255,255,.3); }
+.region-captured rect,.region-captured ellipse { stroke-width:1.5; }
+
+/* region info panel */
+.region-info { background:var(--panel);border:1px solid var(--border);padding:12px 14px;margin:0 auto 12px;max-width:700px;display:flex;align-items:center;gap:14px; }
+.ri-icon { font-size:22px;flex-shrink:0; }
+.ri-name { font-family:var(--ui);font-weight:700;font-size:14px;color:var(--text);margin-bottom:2px; }
+.ri-desc { font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;line-height:1.6; }
+.ri-owner { font-family:var(--mono);font-size:9px;margin-top:4px; }
+.ri-diff { display:flex;gap:2px;margin-top:4px; }
+.ri-diff-pip { width:10px;height:4px;border-radius:1px; }
+
+/* map legend */
+.map-legend { display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 12px;max-width:700px;margin:0 auto; }
+.legend-entry { display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:1px; }
+.legend-swatch-sq { width:12px;height:12px;border:1px solid rgba(255,255,255,.15); }
+
+/* ══════════════════════════════════════════════════════════════
+   LEADERBOARD SCREEN
+══════════════════════════════════════════════════════════════ */
+#screen-board { background:var(--void2);display:flex;flex-direction:column;padding-top:var(--sat);padding-bottom:var(--sab); }
+.board-body { flex:1;overflow-y:auto;padding:12px; }
+.board-header-row { display:grid;grid-template-columns:32px 1fr 52px 52px 68px;gap:6px;align-items:center;padding:0 10px 6px;font-family:var(--mono);font-size:7px;color:var(--text-dim);letter-spacing:2px;border-bottom:1px solid var(--border);margin-bottom:6px; }
+.board-row { display:grid;grid-template-columns:32px 1fr 52px 52px 68px;gap:6px;align-items:center;padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.04);transition:background 0.15s;position:relative;overflow:hidden; }
+.board-row:hover { background:rgba(255,255,255,.03); }
+.board-row.me { background:rgba(214,64,0,.07);border-left:2px solid var(--mars-glow); }
+.board-row::before { content:'';position:absolute;left:0;top:0;bottom:0;width:0%;transition:width 0.8s ease;opacity:0.06; }
+.board-rank { font-family:var(--display);font-size:18px;color:var(--text-dim);text-align:center;line-height:1; }
+.board-rank.top1 { color:#FFD700; }
+.board-rank.top2 { color:#C0C0C0; }
+.board-rank.top3 { color:#CD7F32; }
+.board-name { font-family:var(--mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:7px; }
+.board-color-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+.board-stat { font-family:var(--mono);font-size:10px;color:var(--text-mid);text-align:center; }
+.board-score { font-family:var(--display);font-size:16px;color:var(--mars-glow);text-align:right; }
+.board-row.me .board-score { color:var(--amber); }
+.board-score-bar { position:absolute;left:0;top:0;bottom:0;opacity:0.07;pointer-events:none;transition:width 1s ease; }
+
+/* territory count row below board */
+.territory-strip { display:flex;gap:4px;flex-wrap:wrap;padding:12px;max-width:700px;margin:0 auto; }
+.terr-tag { display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;padding:3px 8px;border:1px solid rgba(255,255,255,.1);color:var(--text-dim); }
+.terr-dot { width:6px;height:6px;border-radius:50%;flex-shrink:0; }
+
+/* live pulse */
+.live-dot-board { width:6px;height:6px;background:var(--green);border-radius:50%;animation:pdot 1.8s infinite;flex-shrink:0; }
+@keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.6)} }
 #screen-missions { background: var(--void2); display: flex; flex-direction: column; padding-top: var(--sat); padding-bottom: var(--sab); }
 .missions-body { flex:1;overflow-y:auto;padding:16px; }
 .mission-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px; }
@@ -539,6 +643,13 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div class="perf-toggle-wrap">
       <label for="perf-toggle">LOW PERFORMANCE MODE</label>
       <input id="perf-toggle" type="checkbox" />
+    <!-- CALLSIGN -->
+    <div class="callsign-wrap" id="callsignWrap">
+      <div class="callsign-label">◈ Your Operator Callsign</div>
+      <div class="callsign-row">
+        <input class="callsign-input" id="callsignInput" maxlength="14" placeholder="ROVER-HEX01" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmCallsign()"/>
+        <button class="callsign-confirm" onclick="confirmCallsign()">SET ↗</button>
+      </div>
     </div>
     <div class="role-cards">
       <div class="role-card" data-role="student" onclick="enterAs('student')" role="button" tabindex="0">
@@ -567,10 +678,9 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
 <div class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="nav-btn" id="nav-sim"      onclick="showScreen('sim')">      <span class="nav-icon">🎮</span>MISSION</button>
   <button class="nav-btn" id="nav-missions" onclick="showScreen('missions')"> <span class="nav-icon">📋</span>MISSIONS</button>
-  <button class="nav-btn" id="nav-skills"   onclick="showScreen('skills')">   <span class="nav-icon">🌿</span>SKILLS</button>
-  <button class="nav-btn" id="nav-cert"     onclick="showScreen('cert')">     <span class="nav-icon">🏆</span>CERTS</button>
-  <button class="nav-btn" id="nav-dar"      onclick="showScreen('dar')">      <span class="nav-icon">🤖</span>AI DAR</button>
-  <button class="nav-btn" id="nav-teacher"  onclick="showScreen('teacher')">  <span class="nav-icon">📊</span>TEACHER</button>
+  <button class="nav-btn" id="nav-board"    onclick="showScreen('board');buildLeaderboard()"><span class="nav-icon">🏆</span>BOARD</button>
+  <button class="nav-btn" id="nav-dar"      onclick="showScreen('dar')">      <span class="nav-icon">📊</span>REPORT</button>
+  <button class="nav-btn" id="nav-teacher"  onclick="showScreen('teacher')">  <span class="nav-icon">👩‍🏫</span>TEACHER</button>
 </div>
 
 <!-- ══ SCREEN 1 — SIMULATOR ══ -->
@@ -595,6 +705,7 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div class="topbar-center">
       <div class="mission-badge" id="missionBadge">HEX-01</div>
       <div class="sol-line" id="solLine">SOL 127 · 10:04 · 1.2s RTT</div>
+      <div id="missionObj" style="font-family:var(--mono);font-size:7px;color:var(--text-dim);letter-spacing:1px;margin-top:1px;max-width:160px;text-align:center;line-height:1.4;display:none"></div>
     </div>
     <div class="topbar-right">
       <div class="tier-display" id="tierDisplay"><span>T1</span><span style="color:var(--text-dim)">CADET</span></div>
@@ -626,6 +737,15 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div class="rover-mast" id="roverMast">
       <div class="cam-head"><div class="cam-lens"></div><div class="cam-eye"></div></div>
       <div class="mast-pole"></div>
+      <div class="rover-body-wrap">
+        <div class="rover-solar"></div>
+        <div class="rover-chassis"></div>
+        <div class="rover-wheels">
+          <div class="rover-wheel"></div>
+          <div class="rover-wheel"></div>
+          <div class="rover-wheel"></div>
+        </div>
+      </div>
     </div>
     <div id="dustWrap"></div>
 
@@ -657,6 +777,18 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div class="storm-layer" id="stormLayer"></div>
     <div class="low-energy-ring" id="lowRing"></div>
     <div class="solar-ring" id="solarRing"></div>
+
+    <!-- proximity indicator -->
+    <div class="proximity-bar"><div class="proximity-fill" id="proxFill"></div></div>
+    <div class="proximity-label" id="proxLabel">◉ NODE NEAR</div>
+
+    <!-- compass -->
+    <svg class="compass" viewBox="0 0 42 42">
+      <circle class="compass-ring" cx="21" cy="21" r="18"/>
+      <polygon class="compass-n" points="21,5 24,21 21,19 18,21"/>
+      <polygon class="compass-s" points="21,37 24,21 21,23 18,21"/>
+      <text class="compass-label" x="21" y="3.5" text-anchor="middle">N</text>
+    </svg>
   </div>
 
   <div class="sim-bottom">
@@ -674,6 +806,7 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     </div>
     <div class="ctrl-panel">
       <div class="panel-lbl" style="align-self:stretch">// MOVEMENT — TAP OR SWIPE</div>
+      <button class="map-quick-btn" onclick="openMapOverlay()">🪐 MAP — CAPTURED SECTORS</button>
       <div class="dir-grid">
         <div class="dir-btn" onclick="move('NW')">↖</div>
         <div class="dir-btn" onclick="move('N')">↑</div>
@@ -808,6 +941,113 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
   </div>
 </div>
 
+<!-- ══ SCREEN: MARS MAP ══ -->
+<div id="screen-map" class="screen">
+  <div class="page-topbar">
+    <div class="page-title">MARS MAP</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="live-dot-board"></div>
+      <span class="pill mars" id="map-captured-badge">0 SECTORS</span>
+    </div>
+  </div>
+  <div class="map-body">
+    <!-- Region info panel -->
+    <div class="region-info" id="regionInfoPanel">
+      <div class="ri-icon">🪐</div>
+      <div style="flex:1">
+        <div class="ri-name" id="ri-name">Select a region</div>
+        <div class="ri-desc" id="ri-desc">Click any sector on the map to view capture status and difficulty</div>
+        <div class="ri-diff" id="ri-diff"></div>
+        <div class="ri-owner" id="ri-owner"></div>
+      </div>
+    </div>
+
+    <!-- Mars map SVG rendered by JS -->
+    <div id="marsMapContainer" style="max-width:700px;margin:0 auto 10px;position:relative;overflow:hidden;border:1px solid var(--border);background:#050308">
+      <svg id="marsMapSvg" viewBox="0 0 300 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend" id="mapLegend">
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(255,255,255,.04)"></div>UNCLAIMED</div>
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(214,64,0,.3)"></div>YOUR SECTOR</div>
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(61,255,143,.25)"></div>CONTESTED</div>
+      <div class="legend-entry">⬛ DIFF 1 · ⬜ DIFF 5 (SCORE MULTIPLIER)</div>
+    </div>
+
+    <!-- Territory by player strip -->
+    <div class="territory-strip" id="territoryStrip"></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: LEADERBOARD ══ -->
+<div id="screen-board" class="screen">
+  <div class="page-topbar">
+    <div class="page-title">LEADERBOARD</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="live-dot-board"></div>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">LIVE</span>
+    </div>
+  </div>
+  <div class="board-body">
+    <div class="board-header-row">
+      <div>#</div>
+      <div>CALLSIGN</div>
+      <div style="text-align:center">REGIONS</div>
+      <div style="text-align:center">AVG DIFF</div>
+      <div style="text-align:right">SCORE</div>
+    </div>
+    <div id="leaderboardRows"></div>
+
+    <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:2px;margin-bottom:8px">SCORING FORMULA</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-mid);line-height:2">
+        SCORE = Σ (Region Difficulty × Survival Index at Capture)<br>
+        Difficulty: 1 (Lowlands) → 5 (Polar / Valles Marineris)<br>
+        Capture: First correct scan in that region's terrain type
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAP OVERLAY (slide-up, preserves game state) ══ -->
+<div class="map-overlay" id="mapOverlay">
+  <div class="map-overlay-head">
+    <div class="map-overlay-title">🪐 MARS MAP</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:5px">
+        <div class="live-dot-board"></div>
+        <span class="pill mars" id="map-captured-badge-ov">0 SECTORS</span>
+      </div>
+      <button class="map-close-btn" onclick="closeMapOverlay()">✕ RESUME MISSION</button>
+    </div>
+  </div>
+  <div class="map-overlay-body">
+    <!-- Region info panel -->
+    <div class="region-info" id="regionInfoPanelOv" style="margin-bottom:10px">
+      <div class="ri-icon">🪐</div>
+      <div style="flex:1">
+        <div class="ri-name" id="ri-name-ov">Select a region</div>
+        <div class="ri-desc" id="ri-desc-ov">Tap any sector to view capture status and difficulty</div>
+        <div class="ri-diff" id="ri-diff-ov"></div>
+        <div class="ri-owner" id="ri-owner-ov"></div>
+      </div>
+    </div>
+    <!-- Map SVG -->
+    <div id="marsMapContainerOv" style="max-width:700px;margin:0 auto 10px;position:relative;overflow:hidden;border:1px solid var(--border);background:#050308">
+      <svg id="marsMapSvgOv" viewBox="0 0 300 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+    </div>
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(255,255,255,.04)"></div>UNCLAIMED</div>
+      <div class="legend-entry"><div class="legend-swatch-sq" style="background:rgba(214,64,0,.4)"></div>YOUR SECTOR</div>
+      <div class="legend-entry">⬛=DIFF 1 · ⬜=DIFF 5</div>
+    </div>
+    <!-- Territory strip -->
+    <div class="territory-strip" id="territoryStripOv"></div>
+  </div>
+</div>
+
 <!-- ══ MODALS ══ -->
 <div class="modal-bg" id="nodeModal">
   <div class="modal">
@@ -861,7 +1101,8 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="closeModal('resultModal')">CONTINUE MISSION</button>
-      <button class="btn btn-ghost" onclick="openDAR()">VIEW AI ANALYSIS →</button>
+      <button class="btn btn-ghost" onclick="openDAR()">AI ANALYSIS →</button>
+      <button class="btn btn-ghost" onclick="closeModal('resultModal');showScreen('map')" style="color:var(--mars-glow)">🪐 MAP</button>
     </div>
   </div>
 </div>
@@ -891,10 +1132,14 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div class="modal-body" style="padding-top:20px">
       <div style="font-size:28px;text-align:center;margin-bottom:8px">🔋</div>
       <div class="efail-title" style="text-align:center;margin-bottom:10px">ENERGY DEPLETED</div>
-      <p style="font-size:11px;color:var(--text-dim);line-height:2;margin-bottom:8px">HEX-01 has entered power-save mode. Awaiting solar recharge cycle. Est. recovery: 2h 18m [Mars Sol]</p>
+      <p style="font-size:11px;color:var(--text-dim);line-height:2;margin-bottom:8px" id="efailContext">HEX-01 has entered power-save mode. Awaiting solar recharge cycle.</p>
+      <div id="efailNightWarn" style="display:none;background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.2);padding:10px;font-family:var(--mono);font-size:9px;color:var(--red);line-height:1.8;margin-bottom:8px">
+        ⚠ NIGHT CYCLE ACTIVE — solar recharge will be minimal until dawn.<br>
+        Wait through the night or end mission to review data.
+      </div>
     </div>
     <div class="modal-footer" style="flex-direction:column">
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="solarRecover()">WAIT FOR SOLAR RECHARGE</button>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="solarRecover()">⚡ WAIT FOR SOLAR RECHARGE</button>
       <button class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:4px" onclick="endMission()">END MISSION & REVIEW</button>
     </div>
   </div>
@@ -977,6 +1222,584 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
 
 <script>
 /* ══════════════════════════════════════════════════════
+   FIREBASE — LIVE MULTIPLAYER ENGINE
+   Project: mars-decision-lab
+   Realtime Database: live map + leaderboard sync
+══════════════════════════════════════════════════════ */
+const _FB_CONFIG = {
+  apiKey:            "AIzaSyC3u2wZSM3M6NKZUMbdSnbr_aJ6uTVAMYM",
+  authDomain:        "mars-decision-lab.firebaseapp.com",
+  databaseURL:       "https://mars-decision-lab-default-rtdb.firebaseio.com",
+  projectId:         "mars-decision-lab",
+  storageBucket:     "mars-decision-lab.firebasestorage.app",
+  messagingSenderId: "202720833150",
+  appId:             "1:202720833150:web:e542f56e874fe85ec9322f",
+  measurementId:     "G-16WEGVK0ME"
+};
+
+let _db = null;
+let _fbReady = false;
+
+(function _initFirebase(){
+  try {
+    firebase.initializeApp(_FB_CONFIG);
+    _db = firebase.database();
+    _fbReady = true;
+    console.info('[Mars] Firebase connected — live mode active');
+
+    // Monitor connection state → update status dot
+    _db.ref('.info/connected').on('value', snap=>{
+      const connected = snap.val() === true;
+      const dot = document.getElementById('fbStatusDot');
+      if(dot){
+        dot.style.background = connected ? 'var(--green)' : 'var(--amber)';
+        dot.title = connected ? 'LIVE — Firebase connected' : 'RECONNECTING...';
+      }
+      // Update board header dot too
+      const boardDot = document.querySelector('.live-dot-board');
+      if(boardDot) boardDot.style.background = connected ? 'var(--green)' : 'var(--amber)';
+    });
+
+    _listenRegions();
+    _listenLeaderboard();
+  } catch(e){
+    console.warn('[Mars] Firebase failed — localStorage fallback active', e);
+  }
+})();
+
+/* Real-time listeners — push updates to all connected players instantly */
+function _listenRegions(){
+  if(!_fbReady) return;
+  _db.ref('mars/regions').on('value', snap=>{
+    const data = snap.val();
+    if(data){
+      REGION_STATE = data;
+      try { localStorage.setItem('mars_regions_cache', JSON.stringify(data)); } catch(e){}
+    }
+    _refreshMapIfActive();
+    _refreshTerritory();
+    updateMapBadge();
+  });
+}
+
+function _listenLeaderboard(){
+  if(!_fbReady) return;
+  _db.ref('mars/leaderboard').on('value', snap=>{
+    const data = snap.val();
+    if(data){
+      const live = Object.values(data);
+      live.forEach(p=>{
+        const idx = _BOARD_DATA.findIndex(x=>x.callsign===p.callsign);
+        if(idx>=0) _BOARD_DATA[idx]=p; else _BOARD_DATA.push(p);
+      });
+    }
+    _refreshBoardIfActive();
+  });
+}
+
+/* localStorage fallback (used when Firebase is unavailable) */
+const _MP = {
+  _pfx: 'mars_mp_',
+  set(key,val){ try{ localStorage.setItem(this._pfx+key, JSON.stringify(val)); }catch(e){} },
+  get(key){ try{ const s=localStorage.getItem(this._pfx+key); return s?JSON.parse(s):null; }catch(e){ return null; } }
+};
+
+function _refreshMapIfActive(){
+  if(document.getElementById('mapOverlay')?.classList.contains('open')) buildMarsMap();
+}
+function _refreshBoardIfActive(){
+  if(document.getElementById('screen-board')?.classList.contains('active')) buildLeaderboard();
+}
+
+/* ══════════════════════════════════════════════════════
+   PLAYER STATE
+══════════════════════════════════════════════════════ */
+const PLAYER_COLORS = [
+  '#D64000','#22b4a0','#c8932a','#9b6dff','#4a90d9',
+  '#e06090','#10b981','#f07040','#60c8f8','#e8c45a'
+];
+
+function _pickColor(callsign){
+  let h = 0;
+  for(let i=0;i<callsign.length;i++) h = (h*31+callsign.charCodeAt(i))>>>0;
+  return PLAYER_COLORS[h % PLAYER_COLORS.length];
+}
+
+let PLAYER = {
+  callsign: localStorage.getItem('mars_callsign') || localStorage.getItem('mars_mp_callsign') || '',
+  color: '',
+  score: 0,
+  regions: [],
+};
+if(PLAYER.callsign) PLAYER.color = _pickColor(PLAYER.callsign);
+
+function confirmCallsign(){
+  const inp = document.getElementById('callsignInput');
+  const raw = (inp?.value||'').trim().toUpperCase().replace(/[^A-Z0-9\-]/g,'').slice(0,14);
+  const cs = raw || ('ROVER-'+Math.random().toString(36).slice(2,7).toUpperCase());
+  PLAYER.callsign = cs;
+  PLAYER.color = _pickColor(cs);
+  localStorage.setItem('mars_callsign', cs);
+  const wrap = document.getElementById('callsignWrap');
+  if(wrap) wrap.innerHTML = `<div class="callsign-badge" style="border-color:${PLAYER.color}88">◈ ${cs} <span style="opacity:.5;margin-left:4px">ACTIVE</span></div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   MARS REGIONS REGISTRY
+   Each region: id, name, diff(1-5), x,y,w,h on 300×155 SVG
+   Mapped to game terrains via TERRAIN_REGION_MAP
+══════════════════════════════════════════════════════ */
+const MARS_REGIONS = [
+  // Northern Lowlands (diff 1-2)
+  {id:'vastitas',   name:'Vastitas Borealis',  diff:1, x:75,  y:8,   w:95, h:20, icon:'❄️', desc:'Northern polar lowlands. Flat, ancient ocean bed.'},
+  {id:'amazonis',   name:'Amazonis Planitia',  diff:1, x:22,  y:38,  w:38, h:30, icon:'⬛', desc:'Smooth northern lowland. Low topographic relief.'},
+  {id:'acidalia',   name:'Acidalia Planitia',  diff:2, x:95,  y:30,  w:38, h:28, icon:'🌑', desc:'Dark lowland. Strong candidate for ancient ocean floor.'},
+  {id:'utopia',     name:'Utopia Planitia',    diff:2, x:215, y:25,  w:40, h:28, icon:'🔵', desc:'Viking 2 landing site. Largest impact basin on Mars.'},
+  {id:'isidis',     name:'Isidis Planitia',    diff:2, x:185, y:38,  w:34, h:24, icon:'🔵', desc:'Flat northern basin. Perseverance rover territory.'},
+  {id:'chryse',     name:'Chryse Planitia',    diff:2, x:118, y:45,  w:32, h:24, icon:'⭕', desc:'Golden plains. Viking 1 landing site. Outflow channels.'},
+
+  // Mid-latitude features (diff 2-3)
+  {id:'tharsis',    name:'Tharsis Rise',       diff:3, x:55,  y:55,  w:40, h:32, icon:'🌋', desc:'Volcanic plateau. Three massive shield volcanoes.'},
+  {id:'arabia',     name:'Arabia Terra',       diff:3, x:148, y:38,  w:38, h:28, icon:'🏔️', desc:'Ancient cratered highland. Heavily eroded terrain.'},
+  {id:'elysium',    name:'Elysium Mons',       diff:3, x:200, y:52,  w:30, h:24, icon:'🌋', desc:'Second major volcanic region. Elysium Planitia below.'},
+  {id:'meridiani',  name:'Terra Meridiani',    diff:2, x:150, y:68,  w:30, h:22, icon:'🔴', desc:'Opportunity rover home. Hematite spheres ("blueberries").'},
+
+  // Valles Marineris (diff 5 — linear feature)
+  {id:'valles',     name:'Valles Marineris',   diff:5, x:105, y:71,  w:68, h:14, icon:'🏔️', desc:'4,000km canyon system. 7km deep. Solar system\'s largest.'},
+
+  // Olympus Mons (diff 5 — special)
+  {id:'olympus',    name:'Olympus Mons',       diff:5, x:24,  y:44,  w:32, h:26, icon:'🌋', desc:'Tallest volcano in the solar system. 22km high. 600km wide.'},
+
+  // Southern Highlands (diff 3-4)
+  {id:'noachis',    name:'Noachis Terra',      diff:4, x:135, y:94,  w:36, h:28, icon:'🏜️', desc:'Ancient cratered highlands. 4+ billion years old.'},
+  {id:'argyre',     name:'Argyre Planitia',    diff:3, x:88,  y:98,  w:32, h:26, icon:'🌑', desc:'Ancient impact basin. 1,800km diameter.'},
+  {id:'hellas',     name:'Hellas Planitia',    diff:4, x:165, y:100, w:42, h:34, icon:'⚫', desc:'Deepest point on Mars. 8.2km below datum. Impact basin.'},
+  {id:'cimmeria',   name:'Terra Cimmeria',     diff:4, x:208, y:92,  w:36, h:28, icon:'🏜️', desc:'Rugged cratered highland. Complex magnetic anomalies.'},
+
+  // Polar regions (diff 4-5)
+  {id:'npolar',     name:'North Polar Cap',    diff:4, x:125, y:2,   w:50, h:14, icon:'❄️', desc:'Water ice and CO₂. Residual cap ~1,000km across.'},
+  {id:'spolar',     name:'South Polar Cap',    diff:5, x:130, y:135, w:44, h:15, icon:'❄️', desc:'Permanent CO₂ ice. Potential subglacial liquid water.'},
+];
+
+/* Terrain → region mapping */
+const TERRAIN_REGION_MAP = {
+  'Basaltic Flats':   'amazonis',
+  'Regolith Field':   'acidalia',
+  'Basaltic Ridge':   'tharsis',
+  'Scoria Outcrop':   'elysium',
+  'Sulfate Layer':    'meridiani',
+  'Hematite Sphere':  'hellas',
+};
+
+/* In-memory region ownership (synced with Firebase / localStorage) */
+let REGION_STATE = {}; // { regionId: { callsign, color, score, capturedAt } }
+
+function _loadLocalRegions(){
+  // Load from localStorage cache while Firebase connects
+  try {
+    const cache = localStorage.getItem('mars_regions_cache');
+    if(cache) REGION_STATE = JSON.parse(cache);
+  } catch(e){}
+}
+function _saveLocalRegions(){
+  // No-op: Firebase listener keeps REGION_STATE fresh
+  // Direct writes happen in attemptCapture via _db.ref().set()
+  try { localStorage.setItem('mars_regions_cache', JSON.stringify(REGION_STATE)); } catch(e){}
+}
+_loadLocalRegions();
+
+/* Firebase listeners initialized in _initFirebase() above */
+
+/* Leaderboard data (seeded + live) */
+let _BOARD_DATA = [
+  {callsign:'ARJUN-S',  color:'#22b4a0', score:312, regions:['hellas','cimmeria'],   avgDiff:4.0},
+  {callsign:'DEV-T3',   color:'#9b6dff', score:287, regions:['valles','spolar'],      avgDiff:5.0},
+  {callsign:'MEERA-R',  color:'#e06090', score:198, regions:['tharsis','olympus'],    avgDiff:4.0},
+  {callsign:'ROHAN-P',  color:'#4a90d9', score:164, regions:['noachis','argyre'],     avgDiff:3.5},
+  {callsign:'ANANYA-M', color:'#10b981', score:142, regions:['arabia','elysium'],     avgDiff:3.0},
+  {callsign:'KARAN-J',  color:'#f07040', score: 98, regions:['acidalia','meridiani'], avgDiff:2.0},
+  {callsign:'SNEHA-B',  color:'#c8932a', score: 87, regions:['amazonis'],             avgDiff:1.0},
+];
+
+// Seed initial region states from demo data if empty
+(function seedDemoCaptures(){
+  const seedMap = {
+    'hellas':'ARJUN-S','cimmeria':'ARJUN-S',
+    'valles':'DEV-T3','spolar':'DEV-T3',
+    'tharsis':'MEERA-R','olympus':'MEERA-R',
+    'noachis':'ROHAN-P','argyre':'ROHAN-P',
+    'arabia':'ANANYA-M','elysium':'ANANYA-M',
+    'acidalia':'KARAN-J','meridiani':'KARAN-J',
+    'amazonis':'SNEHA-B',
+  };
+  const colorMap = {};
+  _BOARD_DATA.forEach(p=>colorMap[p.callsign]=p.color);
+  Object.entries(seedMap).forEach(([rid,cs])=>{
+    if(!REGION_STATE[rid]){
+      REGION_STATE[rid]={callsign:cs,color:colorMap[cs]||'#888',score:MARS_REGIONS.find(r=>r.id===rid)?.diff*65||100,capturedAt:Date.now()-Math.random()*86400000};
+    }
+  });
+  _saveLocalRegions();
+})();
+
+/* ══════════════════════════════════════════════════════
+   CAPTURE A REGION
+══════════════════════════════════════════════════════ */
+function attemptCapture(terrainName, survivalIndex){
+  if(!PLAYER.callsign) return;
+
+  const regionId = TERRAIN_REGION_MAP[terrainName];
+  if(!regionId) return;
+
+  const region = MARS_REGIONS.find(r=>r.id===regionId);
+  if(!region) return;
+
+  const score = Math.round(region.diff * Math.max(1, survivalIndex));
+  const existing = REGION_STATE[regionId];
+
+  // Player already owns it
+  if(existing && existing.callsign === PLAYER.callsign){
+    toast('◉ '+region.name.toUpperCase()+' — ALREADY YOURS'); return;
+  }
+
+  // Contested: must beat incumbent's score
+  if(existing && existing.score >= score){
+    toast('⚔ '+region.name.toUpperCase()+' — SCORE TOO LOW TO CAPTURE (need >'+(existing.score)+')'); return;
+  }
+
+  // Capture!
+  const capture = { callsign:PLAYER.callsign, color:PLAYER.color, score, capturedAt:Date.now(), diff:region.diff };
+  REGION_STATE[regionId] = capture;
+  _saveLocalRegions(); // cache for offline
+  _updateLeaderboard(score, regionId, region.diff);
+
+  // Write to Firebase (triggers _listenRegions -> all players update)
+  if(_fbReady && _db){
+    _db.ref('mars/regions/'+regionId).set(capture).catch(e=>console.warn('[Mars] region write failed',e));
+  }
+
+  if(!PLAYER.regions.includes(regionId)) PLAYER.regions.push(regionId);
+  PLAYER.score += score;
+
+  const verb = existing ? 'CAPTURED FROM '+existing.callsign : 'CLAIMED';
+  toast('🚀 '+region.name.toUpperCase()+' — '+verb+' +'+score+' PTS');
+  _refreshMapIfActive();
+  _refreshTerritory();
+  updateMapBadge();
+  // If board screen open, refresh it too
+  _refreshBoardIfActive();
+}
+
+function _updateLeaderboard(addScore, regionId, diff){
+  // Update local board data
+  let me = _BOARD_DATA.find(p=>p.callsign===PLAYER.callsign);
+  if(!me){
+    me = {callsign:PLAYER.callsign, color:PLAYER.color, score:0, regions:[], avgDiff:0};
+    _BOARD_DATA.push(me);
+  }
+  if(!me.regions.includes(regionId)) me.regions.push(regionId);
+  me.score = (me.score||0) + addScore;
+  const totalDiff = me.regions.reduce((s,rid)=>{ const r=MARS_REGIONS.find(x=>x.id===rid); return s+(r?.diff||1); },0);
+  me.avgDiff = me.regions.length>0 ? +(totalDiff/me.regions.length).toFixed(1) : 0;
+
+  // Write to Firebase via transaction (prevents race conditions between players)
+  if(_fbReady && _db){
+    const ref = _db.ref('mars/leaderboard/'+PLAYER.callsign);
+    ref.transaction(cur=>{
+      const base = cur || {callsign:PLAYER.callsign, color:PLAYER.color, score:0, regions:[], avgDiff:0};
+      const regions = [...new Set([...(base.regions||[]), regionId])];
+      const tDiff = regions.reduce((s,rid)=>{ const r=MARS_REGIONS.find(x=>x.id===rid); return s+(r?.diff||1); },0);
+      return {
+        callsign: PLAYER.callsign,
+        color:    PLAYER.color,
+        score:    (base.score||0) + addScore,
+        regions,
+        avgDiff:  regions.length>0 ? +(tDiff/regions.length).toFixed(1) : 0,
+        lastActive: Date.now()
+      };
+    }).catch(e=>console.warn('[Mars] leaderboard write failed',e));
+  } else {
+    // localStorage fallback
+    const boardObj = {};
+    _BOARD_DATA.forEach(p=>{ boardObj[p.callsign]=p; });
+    _MP.set('leaderboard', boardObj);
+  }
+}
+// Legacy alias
+function _updateLocalLeaderboard(a,b,c){ _updateLeaderboard(a,b,c); }
+
+/* ══════════════════════════════════════════════════════
+   MAP OVERLAY — open/close without leaving sim screen
+══════════════════════════════════════════════════════ */
+function openMapOverlay(){
+  document.getElementById('mapOverlay').classList.add('open');
+  buildMarsMap();
+}
+function closeMapOverlay(){
+  document.getElementById('mapOverlay').classList.remove('open');
+}
+// Swipe down to close overlay
+(function(){
+  let _startY = 0;
+  document.addEventListener('touchstart', e=>{
+    const ov = document.getElementById('mapOverlay');
+    if(ov?.classList.contains('open')) _startY = e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchend', e=>{
+    const ov = document.getElementById('mapOverlay');
+    if(!ov?.classList.contains('open')) return;
+    const dy = e.changedTouches[0].clientY - _startY;
+    if(dy > 80) closeMapOverlay(); // swipe down >80px = close
+  },{passive:true});
+})();
+function buildMarsMap(){
+  const svg = document.getElementById('marsMapSvgOv');
+  if(!svg) return;
+  svg.innerHTML = '';
+
+  // Mars background ellipse
+  const bgEll = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  bgEll.setAttribute('cx','150'); bgEll.setAttribute('cy','78');
+  bgEll.setAttribute('rx','145'); bgEll.setAttribute('ry','70');
+  bgEll.setAttribute('fill','#120708'); bgEll.setAttribute('stroke','#2a1008'); bgEll.setAttribute('stroke-width','1');
+  svg.appendChild(bgEll);
+
+  // Grid lines (subtle latitude/longitude)
+  for(let lat=20;lat<155;lat+=25){
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1','5'); l.setAttribute('y1',lat); l.setAttribute('x2','295'); l.setAttribute('y2',lat);
+    l.setAttribute('stroke','rgba(255,255,255,.04)'); l.setAttribute('stroke-width','0.5');
+    svg.appendChild(l);
+  }
+  for(let lng=30;lng<300;lng+=40){
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',lng); l.setAttribute('y1','5'); l.setAttribute('x2',lng); l.setAttribute('y2','150');
+    l.setAttribute('stroke','rgba(255,255,255,.04)'); l.setAttribute('stroke-width','0.5');
+    svg.appendChild(l);
+  }
+
+  // Render regions
+  MARS_REGIONS.forEach(region=>{
+    const state = REGION_STATE[region.id];
+    const isMe = state && state.callsign === PLAYER.callsign;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','map-region');
+    g.setAttribute('id','mapregion-'+region.id);
+    g.style.cursor='pointer';
+
+    // Region rect
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',region.x); rect.setAttribute('y',region.y);
+    rect.setAttribute('width',region.w); rect.setAttribute('height',region.h);
+    rect.setAttribute('rx','2');
+
+    let fill, stroke, opacity;
+    if(state){
+      fill = state.color || '#888';
+      stroke = isMe ? '#fff' : 'rgba(255,255,255,.2)';
+      opacity = '0.55';
+      rect.setAttribute('fill',fill);
+      rect.setAttribute('fill-opacity',opacity);
+      rect.setAttribute('stroke',isMe?'#fff':fill);
+      rect.setAttribute('stroke-width', isMe?'1.5':'0.8');
+    } else {
+      rect.setAttribute('fill','rgba(255,255,255,.04)');
+      rect.setAttribute('stroke','rgba(255,255,255,.1)');
+      rect.setAttribute('stroke-width','0.5');
+    }
+
+    // Difficulty pips (small dots on top-right)
+    for(let d=0;d<region.diff;d++){
+      const pip = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      pip.setAttribute('x', region.x + region.w - 4 - d*5);
+      pip.setAttribute('y', region.y + 2);
+      pip.setAttribute('width','3'); pip.setAttribute('height','2');
+      pip.setAttribute('rx','0.5');
+      pip.setAttribute('fill', state ? 'rgba(255,255,255,.6)' : 'rgba(255,255,255,.2)');
+      g.appendChild(pip);
+    }
+
+    // Region name label
+    const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+    const shortName = region.name.split(' ')[0]; // just first word
+    label.setAttribute('x', region.x + region.w/2);
+    label.setAttribute('y', region.y + region.h/2 + 2);
+    label.setAttribute('text-anchor','middle');
+    label.setAttribute('font-family','monospace');
+    label.setAttribute('font-size', region.w > 45 ? '6' : '5');
+    label.setAttribute('fill', state ? 'rgba(255,255,255,.75)' : 'rgba(255,255,255,.25)');
+    label.textContent = shortName;
+
+    // Owner callsign (small, below name)
+    if(state){
+      const owner = document.createElementNS('http://www.w3.org/2000/svg','text');
+      owner.setAttribute('x', region.x + region.w/2);
+      owner.setAttribute('y', region.y + region.h/2 + 9);
+      owner.setAttribute('text-anchor','middle');
+      owner.setAttribute('font-family','monospace');
+      owner.setAttribute('font-size','4.5');
+      owner.setAttribute('fill', isMe ? '#ffe' : 'rgba(255,255,255,.4)');
+      owner.textContent = state.callsign.slice(0,8);
+      g.appendChild(owner);
+    }
+
+    g.appendChild(rect);
+    g.appendChild(label);
+
+    // Click handler
+    g.addEventListener('click',()=>selectRegion(region.id));
+    svg.appendChild(g);
+  });
+
+  // Player callsign watermark if set
+  if(PLAYER.callsign){
+    const wm = document.createElementNS('http://www.w3.org/2000/svg','text');
+    wm.setAttribute('x','150'); wm.setAttribute('y','153');
+    wm.setAttribute('text-anchor','middle');
+    wm.setAttribute('font-family','monospace'); wm.setAttribute('font-size','5');
+    wm.setAttribute('fill','rgba(255,255,255,.15)');
+    wm.textContent = 'OPERATOR: '+PLAYER.callsign;
+    svg.appendChild(wm);
+  }
+
+  updateMapBadge();
+  _refreshTerritory();
+}
+
+function selectRegion(regionId){
+  const region = MARS_REGIONS.find(r=>r.id===regionId);
+  if(!region) return;
+  const state = REGION_STATE[regionId];
+
+  document.getElementById('ri-name-ov').textContent = region.icon+' '+region.name;
+  document.getElementById('ri-desc-ov').textContent = region.desc;
+
+  // Difficulty pips
+  const diffEl = document.getElementById('ri-diff-ov');
+  diffEl.innerHTML = '';
+  for(let i=0;i<5;i++){
+    const pip = document.createElement('div');
+    pip.className = 'ri-diff-pip';
+    pip.style.background = i < region.diff ? '#c8932a' : 'rgba(255,255,255,.1)';
+    diffEl.appendChild(pip);
+  }
+  diffEl.innerHTML += `<span style="font-family:var(--mono);font-size:8px;color:var(--text-dim);margin-left:6px">DIFFICULTY ${region.diff} · SCORE MULT ${region.diff}×</span>`;
+
+  const ownerEl = document.getElementById('ri-owner-ov');
+  if(state){
+    const isMe = state.callsign===PLAYER.callsign;
+    ownerEl.innerHTML = `<span style="color:${state.color||'#888'}">◉</span> <b>${state.callsign}</b> <span style="color:var(--text-dim)">· ${isMe?'YOUR TERRITORY':'OPPONENT'} · SCORE: ${state.score}</span>`;
+  } else {
+    ownerEl.innerHTML = '<span style="color:var(--text-dim)">◯ UNCLAIMED — complete scan in matching terrain to capture</span>';
+  }
+
+  // Highlight selected region
+  document.querySelectorAll('.map-region rect').forEach(r=>r.style.filter='');
+  const g = document.getElementById('mapregion-'+regionId);
+  if(g){ const r=g.querySelector('rect'); if(r) r.style.filter='brightness(1.5)'; }
+}
+
+function _flashMapCapture(regionId){
+  _refreshMapIfActive();
+  if(document.getElementById('screen-map')?.classList.contains('active')) selectRegion(regionId);
+}
+
+function updateMapBadge(){
+  const mine = Object.values(REGION_STATE).filter(s=>s.callsign===PLAYER.callsign).length;
+  const badge = document.getElementById('map-captured-badge-ov') || document.getElementById('map-captured-badge');
+  if(badge) badge.textContent = mine+' / '+MARS_REGIONS.length+' SECTORS';
+}
+
+function _refreshTerritory(){
+  const strip = document.getElementById('territoryStripOv') || document.getElementById('territoryStrip');
+  if(!strip) return;
+
+  // Group by player
+  const byPlayer = {};
+  Object.entries(REGION_STATE).forEach(([rid,s])=>{
+    if(!byPlayer[s.callsign]) byPlayer[s.callsign]={color:s.color,regions:[]};
+    byPlayer[s.callsign].regions.push(rid);
+  });
+
+  strip.innerHTML = '';
+  Object.entries(byPlayer).sort((a,b)=>b[1].regions.length-a[1].regions.length).forEach(([cs,d])=>{
+    const tag = document.createElement('div');
+    tag.className = 'terr-tag';
+    tag.innerHTML = `<div class="terr-dot" style="background:${d.color}"></div>${cs.slice(0,10)}: ${d.regions.length}`;
+    strip.appendChild(tag);
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   LEADERBOARD BUILDER
+══════════════════════════════════════════════════════ */
+function buildLeaderboard(){
+  const el = document.getElementById('leaderboardRows');
+  if(!el) return;
+
+  // Merge Firebase/local board with current player
+  let board = [..._BOARD_DATA];
+  const meIdx = board.findIndex(p=>p.callsign===PLAYER.callsign);
+  if(PLAYER.callsign && PLAYER.score>0){
+    const meEntry = {callsign:PLAYER.callsign,color:PLAYER.color,score:PLAYER.score,regions:PLAYER.regions,avgDiff:PLAYER.regions.length>0?+(PLAYER.regions.reduce((s,rid)=>{const r=MARS_REGIONS.find(x=>x.id===rid);return s+(r?.diff||1);},0)/PLAYER.regions.length).toFixed(1):0};
+    if(meIdx>=0) board[meIdx]=meEntry; else board.push(meEntry);
+  }
+  board.sort((a,b)=>b.score-a.score);
+
+  const maxScore = board[0]?.score || 1;
+  el.innerHTML='';
+
+  board.slice(0,12).forEach((p,i)=>{
+    const isMe = p.callsign===PLAYER.callsign;
+    const row = document.createElement('div');
+    row.className='board-row'+(isMe?' me':'');
+
+    // Score bar background
+    const bar = document.createElement('div');
+    bar.className='board-score-bar';
+    bar.style.cssText=`background:${p.color};width:${Math.round(p.score/maxScore*100)}%`;
+    row.appendChild(bar);
+
+    const rankClass = i===0?'top1':i===1?'top2':i===2?'top3':'';
+    const rankText = i===0?'①':i===1?'②':i===2?'③':(i+1);
+
+    row.innerHTML += `
+      <div class="board-rank ${rankClass}">${rankText}</div>
+      <div class="board-name">
+        <div class="board-color-dot" style="background:${p.color}"></div>
+        ${p.callsign}${isMe?'<span style="font-size:7px;color:var(--mars-glow);margin-left:4px">YOU</span>':''}
+      </div>
+      <div class="board-stat">${(p.regions||[]).length}</div>
+      <div class="board-stat" style="color:${p.avgDiff>=4?'var(--red)':p.avgDiff>=3?'var(--amber)':'var(--green)'}">${p.avgDiff||'—'}</div>
+      <div class="board-score">${p.score}</div>
+    `;
+    el.appendChild(row);
+  });
+
+  if(board.length===0){
+    el.innerHTML='<div style="text-align:center;padding:30px;font-family:var(--mono);font-size:9px;color:var(--text-dim)">NO OPERATORS ON BOARD YET — COMPLETE MISSIONS TO RANK</div>';
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   CALLSIGN GUARD on BOOT
+══════════════════════════════════════════════════════ */
+(function restoreCallsign(){
+  const saved = localStorage.getItem('mars_callsign') || localStorage.getItem('mars_mp_callsign');
+  if(saved){
+    PLAYER.callsign = saved;
+    PLAYER.color = _pickColor(saved);
+    const wrap = document.getElementById('callsignWrap');
+    if(wrap) wrap.innerHTML=`<div class="callsign-badge" style="border-color:${PLAYER.color}88">◈ ${saved} <span style="opacity:.5;margin-left:4px">ACTIVE</span></div>`;
+  }
+  // Restore persisted leaderboard
+  // Load board from localStorage cache; Firebase listener will update it live
+  const savedBoard = (()=>{ try{ const s=localStorage.getItem('mars_mp_leaderboard'); return s?JSON.parse(s):null; }catch(e){return null;} })();
+  if(savedBoard) _BOARD_DATA = [..._BOARD_DATA, ...Object.values(savedBoard).filter(p=>!_BOARD_DATA.find(x=>x.callsign===p.callsign))];
+})();
+
+/* ══════════════════════════════════════════════════════
    DEMO LOGIN GUARD
 ══════════════════════════════════════════════════════ */
 const DEMO_AUTH_KEY = "mars_demo_session_v1";
@@ -985,6 +1808,17 @@ const PERF_MODE_KEY = "mars_low_perf_v1";
 let _pendingEnterRole = null;
 let _demoUnlockBusy = false;
 let _guestBypass = false;
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
+let _guestBypass = false;
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
+let _guestBypass = false;
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
+let _guestBypass = false;
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
 
 function isInAppBrowser(){
   const ua = navigator.userAgent || "";
@@ -1064,6 +1898,44 @@ async function verifyDemoCode(code){
   return Boolean(resp.ok && data && data.ok);
 }
 
+}
+
+async function verifyDemoCode(code){
+  const resp = await fetch('/api/demo-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await resp.json().catch(() => ({ ok: false }));
+  return Boolean(resp.ok && data && data.ok);
+}
+
+}
+
+}
+
+async function verifyDemoCode(code){
+  const resp = await fetch('/api/demo-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await resp.json().catch(() => ({ ok: false }));
+  return Boolean(resp.ok && data && data.ok);
+}
+
+}
+
+async function verifyDemoCode(code){
+  const resp = await fetch('/api/demo-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await resp.json().catch(() => ({ ok: false }));
+  return Boolean(resp.ok && data && data.ok);
+}
+
 async function demoUnlock(){
   if(_demoUnlockBusy) return;
   const inp = document.getElementById("demo-code");
@@ -1072,6 +1944,89 @@ async function demoUnlock(){
 
   if(!v){
     if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
+    if(inp) inp.focus();
+    if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
+    if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
+    if(inp) inp.focus();
+    if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
+    if(inp) inp.focus();
+    if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
     if(inp) inp.focus();
     return;
   }
@@ -1208,6 +2163,7 @@ const GS = {
   log:[], runId:null, startTs:null, endedTs:null,
   lastRunSurvivalIndex:null, skillNodes:{}, badges:[], role:'student',
   difficulty:'cadet', activeModifiers:[], comboScans:0, lastScanTs:0, terrainEventOpen:false, guestMode:false,
+  difficulty:'cadet', activeModifiers:[], comboScans:0, lastScanTs:0, terrainEventOpen:false,
 };
 
 const MARS = { SOL_MINUTES:1477, NIGHT_START:0.78, NIGHT_END:0.22, MAX_RISK:100 };
@@ -1512,6 +2468,318 @@ function maybeTriggerTerrainEvent(){
   bind('terrainAggBtn',evt.aggr);
   openModal('terrainEventModal');
 }
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
+}
+
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
+}
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
+}
+
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
+}
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
 
 function constraintTick(){
   if(!document.getElementById('screen-sim').classList.contains('active')) return;
@@ -1520,6 +2788,18 @@ function constraintTick(){
   updateThermal();
   updateDust();
   updateEnergyPassive();
+
+  // Check energy depletion from passive drain
+  if(GS.energy <= 0 && !GS.scanningActive && !document.getElementById('efailModal').classList.contains('open')){
+    showEnergyFail();
+  }
+  // Low energy warning ring
+  if(GS.energy < 15 && GS.energy > 0){
+    document.getElementById('lowRing')?.classList.add('active');
+  } else {
+    document.getElementById('lowRing')?.classList.remove('active');
+  }
+
   updateAllUI();
 }
 
@@ -1558,10 +2838,15 @@ function move(dir){
 
     const rocks = document.getElementById('rocks');
     const shifts={N:0,S:0,E:-2,W:2,NE:-1,NW:1,SE:-1,SW:1};
-    const offset = parseFloat(rocks.dataset.offset||0)+(shifts[dir]||0);
-    rocks.dataset.offset = offset;
-    rocks.style.transform = `translateX(${offset}px)`;
+    const vertShifts={N:-1,S:1,NE:-0.5,NW:-0.5,SE:0.5,SW:0.5,E:0,W:0};
+    const offsetX = parseFloat(rocks.dataset.offsetX||0)+(shifts[dir]||0);
+    const offsetY = parseFloat(rocks.dataset.offsetY||0)+(vertShifts[dir]||0);
+    rocks.dataset.offsetX = offsetX;
+    rocks.dataset.offsetY = offsetY;
+    rocks.style.transform = `translateX(${offsetX}px) translateY(${Math.max(-8,Math.min(8,offsetY))}px)`;
     spawnDust();
+    // Extra dust particles during storm
+    if(GS.stormActive){ spawnDust(); spawnDust(); }
 
     if(!GS.stormActive && Math.random() < GS.dust*0.3){
       GS.metrics.storms++;
@@ -1585,6 +2870,7 @@ function move(dir){
 }
 
 function doScan(){
+  if(GS.energy <= 0){ showEnergyFail(); return; }
   if(GS.instrumentCooldown > 0){ toast('INSTRUMENT COOLING — '+GS.instrumentCooldown+'s'); return; }
   if(GS.energy < 8){ toast('INSUFFICIENT ENERGY FOR SCAN'); return; }
   if(GS.scanningActive) return;
@@ -1639,8 +2925,29 @@ function initiateScan(mode = 'deep'){
   updateAllUI();
 }
 
+/* ══════════════════════════════════════════════════════
+   CHALLENGE DECK — anti-repeat shuffled cycle
+══════════════════════════════════════════════════════ */
+let _chalDeck = [];
+let _chalUsed = [];
+
+function _nextChallenge() {
+  // Rebuild deck if exhausted
+  if (_chalDeck.length === 0) {
+    _chalDeck = CHALLENGES.slice().sort(() => Math.random() - 0.5);
+  }
+  // Also avoid immediate repeat of last 2
+  const last = _chalUsed.slice(-2).map(c => c.id);
+  let idx = _chalDeck.findIndex(c => !last.includes(c.id));
+  if (idx === -1) idx = 0;
+  const c = _chalDeck.splice(idx, 1)[0];
+  _chalUsed.push(c);
+  if (_chalUsed.length > 6) _chalUsed.shift();
+  return c;
+}
+
 function openChallenge(){
-  const c = CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)];
+  const c = _nextChallenge();
   GS._currentChallenge = c;
   document.getElementById('chal-title').textContent = `// ${(GS._currentTerrain?.name||'SECTOR').toUpperCase()} — ANALYSIS`;
   document.getElementById('chal-sub').textContent   = `CATEGORY: ${c.category.toUpperCase()}`;
@@ -1687,6 +2994,11 @@ function showResult(correct, opts = {}){
     GS.metrics.correct++;
     rd.innerHTML = delta('+'+energyGain+'%','Energy',true)+delta('+1','Validation',true)+delta('-'+riskDrop,'Risk',true)+delta('+'+xpGain,'XP',true);
     checkSkillUnlocks(); checkBadges();
+    // Attempt region capture using current terrain + live survival index
+    if(PLAYER.callsign && GS._currentTerrain){
+      const si = computeSurvivalIndex();
+      attemptCapture(GS._currentTerrain.name, si);
+    }
   } else {
     ri.textContent='✗'; rt.textContent='ANALYSIS FAILED'; rt.className='result-title fail';
     modEnergy(-6);
@@ -1765,24 +3077,36 @@ function overrideStorm(){
    ENERGY FAIL / END
 ══════════════════════════════════════════════════════ */
 function showEnergyFail(){
+  if(document.getElementById('efailModal').classList.contains('open')) return;
   GS.endedTs = nowISO();
   logEvent('RUN_END',{reason:'ENERGY_DEPLETED'});
+  // Context text
+  const ctx = document.getElementById('efailContext');
+  if(ctx){
+    const h = Math.floor(GS.timeFrac*24);
+    ctx.textContent = `HEX-01 entered power-save mode at Sol ${GS.solNumber} · ${h}:00. Energy drained to zero${isNight()?' during night cycle':' on dayside'}.`;
+  }
+  const nightWarn = document.getElementById('efailNightWarn');
+  if(nightWarn) nightWarn.style.display = isNight() ? 'block' : 'none';
   openModal('efailModal');
 }
 
 function solarRecover(){
   closeModal('efailModal');
   GS.isCharging = true;
-  document.getElementById('solarRing').classList.add('active');
-  toast('SOLAR RECOVERY INITIATED');
+  GS.endedTs = null; // allow further play
+  document.getElementById('solarRing')?.classList.add('active');
+  const chargeRate = isNight() ? 1 : 3;
+  toast(isNight() ? 'MINIMAL NIGHT CHARGING — SLOW RECOVERY' : 'SOLAR RECOVERY INITIATED');
   const iv = setInterval(()=>{
-    modEnergy(+3); updateAllUI();
+    if(!GS.isCharging){ clearInterval(iv); return; }
+    modEnergy(+chargeRate); updateAllUI();
     if(GS.energy >= 25){
       clearInterval(iv);
       GS.isCharging = false;
-      document.getElementById('solarRing').classList.remove('active');
-      document.getElementById('lowRing').classList.remove('active');
-      toast('ENERGY RESTORED');
+      document.getElementById('solarRing')?.classList.remove('active');
+      document.getElementById('lowRing')?.classList.remove('active');
+      toast('ENERGY RESTORED — RESUMING OPERATIONS');
     }
   }, 1200);
   _ambTimers.push(iv);
@@ -1801,6 +3125,30 @@ function endMission(){
   checkSkillUnlocks(); checkBadges(); updateAllUI();
   toast('MISSION COMPLETE — SURVIVAL INDEX: '+GS.lastRunSurvivalIndex+'%');
   showScreen('dar'); buildDAR();
+}
+
+function applyMissionParams(missionId){
+  const m = MISSIONS.find(x=>x.id===missionId);
+  if(!m) return;
+  MARS.MAX_RISK = m.maxRisk;
+  // Reset GS fields relevant to the new mission
+  GS.risk = 0; GS.energy = 84; GS.dust = 0.05;
+  GS.metrics = {moves:0,scans:0,correct:0,wrong:0,slips:0,storms:0,latencyPenalty:0,stormHalt:0,stormOverride:0};
+  GS.validation = 0; GS.nodeProximity = 0; GS.xp = 0;
+  GS.instrumentCooldown = 0; GS.instrumentReliability = 1.0;
+  GS.stormActive = false; GS.isCharging = false; GS.scanningActive = false;
+  GS.roverState = 'IDLE'; GS.endedTs = null; GS.startTs = nowISO();
+  GS.runId = mkRunId();
+  // Night operations mission starts at dusk
+  if(missionId === 3) GS.timeFrac = 0.75;
+  else GS.timeFrac = 0.42;
+  const objEl = document.getElementById('missionObj');
+  if(objEl){ objEl.textContent = m.objective; objEl.style.display='block'; }
+  const badge = document.getElementById('missionBadge');
+  if(badge) badge.textContent = 'M0'+missionId+' — '+m.name.toUpperCase();
+  _chalDeck = []; _chalUsed = [];
+  updateAllUI(); updateValidationPips();
+  toast('M0'+missionId+' LOADED — MAX RISK: '+m.maxRisk);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1916,6 +3264,49 @@ function updateAllUI(){
 
   const xpb = document.getElementById('skills-xp-badge');
   if(xpb) xpb.textContent=GS.xp+' XP';
+
+  // ── Dynamic sky based on time of sol ──
+  const sky = document.getElementById('screen-sim')?.querySelector('.sky');
+  const stars = document.getElementById('screen-sim')?.querySelector('.stars');
+  const hglow = document.getElementById('screen-sim')?.querySelector('.horizon-glow');
+  if(sky){
+    const tf = GS.timeFrac;
+    let skyGrad, horizCol, starsOp;
+    const isN = isNight();
+    if(isN){ // night
+      skyGrad='linear-gradient(180deg,#010106 0%,#05040D 45%,#100808 75%,#1A0A06 100%)';
+      horizCol='rgba(80,20,10,0.08)'; starsOp='1';
+    } else if(tf < 0.28){ // dawn
+      const t=(tf-MARS.NIGHT_END)/(0.28-MARS.NIGHT_END);
+      skyGrad=`linear-gradient(180deg,rgba(${Math.round(6+t*20)},${Math.round(3+t*8)},${Math.round(9+t*5)} ,1) 0%,rgba(${Math.round(40+t*60)},${Math.round(15+t*20)},${Math.round(5+t*10)},1) 50%,#2A1208 100%)`;
+      horizCol=`rgba(${Math.round(200+t*20)},${Math.round(80+t*40)},${Math.round(10)},${(0.15+t*0.3).toFixed(2)})`;
+      starsOp=(1-t).toFixed(2);
+    } else if(tf > 0.68){ // dusk
+      const t=(tf-0.68)/(MARS.NIGHT_START-0.68);
+      skyGrad=`linear-gradient(180deg,rgba(${Math.round(26+t*5)},${Math.round(11-t*8)},${Math.round(13-t*10)},1) 0%,rgba(${Math.round(100-t*80)},${Math.round(35-t*28)},${Math.round(15-t*12)},1) 50%,#2A1208 100%)`;
+      horizCol=`rgba(220,${Math.round(100-t*60)},${Math.round(20)},${(0.3+t*0.15).toFixed(2)})`;
+      starsOp=t.toFixed(2);
+    } else { // midday
+      skyGrad='linear-gradient(180deg,#1a0b0d 0%,#2d1410 40%,#3a1a0a 70%,#2A1208 100%)';
+      horizCol='rgba(214,80,20,0.22)'; starsOp='0';
+    }
+    if(GS.stormActive){
+      skyGrad='linear-gradient(180deg,#150c03 0%,#261408 50%,#1a0c04 100%)';
+      horizCol='rgba(160,90,10,0.35)'; starsOp='0';
+    }
+    sky.style.background = skyGrad;
+    if(hglow) hglow.style.background=`linear-gradient(180deg,transparent,${horizCol})`;
+    if(stars) stars.style.opacity = starsOp;
+  }
+
+  // ── Node proximity bar ──
+  const pf = document.getElementById('proxFill');
+  const pl = document.getElementById('proxLabel');
+  if(pf){
+    const pct = Math.round(GS.nodeProximity * 100);
+    pf.style.width = pct+'%';
+    if(pl){ pl.classList.toggle('show', pct >= 75); }
+  }
 }
 
 function updateValidationPips(){
@@ -1935,7 +3326,7 @@ function updateTerrainOverlay(terrain){
 /* ══════════════════════════════════════════════════════
    SCREEN MANAGEMENT
 ══════════════════════════════════════════════════════ */
-const SCREENS = ['landing','sim','missions','skills','cert','dar','teacher'];
+const SCREENS = ['landing','sim','missions','skills','cert','dar','teacher','map','board'];
 let currentScreen = 'landing';
 
 function showScreen(id){
@@ -1952,6 +3343,8 @@ function showScreen(id){
   if(id==='cert') buildCerts();
   if(id==='teacher') buildTeacherDash();
   if(id==='missions') buildMissions();
+  if(id==='board') buildLeaderboard();
+  if(id==='dar') buildDAR();
 }
 
 function enterAs(role){
@@ -1972,6 +3365,7 @@ function enterAs(role){
   document.getElementById('bottom-nav').style.display = 'flex';
   GS.runId = mkRunId(); GS.startTs = nowISO();
   logEvent('SESSION_START',{role});
+  applyMissionParams(GS.currentMissionId);
   startConstraintLoop(); startAmbient();
   showInAppBannerIfNeeded();
   if(role==='teacher'){ showScreen('teacher'); }
@@ -1981,6 +3375,11 @@ function enterAs(role){
     toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · '));
     try { if(localStorage.getItem(COACH_KEY) !== '1') showCoachTip(0); } catch(_) { showCoachTip(0); }
   }
+    toast('HEX-01 ONLINE — MISSION ACTIVE');
+    toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · '));
+    try { if(localStorage.getItem(COACH_KEY) !== '1') showCoachTip(0); } catch(_) { showCoachTip(0); }
+  }
+  else { showScreen('sim'); toast('HEX-01 ONLINE — MISSION ACTIVE'); toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · ')); }
 }
 
 function openDAR(){ closeAllModals(); showScreen('dar'); buildDAR(); }
@@ -2147,6 +3546,20 @@ function buildDAR(){
       <div class="dar-ai-label">◈ OFFLINE ANALYSIS</div>
       <div class="dar-ai-box" id="aiAnalysisBox"></div>
     </div>
+    <div class="dar-section" id="submitSection">
+      <div class="dar-section-title">📬 SUBMIT MISSION FOR REVIEW</div>
+      <div id="submitHumanText" style="font-family:var(--body);font-size:12px;color:var(--text-mid);line-height:1.9;padding:14px;background:rgba(214,64,0,.04);border:1px solid var(--border2);border-radius:2px;margin-bottom:12px;white-space:pre-wrap"></div>
+      <details style="margin-bottom:12px">
+        <summary style="font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:2px;cursor:pointer;padding:8px 0">◈ RAW JSON PAYLOAD ▾</summary>
+        <pre id="submitJsonText" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);background:#05060a;border:1px solid var(--border);padding:12px;overflow-x:auto;line-height:1.6;margin-top:8px;max-height:200px;overflow-y:auto"></pre>
+      </details>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:11px" onclick="submitMissionReview('email')">✉ SUBMIT VIA EMAIL</button>
+        <button class="btn btn-secondary" style="flex:1;justify-content:center;font-size:11px" onclick="submitMissionReview('copy')">⎘ COPY PAYLOAD</button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:11px" onclick="submitMissionReview('whatsapp')">💬 SHARE WHATSAPP</button>
+      </div>
+      <div id="submitStatus" style="font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:2px;margin-top:8px;min-height:16px;text-align:center"></div>
+    </div>
   `;
 
   setTimeout(()=>{
@@ -2158,6 +3571,108 @@ function buildDAR(){
 
   const box = document.getElementById('aiAnalysisBox');
   if(box) box.textContent = getFallbackAnalysis(si,acc);
+  _buildSubmitPayload(si, acc);
+}
+
+function _buildSubmitPayload(si, acc){
+  const m = MISSIONS.find(x=>x.id===GS.currentMissionId) || MISSIONS[0];
+  const now = new Date();
+  const dateStr = now.toLocaleString('en-IN',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const total = GS.metrics.correct + GS.metrics.wrong;
+  const myCaps = Object.entries(REGION_STATE).filter(([,s])=>s.callsign===PLAYER.callsign);
+
+  const humanText =
+`MARS DECISION LAB — MISSION DEBRIEF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Operator  : ${PLAYER.callsign || 'UNREGISTERED'}
+Mission   : M0${m.id} — ${m.name}
+Date      : ${dateStr}
+Run ID    : ${GS.runId || '—'}
+
+PERFORMANCE SUMMARY
+  Survival Index    : ${si}%
+  Decision Accuracy : ${acc}% (${GS.metrics.correct} correct / ${GS.metrics.wrong} wrong)
+  Risk Budget Used  : ${Math.round(GS.risk)} / ${MARS.MAX_RISK}
+  Energy at End     : ${Math.round(GS.energy)}%
+  Total Moves       : ${GS.metrics.moves}
+  Scans Completed   : ${GS.metrics.scans}
+  Sol Number        : ${GS.solNumber}
+  Traction Slips    : ${GS.metrics.slips}
+
+STORM DECISIONS
+  HALT (safe)       : ${GS.metrics.stormHalt}
+  Override (risky)  : ${GS.metrics.stormOverride}
+
+TERRITORY CAPTURED
+${myCaps.length > 0 ? myCaps.map(([rid,s])=>{const r=MARS_REGIONS.find(x=>x.id===rid);return`  ◉ ${(r?.name||rid).padEnd(24)} Diff ${r?.diff||'?'} · Score ${s.score}`;}).join('\n') : '  No regions captured this session.'}
+
+AI ANALYSIS
+  ${getFallbackAnalysis(si,acc)}
+
+Mission Objective : ${m.objective}
+Verdict           : ${si>=70?'✓ OBJECTIVE MET':si>=45?'△ PARTIAL — REVIEW RECOMMENDED':'✗ RETRY ADVISED'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Mars Decision Lab · ViaDecide · decide.viadecide.com`;
+
+  const payload = {
+    schema: 'mars_mission_review_v1',
+    operator: PLAYER.callsign || null,
+    runId: GS.runId,
+    submittedAt: now.toISOString(),
+    mission: { id: m.id, name: m.name, objective: m.objective, maxRisk: m.maxRisk },
+    performance: {
+      survivalIndex: si,
+      decisionAccuracy: acc,
+      riskUsed: Math.round(GS.risk),
+      energyFinal: Math.round(GS.energy),
+      solNumber: GS.solNumber,
+      metrics: { ...GS.metrics },
+      validationPips: GS.validation,
+      xp: GS.xp,
+    },
+    territories: myCaps.map(([rid,s])=>({ regionId:rid, score:s.score, diff:s.diff })),
+    verdict: si>=70?'PASS':si>=45?'PARTIAL':'RETRY',
+    aiAnalysis: getFallbackAnalysis(si,acc),
+  };
+
+  const htEl = document.getElementById('submitHumanText');
+  if(htEl) htEl.textContent = humanText;
+  const jtEl = document.getElementById('submitJsonText');
+  if(jtEl) jtEl.textContent = JSON.stringify(payload, null, 2);
+
+  // Store for submitMissionReview
+  window._lastMissionHuman = humanText;
+  window._lastMissionPayload = payload;
+}
+
+function submitMissionReview(mode){
+  const human = window._lastMissionHuman || 'No mission data.';
+  const payload = window._lastMissionPayload || {};
+  const statusEl = document.getElementById('submitStatus');
+
+  if(mode === 'copy'){
+    const full = human + '\n\n---JSON---\n' + JSON.stringify(payload, null, 2);
+    navigator.clipboard?.writeText(full).then(()=>{
+      if(statusEl) statusEl.textContent = '✓ COPIED TO CLIPBOARD';
+      setTimeout(()=>{ if(statusEl) statusEl.textContent=''; }, 3000);
+    }).catch(()=>{
+      if(statusEl) statusEl.textContent = 'COPY FAILED — USE LONG-PRESS ON TEXT ABOVE';
+    });
+    return;
+  }
+
+  const subject = encodeURIComponent(`Mars Mission Review — ${payload.operator||'ANON'} · ${payload.mission?.name||'Unknown'} · SI:${payload.performance?.survivalIndex||0}%`);
+  const body = encodeURIComponent(human + '\n\n--- JSON ---\n' + JSON.stringify(payload));
+
+  if(mode === 'email'){
+    window.open(`mailto:dharam@viadecide.com?subject=${subject}&body=${body}`);
+  } else if(mode === 'whatsapp'){
+    const msg = encodeURIComponent(`🚀 Mars Mission Debrief\n\n${payload.operator} — ${payload.mission?.name}\nSurvival: ${payload.performance?.survivalIndex}% | Accuracy: ${payload.performance?.decisionAccuracy}%\nVerdict: ${payload.verdict}\n\nFull report: ${window.location.href}`);
+    window.open('https://wa.me/?text='+msg);
+  }
+
+  if(statusEl) statusEl.textContent = '✓ REVIEW SUBMITTED';
+  setTimeout(()=>{ if(statusEl) statusEl.textContent=''; }, 3000);
 }
 
 function getFallbackAnalysis(si,acc){
@@ -2192,7 +3707,7 @@ function buildMissions(){
       <div class="mc-constraint">${m.constraint}</div>
       <div class="mc-tags"><span class="pill ${locked?'red':done?'green':'amber'}">${locked?(GS.guestMode && m.id!==1?'UNLOCK FULL DEMO':'LOCKED T'+m.unlockTier):done?'COMPLETE':'AVAILABLE'}</span></div>
     `;
-    if(!locked){ card.onclick=()=>{ GS.currentMissionId=m.id; toast('LOADING: '+m.name.toUpperCase()); showScreen('sim'); }; }
+    if(!locked){ card.onclick=()=>{ GS.currentMissionId=m.id; applyMissionParams(m.id); showScreen('sim'); }; }
     grid.appendChild(card);
   });
 }
@@ -2317,10 +3832,13 @@ function animateStormBars(){
 }
 
 function switchTab(tab){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.getAttribute('onclick')?.includes("'"+tab+"'")) b.classList.add('active'); });
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    const oc = b.getAttribute('onclick')||'';
+    b.classList.toggle('active', oc.indexOf("'"+tab+"'") !== -1 || oc.indexOf('"'+tab+'"') !== -1);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>{
+    c.classList.toggle('active', c.id === 'tab-'+tab);
+  });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2449,6 +3967,9 @@ bindPerfToggle();
 buildMissions();
 updateSkillTree();
 buildCerts();
+// Pre-seed region state with persisted data (after REGION_STATE seeded from demo)
+_loadLocalRegions();
 </script>
+<script src="vd-nav-fix.js" defer></script>
 </body>
 </html>
