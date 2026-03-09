@@ -194,6 +194,37 @@
         }
 
         img, video { max-width: 100%; height: auto; display: block; }
+
+
+        /* ─── RESPONSIVE UX TUNING ─── */
+        @media (max-width: 1024px) {
+            main { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .ep-card:hover { transform: none; box-shadow: none; }
+        }
+
+        @media (max-width: 768px) {
+            header .max-w-6xl { height: 64px !important; padding-left: 1rem !important; padding-right: 1rem !important; }
+            .coming-soon-ticker { top: 64px !important; }
+            main { padding-top: 7.5rem !important; padding-bottom: 4.5rem !important; space-y: 4.5rem; }
+            h1 { font-size: clamp(2rem, 10vw, 2.8rem) !important; line-height: 1.05 !important; }
+            #audio-play-btn { min-width: 3rem; min-height: 3rem; }
+            .btn-brutal, .cat-cta, button, a.btn-brutal { min-height: 44px; }
+            #audio-logs .grid, #data-module .grid { gap: 1rem !important; }
+            .ep-card .tc-desc, .ep-card p { line-height: 1.55; }
+        }
+
+        @media (max-width: 480px) {
+            .mono { letter-spacing: 0.08em !important; }
+            .ticker-inner { letter-spacing: 0.18em !important; font-size: 8px !important; }
+            .ep-card, .ep-card-future, .tilt-container > div, #data-module > div { border-radius: 0 !important; }
+            .reveal { transform: translateY(16px); }
+            #interactive-terminal .p-6, #data-module .p-6, section .p-6 { padding: 1rem !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+            .reveal { opacity: 1 !important; transform: none !important; }
+        }
     </style>
 </head>
 <body class="selection:bg-[#E0FF00] selection:text-black">
@@ -252,7 +283,7 @@
 <!-- ══════════════════════════════════════
      MAIN CONTENT
 ══════════════════════════════════════ -->
-<main class="pt-48 pb-24 max-w-6xl mx-auto px-6 space-y-40 relative z-10">
+<main class="pt-48 pb-24 max-w-6xl mx-auto px-6 space-y-24 md:space-y-32 lg:space-y-40 relative z-10">
 
     <!-- ═══ SECTION 1: HERO & AUDIO INTERFACE ═══ -->
     <section class="reveal active space-y-10 relative">
@@ -313,12 +344,12 @@
         </div>
 
         <!-- Hero Headline -->
-        <h1 class="text-5xl md:text-[5rem] font-bold tracking-tighter text-white max-w-4xl leading-[1] uppercase">
+        <h1 class="text-4xl sm:text-5xl md:text-[5rem] font-bold tracking-tighter text-white max-w-4xl leading-[1] uppercase">
             Why I built <br>3 games to fix <br>
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#E0FF00] to-zinc-600 block mt-2 glitch-text" data-text="E-Commerce UX.">E-Commerce UX.</span>
         </h1>
 
-        <p class="text-lg md:text-xl text-zinc-400 max-w-2xl leading-relaxed font-light border-l border-[#E0FF00] pl-6 py-2">
+        <p class="text-base sm:text-lg md:text-xl text-zinc-400 max-w-2xl leading-relaxed font-light border-l border-[#E0FF00] pl-4 sm:pl-6 py-2">
             Most small businesses don't need more SaaS tools. They need structure. Dive into the psychology of game design and how it's reshaping the future of Bharat commerce.
         </p>
 
@@ -352,7 +383,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             <!-- ── EPISODE 03 (Latest) ── -->
-            <div class="ep-card flex flex-col" onclick="window.open('https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg','_blank')" data-hover data-spotify>
+            <div class="ep-card flex flex-col" role="button" tabindex="0" onclick="window.open('https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg','_blank')" data-hover data-spotify>
                 <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
                     <div class="vid-wrapper" id="ep3-vid-wrap">
                         <video
@@ -382,7 +413,7 @@
             </div>
 
             <!-- ── EPISODE 02 ── -->
-            <div class="ep-card flex flex-col" onclick="window.open('https://open.spotify.com/episode/1NX8bsU1Dps3l6LeZkv5yI','_blank')" data-hover data-spotify>
+            <div class="ep-card flex flex-col" role="button" tabindex="0" onclick="window.open('https://open.spotify.com/episode/1NX8bsU1Dps3l6LeZkv5yI','_blank')" data-hover data-spotify>
                 <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
                     <div class="vid-wrapper" id="ep2-vid-wrap">
                         <video
@@ -420,7 +451,7 @@
             </div>
 
             <!-- ── EPISODE 01 ── -->
-            <div class="ep-card flex flex-col" onclick="window.open('https://open.spotify.com/episode/75mlg3wF4Yyvvc14VpNWR1','_blank')" data-hover data-spotify>
+            <div class="ep-card flex flex-col" role="button" tabindex="0" onclick="window.open('https://open.spotify.com/episode/75mlg3wF4Yyvvc14VpNWR1','_blank')" data-hover data-spotify>
                 <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
                     <div class="vid-wrapper" id="ep1-vid-wrap">
                         <video
@@ -849,6 +880,15 @@ function handleScroll() {
 }
 window.addEventListener('scroll', handleScroll);
 window.dispatchEvent(new Event('scroll'));
+
+document.querySelectorAll('.ep-card[role="button"]').forEach(card => {
+    card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            card.click();
+        }
+    });
+});
 
 // ─── AUDIO PLAYER (REAL PLAYBACK) ───────────────────────────────
 const playBtn   = document.getElementById('audio-play-btn');
