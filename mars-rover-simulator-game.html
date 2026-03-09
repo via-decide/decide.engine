@@ -1831,6 +1831,26 @@ async function demoUnlock(){
   if(!v){
     if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
     if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
+    if(inp) inp.focus();
     if(inp) inp.focus();
     return;
   }
@@ -2256,6 +2276,42 @@ function registerScanCombo(){
     GS.comboScans = 1;
   }
   GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
 }
 
 function maybeTriggerTerrainEvent(){
