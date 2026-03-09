@@ -84,6 +84,7 @@ code,
   --cs:#4a90d9;--cst:#f07040;--cb:#9b6dff;
   --cfi:#10b981;--cfi2:#34d399;--cfi3:rgba(16,185,129,0.12);
   --cpb:#c86898;--cpb2:#e888bb;--cpb3:rgba(200,104,152,0.12);
+  --ca:#1db954;--ca2:#4ade80;--ca3:rgba(29,185,84,0.12);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
@@ -220,6 +221,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"]::before{background:linear-gradient(180deg,var(--cb) 0%,transparent 100%)}
 .cat-section[data-cat="finance"]::before{background:linear-gradient(180deg,var(--cfi) 0%,transparent 100%)}
 .cat-section[data-cat="personal"]::before{background:linear-gradient(180deg,var(--cpb) 0%,transparent 100%)}
+.cat-section[data-cat="audio"]::before{background:linear-gradient(180deg,var(--ca) 0%,transparent 100%)}
 .cat-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
 .cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
 .cat-header-l{display:flex;align-items:center;gap:2rem}
@@ -234,6 +236,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"] .cat-dot{background:var(--cb)}
 .cat-section[data-cat="finance"] .cat-dot{background:var(--cfi)}
 .cat-section[data-cat="personal"] .cat-dot{background:var(--cpb)}
+.cat-section[data-cat="audio"] .cat-dot{background:var(--ca)}
 .cat-name{font-size:1.4rem;font-weight:700;color:var(--tx);letter-spacing:-.01em}
 .cat-desc{font-size:.88rem;color:var(--tx3);line-height:1.6;max-width:380px}
 .cat-section[data-cat="tools"] .cat-cta{background:rgba(34,180,160,.12);color:var(--ct);border:1px solid rgba(34,180,160,.25)}
@@ -244,6 +247,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"] .cat-cta{background:rgba(155,109,255,.12);color:var(--cb);border:1px solid rgba(155,109,255,.25)}
 .cat-section[data-cat="finance"] .cat-cta{background:rgba(16,185,129,.12);color:var(--cfi);border:1px solid rgba(16,185,129,.25)}
 .cat-section[data-cat="personal"] .cat-cta{background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25)}
+.cat-section[data-cat="audio"] .cat-cta{background:rgba(29,185,84,.12);color:var(--ca);border:1px solid rgba(29,185,84,.25)}
 .cat-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:8px;cursor:none;transition:all .2s}
 .cat-cta:hover{filter:brightness(1.15);transform:translateY(-1px)}
 
@@ -271,6 +275,8 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="finance"] .tc:hover{border-color:rgba(16,185,129,.25)}
 .cat-section[data-cat="personal"] .tc::before{background:linear-gradient(90deg,var(--cpb),rgba(200,104,152,.4))}
 .cat-section[data-cat="personal"] .tc:hover{border-color:rgba(200,104,152,.25)}
+.cat-section[data-cat="audio"] .tc::before{background:linear-gradient(90deg,var(--ca),rgba(29,185,84,.4))}
+.cat-section[data-cat="audio"] .tc:hover{border-color:rgba(29,185,84,.25)}
 .tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.12),rgba(200,147,42,.05));border-color:rgba(26,140,125,.18)}
 .tc-s4{grid-column:span 4}.tc-s3{grid-column:span 3}.tc-s6{grid-column:span 6}
 .tc-s8{grid-column:span 8}.tc-s12{grid-column:span 12}.tc-s5{grid-column:span 5}
@@ -592,6 +598,7 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-b" href="#cat-blog">✍️ Blog</a>
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
+    <a class="nav-chip" href="#cat-audio">🎙 Audio.Log</a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
@@ -1579,7 +1586,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     <h2>Explore the full ViaDecide ecosystem</h2>
     <p>Once you’ve picked a starting path, use the full category catalog below. Every section is a different room in the same decision home.</p>
     <div class="eco-pills">
-      <span class="eco-pill">Decision Tools</span><span class="eco-pill">Commerce</span><span class="eco-pill">Simulations</span><span class="eco-pill">Services</span><span class="eco-pill">Store</span><span class="eco-pill">Blog</span><span class="eco-pill">Finance</span><span class="eco-pill">Personal</span>
+      <span class="eco-pill">Decision Tools</span><span class="eco-pill">Commerce</span><span class="eco-pill">Simulations</span><span class="eco-pill">Services</span><span class="eco-pill">Store</span><span class="eco-pill">Blog</span><span class="eco-pill">Finance</span><span class="eco-pill">Personal</span><span class="eco-pill">Audio</span>
     </div>
   </div>
 </section>
@@ -1826,8 +1833,22 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 
       <div class="tc tc-s4" onclick="openModal('/viadecide-public-beta.html','🚀','ViaDecide Public Beta Is Live')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Public Beta Is Live</div><div class="tc-desc">ViaDecide public beta launch — what's shipped, what's next for India's decision engine.</div><div class="tc-st live">● Post</div></div>
       <div class="tc tc-s4" onclick="openModal('/decision-brief.html','🏗️','Decision Architecture')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Architecture</div><div class="tc-desc">The structural framework and principles behind every ViaDecide decision module.</div><div class="tc-st live">● Article</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('audio.log'):location.href='audio.log.html'" role="button" tabindex="0" style="border-color:rgba(29,185,84,.35);background:linear-gradient(145deg,rgba(29,185,84,.08),rgba(224,255,0,.05));"><div class="tc-arr">↗</div><span class="tc-icon">🎙</span><div class="tc-name">Audio.Log</div><div class="tc-desc">Podcast episodes on Bharat commerce & decision UX.</div><div class="tc-st live" style="color:#1DB954">● Live</div></div>
     </div>
 
+  </div>
+</section>
+
+<section id="cat-audio" data-cat="audio" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l"><div class="cat-num">07</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Audio.Log</span></div><p class="cat-desc">Podcast episodes on Bharat commerce, decision UX, and builder systems.</p></div></div>
+      <button class="cat-cta" onclick="window.VDRouter?VDRouter.go('audio.log'):location.href='audio.log.html'">Open Audio.Log ↗</button>
+    </div>
+    <div class="bento">
+      <div class="tc tc-feat tc-s8" onclick="window.VDRouter?VDRouter.go('audio.log'):location.href='audio.log.html'" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(29,185,84,.08),rgba(224,255,0,.05));border-color:rgba(29,185,84,.28)"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(29,185,84,.18),rgba(224,255,0,.08))">🎙</div><div class="tc-name-lg">Audio.Log Episodes</div><div class="tc-desc-lg">Watch Spotify-linked episode cards, explore conversion analytics, and compare chaos vs structure UX interactions.</div><div class="tc-st live" style="color:#1DB954">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('audio.log'):location.href='audio.log.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">▶</span><div class="tc-name">Open Subpage</div><div class="tc-desc">Loads media from <code class="allow-select">assets/audio-log/</code> automatically once files are uploaded.</div><div class="tc-st" style="background:rgba(29,185,84,.12);color:#1DB954;border:1px solid rgba(29,185,84,.25)">✓ Media-ready</div></div>
+    </div>
   </div>
 </section>
 
@@ -1835,7 +1856,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l">
-        <div class="cat-num">07</div>
+        <div class="cat-num">08</div>
         <div class="cat-info">
           <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Finance & Analytics</span></div>
           <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME businesses. Upload data, get instant insights.</p>
@@ -1932,7 +1953,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 <section id="cat-personal" data-cat="personal" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l"><div class="cat-num">08</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Personal Brand</span></div><p class="cat-desc">1:1 sessions, founder story, and direct access to the mind behind ViaDecide.</p></div></div>
+      <div class="cat-header-l"><div class="cat-num">09</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Personal Brand</span></div><p class="cat-desc">1:1 sessions, founder story, and direct access to the mind behind ViaDecide.</p></div></div>
       <button class="cat-cta" onclick="openModal('/DharamDaxini.html','🧭','Dharam Daxini · 1:1 Sessions')">Book a Session ↗</button>
     </div>
     <div class="bento">
