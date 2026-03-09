@@ -1294,6 +1294,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   // 1. Re-bind links whenever the router finishes a route change
   VDRouter.on('routechange', function(){
     if(typeof VDRouter.bindLinks === 'function') VDRouter.bindLinks();
+    if(typeof VDRouter.bindBackLinks === 'function') VDRouter.bindBackLinks();
   });
 
   // 2. Prefetch on hover — for all clickable cards and nav chips

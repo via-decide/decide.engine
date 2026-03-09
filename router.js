@@ -215,6 +215,47 @@
             });
         },
 
+        bindBackLinks() {
+            document.querySelectorAll('[data-back]').forEach(el => {
+                if (el._routerBackBound) return;
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    // If opened inside modal iframe, ask parent to close modal.
+                    if (window.self !== window.top) {
+                        try {
+                            window.parent.postMessage({ type: 'vd:close-overlay' }, window.location.origin);
+                            return;
+                        } catch (_) {}
+                    }
+
+                    // Standard back behavior for normal page visits.
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                });
+                el._routerBackBound = true;
+            });
+        },
+
+        bindIframeBridge() {
+            if (window._vdMessageBound) return;
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data || {};
+                if (data.type === 'vd:close-overlay') {
+                    if (typeof global.closeModal === 'function') {
+                        global.closeModal();
+                    } else if (window.history.state && window.history.state.modalOpen) {
+                        window.history.back();
+                    }
+                }
+            });
+            window._vdMessageBound = true;
+        },
+
         init() {
             // 1. Intercept GitHub Pages 404 Redirects
             try {
@@ -280,6 +321,8 @@
             });
             
             this.bindLinks();
+            this.bindBackLinks();
+            this.bindIframeBridge();
 
 (function (global) {
   'use strict';
