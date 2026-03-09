@@ -52,6 +52,14 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
 
 /* ── SCREENS ── */
 .screen { position: fixed; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.5s; overflow: hidden; }
+
+body.perf-low .bg-grid, body.perf-low .scan-beam, body.perf-low .scan-sweep-line, body.perf-low .storm-icon-big, body.perf-low .mars-sphere, body.perf-low .rover-mast { animation:none !important; }
+body.perf-low .noise, body.perf-low .bg-glow { opacity:.35; }
+body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !important; }
+.perf-toggle-wrap{display:flex;justify-content:center;align-items:center;gap:8px;margin:0 0 14px;position:relative;z-index:10}
+.perf-toggle-wrap label{font-family:var(--mono);font-size:9px;letter-spacing:1.4px;color:var(--text-dim)}
+.perf-toggle-wrap input{accent-color:#3dff8f}
+
 .screen.active { opacity: 1; pointer-events: all; }
 
 /* ── SHARED UTILS ── */
@@ -619,6 +627,10 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
         <option value="analyst">Analyst</option>
         <option value="commander">Commander</option>
       </select>
+    </div>
+    <div class="perf-toggle-wrap">
+      <label for="perf-toggle">LOW PERFORMANCE MODE</label>
+      <input id="perf-toggle" type="checkbox" />
     <!-- CALLSIGN -->
     <div class="callsign-wrap" id="callsignWrap">
       <div class="callsign-label">◈ Your Operator Callsign</div>
@@ -1166,6 +1178,7 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
     <input id="demo-code" class="demo-input" placeholder="Enter demo code (example: MARS200)" autocomplete="off" />
     <div class="demo-actions">
       <button class="demo-btn" type="button" onclick="demoOpenInBrowserTip()">Open in Browser</button>
+      <button class="demo-btn" type="button" onclick="startGuestDrill()">Guest Drill</button>
       <button class="demo-btn primary" type="button" onclick="demoUnlock()">Unlock →</button>
     </div>
     <div id="demo-err" class="demo-err">That code didn't match. If you need access, email us and we'll send a working code.</div>
@@ -1779,6 +1792,10 @@ function buildLeaderboard(){
 ══════════════════════════════════════════════════════ */
 const DEMO_AUTH_KEY = "mars_demo_session_v1";
 const COACH_KEY = "mars_coach_seen_v1";
+const PERF_MODE_KEY = "mars_low_perf_v1";
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
+let _guestBypass = false;
 let _pendingEnterRole = null;
 let _demoUnlockBusy = false;
 
@@ -1791,6 +1808,33 @@ function isDemoAuthed(){
 }
 function setDemoAuthed(){
   try { localStorage.setItem(DEMO_AUTH_KEY, "1"); } catch(e){}
+}
+
+function isLowPerfMode(){
+  try { return localStorage.getItem(PERF_MODE_KEY) === '1'; } catch(_){ return false; }
+}
+function setLowPerfMode(on){
+  try { localStorage.setItem(PERF_MODE_KEY, on ? '1' : '0'); } catch(_){ }
+  document.body.classList.toggle('perf-low', !!on);
+}
+function bindPerfToggle(){
+  const el = document.getElementById('perf-toggle');
+  if(!el) return;
+  const on = isLowPerfMode();
+  el.checked = on;
+  setLowPerfMode(on);
+  if(!el._bound){
+    el.addEventListener('change', ()=> setLowPerfMode(el.checked));
+    el._bound = true;
+  }
+}
+function startGuestDrill(){
+  _guestBypass = true;
+  closeDemoLogin({ keepPendingRole: true });
+  if(!_pendingEnterRole) _pendingEnterRole = 'demo';
+  const roleToEnter = _pendingEnterRole || 'demo';
+  _pendingEnterRole = null;
+  enterAs(roleToEnter);
 }
 function openDemoLogin(){
   const modal = document.getElementById("demo-login");
@@ -1854,6 +1898,26 @@ async function demoUnlock(){
 
   if(!v){
     if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
+    if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
     if(inp) inp.focus();
     return;
   }
@@ -2051,6 +2115,7 @@ const GS = {
   metrics:{moves:0,scans:0,correct:0,wrong:0,slips:0,storms:0,latencyPenalty:0,stormHalt:0,stormOverride:0},
   log:[], runId:null, startTs:null, endedTs:null,
   lastRunSurvivalIndex:null, skillNodes:{}, badges:[], role:'student',
+  difficulty:'cadet', activeModifiers:[], comboScans:0, lastScanTs:0, terrainEventOpen:false, guestMode:false,
   difficulty:'cadet', activeModifiers:[], comboScans:0, lastScanTs:0, terrainEventOpen:false,
 };
 
@@ -3138,7 +3203,7 @@ function showScreen(id){
 }
 
 function enterAs(role){
-  if(role === 'demo' && !isDemoAuthed()){
+  if(role === 'demo' && !isDemoAuthed() && !_guestBypass){
     _pendingEnterRole = role;
     openDemoLogin();
     return;
@@ -3159,6 +3224,10 @@ function enterAs(role){
   if(role==='teacher'){ showScreen('teacher'); }
   else {
     showScreen('sim');
+    toast(GS.guestMode ? 'GUEST DRILL ONLINE — MISSION ACTIVE' : 'HEX-01 ONLINE — MISSION ACTIVE');
+    toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · '));
+    try { if(localStorage.getItem(COACH_KEY) !== '1') showCoachTip(0); } catch(_) { showCoachTip(0); }
+  }
     toast('HEX-01 ONLINE — MISSION ACTIVE');
     toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · '));
     try { if(localStorage.getItem(COACH_KEY) !== '1') showCoachTip(0); } catch(_) { showCoachTip(0); }
@@ -3481,7 +3550,7 @@ function buildMissions(){
   const modBadge = document.getElementById('missions-modifier-badge');
   if(modBadge) modBadge.textContent = GS.activeModifiers.length ? GS.activeModifiers.map(m=>m.name).join(' • ') : 'No active modifiers';
   MISSIONS.forEach(m=>{
-    const locked = GS.tier < m.unlockTier;
+    const locked = (GS.guestMode && m.id !== 1) || GS.tier < m.unlockTier;
     const done = GS.missionsCompleted.includes(m.id);
     const card = document.createElement('div');
     card.className='mission-card'+(locked?' locked':'')+(done?' completed':'');
@@ -3489,7 +3558,7 @@ function buildMissions(){
       <div class="mc-num">M0${m.id}</div>
       <div class="mc-name">${m.name}</div>
       <div class="mc-constraint">${m.constraint}</div>
-      <div class="mc-tags"><span class="pill ${locked?'red':done?'green':'amber'}">${locked?'LOCKED T'+m.unlockTier:done?'COMPLETE':'AVAILABLE'}</span></div>
+      <div class="mc-tags"><span class="pill ${locked?'red':done?'green':'amber'}">${locked?(GS.guestMode && m.id!==1?'UNLOCK FULL DEMO':'LOCKED T'+m.unlockTier):done?'COMPLETE':'AVAILABLE'}</span></div>
     `;
     if(!locked){ card.onclick=()=>{ GS.currentMissionId=m.id; applyMissionParams(m.id); showScreen('sim'); }; }
     grid.appendChild(card);
@@ -3746,6 +3815,7 @@ function logEvent(type,data={}){ GS.log.push({t:nowISO(),type,...data}); if(GS.l
 ══════════════════════════════════════════════════════ */
 updateAllUI();
 bindCoach();
+bindPerfToggle();
 buildMissions();
 updateSkillTree();
 buildCerts();
