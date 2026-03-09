@@ -858,12 +858,12 @@ section{position:relative;z-index:10}
       <button class="btn-g" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
     </div>
     <div class="footer-links">
-      <a href="/contact" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
-      <a href="/privacy" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
-      <a href="/terms" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
+      <a href="/contact.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
+      <a href="/privacy.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
+      <a href="/terms.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
       <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
       <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
-      <a href="/founder" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
+      <a href="/founder.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
       <span>· © 2025–2026 ViaDecide · Amazon Associates IN (decideengine-21)</span>
     </div>
   </div>
@@ -1059,6 +1059,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&threadOpen)toggleTh
    Falls back gracefully to direct iframe if router absent.
    ============================================================ */
 let currentFile = '';
+let modalIsClosing = false;
+let modalLoadCheckTimer = null;
 
 function normalizeInternalPath(file) {
   if (!file) return '';
@@ -1096,6 +1098,11 @@ function openModal(file, icon, name) {
 }
 
 function _modalSetup(file, icon, name) {
+  modalIsClosing = false;
+  if (modalLoadCheckTimer) {
+    clearTimeout(modalLoadCheckTimer);
+    modalLoadCheckTimer = null;
+  }
   const normalizedPath = normalizeInternalPath(file);
   currentFile = normalizedPath;
   const mIcon = document.getElementById('m-icon');
@@ -1136,11 +1143,13 @@ function _modalSetup(file, icon, name) {
       if (!d || d.body === null) { showModalError(); return; }
       if (d.body.innerHTML.trim() === '') {
         const f = this;
-        setTimeout(() => {
+        if (modalLoadCheckTimer) clearTimeout(modalLoadCheckTimer);
+        modalLoadCheckTimer = setTimeout(() => {
           try {
             const d2 = f.contentDocument || f.contentWindow.document;
             if (!d2 || d2.body === null || d2.body.innerHTML.trim() === '') showModalError();
           } catch(e2) { showModalError(); }
+          modalLoadCheckTimer = null;
         }, 800);
       }
     } catch(e) { /* cross-origin — assume loaded OK */ }
@@ -1148,6 +1157,8 @@ function _modalSetup(file, icon, name) {
 })();
 
 function showModalError() {
+  const modal = document.getElementById('modal');
+  if (!modal || !modal.classList.contains('open') || modalIsClosing) return;
   const mLoad = document.getElementById('modal-loading');
   if (mLoad) mLoad.classList.remove('active');
   document.getElementById('modal-frame').style.display = 'none';
@@ -1155,6 +1166,11 @@ function showModalError() {
 }
 
 function closeModal() {
+  modalIsClosing = true;
+  if (modalLoadCheckTimer) {
+    clearTimeout(modalLoadCheckTimer);
+    modalLoadCheckTimer = null;
+  }
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow = '';
   const mLoad = document.getElementById('modal-loading');
@@ -1551,7 +1567,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">05</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Store · PrintByDD</span></div><p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts.</p></div></div>
-      <a class="cat-cta" href="/printbydd-store">Open Store ↗</a>
+      <a class="cat-cta" href="/printbydd-store/index.html">Open Store ↗</a>
     </div>
     <div class="bento">
       <div class="tc tc-feat tc-s4" onclick="window.VDRouter?VDRouter.go('numberplate'):location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
