@@ -575,6 +575,9 @@
   function _enhanceOrbInput() {
     var orbInput = document.getElementById('orb-input');
     if (!orbInput || orbInput._commandRouterBound) return;
+
+    // Only attach on pages that explicitly opt-in.
+    if (!orbInput.hasAttribute('data-command-router')) return;
     orbInput._commandRouterBound = true;
 
     // We intercept the Enter key only when the input looks like a command
