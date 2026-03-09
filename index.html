@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="router.js" onerror="console.warn('[ViaDecide] router.js not found — routing disabled')"></script>
+<script src="commandRouter.js" defer onerror="console.warn('[ViaDecide] commandRouter.js not found — command routing disabled')"></script>
 <style>
 /* ============================================================
    GLOBAL UX PATCH — tap highlight, focus rings, text selection
@@ -1070,7 +1071,12 @@ function normalizeInternalPath(file) {
 
 function deriveSlug(file) {
   if (!file) return '';
-  return file.replace(/\.html?$/i, '').replace(/^\/+/, '');
+  return file
+    .replace(/\.html?$/i, '')   // strip .html / .htm
+    .replace(/\/index$/i, '')   // strip trailing /index
+    .replace(/^\/+/, '')        // strip leading slashes
+    .split('/')[0]              // take only first path segment (the slug)
+    .toLowerCase();             // normalise case
 }
 
 function openModal(file, icon, name) {
@@ -1123,11 +1129,13 @@ function _modalSetup(file, icon, name) {
   if (frame) {
     frame.style.display = 'block';
     frame.src = '';
-    setTimeout(() => { frame.src = normalizedPath; }, 10);
+    setTimeout(() => { frame.src = normalizedPath; }, 80); // 80ms — prevents blank/flicker
   }
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+// Expose for router.js (calls window._modalSetup at popstate / ?m= time)
+window._modalSetup = _modalSetup;
 
 /* iframe load / error detection */
 (function(){
@@ -1166,6 +1174,7 @@ function showModalError() {
 }
 
 function closeModal() {
+  if (modalIsClosing) return; // re-entry guard — prevents double-close race
   modalIsClosing = true;
   if (modalLoadCheckTimer) {
     clearTimeout(modalLoadCheckTimer);
@@ -1180,6 +1189,7 @@ function closeModal() {
     frame.src = 'about:blank';
     frame.style.display = 'block';
     document.getElementById('modal-err').classList.remove('show');
+    modalIsClosing = false; // reset AFTER animation completes
   }, 400);
 }
 
@@ -1495,7 +1505,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="tc tc-s3" onclick="openModal('/StudyOS/index.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
       <div class="tc tc-s3" onclick="openModal('/brief/index.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" onclick="openModal('/student-research/index.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st wip">◌ Coming</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('agent'):location.href='/agent.html'" data-cat="tools" data-orbit="agent" data-intent="agent,ai,chat,assistant,decision,guide" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✦</span><div class="tc-name">ViaDecide Agent</div><div class="tc-desc">AI-powered site assistant. Chat, plan tasks, and navigate ViaDecide tools in one widget.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('swipeos'):location.href='/SwipeOS.html'" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,product,decision" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st beta">◆ Beta</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st wip">◌ Coming</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📡</span><div class="tc-name">Opportunity Radar</div><div class="tc-desc">Scan and surface high-signal opportunities in your market or niche.</div><div class="tc-st wip">◌ Coming</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">🔎</span><div class="tc-name">Reality Check</div><div class="tc-desc">Pressure-test your assumptions before committing to a decision.</div><div class="tc-st wip">◌ Coming</div></div>
@@ -1540,6 +1551,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
     <div class="bento">
       <div class="tc tc-s4" onclick="openModal('/HexWars/index.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
       <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game/index.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="openModal('/HivaLand/index.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
     </div>
@@ -1574,6 +1586,9 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="tc tc-feat tc-s4" onclick="window.VDRouter?VDRouter.go('numberplate'):location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('keychain'):location.href='printbydd-store/keychain.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔑</span><div class="tc-name">NFC Keychains</div><div class="tc-desc">Personalised NFC-enabled keychains with custom engraving.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('gifts-that-mean-more'):location.href='printbydd-store/gifts-that-mean-more.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('smarttag-lite'):location.href='printbydd-store/smarttag-lite.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📲</span><div class="tc-name">SmartTag Lite</div><div class="tc-desc">NFC-powered smart tags for instant info sharing — tap to open, no app needed.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('products'):location.href='printbydd-store/products.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🛍️</span><div class="tc-name">All Products</div><div class="tc-desc">Browse the full PrintByDD catalogue — numberplates, keychains, SmartTag Lite and more.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('gift-psychology'):location.href='printbydd-store/gift-psychology.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Gift Psychology</div><div class="tc-desc">Why personalised gifts create stronger emotional bonds — the psychology behind meaningful giving.</div><div class="tc-st live">● Article</div></div>
     </div>
   </div>
 </section>
