@@ -490,6 +490,14 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
       A structured cognitive training system for STEM education.<br>
       Make real decisions under real constraints. Learn systems thinking through survival.
     </div>
+    <div style="display:flex;justify-content:center;margin:0 0 12px;position:relative;z-index:10;">
+      <label for="difficulty-select" style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--text-dim);margin-right:8px;align-self:center;">DIFFICULTY</label>
+      <select id="difficulty-select" style="background:var(--panel);color:var(--text);border:1px solid var(--border2);padding:6px 10px;font-family:var(--mono);font-size:10px;">
+        <option value="cadet" selected>Cadet</option>
+        <option value="analyst">Analyst</option>
+        <option value="commander">Commander</option>
+      </select>
+    </div>
     <div class="role-cards">
       <div class="role-card" onclick="enterAs('student')">
         <span class="role-icon">🚀</span>
@@ -644,6 +652,7 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
   <div class="page-topbar">
     <div class="page-title">MISSIONS</div>
     <span class="pill mars" id="missions-tier-badge">CADET · T1</span>
+    <span class="pill" id="missions-modifier-badge">No active modifiers</span>
   </div>
   <div class="missions-body">
     <div class="mission-grid" id="missionGrid"></div>
@@ -777,7 +786,8 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
       <p style="font-size:11px;color:var(--text-dim);line-height:1.7">APXS integration will take approximately 30 minutes Sol time. Instrument reliability may affect scan quality under dust or thermal stress.</p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="initiateScan()">INITIATE SCAN</button>
+      <button class="btn btn-primary" onclick="initiateScan('deep')">DEEP SCAN</button>
+      <button class="btn btn-green" onclick="initiateScan('quick')">QUICK PROBE</button>
       <button class="btn btn-secondary" onclick="closeModal('nodeModal')">WITHDRAW</button>
     </div>
   </div>
@@ -848,6 +858,24 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
   </div>
 </div>
 
+
+<div class="modal-bg" id="terrainEventModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">// TERRAIN DECISION EVENT</div>
+      <div class="modal-sub" id="terrainEventSub">LOCAL HAZARD DETECTED</div>
+    </div>
+    <div class="modal-body">
+      <div class="challenge-q" id="terrainEventQ">Event loading…</div>
+      <p style="font-size:11px;color:var(--text-dim);line-height:1.8">Pick a tactical response. Conservative paths preserve mission integrity, aggressive paths can accelerate XP but raise risk.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-green" id="terrainSafeBtn">SAFE PATH</button>
+      <button class="btn btn-secondary" id="terrainAggBtn">AGGRESSIVE PATH</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="riskModal">
   <div class="modal">
     <div class="modal-body" style="padding-top:20px">
@@ -880,7 +908,7 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
     <div id="demo-err" class="demo-err">That code didn't match. If you need access, email us and we'll send a working code.</div>
     <div class="demo-tip">
       Opened from Instagram/Facebook? Tap <b>⋯</b> → <b>Open in browser</b> for best performance.<br>
-      Need a code? <a href="mailto:hello@example.com?subject=Mars%20Decision%20Lab%20Demo%20Code%20Request&body=Hi%20team%2C%0A%0ACould%20I%20get%20a%20demo%20code%20for%20Mars%20Decision%20Lab%3F%0A%0AThanks!">Request a demo code via email</a>.
+      Need a code? <a href="mailto:via.decide@gmail.com?subject=Mars%20Decision%20Lab%20Demo%20Code%20Request&body=Hi%20team%2C%0A%0ACould%20I%20get%20a%20demo%20code%20for%20Mars%20Decision%20Lab%3F%0A%0AThanks!">Request a demo code via email</a>.
     </div>
   </div>
 </div>
@@ -900,8 +928,8 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
    DEMO LOGIN GUARD
 ══════════════════════════════════════════════════════ */
 const DEMO_AUTH_KEY = "mars_demo_session_v1";
-const DEMO_CODE = "MARS200";
 let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
 
 function isInAppBrowser(){
   const ua = navigator.userAgent || "";
@@ -923,24 +951,61 @@ function openDemoLogin(){
   const inp = document.getElementById("demo-code");
   if(inp){ inp.value = ""; setTimeout(()=> inp.focus(), 120); }
 }
-function closeDemoLogin(){
+function closeDemoLogin(opts = {}){
   const modal = document.getElementById("demo-login");
   if(!modal) return;
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden","true");
-  _pendingEnterRole = null;
+  if(!opts.keepPendingRole){
+    _pendingEnterRole = null;
+  }
 }
-function demoUnlock(){
+
+async function verifyDemoCode(code){
+  const resp = await fetch('/api/demo-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await resp.json().catch(() => ({ ok: false }));
+  return Boolean(resp.ok && data && data.ok);
+}
+
+async function demoUnlock(){
+  if(_demoUnlockBusy) return;
   const inp = document.getElementById("demo-code");
-  const v = (inp?.value || "").trim().toUpperCase();
+  const v = (inp?.value || "").trim();
   const err = document.getElementById("demo-err");
-  if(v === DEMO_CODE){
-    setDemoAuthed();
-    closeDemoLogin();
-    if(_pendingEnterRole) enterAs(_pendingEnterRole);
-  } else {
-    if(err) err.style.display = "block";
+
+  if(!v){
+    if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
     if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
+  } catch(_) {
+    if(err){
+      err.textContent = 'Unable to verify code right now. Please try again.';
+      err.style.display = 'block';
+    }
+  } finally {
+    _demoUnlockBusy = false;
   }
 }
 function demoOpenInBrowserTip(){
@@ -975,9 +1040,23 @@ const GS = {
   metrics:{moves:0,scans:0,correct:0,wrong:0,slips:0,storms:0,latencyPenalty:0,stormHalt:0,stormOverride:0},
   log:[], runId:null, startTs:null, endedTs:null,
   lastRunSurvivalIndex:null, skillNodes:{}, badges:[], role:'student',
+  difficulty:'cadet', activeModifiers:[], comboScans:0, lastScanTs:0, terrainEventOpen:false,
 };
 
 const MARS = { SOL_MINUTES:1477, NIGHT_START:0.78, NIGHT_END:0.22, MAX_RISK:100 };
+
+const DIFFICULTY_PRESETS = {
+  cadet: { energyMult: 0.9, riskMult: 0.9, xpMult: 1.0 },
+  analyst: { energyMult: 1.0, riskMult: 1.0, xpMult: 1.05 },
+  commander: { energyMult: 1.15, riskMult: 1.2, xpMult: 1.15 }
+};
+
+const MISSION_MODIFIERS_POOL = [
+  { id:'dust_front', name:'Dust Front', apply:{ riskAdd:2, cooldownAdd:1 } },
+  { id:'solar_window', name:'Solar Window', apply:{ energyGainBonus:2 } },
+  { id:'latency_spike', name:'Latency Spike', apply:{ riskAdd:1, xpBonus:2 } },
+  { id:'thermal_drift', name:'Thermal Drift', apply:{ energyDrainAdd:1 } }
+];
 
 const TERRAINS = [
   {id:1,name:'Basaltic Flats', complex:4.2,success:72,quadrant:'A3-07'},
@@ -1207,6 +1286,65 @@ function riskCheck(){
     openModal('riskModal');
   }
 }
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
 function constraintTick(){
   if(!document.getElementById('screen-sim').classList.contains('active')) return;
   if(GS.instrumentCooldown > 0) GS.instrumentCooldown--;
@@ -1245,7 +1383,8 @@ function move(dir){
     riskCheck();
     if(GS.risk >= MARS.MAX_RISK) return;
 
-    const drain = 1.5 + Math.random()*0.5 + (isNight()?0.5:0);
+    const preset = getDifficultyPreset();
+    const drain = (1.5 + Math.random()*0.5 + (isNight()?0.5:0) + aggregateModifier('energyDrainAdd')) * preset.energyMult;
     modEnergy(-drain);
     GS.metrics.moves++; GS.stepCount++; GS.xp += 2;
 
@@ -1295,28 +1434,36 @@ function openNodeModal(){
   updateTerrainOverlay(terrain);
 }
 
-function initiateScan(){
+function initiateScan(mode = 'deep'){
   closeModal('nodeModal');
-  if(GS.energy < 8){ toast('INSUFFICIENT ENERGY'); return; }
+  const cost = mode === 'quick' ? 4 : 8;
+  if(GS.energy < cost){ toast('INSUFFICIENT ENERGY'); return; }
 
   advanceTime(0.02); updateThermal(); updateDust();
-  modEnergy(-8);
+  modEnergy(-cost);
   GS.scanningActive = true; GS.metrics.scans++;
   setState('SCANNING');
   document.getElementById('scanOverlay').classList.add('active');
-  logEvent('SCAN_START',{terrain:GS._currentTerrain.name});
+  logEvent('SCAN_START',{terrain:GS._currentTerrain.name, mode});
 
   setTimeout(()=>{
     document.getElementById('scanOverlay').classList.remove('active');
-    GS.scanningActive = false;
     const successChance = GS.instrumentReliability - GS.dust*0.4;
     if(Math.random() > successChance){
       GS.risk += 4; GS.metrics.slips++;
       toast('INSTRUMENT ANOMALY — SCAN DEGRADED');
       logEvent('SCAN_ANOMALY',{risk:GS.risk});
     }
-    GS.instrumentCooldown = 3;
+    GS.instrumentCooldown = mode === 'quick' ? 2 : 3 + aggregateModifier('cooldownAdd');
     setState('IDLE');
+
+    if(mode === 'quick'){
+      showResult(true, { quickProbe: true, expOverride: 'Quick probe captured partial spectral confidence. Run a deep scan for full validation.' });
+      riskCheck();
+      updateAllUI();
+      return;
+    }
+
     openChallenge();
     riskCheck();
     updateAllUI();
@@ -1352,36 +1499,51 @@ function evaluateAnswer(idx){
   setTimeout(()=>{ closeModal('challengeModal'); showResult(correct); }, 1100);
 }
 
-function showResult(correct){
+function showResult(correct, opts = {}){
   const ri = document.getElementById('res-icon');
   const rt = document.getElementById('res-title');
   const rd = document.getElementById('res-deltas');
   const rx = document.getElementById('res-exp');
   const rxt = document.getElementById('res-exp-text');
 
+  const preset = getDifficultyPreset();
   if(correct){
     ri.textContent='✓'; rt.textContent='TRANSMISSION LOGGED'; rt.className='result-title';
-    modEnergy(+12);
+    const energyGain = opts.quickProbe ? 6 : 12;
+    const xpGain = Math.round((opts.quickProbe ? 10 : 20) * preset.xpMult);
+    const riskDrop = opts.quickProbe ? 1 : 3;
+    modEnergy(+energyGain + aggregateModifier('energyGainBonus'));
     GS.validation = Math.min(5, GS.validation+1);
-    GS.risk = Math.max(0, GS.risk-3);
-    GS.xp += 20; GS.metrics.correct++;
-    rd.innerHTML = delta('+12%','Energy',true)+delta('+1','Validation',true)+delta('-3','Risk',true)+delta('+20','XP',true);
+    GS.risk = Math.max(0, GS.risk-riskDrop);
+    GS.xp += xpGain;
+    GS.metrics.correct++;
+    rd.innerHTML = delta('+'+energyGain+'%','Energy',true)+delta('+1','Validation',true)+delta('-'+riskDrop,'Risk',true)+delta('+'+xpGain,'XP',true);
     checkSkillUnlocks(); checkBadges();
   } else {
     ri.textContent='✗'; rt.textContent='ANALYSIS FAILED'; rt.className='result-title fail';
     modEnergy(-6);
     GS.latencyMs = Math.min(3000, GS.latencyMs+400);
-    GS.risk += 4; GS.xp = Math.max(0, GS.xp-5); GS.metrics.wrong++;
+    GS.risk += Math.ceil(4 * preset.riskMult); GS.xp = Math.max(0, GS.xp-5); GS.metrics.wrong++;
     GS.metrics.latencyPenalty += 400;
     rd.innerHTML = delta('-6%','Energy',false)+delta('+0.4s','Latency',false)+delta('+4','Risk',false);
     riskCheck();
   }
 
-  if(GS._currentChallenge.exp){
-    rx.style.display='block'; rxt.textContent = GS._currentChallenge.exp;
+  registerScanCombo();
+  if(GS.comboScans >= 2){
+    const comboXp = GS.comboScans >= 4 ? 8 : 4;
+    GS.xp += comboXp;
+    toast('COMBO x'+GS.comboScans+' — +'+comboXp+' XP');
+  }
+
+  const expText = opts.expOverride || GS._currentChallenge?.exp;
+  if(expText){
+    rx.style.display='block'; rxt.textContent = expText;
   } else { rx.style.display='none'; }
 
+  GS.scanningActive = false;
   openModal('resultModal');
+  checkTier();
   updateAllUI(); updateValidationPips();
 }
 
@@ -1522,6 +1684,9 @@ function checkBadges(){
   if(GS.metrics.stormHalt >= 5) add('Storm Veteran');
   if(GS.missionsCompleted.includes(5) && GS.risk < 40) add('Risk Architect');
   if(GS.metrics.scans >= 1) add('First Contact');
+  if(GS.metrics.moves >= 20 && GS.metrics.slips <= 1) add('Precision Driver');
+  if(GS.metrics.stormOverride >= 3 && GS.metrics.correct >= 5) add('Rapid Commander');
+  if(GS.comboScans >= 3) add('Signal Chain');
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1572,7 +1737,7 @@ function updateAllUI(){
   if(nl) nl.classList.toggle('active', isNight() && !GS.stormActive);
 
   const tphase = document.getElementById('t-phase');
-  if(tphase){ tphase.textContent=isNight()?'NIGHT':'DAY'; tphase.className=isNight()?'warn':'ok'; }
+  if(tphase){ tphase.textContent=(isNight()?'NIGHT':'DAY')+' · '+GS.difficulty.toUpperCase(); tphase.className=isNight()?'warn':'ok'; }
 
   const tdust = document.getElementById('t-dust');
   if(tdust) tdust.textContent=GS.dust.toFixed(3);
@@ -1626,14 +1791,20 @@ function enterAs(role){
     openDemoLogin();
     return;
   }
+  clearAmbientLoops();
+  clearTimeout(moveTimeout);
+  moveTimeout = null;
+
   GS.role = role;
+  GS.difficulty = (document.getElementById('difficulty-select')?.value || GS.difficulty || 'cadet');
+  selectActiveModifiers();
   document.getElementById('bottom-nav').style.display = 'flex';
   GS.runId = mkRunId(); GS.startTs = nowISO();
   logEvent('SESSION_START',{role});
   startConstraintLoop(); startAmbient();
   showInAppBannerIfNeeded();
   if(role==='teacher'){ showScreen('teacher'); }
-  else { showScreen('sim'); toast('HEX-01 ONLINE — MISSION ACTIVE'); }
+  else { showScreen('sim'); toast('HEX-01 ONLINE — MISSION ACTIVE'); toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · ')); }
 }
 
 function openDAR(){ closeAllModals(); showScreen('dar'); buildDAR(); }
@@ -1832,6 +2003,8 @@ function buildMissions(){
   const badge = document.getElementById('missions-tier-badge');
   const tNames=['','CADET','TECHNICIAN','ANALYST','SYS ENG'];
   if(badge) badge.textContent=`${tNames[GS.tier]||'CADET'} · T${GS.tier}`;
+  const modBadge = document.getElementById('missions-modifier-badge');
+  if(modBadge) modBadge.textContent = GS.activeModifiers.length ? GS.activeModifiers.map(m=>m.name).join(' • ') : 'No active modifiers';
   MISSIONS.forEach(m=>{
     const locked = GS.tier < m.unlockTier;
     const done = GS.missionsCompleted.includes(m.id);
@@ -1995,6 +2168,12 @@ function toast(msg){
 /* ══════════════════════════════════════════════════════
    AMBIENT LOOPS
 ══════════════════════════════════════════════════════ */
+function clearAmbientLoops(){
+  while(_ambTimers.length){
+    clearInterval(_ambTimers.pop());
+  }
+}
+
 function startConstraintLoop(){
   const iv=setInterval(constraintTick,1000);
   _ambTimers.push(iv);
@@ -2014,24 +2193,26 @@ function startAmbient(){
 ══════════════════════════════════════════════════════ */
 let _touchStart=null;
 const vp=document.getElementById('viewport');
-vp.addEventListener('touchstart',e=>{_touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
-vp.addEventListener('touchend',e=>{
-  if(!_touchStart) return;
-  const dx=e.changedTouches[0].clientX-_touchStart.x;
-  const dy=e.changedTouches[0].clientY-_touchStart.y;
-  if(Math.abs(dx)<28&&Math.abs(dy)<28){ doScan(); _touchStart=null; return; }
-  const ang=Math.atan2(-dy,dx)*180/Math.PI;
-  let dir;
-  if(ang>-22.5&&ang<=22.5)dir='E';
-  else if(ang>22.5&&ang<=67.5)dir='NE';
-  else if(ang>67.5&&ang<=112.5)dir='N';
-  else if(ang>112.5&&ang<=157.5)dir='NW';
-  else if(ang>157.5||ang<=-157.5)dir='W';
-  else if(ang>-157.5&&ang<=-112.5)dir='SW';
-  else if(ang>-112.5&&ang<=-67.5)dir='S';
-  else dir='SE';
-  move(dir); _touchStart=null;
-},{passive:true});
+if(vp){
+  vp.addEventListener('touchstart',e=>{_touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  vp.addEventListener('touchend',e=>{
+    if(!_touchStart) return;
+    const dx=e.changedTouches[0].clientX-_touchStart.x;
+    const dy=e.changedTouches[0].clientY-_touchStart.y;
+    if(Math.abs(dx)<28&&Math.abs(dy)<28){ doScan(); _touchStart=null; return; }
+    const ang=Math.atan2(-dy,dx)*180/Math.PI;
+    let dir;
+    if(ang>-22.5&&ang<=22.5)dir='E';
+    else if(ang>22.5&&ang<=67.5)dir='NE';
+    else if(ang>67.5&&ang<=112.5)dir='N';
+    else if(ang>112.5&&ang<=157.5)dir='NW';
+    else if(ang>157.5||ang<=-157.5)dir='W';
+    else if(ang>-157.5&&ang<=-112.5)dir='SW';
+    else if(ang>-112.5&&ang<=-67.5)dir='S';
+    else dir='SE';
+    move(dir); _touchStart=null;
+  },{passive:true});
+}
 document.querySelectorAll('.dir-btn').forEach(btn=>{
   btn.addEventListener('touchstart',()=>btn.classList.add('pressed'),{passive:true});
   btn.addEventListener('touchend',()=>setTimeout(()=>btn.classList.remove('pressed'),200),{passive:true});
