@@ -158,6 +158,8 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
 .ebar-track { width: 70px; height: 4px; background: #1a1a1a; border: 1px solid var(--border); }
 .ebar-fill { height: 100%; transition: width 0.6s, background 0.4s; }
 .mission-badge { font-family: var(--display); font-size: 18px; color: var(--mars-glow); letter-spacing: 2px; }
+.qa-sim-marker { margin-top:6px; font-family:var(--mono); font-size:8px; letter-spacing:1.6px; color:var(--green); border:1px solid rgba(61,255,143,0.3); background:rgba(61,255,143,0.08); padding:2px 6px; display:none; }
+.qa-sim-marker.show { display:inline-flex; align-items:center; gap:5px; }
 .sol-line { font-family: var(--mono); font-size: 9px; color: var(--text-dim); }
 .tier-display { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; color: var(--amber); }
 
@@ -541,19 +543,19 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
       <input id="perf-toggle" type="checkbox" />
     </div>
     <div class="role-cards">
-      <div class="role-card" data-role="student" onclick="enterAs('student')" role="button" tabindex="0">
+      <div class="role-card" data-role="student" role="button" tabindex="0">
         <span class="role-icon">🚀</span>
         <div class="role-name">Student</div>
         <div class="role-desc">Navigate missions, earn certifications, train your decision architecture</div><div class="role-cta">Launch Student Mode</div>
         <div class="role-badge"><span class="pill green">Start Free</span></div>
       </div>
-      <div class="role-card" data-role="teacher" onclick="enterAs('teacher')" role="button" tabindex="0">
+      <div class="role-card" data-role="teacher" role="button" tabindex="0">
         <span class="role-icon">📊</span>
         <div class="role-name">Teacher</div>
         <div class="role-desc">Dashboard, class analytics, heatmaps, benchmark comparisons</div><div class="role-cta">Launch Teacher Mode</div>
         <div class="role-badge"><span class="pill amber">Dashboard</span></div>
       </div>
-      <div class="role-card" data-role="demo" onclick="enterAs('demo')" role="button" tabindex="0">
+      <div class="role-card" data-role="demo" role="button" tabindex="0">
         <span class="role-icon">⚡</span>
         <div class="role-name">Quick Demo</div>
         <div class="role-desc">Jump straight into an active mission — no setup required</div><div class="role-cta">Launch Quick Demo</div>
@@ -595,6 +597,7 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div class="topbar-center">
       <div class="mission-badge" id="missionBadge">HEX-01</div>
       <div class="sol-line" id="solLine">SOL 127 · 10:04 · 1.2s RTT</div>
+      <div id="qa-sim-started" class="qa-sim-marker" aria-live="polite">● SIM STARTED</div>
     </div>
     <div class="topbar-right">
       <div class="tier-display" id="tierDisplay"><span>T1</span><span style="color:var(--text-dim)">CADET</span></div>
@@ -1004,11 +1007,28 @@ function setLowPerfMode(on){
   try { localStorage.setItem(PERF_MODE_KEY, on ? '1' : '0'); } catch(_){ }
   document.body.classList.toggle('perf-low', !!on);
 }
+
+function trackMissionStartCTA(source, meta = {}){
+  const detail = { source, ts: nowISO(), ...meta };
+  try { window.dispatchEvent(new CustomEvent('mars:mission-start-cta', { detail })); } catch(_){}
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: 'mars_mission_start_cta', ...detail });
+  } catch(_){}
+  try { logEvent('MISSION_START_CTA', detail); } catch(_){ }
+}
+
+function showQaSimStarted(role){
+  const el = document.getElementById('qa-sim-started');
+  if(!el) return;
+  el.textContent = `● SIM STARTED · ${String(role || '').toUpperCase()}`;
+  el.classList.add('show');
+}
 function bindRoleLaunchers(){
   document.querySelectorAll('.role-card[data-role]').forEach(card=>{
     if(card._bound) return;
     const role = card.getAttribute('data-role');
-    const run = ()=> enterAs(role);
+    const run = ()=> { trackMissionStartCTA('role_card', { role }); enterAs(role); };
     card.addEventListener('click', run);
     card.addEventListener('touchend', (e)=>{ e.preventDefault(); run(); }, {passive:false});
     card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); run(); }});
@@ -1026,7 +1046,8 @@ function bindPerfToggle(){
     el._bound = true;
   }
 }
-function startGuestDrill(){
+function startGuestDrill(source = 'guest_drill'){
+  trackMissionStartCTA(source, { role: 'demo' });
   _guestBypass = true;
   closeDemoLogin({ keepPendingRole: true });
   if(!_pendingEnterRole) _pendingEnterRole = 'demo';
@@ -1055,6 +1076,35 @@ function closeDemoLogin(opts = {}){
 }
 
 async function verifyDemoCode(code){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 5000);
+  try {
+    const resp = await fetch('/api/demo-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+      signal: ctrl.signal
+    });
+    const data = await resp.json().catch(() => ({ ok: false }));
+    return { ok: Boolean(resp.ok && data && data.ok), unreachable: false };
+  } catch(_) {
+    return { ok: false, unreachable: true };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function showDemoApiFailSafe(errEl){
+  if(!errEl) return;
+  errEl.innerHTML = 'Auth server unreachable. You can still continue in guest drill mode. <button id="demo-failsafe-btn" type="button" class="demo-btn ghost" style="margin-left:6px">Continue</button>';
+  errEl.style.display = 'block';
+  const btn = document.getElementById('demo-failsafe-btn');
+  if(btn && !btn._bound){
+    btn.addEventListener('click', () => {
+      startGuestDrill('demo_failsafe_guest');
+    });
+    btn._bound = true;
+  }
   const resp = await fetch('/api/demo-auth', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1076,20 +1126,28 @@ async function demoUnlock(){
     return;
   }
 
+  trackMissionStartCTA('demo_unlock_submit', { role: _pendingEnterRole || 'demo' });
   _demoUnlockBusy = true;
   try {
-    const ok = await verifyDemoCode(v);
-    if(ok){
+    const auth = await verifyDemoCode(v);
+    if(auth.ok){
       const roleToEnter = _pendingEnterRole;
       setDemoAuthed();
       closeDemoLogin({ keepPendingRole: true });
       _pendingEnterRole = null;
+      trackMissionStartCTA('demo_auth_success', { role: roleToEnter || 'demo' });
       if(roleToEnter) enterAs(roleToEnter);
       return;
     }
-    if(err){
-      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
-      err.style.display = "block";
+    if(auth.unreachable){
+      showDemoApiFailSafe(err);
+      if(inp) inp.blur();
+    } else {
+      if(err){
+        err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+        err.style.display = "block";
+      }
+      if(inp) inp.focus();
     }
     if(inp) inp.focus();
   } catch(_) {
@@ -1977,6 +2035,7 @@ function enterAs(role){
   if(role==='teacher'){ showScreen('teacher'); }
   else {
     showScreen('sim');
+    showQaSimStarted(role);
     toast(GS.guestMode ? 'GUEST DRILL ONLINE — MISSION ACTIVE' : 'HEX-01 ONLINE — MISSION ACTIVE');
     toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · '));
     try { if(localStorage.getItem(COACH_KEY) !== '1') showCoachTip(0); } catch(_) { showCoachTip(0); }
