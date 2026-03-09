@@ -94,6 +94,7 @@
         'founder': 'founder.html',
         'audio.log': 'audio.log.html',
         'audiolog': 'audio.log.html',
+        '#audio.log': 'audio.log.html',
         'contact': 'contact.html',
         'privacy': 'privacy.html',
         'terms': 'terms.html'
