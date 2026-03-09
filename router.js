@@ -92,6 +92,8 @@
         'agent': 'agent.html',
         'laptops-under-50000': 'laptops-under-50000.html',
         'founder': 'founder.html',
+        'audio.log': 'audio.log.html',
+        'audiolog': 'audio.log.html',
         'contact': 'contact.html',
         'privacy': 'privacy.html',
         'terms': 'terms.html'
