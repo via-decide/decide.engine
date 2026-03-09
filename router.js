@@ -9,51 +9,58 @@
 
     // Comprehensive map of all ViaDecide tools and pages
     const routesMap = {
-        'interview-prep': 'interview-prep/index.html',
-        'sales-dashboard': 'sales-dashboard/index.html',
-        'jalaram-food-court-rajkot': 'Jalaram-food-court-rajkot/index.html',
-        'finance-dashboard-msme': 'finance-dashboard-msme/index.html',
-        'alchemist': 'alchemist/index.html',
-        'app-generator': 'app-generator/index.html',
-        'memory': 'memory/index.html',
-        'prompt-alchemy': 'prompt-alchemy/index.html',
-        'viaguide': 'ViaGuide/index.html',
-        'studyos': 'StudyOS/index.html',
-        'brief': 'brief/index.html',
-        'student-research': 'student-research/index.html',
-        'ondc-demo': 'ONDC-demo/index.html',
-        'engine-deals': 'engine-deals/index.html',
-        'discounts': 'discounts/index.html',
-        'cashback-rules': 'cashback-rules/index.html',
-        'cashback-claim': 'cashback-claim/index.html',
-        'hexwars': 'HexWars/index.html',
-        'mars-rover-simulator-game': 'mars-rover-simulator-game/index.html',
-        'hivaland': 'HivaLand/index.html',
-        'decide-service': 'decide-service/index.html',
-        'decide-foodrajkot': 'decide-foodrajkot/index.html',
-        'engine-license': 'engine-license/index.html',
-        'cohort-apply-here': 'cohort-apply-here/index.html',
-        'customswipeengineform': 'CustomSwipeEngineForm/index.html',
-        'pricing': 'pricing/index.html',
-        'engine-activation-request': 'engine-activation-request/index.html',
+        'interview-prep': 'interview-prep.html',
+        'sales-dashboard': 'sales-dashboard.html',
+        'jalaram-food-court-rajkot': 'Jalaram-food-court-rajkot.html',
+        'finance-dashboard-msme': 'finance-dashboard-msme.html',
+        'alchemist': 'alchemist.html',
+        'app-generator': 'app-generator.html',
+        'memory': 'memory.html',
+        'prompt-alchemy': 'prompt-alchemy.html',
+        'viaguide': 'ViaGuide.html',
+        'studyos': 'StudyOS.html',
+        'brief': 'brief.html',
+        'student-research': 'student-research.html',
+        'ondc-demo': 'ONDC-demo.html',
+        'engine-deals': 'engine-deals.html',
+        'discounts': 'discounts.html',
+        'cashback-rules': 'cashback-rules.html',
+        'cashback-claim': 'cashback-claim.html',
+        'hexwars': 'HexWars.html',
+        'mars-rover-simulator-game': 'mars-rover-simulator-game.html',
+        'hivaland': 'HivaLand.html',
+        'decide-service': 'decide-service.html',
+        'decide-foodrajkot': 'decide-foodrajkot.html',
+        'engine-license': 'engine-license.html',
+        'cohort-apply-here': 'cohort-apply-here.html',
+        'customswipeengineform': 'CustomSwipeEngineForm.html',
+        'pricing': 'pricing.html',
+        'engine-activation-request': 'Engine Activation Request.html',
+        'payment-register': 'payment-register.html',
+        'printbydd-store': 'printbydd-store/index.html',
         'numberplate': 'printbydd-store/numberplate.html',
         'keychain': 'printbydd-store/keychain.html',
         'gifts-that-mean-more': 'printbydd-store/gifts-that-mean-more.html',
-        'viadecide-blogs': 'Viadecide-blogs/index.html',
-        'the-decision-stack': 'the-decision-stack/index.html',
-        'why-small-businesses-dont-need-saas': 'why-small-businesses-dont-need-saas/index.html',
-        'decision-infrastructure-india': 'decision-infrastructure-india/index.html',
-        'ondc-for-bharat': 'ondc-for-bharat/index.html',
-        'indiaai-mission-2025': 'indiaai-mission-2025/index.html',
-        'multi-source-research-explained': 'multi-source-research-explained/index.html',
-        'decision-brief-guide': 'decision-brief-guide/index.html',
-        'viadecide-public-beta': 'viadecide-public-beta/index.html',
-        'decision-brief': 'decision-brief/index.html',
+        'viadecide-blogs': 'Viadecide-blogs.html',
+        'the-decision-stack': 'The Decision Stack.html',
+        'why-small-businesses-dont-need-saas': '“Why Most Small Businesses Don’t Need SaaS — They Need Structure".html',
+        'decision-infrastructure-india': 'decision-infrastructure-india.html',
+        'ondc-for-bharat': 'ondc-for-bharat.html',
+        'indiaai-mission-2025': 'indiaai-mission-2025.html',
+        'multi-source-research-explained': 'multi-source-research-explained.html',
+        'decision-brief-guide': 'decision-brief-guide.html',
+        'viadecide-public-beta': 'viadecide-public-beta.html',
+        'decision-brief': 'decision-brief.html',
         'dharamdaxini': 'DharamDaxini/index.html',
-        'founder': 'founder/index.html',
-        'contact': 'contact/index.html',
-        'privacy': 'privacy/index.html',
-        'terms': 'terms/index.html'
+        'dharamdaxini-legacy': 'DharamDaxini.html',
+        'swipeos': 'SwipeOS.html',
+        'swipeos-gandhidham': 'SwipeOS-gandhidham.html',
+        'agent': 'agent.html',
+        'laptops-under-50000': 'laptops-under-50000.html',
+        'founder': 'founder.html',
+        'contact': 'contact.html',
+        'privacy': 'privacy.html',
+        'terms': 'terms.html'
     };
 
     const VDRouter = {
@@ -96,7 +103,12 @@
                 return cleanPath + '.html';
             }
             
-            // 6. Default fallback: treat as a folder and append /index.html
+            // 6. Default fallback:
+            //    - single segment slugs are usually flat *.html pages
+            //    - nested paths keep folder/index.html behavior
+            if (!cleanPath.includes('/')) {
+                return `${cleanPath}.html`;
+            }
             return `${cleanPath}/index.html`;
         },
 
@@ -175,6 +187,47 @@
             });
         },
 
+        bindBackLinks() {
+            document.querySelectorAll('[data-back]').forEach(el => {
+                if (el._routerBackBound) return;
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    // If opened inside modal iframe, ask parent to close modal.
+                    if (window.self !== window.top) {
+                        try {
+                            window.parent.postMessage({ type: 'vd:close-overlay' }, window.location.origin);
+                            return;
+                        } catch (_) {}
+                    }
+
+                    // Standard back behavior for normal page visits.
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                });
+                el._routerBackBound = true;
+            });
+        },
+
+        bindIframeBridge() {
+            if (window._vdMessageBound) return;
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data || {};
+                if (data.type === 'vd:close-overlay') {
+                    if (typeof global.closeModal === 'function') {
+                        global.closeModal();
+                    } else if (window.history.state && window.history.state.modalOpen) {
+                        window.history.back();
+                    }
+                }
+            });
+            window._vdMessageBound = true;
+        },
+
         init() {
             // 1. Intercept GitHub Pages 404 Redirects
             try {
@@ -218,7 +271,9 @@
                     }
                 } else {
                     // Backward navigation out of an overlay
-                    if (originalCloseModal) {
+                    if (typeof global.closeModal === 'function') {
+                        global.closeModal();
+                    } else if (originalCloseModal) {
                         originalCloseModal();
                     } else {
                         const modal = document.getElementById('modal');
@@ -238,6 +293,8 @@
             });
             
             this.bindLinks();
+            this.bindBackLinks();
+            this.bindIframeBridge();
         }
     };
 
