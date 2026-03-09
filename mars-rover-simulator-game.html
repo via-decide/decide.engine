@@ -215,6 +215,24 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
 .night-layer.active { background:rgba(0,5,20,0.5); }
 .storm-layer { position:absolute;inset:0;z-index:6;background:rgba(80,40,10,0);pointer-events:none;transition:background 1s; }
 .storm-layer.active { background:rgba(80,40,10,0.4); }
+
+
+/* Phase 5 — feedback + onboarding */
+.coach-tip { position:fixed;left:50%;transform:translateX(-50%);bottom:76px;z-index:520;
+  background:rgba(10,10,12,0.92);border:1px solid var(--border2);color:var(--text);
+  font-family:var(--mono);font-size:10px;letter-spacing:.7px;padding:10px 14px;max-width:min(92vw,560px);
+  display:none;box-shadow:0 12px 30px rgba(0,0,0,.35) }
+.coach-tip.show { display:block;animation:rise .25s ease }
+.coach-title { color:var(--amber);margin-bottom:5px;font-size:9px;letter-spacing:1.3px }
+.coach-actions { margin-top:8px;display:flex;gap:8px;justify-content:flex-end }
+.coach-actions button { background:transparent;border:1px solid var(--border2);color:var(--text-dim);padding:4px 8px;font-size:9px;cursor:pointer }
+.coach-actions button.primary { color:var(--green);border-color:var(--green-dim) }
+.flash-alert { animation:flashPulse .6s ease 1; }
+@keyframes flashPulse {
+  0% { box-shadow:0 0 0 0 rgba(255,184,48,0.0); }
+  40% { box-shadow:0 0 0 5px rgba(255,184,48,0.35); }
+  100% { box-shadow:0 0 0 0 rgba(255,184,48,0.0); }
+}
 .low-energy-ring { position:absolute;inset:0;z-index:7;border:3px solid var(--red);opacity:0;pointer-events:none;animation:ring-pulse 1s ease-in-out infinite; }
 .low-energy-ring.active { opacity:1; }
 @keyframes ring-pulse { 0%,100%{opacity:0.2}50%{opacity:0.7} }
@@ -1168,6 +1186,15 @@ body { width: 100%; min-height: 100%; background: var(--void); color: var(--text
   </div>
 </div>
 
+<div class="coach-tip" id="coachTip" aria-live="polite">
+  <div class="coach-title">MISSION COACH</div>
+  <div id="coachMsg">Welcome to HEX-01.</div>
+  <div class="coach-actions">
+    <button type="button" id="coachSkip">Skip tips</button>
+    <button type="button" class="primary" id="coachNext">Next</button>
+  </div>
+</div>
+
 <script>
 /* ══════════════════════════════════════════════════════
    FIREBASE — LIVE MULTIPLAYER ENGINE
@@ -1751,6 +1778,7 @@ function buildLeaderboard(){
    DEMO LOGIN GUARD
 ══════════════════════════════════════════════════════ */
 const DEMO_AUTH_KEY = "mars_demo_session_v1";
+const COACH_KEY = "mars_coach_seen_v1";
 let _pendingEnterRole = null;
 let _demoUnlockBusy = false;
 
@@ -1822,6 +1850,26 @@ async function demoUnlock(){
       err.style.display = "block";
     }
     if(inp) inp.focus();
+    if(inp) inp.focus();
+    return;
+  }
+
+  _demoUnlockBusy = true;
+  try {
+    const ok = await verifyDemoCode(v);
+    if(ok){
+      const roleToEnter = _pendingEnterRole;
+      setDemoAuthed();
+      closeDemoLogin({ keepPendingRole: true });
+      _pendingEnterRole = null;
+      if(roleToEnter) enterAs(roleToEnter);
+      return;
+    }
+    if(err){
+      err.textContent = "That code didn't match. If you need access, email us and we'll send a working code.";
+      err.style.display = "block";
+    }
+    if(inp) inp.focus();
   } catch(_) {
     if(err){
       err.textContent = 'Unable to verify code right now. Please try again.';
@@ -1842,6 +1890,80 @@ function showInAppBannerIfNeeded(){
 function hideInAppBanner(){
   const b = document.getElementById("inapp-banner");
   if(b) b.classList.remove("show");
+}
+
+function haptic(ms = 16){
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch(_){}
+}
+
+let _audioCtx = null;
+function playCue(type='ok'){
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    if(!_audioCtx) _audioCtx = new AC();
+    const t = _audioCtx.currentTime;
+    const o = _audioCtx.createOscillator();
+    const g = _audioCtx.createGain();
+    o.type = 'triangle';
+    const freq = type==='warn' ? 220 : type==='error' ? 160 : 420;
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(freq * (type==='ok' ? 1.4 : 0.9), t + 0.12);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.02, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+    o.connect(g); g.connect(_audioCtx.destination);
+    o.start(t); o.stop(t+0.15);
+  } catch(_){}
+}
+
+function pulseFeedback(targetId){
+  const el = document.getElementById(targetId);
+  if(!el) return;
+  el.classList.remove('flash-alert');
+  void el.offsetWidth;
+  el.classList.add('flash-alert');
+}
+
+const COACH_STEPS = [
+  'Use movement controls or arrow keys to navigate the terrain.',
+  'Tap SCAN near nodes. Try QUICK PROBE for speed, DEEP SCAN for confidence.',
+  'Watch Energy and Risk bars. Storm decisions can preserve or damage mission integrity.',
+  'Combo scans within short windows grant bonus XP. Build streaks carefully.'
+];
+let _coachIdx = 0;
+function showCoachTip(step = 0){
+  const box = document.getElementById('coachTip');
+  const msg = document.getElementById('coachMsg');
+  if(!box || !msg) return;
+  _coachIdx = step;
+  msg.textContent = COACH_STEPS[_coachIdx] || COACH_STEPS[0];
+  box.classList.add('show');
+}
+function hideCoachTip(markSeen = false){
+  const box = document.getElementById('coachTip');
+  if(box) box.classList.remove('show');
+  if(markSeen){
+    try { localStorage.setItem(COACH_KEY, '1'); } catch(_){}
+  }
+}
+function bindCoach(){
+  const next = document.getElementById('coachNext');
+  const skip = document.getElementById('coachSkip');
+  if(next && !next._bound){
+    next.addEventListener('click', ()=>{
+      if(_coachIdx < COACH_STEPS.length - 1){
+        showCoachTip(_coachIdx + 1);
+      } else {
+        hideCoachTip(true);
+      }
+    });
+    next._bound = true;
+  }
+  if(skip && !skip._bound){
+    skip.addEventListener('click', ()=> hideCoachTip(true));
+    skip._bound = true;
+  }
 }
 document.addEventListener("keydown",(e)=>{
   const modalOpen = document.getElementById("demo-login")?.classList.contains("open");
@@ -2107,7 +2229,66 @@ function riskCheck(){
     logEvent('RUN_END',{reason:'RISK_BUDGET'});
     closeAllModals();
     openModal('riskModal');
+    pulseFeedback('rb');
   }
+}
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
 }
 function getDifficultyPreset(){
   return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
@@ -2427,6 +2608,7 @@ function triggerStorm(){
   GS.latencyMs = Math.min(3500, GS.latencyMs+800);
   document.getElementById('c-state').textContent='STORM';
   document.getElementById('c-state').className='v amber';
+  pulseFeedback('stormLayer');
   openModal('stormModal');
   logEvent('STORM_START',{dust:GS.dust});
 }
@@ -2753,6 +2935,12 @@ function enterAs(role){
   startConstraintLoop(); startAmbient();
   showInAppBannerIfNeeded();
   if(role==='teacher'){ showScreen('teacher'); }
+  else {
+    showScreen('sim');
+    toast('HEX-01 ONLINE — MISSION ACTIVE');
+    toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · '));
+    try { if(localStorage.getItem(COACH_KEY) !== '1') showCoachTip(0); } catch(_) { showCoachTip(0); }
+  }
   else { showScreen('sim'); toast('HEX-01 ONLINE — MISSION ACTIVE'); toast('MODIFIERS: '+GS.activeModifiers.map(m=>m.name).join(' · ')); }
 }
 
@@ -3226,6 +3414,9 @@ function closeAllModals(){ document.querySelectorAll('.modal-bg').forEach(m=>m.c
    TOAST
 ══════════════════════════════════════════════════════ */
 function toast(msg){
+  if(/ERROR|FAILED|ABORT|CRITICAL|DEPLETED/i.test(msg)) { playCue('error'); haptic(35); }
+  else if(/STORM|RISK|HAZARD|WARNING/i.test(msg)) { playCue('warn'); haptic(24); }
+  else { playCue('ok'); haptic(12); }
   const wrap=document.getElementById('toast-wrap');
   const el=document.createElement('div');
   el.className='toast-item'; el.textContent=msg;
@@ -3332,6 +3523,7 @@ function logEvent(type,data={}){ GS.log.push({t:nowISO(),type,...data}); if(GS.l
    BOOT
 ══════════════════════════════════════════════════════ */
 updateAllUI();
+bindCoach();
 buildMissions();
 updateSkillTree();
 buildCerts();
