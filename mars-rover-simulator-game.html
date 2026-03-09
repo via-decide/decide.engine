@@ -1798,6 +1798,9 @@ let _demoUnlockBusy = false;
 let _guestBypass = false;
 let _pendingEnterRole = null;
 let _demoUnlockBusy = false;
+let _guestBypass = false;
+let _pendingEnterRole = null;
+let _demoUnlockBusy = false;
 
 function isInAppBrowser(){
   const ua = navigator.userAgent || "";
@@ -1864,6 +1867,8 @@ async function verifyDemoCode(code){
   });
   const data = await resp.json().catch(() => ({ ok: false }));
   return Boolean(resp.ok && data && data.ok);
+}
+
 }
 
 }
@@ -2386,6 +2391,42 @@ function registerScanCombo(){
     GS.comboScans = 1;
   }
   GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
+}
+
 }
 
 function maybeTriggerTerrainEvent(){
@@ -3213,6 +3254,8 @@ function enterAs(role){
   moveTimeout = null;
 
   GS.role = role;
+  GS.guestMode = role === 'demo' && !isDemoAuthed();
+  _guestBypass = false;
   GS.difficulty = (document.getElementById('difficulty-select')?.value || GS.difficulty || 'cadet');
   selectActiveModifiers();
   document.getElementById('bottom-nav').style.display = 'flex';
