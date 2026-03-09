@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViaDecide // Audio.Log — Decision Infrastructure for Bharat Commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon: #E0FF00;
+            --brand-orange: #FF6B00;
+            --spotify-green: #1DB954;
+            --yt-red: #FF0000;
+            --bg-base: #030303;
+            --panel-bg: #0A0A0A;
+            --border-muted: #1F1F22;
+            --text-main: #F4F4F5;
+            --text-dim: #71717A;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            width: 100%;
+            cursor: none;
+            margin: 0; padding: 0;
+        }
+
+        h1, h2, h3, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* ─── CUSTOM CURSOR ─── */
+        #cursor-dot, #cursor-ring {
+            position: fixed; top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%; pointer-events: none; z-index: 9999;
+        }
+        #cursor-dot { width: 6px; height: 6px; background-color: var(--neon); }
+        #cursor-ring {
+            width: 34px; height: 34px;
+            border: 1px solid rgba(224,255,0,0.5);
+            transition: width 0.3s cubic-bezier(0.16,1,0.3,1), height 0.3s cubic-bezier(0.16,1,0.3,1), background-color 0.3s, border-color 0.3s;
+        }
+        .cursor-hover #cursor-ring { width: 56px; height: 56px; background: rgba(224,255,0,0.06); border-color: var(--neon); }
+        .cursor-spotify #cursor-ring { width: 56px; height: 56px; background: rgba(29,185,84,0.08); border-color: var(--spotify-green); }
+        @media (hover: none) and (pointer: coarse) {
+            #cursor-dot, #cursor-ring { display: none !important; }
+            body, html { cursor: auto !important; }
+        }
+
+        /* ─── NOISE / GRAIN ─── */
+        .noise-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ─── GLITCH TEXT ─── */
+        .glitch-text { position: relative; display: inline-block; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: var(--bg-base); opacity: 0; pointer-events: none;
+        }
+        .glitch-text:hover::before { left: 2px; text-shadow: -1px 0 red; opacity: 1; animation: g1 0.2s infinite linear alternate-reverse; }
+        .glitch-text:hover::after  { left: -2px; text-shadow: -1px 0 blue; opacity: 1; animation: g2 0.3s infinite linear alternate-reverse; }
+        @keyframes g1 { 0%{clip:rect(10px,9999px,40px,0)} 100%{clip:rect(30px,9999px,15px,0)} }
+        @keyframes g2 { 0%{clip:rect(15px,9999px,50px,0)} 100%{clip:rect(45px,9999px,30px,0)} }
+
+        /* ─── BUTTONS ─── */
+        .btn-brutal {
+            border: 1px solid var(--border-muted); color: var(--text-main);
+            position: relative; overflow: hidden; transition: color 0.3s, border-color 0.3s;
+            display: inline-flex; justify-content: center; align-items: center; text-decoration: none;
+        }
+        .btn-brutal::before {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0;
+            background-color: var(--neon); transition: height 0.3s cubic-bezier(0.16,1,0.3,1); z-index: -1;
+        }
+        .btn-brutal:hover { color: #000; border-color: var(--neon); }
+        .btn-brutal:hover::before { height: 100%; }
+        .btn-spotify:hover { border-color: var(--spotify-green) !important; color: black !important; }
+        .btn-spotify::before { background-color: var(--spotify-green) !important; }
+        .btn-yt:hover { border-color: var(--yt-red) !important; color: white !important; }
+        .btn-yt::before { background-color: var(--yt-red) !important; }
+
+        /* ─── MAGNETIC ─── */
+        .magnetic-wrap { display: inline-block; padding: 10px; margin: -10px; }
+        .magnetic-btn { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+
+        /* ─── AUDIO VISUALIZER ─── */
+        .bar { width: 3px; background-color: var(--neon); transform-origin: bottom; }
+        .playing .bar { animation: audioBounce 0.6s infinite alternate ease-in-out; }
+        .playing .bar:nth-child(2) { animation-delay: 0.1s; }
+        .playing .bar:nth-child(3) { animation-delay: 0.2s; }
+        .playing .bar:nth-child(4) { animation-delay: 0.3s; }
+        @keyframes audioBounce { 0%{transform:scaleY(0.1)} 100%{transform:scaleY(1)} }
+
+        /* ─── SCROLL REVEAL ─── */
+        .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* ─── VIEW PANELS ─── */
+        .view-panel { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; display: flex; align-items: center; justify-content: center; }
+        .view-panel.active { opacity: 1; pointer-events: auto; z-index: 10; }
+
+        /* ─── CHART ─── */
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; height: 350px; }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--border-muted); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+
+        /* ─── ASSET FALLBACK PLACEHOLDERS ─── */
+        .asset-placeholder {
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+            border: 1px dashed #333; color: #E0FF00;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px; text-align: center; padding: 8px;
+            width: 100%; height: 100%; overflow: hidden;
+            word-break: break-all; line-height: 1.4;
+        }
+
+        /* ─── VIDEO WRAPPER ─── */
+        .vid-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; }
+        .vid-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .vid-wrapper .fallback-ph { position: absolute; inset: 0; display: none; }
+        .vid-wrapper.failed .fallback-ph { display: flex; }
+        .vid-wrapper.failed video { display: none; }
+
+        /* ─── IMG WRAPPER ─── */
+        .img-wrapper { position: relative; display: inline-flex; overflow: hidden; }
+        .img-wrapper .fallback-ph { position: absolute; inset: 0; display: none; min-width: 40px; min-height: 40px; }
+        .img-wrapper.failed .fallback-ph { display: flex; }
+        .img-wrapper.failed img { visibility: hidden; }
+
+        /* ─── ASSET STATUS LOG ─── */
+        #asset-status-log {
+            position: fixed; bottom: 16px; right: 16px;
+            background: rgba(3,3,3,0.95); border: 1px solid var(--border-muted);
+            padding: 10px 14px; font-family: 'JetBrains Mono', monospace;
+            font-size: 9px; z-index: 9990; max-width: 320px; max-height: 200px;
+            overflow-y: auto; display: none;
+        }
+        #asset-status-log.visible { display: block; }
+        #asset-log-toggle {
+            position: fixed; bottom: 16px; right: 16px;
+            background: #0A0A0A; border: 1px solid var(--border-muted);
+            color: var(--neon); font-family: 'JetBrains Mono', monospace;
+            font-size: 9px; padding: 6px 12px; cursor: pointer; z-index: 9991;
+            transition: border-color 0.2s;
+        }
+        #asset-log-toggle:hover { border-color: var(--neon); }
+
+        /* ─── EPISODE BADGE ─── */
+        .ep-badge-new { background: var(--neon); color: #000; }
+        .ep-badge-old { background: transparent; border: 1px solid #333; color: #555; }
+
+        /* ─── PODCAST COMING SOON BANNER ─── */
+        .coming-soon-ticker {
+            overflow: hidden; white-space: nowrap;
+        }
+        .coming-soon-ticker .ticker-inner {
+            display: inline-block;
+            animation: tickerScroll 20s linear infinite;
+        }
+        @keyframes tickerScroll {
+            0%   { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ─── SPIN RING ─── */
+        @keyframes spinCW  { to { transform: rotate(360deg); } }
+        @keyframes spinCCW { to { transform: rotate(-360deg); } }
+        .spin-cw  { animation: spinCW  4s linear infinite; }
+        .spin-ccw { animation: spinCCW 6s linear infinite; }
+
+        /* ─── EPISODE CARD HOVER ─── */
+        .ep-card {
+            border: 1px solid #1F1F22;
+            background: #0A0A0A;
+            transition: border-color 0.3s, transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .ep-card:hover { border-color: var(--spotify-green); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(29,185,84,0.05); }
+        .ep-card:hover .ep-play-label { color: var(--spotify-green); }
+        .ep-card:hover .ep-spotify-icon { color: var(--spotify-green); }
+
+        /* ─── FUTURE EPISODE PLACEHOLDER CARD ─── */
+        .ep-card-future {
+            border: 1px dashed #222;
+            background: #060606;
+            position: relative; overflow: hidden;
+        }
+        .ep-card-future::after {
+            content: 'COMING SOON'; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; letter-spacing: 0.3em;
+            color: rgba(224,255,0,0.07); font-weight: bold;
+            pointer-events: none; white-space: nowrap;
+        }
+
+        img, video { max-width: 100%; height: auto; display: block; }
+    </style>
+</head>
+<body class="selection:bg-[#E0FF00] selection:text-black">
+
+<!-- ─── BACKGROUND GRAIN ─── -->
+<div class="noise-overlay"></div>
+
+<!-- ─── SCROLL PROGRESS ─── -->
+<div id="scroll-progress" class="fixed top-0 left-0 h-[2px] bg-[#E0FF00] w-0 z-[10000] transition-all duration-150"></div>
+
+<!-- ─── CUSTOM CURSOR ─── -->
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<!-- ─── ASSET STATUS TOGGLE ─── -->
+<button id="asset-log-toggle" onclick="toggleAssetLog()">[ ASSETS ]</button>
+<div id="asset-status-log">
+    <div id="asset-log-content" class="space-y-1"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     HEADER
+══════════════════════════════════════ -->
+<header class="fixed top-0 w-full bg-[#030303]/90 backdrop-blur-md border-b border-zinc-900 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+
+        <!-- Logo -->
+        <div class="flex items-center gap-4 cursor-pointer" data-hover>
+            <div class="img-wrapper h-10 w-auto" style="height:40px;min-width:40px;">
+                <img
+                    id="logo-img"
+                    src="WhatsApp_Image_2026-02-28_at_19_10_37.jpeg"
+                    alt="ViaDecide"
+                    style="height:40px;width:auto;object-fit:contain;opacity:1;display:block;"
+                    onerror="handleImgError(this,'Logo — WhatsApp_Image_2026-02-28_at_19_10_37.jpeg')"
+                >
+                <div class="fallback-ph asset-placeholder">LOGO<br>WhatsApp_Image_2026-02-28_at_19_10_37.jpeg</div>
+            </div>
+            <div class="h-6 w-px bg-zinc-800 mx-2 hidden md:block"></div>
+            <span class="hidden md:block font-bold text-[10px] tracking-[0.2em] uppercase mono text-zinc-500">System_Audio</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-[#E0FF00] animate-pulse shadow-[0_0_8px_#E0FF00]"></div>
+            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mono">Node Online</span>
+        </div>
+    </div>
+</header>
+
+<!-- ══════════════════════════════════════
+     TICKER — PODCAST COMING SOON BANNER
+══════════════════════════════════════ -->
+<div class="fixed top-20 w-full bg-[#E0FF00] z-40 py-1 coming-soon-ticker overflow-hidden">
+    <span class="ticker-inner mono text-[9px] font-bold text-black uppercase tracking-[0.3em]">
+        ✦ NEW PODCAST EPISODES DROPPING SOON — SUBSCRIBE ON SPOTIFY NOW &nbsp;&nbsp;&nbsp;✦ NEW PODCAST EPISODES DROPPING SOON — SUBSCRIBE ON SPOTIFY NOW &nbsp;&nbsp;&nbsp;✦ VIADECIDE // DECISION INFRASTRUCTURE FOR BHARAT COMMERCE &nbsp;&nbsp;&nbsp;
+    </span>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════ -->
+<main class="pt-48 pb-24 max-w-6xl mx-auto px-6 space-y-40 relative z-10">
+
+    <!-- ═══ SECTION 1: HERO & AUDIO INTERFACE ═══ -->
+    <section class="reveal active space-y-10 relative">
+
+        <!-- Audio Player Card -->
+        <div class="border border-zinc-800 bg-[#0A0A0A] p-4 sm:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 max-w-3xl hover:border-zinc-700 transition-colors">
+            <div class="flex items-center gap-4 sm:gap-6">
+
+                <!-- Track 3 thumbnail (video) -->
+                <div
+                    class="w-16 h-16 sm:w-20 sm:h-20 shrink-0 border border-zinc-800 rounded shadow-md overflow-hidden cursor-pointer"
+                    data-hover data-spotify
+                    onclick="window.open('https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg','_blank')"
+                    style="width:80px;height:80px;"
+                >
+                    <div class="vid-wrapper" id="hero-vid-wrap" style="width:80px;height:80px;">
+                        <video
+                            id="hero-vid"
+                            src="Video_Generation_From_Image.mp4"
+                            poster="Gemini_Generated_Image_beergybeergybeer.jpeg"
+                            autoplay muted loop playsinline preload="auto"
+                            style="width:100%;height:100%;object-fit:cover;"
+                            onerror="handleVidError('hero-vid-wrap','Video_Generation_From_Image.mp4')"
+                        ></video>
+                        <div class="fallback-ph asset-placeholder">Track 3<br>Video_Generation_From_Image.mp4</div>
+                    </div>
+                </div>
+
+                <!-- Play Button -->
+                <button id="audio-play-btn" data-hover class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 hover:border-[#E0FF00] hover:text-[#E0FF00] transition-all z-10 bg-[#030303]">
+                    <span id="play-icon" style="margin-left:3px;">&#9658;</span>
+                </button>
+
+                <div>
+                    <div class="mono text-[10px] text-zinc-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <span class="w-1 h-1 bg-zinc-500 rounded-full"></span> Track 03
+                    </div>
+                    <div class="font-bold text-base sm:text-lg text-white leading-tight uppercase tracking-tight">The Game of Commerce</div>
+                    <a href="https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg"
+                       target="_blank"
+                       data-hover data-spotify
+                       class="text-[#1DB954] hover:text-white transition-colors flex items-center gap-2 mt-1 text-[10px] mono uppercase tracking-widest font-bold w-max">
+                        <span>[ Spotify Playback ]</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 w-full lg:w-auto bg-[#030303] p-3 border border-zinc-900 rounded">
+                <span id="timecode" class="mono text-xs text-[#E0FF00]">00:00</span>
+                <div id="visualizer" class="flex items-end h-6 gap-[2px] w-16">
+                    <div class="bar h-[20%]"></div>
+                    <div class="bar h-[40%]"></div>
+                    <div class="bar h-[30%]"></div>
+                    <div class="bar h-[60%]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Headline -->
+        <h1 class="text-5xl md:text-[5rem] font-bold tracking-tighter text-white max-w-4xl leading-[1] uppercase">
+            Why I built <br>3 games to fix <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#E0FF00] to-zinc-600 block mt-2 glitch-text" data-text="E-Commerce UX.">E-Commerce UX.</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-zinc-400 max-w-2xl leading-relaxed font-light border-l border-[#E0FF00] pl-6 py-2">
+            Most small businesses don't need more SaaS tools. They need structure. Dive into the psychology of game design and how it's reshaping the future of Bharat commerce.
+        </p>
+
+        <div class="magnetic-wrap pt-4 flex flex-wrap gap-4">
+            <button
+                onclick="document.getElementById('audio-logs').scrollIntoView({behavior:'smooth'})"
+                data-hover
+                class="magnetic-btn btn-brutal px-8 py-5 font-bold text-xs tracking-[0.2em] uppercase flex items-center gap-4 w-max z-10 relative bg-[#050505]">
+                Explore Audio Logs <span class="text-[#E0FF00]">&#8595;</span>
+            </button>
+            <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank"
+               data-hover data-spotify
+               class="magnetic-btn btn-brutal btn-spotify px-8 py-5 font-bold text-xs tracking-[0.2em] uppercase flex items-center gap-4 w-max z-10 relative bg-[#050505]">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
+                Follow Show
+            </a>
+        </div>
+    </section>
+
+    <!-- ═══ SECTION: AUDIO LOGS ═══ -->
+    <section id="audio-logs" class="reveal scroll-mt-36">
+        <div class="flex items-center gap-4 mb-4">
+            <h2 class="mono text-xl font-bold uppercase tracking-widest text-[#E0FF00]">
+                <span class="glitch-text" data-text="Audio_Logs">Audio_Logs</span>
+            </h2>
+            <div class="h-px bg-zinc-800 flex-1"></div>
+            <span class="mono text-[9px] text-zinc-600 uppercase tracking-widest">3 Episodes Live</span>
+        </div>
+        <p class="text-zinc-600 text-xs mono mb-10">Episodes 04–06 in production. Subscribe to catch new drops.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- ── EPISODE 03 (Latest) ── -->
+            <div class="ep-card flex flex-col" onclick="window.open('https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg','_blank')" data-hover data-spotify>
+                <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
+                    <div class="vid-wrapper" id="ep3-vid-wrap">
+                        <video
+                            id="ep3-vid"
+                            src="Video_Generation_From_Image.mp4"
+                            poster="Gemini_Generated_Image_beergybeergybeer.jpeg"
+                            autoplay muted loop playsinline preload="auto"
+                            style="width:100%;height:100%;object-fit:cover;"
+                            onerror="handleVidError('ep3-vid-wrap','Video_Generation_From_Image.mp4')"
+                        ></video>
+                        <div class="fallback-ph asset-placeholder">Track 3 Video<br>Video_Generation_From_Image.mp4</div>
+                    </div>
+                    <div class="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors duration-300"></div>
+                    <div class="absolute top-4 left-4 mono text-[10px] text-black bg-[#E0FF00] px-2 py-1 uppercase tracking-widest font-bold z-10 ep-badge-new shadow-lg">Track_03 // Latest</div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-bold text-white text-xl uppercase tracking-tight leading-tight">The Game of <br>Commerce</h3>
+                        <svg class="ep-spotify-icon w-6 h-6 shrink-0 text-zinc-600 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
+                    </div>
+                    <p class="text-zinc-400 text-xs leading-relaxed mb-6">Why I built 3 video games to fix e-commerce UX. Discover how cognitive load destroys trust and why structured narratives are the ultimate conversion engine.</p>
+                    <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
+                        <span class="ep-play-label text-[10px] uppercase tracking-widest font-bold text-[#1DB954] transition-colors">Play Episode</span>
+                        <span class="text-zinc-600">&#8594;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── EPISODE 02 ── -->
+            <div class="ep-card flex flex-col" onclick="window.open('https://open.spotify.com/episode/1NX8bsU1Dps3l6LeZkv5yI','_blank')" data-hover data-spotify>
+                <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
+                    <div class="vid-wrapper" id="ep2-vid-wrap">
+                        <video
+                            id="ep2-vid"
+                            src="Image_to_Video_Generation-2.mp4"
+                            poster="WhatsApp_Image_2026-03-10_at_01_17_16.jpeg"
+                            autoplay muted loop playsinline preload="auto"
+                            style="width:100%;height:100%;object-fit:cover;"
+                            onerror="handleVidError('ep2-vid-wrap','Image_to_Video_Generation-2.mp4')"
+                        ></video>
+                        <div class="fallback-ph asset-placeholder">Track 2 Video<br>Image_to_Video_Generation-2.mp4</div>
+                    </div>
+                    <!-- poster fallback img -->
+                    <img
+                        id="ep2-poster"
+                        src="WhatsApp_Image_2026-03-10_at_01_17_16.jpeg"
+                        alt="Track 2 poster"
+                        style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"
+                        onerror="this.style.display='none'"
+                    >
+                    <div class="absolute inset-0 bg-black/40 hover:bg-transparent transition-colors duration-300"></div>
+                    <div class="absolute top-4 left-4 mono text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-700 px-2 py-1 uppercase tracking-widest font-bold z-10">Track_02</div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-bold text-white text-xl uppercase tracking-tight leading-tight">Beyond SaaS <br>Fatigue</h3>
+                        <svg class="ep-spotify-icon w-6 h-6 shrink-0 text-zinc-600 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
+                    </div>
+                    <p class="text-zinc-400 text-xs leading-relaxed mb-6">Stop overloading your store with SaaS widgets. Learn how to design a foundational decision infrastructure that scales without bloat.</p>
+                    <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
+                        <span class="ep-play-label text-[10px] uppercase tracking-widest font-bold text-zinc-500 transition-colors">Play Episode</span>
+                        <span class="text-zinc-600">&#8594;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── EPISODE 01 ── -->
+            <div class="ep-card flex flex-col" onclick="window.open('https://open.spotify.com/episode/75mlg3wF4Yyvvc14VpNWR1','_blank')" data-hover data-spotify>
+                <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
+                    <div class="vid-wrapper" id="ep1-vid-wrap">
+                        <video
+                            id="ep1-vid"
+                            src="Image_To_Video_Generation.mp4"
+                            poster="WhatsApp_Image_2026-03-08_at_20_20_14.jpeg"
+                            autoplay muted loop playsinline preload="auto"
+                            style="width:100%;height:100%;object-fit:cover;"
+                            onerror="handleVidError('ep1-vid-wrap','Image_To_Video_Generation.mp4')"
+                        ></video>
+                        <div class="fallback-ph asset-placeholder">Track 1 Video<br>Image_To_Video_Generation.mp4</div>
+                    </div>
+                    <div class="absolute inset-0 bg-black/40 hover:bg-transparent transition-colors duration-300"></div>
+                    <div class="absolute top-4 left-4 mono text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-700 px-2 py-1 uppercase tracking-widest font-bold z-10">Track_01</div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-bold text-white text-xl uppercase tracking-tight leading-tight">The ONDC <br>Revolution</h3>
+                        <svg class="ep-spotify-icon w-6 h-6 shrink-0 text-zinc-600 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
+                    </div>
+                    <p class="text-zinc-400 text-xs leading-relaxed mb-6">Escaping the marketplace trap. How zero-commission networks and independent infrastructure are redefining the D2C margin playbook.</p>
+                    <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
+                        <span class="ep-play-label text-[10px] uppercase tracking-widest font-bold text-zinc-500 transition-colors">Play Episode</span>
+                        <span class="text-zinc-600">&#8594;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── FUTURE EPISODES ROW ── -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="ep-card-future h-40 flex flex-col items-center justify-center gap-2 rounded-none">
+                <span class="mono text-[9px] text-zinc-700 uppercase tracking-[0.3em]">Track_04</span>
+                <span class="mono text-[10px] text-zinc-800 uppercase tracking-widest">In Production</span>
+            </div>
+            <div class="ep-card-future h-40 flex flex-col items-center justify-center gap-2">
+                <span class="mono text-[9px] text-zinc-700 uppercase tracking-[0.3em]">Track_05</span>
+                <span class="mono text-[10px] text-zinc-800 uppercase tracking-widest">In Production</span>
+            </div>
+            <div class="ep-card-future h-40 flex flex-col items-center justify-center gap-2">
+                <span class="mono text-[9px] text-zinc-700 uppercase tracking-[0.3em]">Track_06</span>
+                <span class="mono text-[10px] text-zinc-800 uppercase tracking-widest">In Production</span>
+            </div>
+        </div>
+
+        <div class="mt-8 flex items-center justify-center gap-4">
+            <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank"
+               data-hover data-spotify
+               class="btn-brutal btn-spotify px-8 py-4 font-bold text-xs tracking-widest uppercase flex items-center gap-3 bg-[#0A0A0A]">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
+                Subscribe — Never Miss a Drop
+            </a>
+        </div>
+    </section>
+
+    <!-- ═══ SECTION: INTERACTIVE TERMINAL ═══ -->
+    <section id="interactive-terminal" class="reveal scroll-mt-32">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-zinc-800 pb-4 gap-6">
+            <div>
+                <h2 class="mono text-2xl font-bold uppercase tracking-tighter text-white mb-2">
+                    <span class="glitch-text" data-text="Architectural Split">Architectural Split</span>
+                </h2>
+                <p class="text-zinc-500 max-w-xl text-sm leading-relaxed">
+                    A good game provides a single, structured objective. Traditional e-commerce provides chaotic cognitive overload. Interact below to compile the divergence.
+                </p>
+            </div>
+        </div>
+
+        <div class="border border-zinc-800 bg-[#0A0A0A] flex flex-col lg:flex-row min-h-[500px]">
+            <div class="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col bg-[#030303]">
+                <div class="p-4 border-b border-zinc-800 flex items-center justify-between">
+                    <div class="flex gap-2">
+                        <div class="w-2 h-2 bg-zinc-700 rounded-full"></div>
+                        <div class="w-2 h-2 bg-zinc-700 rounded-full"></div>
+                    </div>
+                    <span class="mono text-[9px] text-zinc-600 uppercase">UX_Env.exe</span>
+                </div>
+
+                <div class="flex-1 flex flex-col p-4 gap-4">
+                    <button id="btn-chaos" onclick="triggerUX('chaos')" data-hover class="p-5 text-left border border-zinc-800 bg-[#0A0A0A] hover:border-red-500/50 transition-colors group">
+                        <span class="mono font-bold text-white text-sm block mb-1 group-hover:text-red-500 transition-colors">&gt;&gt; EXECUTE: CHAOS</span>
+                        <span class="text-[10px] text-zinc-500 font-light block mt-2">Standard marketplace layout. High cognitive overload.</span>
+                    </button>
+
+                    <button id="btn-game" onclick="triggerUX('game')" data-hover class="p-5 text-left border border-[#E0FF00]/30 bg-[#E0FF00]/5 transition-colors group">
+                        <span class="mono font-bold text-[#E0FF00] text-sm block mb-1">&gt;&gt; EXECUTE: STRUCTURE</span>
+                        <span class="text-[10px] text-zinc-400 font-light block mt-2">ViaDecide framework. One narrative, 3D native.</span>
+                    </button>
+                </div>
+
+                <div class="p-4 bg-[#050505] border-t border-zinc-900">
+                    <div id="terminal-log" class="mono text-[10px] text-zinc-600 leading-relaxed h-16 overflow-y-auto flex flex-col justify-end">
+                        &gt; System ready.<br>
+                        <span class="text-[#E0FF00]">&gt; ViaDecide Structure active.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-2/3 relative bg-[#050505] p-8 overflow-hidden min-h-[450px]">
+                <!-- CHAOS VIEW -->
+                <div id="view-chaos" class="view-panel bg-[#050505]">
+                    <div class="w-full max-w-xs bg-zinc-900 h-[380px] border border-zinc-700 shadow-2xl flex flex-col relative overflow-hidden">
+                        <div class="bg-red-600 text-white text-[9px] font-bold text-center py-1 flex justify-center items-center gap-2">
+                            <span class="animate-pulse">⚠️</span> ENDS IN 05:23
+                        </div>
+                        <div class="flex-1 p-3 space-y-3">
+                            <div class="w-full h-24 bg-zinc-800 rounded-sm"></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="h-16 bg-zinc-800 rounded-sm"></div>
+                                <div class="h-16 bg-zinc-800 rounded-sm"></div>
+                            </div>
+                            <div class="h-8 bg-zinc-800 w-full rounded-sm"></div>
+                        </div>
+                        <div class="p-2 border-t border-zinc-800 bg-black text-center text-[8px] text-red-500 mono tracking-widest uppercase">CONVERSION BLOCKED</div>
+                    </div>
+                </div>
+
+                <!-- GAME VIEW -->
+                <div id="view-game" class="view-panel active tilt-container">
+                    <div id="tilt-card" class="tilt-element w-full max-w-xs bg-[#0A0A0A] h-[380px] border border-[#E0FF00]/20 relative flex flex-col items-center justify-center p-6 text-center shadow-[0_0_30px_rgba(224,255,0,0.02)]">
+                        <div class="w-32 h-32 bg-[#030303] rounded-full flex items-center justify-center border border-zinc-800 relative shadow-[inset_0_0_20px_rgba(224,255,0,0.05)]" data-hover>
+                            <div class="absolute inset-0 rounded-full border-t border-b border-[#E0FF00]/30 scale-110 spin-cw"></div>
+                            <div class="absolute inset-0 rounded-full border-l border-r border-[#E0FF00]/10 scale-125 spin-ccw"></div>
+                            <div class="w-12 h-12 border border-[#E0FF00] transform rotate-45 hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(224,255,0,0.1)] flex items-center justify-center">
+                                <div class="w-full h-full border border-[#E0FF00]/40 transform rotate-45"></div>
+                            </div>
+                        </div>
+                        <p class="mono text-[9px] text-zinc-600 mt-6 uppercase tracking-widest">One product → One narrative</p>
+                        <p class="mono text-[9px] text-[#E0FF00] mt-2 uppercase tracking-widest">Structure. Trust. Conversion.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SECTION: DATA VISUALIZATION ═══ -->
+    <section id="data-module" class="reveal scroll-mt-32">
+        <div class="bg-[#0A0A0A] p-6 sm:p-10 border border-zinc-800 flex flex-col lg:flex-row gap-12 relative overflow-hidden">
+            <div class="w-full lg:w-1/3 flex flex-col justify-center space-y-6 z-10">
+                <h2 class="mono text-xl font-bold uppercase tracking-widest text-white border-b border-zinc-800 pb-4 mb-4">SaaS Fatigue Analytics</h2>
+                <div class="space-y-2 p-4 border-l-2 border-red-500 bg-red-500/5">
+                    <span class="mono text-[9px] text-red-500 uppercase tracking-widest">Error_State</span>
+                    <h4 class="text-sm font-bold text-white uppercase">Widget Overload</h4>
+                    <p class="text-xs text-zinc-500 leading-relaxed">High UI complexity destroys user trust and rapidly degrades conversion rates.</p>
+                </div>
+                <div class="space-y-2 p-4 border-l-2 border-[#E0FF00] bg-[#E0FF00]/5">
+                    <span class="mono text-[9px] text-[#E0FF00] uppercase tracking-widest">Optimized_State</span>
+                    <h4 class="text-sm font-bold text-white uppercase">ViaDecide Structure</h4>
+                    <p class="text-xs text-zinc-500 leading-relaxed">Scroll-based narrative maintains a stable, high conversion rate by eliminating friction.</p>
+                </div>
+            </div>
+            <div class="w-full lg:w-2/3 z-10">
+                <div class="chart-container">
+                    <canvas id="conversionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SECTION: ABOUT / BUILDER ═══ -->
+    <section class="reveal scroll-mt-32">
+        <div class="flex items-center gap-4 mb-10">
+            <h2 class="mono text-xl font-bold uppercase tracking-widest text-[#E0FF00]">
+                <span class="glitch-text" data-text="The_Builder">The_Builder</span>
+            </h2>
+            <div class="h-px bg-zinc-800 flex-1"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div class="space-y-6">
+                <h3 class="font-bold text-3xl text-white uppercase tracking-tighter leading-tight">
+                    Dharam Daxini<br>
+                    <span class="text-zinc-600 text-lg font-normal tracking-normal normal-case">Founder, ViaDecide · Kutch, Gujarat</span>
+                </h3>
+                <p class="text-zinc-400 text-sm leading-relaxed border-l border-zinc-700 pl-4">
+                    Building decision infrastructure for small commerce in Bharat. One product → One narrative. Live 3D inspection. No commission layers. Built for ONDC sellers and independent brands.
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="border border-zinc-800 p-4 bg-[#050505]">
+                        <div class="mono text-[#E0FF00] text-2xl font-bold">3</div>
+                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Games Built</div>
+                    </div>
+                    <div class="border border-zinc-800 p-4 bg-[#050505]">
+                        <div class="mono text-[#E0FF00] text-2xl font-bold">3</div>
+                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Episodes Live</div>
+                    </div>
+                    <div class="border border-zinc-800 p-4 bg-[#050505]">
+                        <div class="mono text-[#E0FF00] text-2xl font-bold">0%</div>
+                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Commission (ONDC)</div>
+                    </div>
+                    <div class="border border-zinc-800 p-4 bg-[#050505]">
+                        <div class="mono text-[#E0FF00] text-2xl font-bold">∞</div>
+                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Margin Control</div>
+                    </div>
+                </div>
+                <div class="flex gap-3 flex-wrap">
+                    <a href="https://www.linkedin.com/in/dharamdaxini-a77508164" target="_blank" data-hover
+                       class="btn-brutal px-5 py-3 text-[10px] mono uppercase tracking-widest bg-[#050505] flex items-center gap-2">
+                        LinkedIn ↗
+                    </a>
+                    <a href="https://viadecide.com/" target="_blank" data-hover
+                       class="btn-brutal px-5 py-3 text-[10px] mono uppercase tracking-widest bg-[#050505] flex items-center gap-2">
+                        ViaDecide.com ↗
+                    </a>
+                </div>
+            </div>
+
+            <!-- Profile image or fallback -->
+            <div class="border border-zinc-800 overflow-hidden relative bg-[#050505]" style="min-height:320px;">
+                <div class="img-wrapper w-full h-full" style="min-height:320px;display:flex;align-items:center;justify-content:center;">
+                    <img
+                        id="profile-img"
+                        src="WhatsApp_Image_2026-03-08_at_20_20_14.jpeg"
+                        alt="Dharam Daxini"
+                        style="width:100%;height:320px;object-fit:cover;object-position:top;display:block;"
+                        onerror="handleImgError(this,'WhatsApp_Image_2026-03-08_at_20_20_14.jpeg')"
+                    >
+                    <div class="fallback-ph asset-placeholder" style="min-height:320px;">Builder Photo<br>WhatsApp_Image_2026-03-08_at_20_20_14.jpeg</div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#030303] to-transparent h-32 pointer-events-none"></div>
+                <div class="absolute bottom-4 left-4 mono text-[9px] text-zinc-500 uppercase tracking-widest">Dharam Daxini // Founder</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="reveal border-t border-zinc-900 pt-20 pb-12 text-center">
+        <h2 class="mono text-4xl md:text-6xl font-bold mb-6 uppercase tracking-tighter text-white">
+            Stop renting <br><span class="text-zinc-700">your audience.</span>
+        </h2>
+
+        <div class="flex flex-wrap items-center justify-center gap-4 mt-10">
+            <div class="magnetic-wrap">
+                <a href="https://viadecide.com/" target="_blank" data-hover
+                   class="magnetic-btn btn-brutal inline-block px-10 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A]">
+                    Access ViaDecide
+                </a>
+            </div>
+            <div class="magnetic-wrap">
+                <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank" data-hover data-spotify
+                   class="magnetic-btn btn-brutal btn-spotify inline-flex items-center gap-3 px-10 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A]">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
+                    Subscribe on Spotify
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-24 flex flex-wrap items-center justify-center gap-4 text-zinc-700 text-[9px] uppercase tracking-widest mono font-bold">
+            <span>ViaDecide System</span>
+            <div class="w-1 h-1 bg-zinc-800 rounded-full"></div>
+            <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank" class="hover:text-[#1DB954] transition-colors" data-hover data-spotify>Show Profile</a>
+            <div class="w-1 h-1 bg-zinc-800 rounded-full"></div>
+            <a href="https://www.youtube.com/@decide.engine" target="_blank" class="hover:text-[#FF0000] transition-colors" data-hover>YouTube</a>
+            <div class="w-1 h-1 bg-zinc-800 rounded-full"></div>
+            <a href="https://www.linkedin.com/in/dharamdaxini-a77508164" target="_blank" class="hover:text-white transition-colors" data-hover>LinkedIn</a>
+        </div>
+        <div class="mt-4 mono text-[8px] text-zinc-800">© 2026 ViaDecide // Dharam Daxini // Kutch, Gujarat, India</div>
+    </footer>
+</main>
+
+
+<!-- ══════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════ -->
+<script>
+// ─── ASSET LOGGING ─────────────────────────────────────────────
+const assetLog = [];
+
+function logAsset(filename, status, reason) {
+    assetLog.push({ filename, status, reason });
+    const el = document.getElementById('asset-log-content');
+    if (!el) return;
+    const color = status === 'OK' ? '#1DB954' : '#EF4444';
+    el.innerHTML += `<div style="color:${color};margin-bottom:3px;">${status === 'OK' ? '✓' : '✗'} <span style="color:#888">${filename}</span>${reason ? ' — ' + reason : ''}</div>`;
+}
+
+function toggleAssetLog() {
+    const log = document.getElementById('asset-status-log');
+    const btn = document.getElementById('asset-log-toggle');
+    if (!log || !btn) return;
+    if (log.classList.contains('visible')) {
+        log.classList.remove('visible');
+        btn.style.display = 'block';
+    } else {
+        log.classList.add('visible');
+        btn.style.display = 'none';
+    }
+}
+
+// ─── IMG ONERROR ───────────────────────────────────────────────
+function handleImgError(imgEl, filename) {
+    logAsset(filename, 'FAIL', 'Image not found');
+    const wrapper = imgEl.closest('.img-wrapper');
+    if (wrapper) wrapper.classList.add('failed');
+}
+
+// ─── VIDEO ONERROR ─────────────────────────────────────────────
+function handleVidError(wrapId, filename) {
+    logAsset(filename, 'FAIL', 'Video not found or codec error');
+    const wrap = document.getElementById(wrapId);
+    if (wrap) wrap.classList.add('failed');
+}
+
+// ─── VIDEO LOAD SUCCESS ────────────────────────────────────────
+function attachVideoSuccess(vidId, filename) {
+    const v = document.getElementById(vidId);
+    if (!v) return;
+    v.addEventListener('loadeddata', () => logAsset(filename, 'OK', null), { once: true });
+    // Force-load attempt
+    v.load();
+    v.play().catch(() => {});
+}
+
+// ─── CURSOR ────────────────────────────────────────────────────
+const cursorDot  = document.getElementById('cursor-dot');
+const cursorRing = document.getElementById('cursor-ring');
+let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+let ringX  = window.innerWidth/2, ringY  = window.innerHeight/2;
+const isTouch = () => window.matchMedia('(pointer:coarse)').matches;
+
+if (!isTouch()) {
+    document.addEventListener('mousemove', e => {
+        mouseX = e.clientX; mouseY = e.clientY;
+        cursorDot.style.left = mouseX + 'px';
+        cursorDot.style.top  = mouseY + 'px';
+    });
+    (function animateCursor() {
+        ringX += (mouseX - ringX) * 0.2;
+        ringY += (mouseY - ringY) * 0.2;
+        cursorRing.style.left = ringX + 'px';
+        cursorRing.style.top  = ringY + 'px';
+        requestAnimationFrame(animateCursor);
+    })();
+
+    document.querySelectorAll('[data-hover]').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            if (el.hasAttribute('data-spotify')) {
+                document.body.classList.add('cursor-spotify');
+                document.body.classList.remove('cursor-hover');
+            } else {
+                document.body.classList.add('cursor-hover');
+                document.body.classList.remove('cursor-spotify');
+            }
+        });
+        el.addEventListener('mouseleave', () => {
+            document.body.classList.remove('cursor-hover', 'cursor-spotify');
+        });
+    });
+}
+
+// ─── MAGNETIC BUTTONS ──────────────────────────────────────────
+if (!isTouch()) {
+    document.querySelectorAll('.magnetic-btn').forEach(btn => {
+        btn.addEventListener('mousemove', e => {
+            const r = btn.getBoundingClientRect();
+            const x = e.clientX - r.left - r.width/2;
+            const y = e.clientY - r.top  - r.height/2;
+            btn.style.transform = `translate(${x*0.2}px,${y*0.2}px)`;
+        });
+        btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0,0)'; });
+    });
+}
+
+// ─── SCROLL REVEAL + PROGRESS ──────────────────────────────────
+const progressBar = document.getElementById('scroll-progress');
+function handleScroll() {
+    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const height    = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    if (progressBar) progressBar.style.width = (winScroll / height * 100) + '%';
+    document.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
+    });
+}
+window.addEventListener('scroll', handleScroll);
+window.dispatchEvent(new Event('scroll'));
+
+// ─── AUDIO PLAYER (UI MOCK) ─────────────────────────────────────
+const playBtn  = document.getElementById('audio-play-btn');
+const vis      = document.getElementById('visualizer');
+const playIcon = document.getElementById('play-icon');
+const timecode = document.getElementById('timecode');
+let playing = false, timerSec = 0, timerInterval;
+
+if (playBtn) {
+    playBtn.addEventListener('click', () => {
+        playing = !playing;
+        if (playing) {
+            vis.classList.add('playing');
+            playIcon.innerHTML = '&#10074;&#10074;';
+            playIcon.style.marginLeft = '0';
+            playBtn.style.borderColor = '#E0FF00';
+            playBtn.style.color       = '#E0FF00';
+            timerInterval = setInterval(() => {
+                timerSec++;
+                const m = String(Math.floor(timerSec/60)).padStart(2,'0');
+                const s = String(timerSec%60).padStart(2,'0');
+                timecode.textContent = `${m}:${s}`;
+            }, 1000);
+        } else {
+            vis.classList.remove('playing');
+            playIcon.innerHTML = '&#9658;';
+            playIcon.style.marginLeft = '3px';
+            playBtn.style.borderColor = '';
+            playBtn.style.color       = '';
+            clearInterval(timerInterval);
+        }
+    });
+}
+
+// ─── TERMINAL UX ───────────────────────────────────────────────
+function updateLog(msg, type) {
+    const log = document.getElementById('terminal-log');
+    if (!log) return;
+    const color = type === 'error' ? '#EF4444' : '#E0FF00';
+    log.innerHTML += `<br><span style="color:${color}">> ${msg}</span>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+function triggerUX(view) {
+    const btnChaos = document.getElementById('btn-chaos');
+    const btnGame  = document.getElementById('btn-game');
+    const vChaos   = document.getElementById('view-chaos');
+    const vGame    = document.getElementById('view-game');
+    if (view === 'chaos') {
+        btnChaos.style.borderColor = 'rgba(239,68,68,0.5)';
+        btnGame.style.borderColor  = '';
+        vGame.classList.remove('active');
+        vChaos.classList.add('active');
+        updateLog('Executing Chaos layout...', 'error');
+    } else {
+        btnGame.style.borderColor  = 'rgba(224,255,0,0.3)';
+        btnChaos.style.borderColor = '';
+        vChaos.classList.remove('active');
+        vGame.classList.add('active');
+        updateLog('Loading ViaDecide framework...', 'normal');
+    }
+}
+
+// ─── TILT ──────────────────────────────────────────────────────
+const tiltContainer = document.querySelector('.tilt-container');
+const tiltEl        = document.getElementById('tilt-card');
+if (!isTouch() && tiltContainer && tiltEl) {
+    tiltContainer.addEventListener('mousemove', e => {
+        const r  = tiltContainer.getBoundingClientRect();
+        const cx = r.width/2, cy = r.height/2;
+        const rx = ((e.clientY - r.top  - cy) / cy) * -8;
+        const ry = ((e.clientX - r.left - cx) / cx) *  8;
+        tiltEl.style.transform = `perspective(1000px) rotateX(${Math.max(-10,Math.min(10,rx))}deg) rotateY(${Math.max(-10,Math.min(10,ry))}deg)`;
+    });
+    tiltContainer.addEventListener('mouseleave', () => {
+        tiltEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    });
+}
+
+// ─── CHART ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+    const ctx = document.getElementById('conversionChart');
+    if (!ctx) return;
+    const c = ctx.getContext('2d');
+    const grad = c.createLinearGradient(0, 0, 0, 350);
+    grad.addColorStop(0, 'rgba(224,255,0,0.15)');
+    grad.addColorStop(1, 'rgba(224,255,0,0)');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['1 (Product)', '2 Elements', '3 Elements', '4 Elements', '5+ (Widgets)'],
+            datasets: [
+                { label: 'ViaDecide (Structured)', data: [3.8,4.0,4.2,4.2,4.2], borderColor: '#E0FF00', backgroundColor: grad, borderWidth: 2, pointBackgroundColor: '#030303', pointBorderColor: '#E0FF00', pointBorderWidth: 2, pointRadius: 5, fill: true, tension: 0 },
+                { label: 'Standard D2C (Chaos)',   data: [3.5,3.2,2.8,1.5,0.5], borderColor: '#EF4444', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4,4], pointBackgroundColor: '#EF4444', pointRadius: 4, tension: 0 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', align: 'end', labels: { color: '#A1A1AA', usePointStyle: true, boxWidth: 6, font: { family: "'JetBrains Mono',monospace", size: 10 } } },
+                tooltip: { backgroundColor: '#0A0A0A', borderColor: '#27272A', borderWidth: 1, titleColor: '#F4F4F5', bodyColor: '#A1A1AA', cornerRadius: 0 }
+            },
+            scales: {
+                y: { title: { display: true, text: 'CONVERSION (%)', color: '#71717A', font: { size: 9, family: "'JetBrains Mono',monospace" } }, min: 0, max: 5, grid: { color: '#111' }, ticks: { color: '#71717A', font: { size: 10 } } },
+                x: { grid: { color: '#111' }, ticks: { color: '#71717A', font: { size: 10 } } }
+            }
+        }
+    });
+
+    // ── Attach video success loggers ──
+    attachVideoSuccess('hero-vid', 'Video_Generation_From_Image.mp4');
+    attachVideoSuccess('ep3-vid',  'Video_Generation_From_Image.mp4');
+    attachVideoSuccess('ep2-vid',  'Image_to_Video_Generation-2.mp4');
+    attachVideoSuccess('ep1-vid',  'Image_To_Video_Generation.mp4');
+
+    // ── Image load success loggers ──
+    [
+        { id: 'logo-img',    file: 'WhatsApp_Image_2026-02-28_at_19_10_37.jpeg' },
+        { id: 'profile-img', file: 'WhatsApp_Image_2026-03-08_at_20_20_14.jpeg' },
+    ].forEach(({ id, file }) => {
+        const img = document.getElementById(id);
+        if (!img) return;
+        if (img.complete && img.naturalWidth > 0) {
+            logAsset(file, 'OK', null);
+        } else {
+            img.addEventListener('load', () => logAsset(file, 'OK', null), { once: true });
+        }
+    });
+
+    // Show log button after 2s
+    setTimeout(() => {
+        const btn = document.getElementById('asset-log-toggle');
+        if (btn) btn.style.display = 'block';
+    }, 2000);
+});
+</script>
+</body>
+</html>
