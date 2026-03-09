@@ -764,6 +764,8 @@ function handleImgError(imgEl, filename) {
         }, { once: true });
 
         imgEl.src = fallbackSrc;
+        imgEl.src = fallbackSrc;
+        logAsset(filename, 'OK', `Fallback loaded from /${fallbackSrc}`);
         return;
     }
 
@@ -799,6 +801,7 @@ function handleVidError(wrapId, filename) {
 
         video.load();
         video.play().catch(() => {});
+        logAsset(filename, 'OK', `Fallback loaded from /${fallbackSrc}`);
         return;
     }
 
