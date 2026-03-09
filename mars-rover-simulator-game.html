@@ -1834,6 +1834,18 @@ async function verifyDemoCode(code){
   return Boolean(resp.ok && data && data.ok);
 }
 
+}
+
+async function verifyDemoCode(code){
+  const resp = await fetch('/api/demo-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  const data = await resp.json().catch(() => ({ ok: false }));
+  return Boolean(resp.ok && data && data.ok);
+}
+
 async function demoUnlock(){
   if(_demoUnlockBusy) return;
   const inp = document.getElementById("demo-code");
@@ -1842,6 +1854,7 @@ async function demoUnlock(){
 
   if(!v){
     if(err){ err.textContent = 'Please enter your access code.'; err.style.display = 'block'; }
+    if(inp) inp.focus();
     if(inp) inp.focus();
     return;
   }
@@ -2264,6 +2277,64 @@ function riskCheck(){
     openModal('riskModal');
     pulseFeedback('rb');
   }
+}
+function getDifficultyPreset(){
+  return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
+}
+
+function selectActiveModifiers(){
+  const seed = (new Date().getUTCDate() + GS.solNumber + GS.tier) % MISSION_MODIFIERS_POOL.length;
+  const m1 = MISSION_MODIFIERS_POOL[seed];
+  const m2 = MISSION_MODIFIERS_POOL[(seed+2)%MISSION_MODIFIERS_POOL.length];
+  GS.activeModifiers = [m1, m2];
+}
+
+function aggregateModifier(key){
+  return GS.activeModifiers.reduce((acc,m)=>acc + ((m.apply && m.apply[key]) || 0), 0);
+}
+
+function registerScanCombo(){
+  const now = Date.now();
+  if(now - GS.lastScanTs < 30000){
+    GS.comboScans += 1;
+  } else {
+    GS.comboScans = 1;
+  }
+  GS.lastScanTs = now;
+}
+
+function maybeTriggerTerrainEvent(){
+  if(GS.terrainEventOpen || GS.stormActive) return;
+  if(Math.random() > 0.18) return;
+  const events = [
+    { q:'Loose regolith pocket ahead. Choose route?', safe:{risk:1,energy:-1,xp:1,msg:'SAFE DETOUR EXECUTED'}, aggr:{risk:4,energy:-2,xp:5,msg:'AGGRESSIVE PUSH SUCCEEDED'} },
+    { q:'Steep basalt lip detected. Attempt direct climb?', safe:{risk:0,energy:-1,xp:1,msg:'CLIMB ABORTED, ROUTE STABLE'}, aggr:{risk:5,energy:-3,xp:6,msg:'DIRECT CLIMB COMPLETED'} },
+    { q:'Signal shadow zone ahead. Hold or sprint through?', safe:{risk:1,energy:0,xp:2,msg:'COMMS STABLE HOLD'}, aggr:{risk:3,energy:-1,xp:4,msg:'SPRINT THROUGH SHADOW'} }
+  ];
+  const evt = events[Math.floor(Math.random()*events.length)];
+  GS.terrainEventOpen = true;
+  const q = document.getElementById('terrainEventQ');
+  const sub = document.getElementById('terrainEventSub');
+  if(q) q.textContent = evt.q;
+  if(sub) sub.textContent = 'SECTOR ' + (TERRAINS[Math.floor(Math.random()*TERRAINS.length)].quadrant || 'A3-07');
+
+  const bind = (id,data)=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    btn.onclick = ()=>{
+      GS.risk += data.risk + aggregateModifier('riskAdd');
+      modEnergy(data.energy);
+      GS.xp += data.xp + aggregateModifier('xpBonus');
+      toast(data.msg);
+      GS.terrainEventOpen = false;
+      closeModal('terrainEventModal');
+      riskCheck();
+      updateAllUI();
+    };
+  };
+  bind('terrainSafeBtn',evt.safe);
+  bind('terrainAggBtn',evt.aggr);
+  openModal('terrainEventModal');
 }
 function getDifficultyPreset(){
   return DIFFICULTY_PRESETS[GS.difficulty] || DIFFICULTY_PRESETS.cadet;
