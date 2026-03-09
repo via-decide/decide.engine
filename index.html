@@ -630,7 +630,7 @@ section{position:relative;z-index:10}
   <div class="orb-wrap" id="orb-wrap">
     <div class="orb-bar">
       <div class="orb-pulse-dot"></div>
-      <input type="text" id="orb-input" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
+      <input type="text" id="orb-input" data-command-router="true" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
       <button class="orb-go" id="orb-go" title="Find the right tool">→</button>
     </div>
     <div id="orb-suggest" aria-label="Search suggestions"></div>
@@ -1297,21 +1297,29 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
   function txt(el){return(el&&el.textContent||'').trim();}
   function parseOpenModal(oc){const m=(oc||'').match(/openModal\('([^']+)','([^']*)','([^']*)'\)/);if(!m)return null;return{type:'modal',file:m[1],icon:m[2],name:m[3]};}
   function parseLocHref(oc){const m=(oc||'').match(/location\.href='([^']+)'/);if(!m)return null;return{type:'nav',file:m[1],icon:'↗',name:m[1]};}
-  const INDEX=Array.from(document.querySelectorAll('.tc')).map(card=>{
-    const oc=card.getAttribute('onclick')||'';
-    const tgt=parseOpenModal(oc)||parseLocHref(oc);
-    if(!tgt)return null;
-    const title=txt(card.querySelector('.tc-name-lg'))||txt(card.querySelector('.tc-name'))||tgt.name;
-    const desc=txt(card.querySelector('.tc-desc-lg'))||txt(card.querySelector('.tc-desc'))||'';
-    return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
-  }).filter(Boolean);
+  function parseGoSlug(oc){const m=(oc||'').match(/VDRouter\.go\('([^']+)'/);if(!m)return null;const slug=m[1];return{type:'route',slug,icon:'↗',name:slug};}
+  function buildIndex(){
+    return Array.from(document.querySelectorAll('.tc')).map(card=>{
+      const oc=card.getAttribute('onclick')||'';
+      const tgt=parseOpenModal(oc)||parseGoSlug(oc)||parseLocHref(oc);
+      if(!tgt)return null;
+      const title=txt(card.querySelector('.tc-name-lg'))||txt(card.querySelector('.tc-name'))||tgt.name;
+      const desc=txt(card.querySelector('.tc-desc-lg'))||txt(card.querySelector('.tc-desc'))||'';
+      return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
+    }).filter(Boolean).reduce((acc,it)=>{
+      const k=`${it.type}|${it.slug||it.file}|${norm(it.title)}`;
+      if(!acc.seen.has(k)){acc.seen.add(k);acc.items.push(it);} 
+      return acc;
+    },{seen:new Set(),items:[]}).items;
+  }
+  let INDEX=[];
   function tokenScore(q,str){if(!str)return 0;let s=0;if(str===q)s+=80;if(str.includes(q))s+=40;q.split(/\s+/).filter(Boolean).forEach(p=>{if(str.includes(p))s+=10;});return s;}
   function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,norm(item.intent))*.7;s+=tokenScore(qq,norm(item.orbit))*.8;s+=tokenScore(qq,norm(item.cat))*.3;return s;}
   let results=[],active=-1;
   function hideSuggest(){suggest.style.display='none';suggest.innerHTML='';results=[];active=-1;}
   function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row${i===active?' active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
-  function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
-  function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal')openModal(item.file,item.icon,item.title);else location.href=item.file;}
+  function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}if(!INDEX.length)INDEX=buildIndex();results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
+  function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal'){openModal(item.file,item.icon,item.name||item.title);return;}if(item.type==='route'&&window.VDRouter){window.VDRouter.go(item.slug);return;}location.href=item.file;}
   function fallbackScroll(q){
     const lv=(q||'').toLowerCase();
     if(/finance|fintrack|cashflow|profit|loss|pnl|income|expense|gst|transaction|ledger|accounting|msme|dashboard|kpi|revenue|budget|invoice|payroll|inventory|stock/i.test(lv))
@@ -1320,10 +1328,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
     else if(/deal|price|buy|ondc|cashback|discount/i.test(lv))document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});
     else if(/print|plate|keychain|gift|store/i.test(lv))document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
     else if(/blog|article|read|guide|learn/i.test(lv))document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
+    else if(/audio|podcast|spotify|episode|track/i.test(lv))document.getElementById('cat-audio').scrollIntoView({behavior:'smooth'});
     else if(/service|hire|license|cohort/i.test(lv))document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
     else if(/personal|ashok|founder|1:1|session|coaching|brand/i.test(lv))document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'});
     else document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
   }
+  window.addEventListener('load',()=>{INDEX=buildIndex();});
   input.addEventListener('input',doSearch);
   input.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'&&results.length){e.preventDefault();active=Math.min(results.length-1,active+1);render();}
@@ -1666,13 +1676,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('mars-rover-simulator-game'):location.href='mars-rover-simulator-game.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('hivaland'):location.href='HivaLand.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('wings-of-fire'):location.href='WingsOfFire.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire</div><div class="tc-desc">Fast-paced aerial strategy skirmish with risk and energy management.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('hexwars'):location.href='HexWars.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('mars-rover-simulator-game'):location.href='mars-rover-simulator-game.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('hivaland'):location.href='HivaLand.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/HexWars.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
-      <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/HivaLand.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
