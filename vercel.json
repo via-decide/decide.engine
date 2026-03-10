@@ -266,6 +266,11 @@
       "source": "/DharamDaxini/index.html",
       "destination": "/DharamDaxini.html",
       "permanent": true
+    },
+    {
+      "source": "/not-a-saas",
+      "destination": "/not-a-saas/index.html",
+      "permanent": true
     }
   ]
 }
