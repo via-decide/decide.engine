@@ -46,6 +46,7 @@
         'viadecide-blogs': 'Viadecide-blogs.html',
         'the-decision-stack': 'Viadecide-blogs.html',
         'why-small-businesses-dont-need-saas': 'Viadecide-blogs.html',
+        'not-a-saas': 'not-a-saas/index.html',
         'decision-infrastructure-india': 'decision-infrastructure-india.html',
         'ondc-for-bharat': 'ondc-for-bharat.html',
         'indiaai-mission-2025': 'indiaai-mission-2025.html',
