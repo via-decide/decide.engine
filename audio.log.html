@@ -1,1015 +1,1309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ViaDecide // Audio.Log — Decision Infrastructure for Bharat Commerce</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --neon: #E0FF00;
-            --brand-orange: #FF6B00;
-            --spotify-green: #1DB954;
-            --yt-red: #FF0000;
-            --bg-base: #030303;
-            --panel-bg: #0A0A0A;
-            --border-muted: #1F1F22;
-            --text-main: #F4F4F5;
-            --text-dim: #71717A;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ViaDecide // Audio.Log</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
-        *, *::before, *::after { box-sizing: border-box; }
+<style>
+  /* ─── CSS VARIABLES ─────────────────────────────────────────────── */
+  :root {
+    --bg-base:       #030303;
+    --panel-bg:      #0A0A0A;
+    --border-muted:  #1F1F22;
+    --neon:          #E0FF00;
+    --spotify-green: #1DB954;
+    --yt-red:        #FF0000;
+    --text-primary:  #EFEFEF;
+    --text-muted:    #5A5A60;
+    --text-dim:      #2E2E34;
+  }
 
-        body, html {
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            overflow-x: hidden;
-            width: 100%;
-            cursor: none;
-            margin: 0; padding: 0;
-        }
+  /* ─── RESET & BASE ──────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: none;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
 
-        h1, h2, h3, .mono { font-family: 'JetBrains Mono', monospace; }
+  /* ─── NOISE OVERLAY ─────────────────────────────────────────────── */
+  .noise-overlay {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
 
-        /* ─── CUSTOM CURSOR ─── */
-        #cursor-dot, #cursor-ring {
-            position: fixed; top: 0; left: 0;
-            transform: translate(-50%, -50%);
-            border-radius: 50%; pointer-events: none; z-index: 9999;
-        }
-        #cursor-dot { width: 6px; height: 6px; background-color: var(--neon); }
-        #cursor-ring {
-            width: 34px; height: 34px;
-            border: 1px solid rgba(224,255,0,0.5);
-            transition: width 0.3s cubic-bezier(0.16,1,0.3,1), height 0.3s cubic-bezier(0.16,1,0.3,1), background-color 0.3s, border-color 0.3s;
-        }
-        .cursor-hover #cursor-ring { width: 56px; height: 56px; background: rgba(224,255,0,0.06); border-color: var(--neon); }
-        .cursor-spotify #cursor-ring { width: 56px; height: 56px; background: rgba(29,185,84,0.08); border-color: var(--spotify-green); }
-        @media (hover: none) and (pointer: coarse) {
-            #cursor-dot, #cursor-ring { display: none !important; }
-            body, html { cursor: auto !important; }
-        }
+  /* ─── CUSTOM CURSOR ─────────────────────────────────────────────── */
+  #cursor-dot {
+    position: fixed; width: 6px; height: 6px;
+    background: var(--neon); border-radius: 50%;
+    pointer-events: none; z-index: 10000;
+    transform: translate(-50%, -50%);
+    transition: background 0.15s ease;
+  }
+  #cursor-ring {
+    position: fixed; width: 32px; height: 32px;
+    border: 1.5px solid var(--neon); border-radius: 50%;
+    pointer-events: none; z-index: 10000;
+    transform: translate(-50%, -50%);
+    transition: width 0.25s ease, height 0.25s ease, border-color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+  }
+  #cursor-ring.expand {
+    width: 56px; height: 56px; opacity: 1;
+    border-color: var(--spotify-green);
+  }
+  #cursor-ring.danger { border-color: var(--yt-red); }
 
-        /* ─── NOISE / GRAIN ─── */
-        .noise-overlay {
-            position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: 0.035;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        }
+  /* ─── GLITCH TEXT ───────────────────────────────────────────────── */
+  .glitch-text {
+    position: relative;
+    display: inline-block;
+  }
+  .glitch-text::before,
+  .glitch-text::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    overflow: hidden;
+  }
+  .glitch-text::before {
+    color: var(--yt-red);
+    animation: g1 2.5s infinite linear;
+    clip-path: inset(0 0 60% 0);
+  }
+  .glitch-text::after {
+    color: var(--neon);
+    animation: g2 2.5s infinite linear;
+    clip-path: inset(55% 0 0 0);
+  }
+  @keyframes g1 {
+    0%,100% { transform: translate(0); }
+    10%      { transform: translate(-3px, 1px); }
+    20%      { transform: translate(2px, -1px); }
+    30%      { transform: translate(-1px, 2px); }
+    40%      { transform: translate(3px, -2px); }
+    50%      { transform: translate(0); }
+  }
+  @keyframes g2 {
+    0%,100% { transform: translate(0); }
+    15%      { transform: translate(3px, -2px); }
+    25%      { transform: translate(-2px, 1px); }
+    35%      { transform: translate(2px, 2px); }
+    45%      { transform: translate(-3px, -1px); }
+    55%      { transform: translate(0); }
+  }
 
-        /* ─── GLITCH TEXT ─── */
-        .glitch-text { position: relative; display: inline-block; }
-        .glitch-text::before, .glitch-text::after {
-            content: attr(data-text); position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; background: var(--bg-base); opacity: 0; pointer-events: none;
-        }
-        .glitch-text:hover::before { left: 2px; text-shadow: -1px 0 red; opacity: 1; animation: g1 0.2s infinite linear alternate-reverse; }
-        .glitch-text:hover::after  { left: -2px; text-shadow: -1px 0 blue; opacity: 1; animation: g2 0.3s infinite linear alternate-reverse; }
-        @keyframes g1 { 0%{clip:rect(10px,9999px,40px,0)} 100%{clip:rect(30px,9999px,15px,0)} }
-        @keyframes g2 { 0%{clip:rect(15px,9999px,50px,0)} 100%{clip:rect(45px,9999px,30px,0)} }
+  /* ─── LAYOUT SHELL ──────────────────────────────────────────────── */
+  .site-header {
+    border-bottom: 1px solid var(--border-muted);
+    padding: 20px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(3,3,3,0.95);
+    backdrop-filter: blur(12px);
+  }
+  .logo-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--neon);
+    text-transform: uppercase;
+  }
+  .logo-mark span {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .header-status {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.7); }
+  }
 
-        /* ─── BUTTONS ─── */
-        .btn-brutal {
-            border: 1px solid var(--border-muted); color: var(--text-main);
-            position: relative; overflow: hidden; transition: color 0.3s, border-color 0.3s;
-            display: inline-flex; justify-content: center; align-items: center; text-decoration: none;
-        }
-        .btn-brutal::before {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0;
-            background-color: var(--neon); transition: height 0.3s cubic-bezier(0.16,1,0.3,1); z-index: -1;
-        }
-        .btn-brutal:hover { color: #000; border-color: var(--neon); }
-        .btn-brutal:hover::before { height: 100%; }
-        .btn-spotify:hover { border-color: var(--spotify-green) !important; color: black !important; }
-        .btn-spotify::before { background-color: var(--spotify-green) !important; }
-        .btn-yt:hover { border-color: var(--yt-red) !important; color: white !important; }
-        .btn-yt::before { background-color: var(--yt-red) !important; }
+  /* ─── HERO ZONE ─────────────────────────────────────────────────── */
+  .hero {
+    padding: 64px 40px 40px;
+    border-bottom: 1px solid var(--border-muted);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 40px; align-items: end;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.2em;
+    color: var(--text-muted); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 700; line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+  }
+  .hero-title .accent { color: var(--neon); }
+  .hero-sub {
+    margin-top: 18px;
+    font-size: 15px; color: var(--text-muted);
+    max-width: 460px; line-height: 1.6;
+    font-weight: 400;
+  }
 
-        /* ─── MAGNETIC ─── */
-        .magnetic-wrap { display: inline-block; padding: 10px; margin: -10px; }
-        .magnetic-btn { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+  /* ─── VISUALIZER ────────────────────────────────────────────────── */
+  #visualizer {
+    display: flex; align-items: flex-end; gap: 3px;
+    height: 56px;
+  }
+  .bar {
+    width: 3px; background: var(--border-muted);
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
+  #visualizer.playing .bar {
+    background: var(--neon);
+    animation: bounce var(--dur, 0.8s) ease-in-out infinite alternate;
+    box-shadow: 0 0 6px var(--neon);
+  }
+  @keyframes bounce {
+    from { height: 4px; }
+    to   { height: var(--h, 40px); }
+  }
 
-        /* ─── AUDIO VISUALIZER ─── */
-        .bar { width: 3px; background-color: var(--neon); transform-origin: bottom; }
-        .playing .bar { animation: audioBounce 0.6s infinite alternate ease-in-out; }
-        .playing .bar:nth-child(2) { animation-delay: 0.1s; }
-        .playing .bar:nth-child(3) { animation-delay: 0.2s; }
-        .playing .bar:nth-child(4) { animation-delay: 0.3s; }
-        @keyframes audioBounce { 0%{transform:scaleY(0.1)} 100%{transform:scaleY(1)} }
+  /* ─── MAIN GRID ─────────────────────────────────────────────────── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+  }
+  .feed-col {
+    border-right: 1px solid var(--border-muted);
+    padding: 32px 40px;
+  }
+  .sidebar-col {
+    padding: 32px 28px;
+    position: sticky; top: 73px;
+    height: calc(100vh - 73px);
+    overflow-y: auto;
+  }
 
-        /* ─── SCROLL REVEAL ─── */
-        .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
+  /* ─── SECTION LABELS ────────────────────────────────────────────── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border-muted);
+  }
 
-        /* ─── VIEW PANELS ─── */
-        .view-panel { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; display: flex; align-items: center; justify-content: center; }
-        .view-panel.active { opacity: 1; pointer-events: auto; z-index: 10; }
+  /* ─── EP CARD ───────────────────────────────────────────────────── */
+  .ep-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-muted);
+    border-radius: 4px;
+    padding: 22px 24px;
+    margin-bottom: 12px;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .ep-card.active {
+    opacity: 1; transform: translateY(0);
+    transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .ep-card:hover {
+    border-color: var(--spotify-green);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(29,185,84,0.12);
+  }
+  .ep-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(29,185,84,0.03) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .ep-card:hover::before { opacity: 1; }
 
-        /* ─── CHART ─── */
-        .chart-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; height: 350px; }
+  .ep-card-future {
+    background: transparent;
+    border: 1px dashed var(--border-muted);
+    border-radius: 4px; padding: 22px 24px;
+    margin-bottom: 12px;
+    position: relative; overflow: hidden;
+    opacity: 0; transform: translateY(16px);
+  }
+  .ep-card-future.active { opacity: 1; transform: translateY(0); transition: opacity 0.4s ease, transform 0.4s ease; }
+  .coming-soon-stamp {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 700;
+    color: var(--border-muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    pointer-events: none;
+  }
 
-        /* ─── SCROLLBAR ─── */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: var(--border-muted); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+  /* ─── BADGE ─────────────────────────────────────────────────────── */
+  .ep-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .ep-badge-new {
+    background: var(--neon); color: #030303;
+    box-shadow: 0 0 12px rgba(224,255,0,0.35);
+  }
+  .ep-badge-old {
+    background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border-muted);
+  }
 
-        /* ─── ASSET FALLBACK PLACEHOLDERS ─── */
-        .asset-placeholder {
-            display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
-            border: 1px dashed #333; color: #E0FF00;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9px; text-align: center; padding: 8px;
-            width: 100%; height: 100%; overflow: hidden;
-            word-break: break-all; line-height: 1.4;
-        }
+  .ep-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .ep-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+  .ep-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+  .ep-title {
+    font-size: 18px; font-weight: 600;
+    color: var(--text-primary); letter-spacing: -0.02em;
+    line-height: 1.3; margin-bottom: 14px;
+  }
+  .ep-controls {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ep-spotify-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--border-muted);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.25s ease;
+  }
+  .ep-card:hover .ep-spotify-icon { background: var(--spotify-green); }
+  .ep-spotify-icon svg { width: 14px; height: 14px; }
 
-        /* ─── VIDEO WRAPPER ─── */
-        .vid-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; }
-        .vid-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-        .vid-wrapper .fallback-ph { position: absolute; inset: 0; display: none; }
-        .vid-wrapper.failed .fallback-ph { display: flex; }
-        .vid-wrapper.failed video { display: none; }
+  .btn-play {
+    display: flex; align-items: center; gap: 8px;
+    background: transparent; border: 1px solid var(--border-muted);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em;
+    padding: 7px 14px; border-radius: 2px;
+    cursor: none; transition: all 0.2s ease;
+  }
+  .btn-play:hover, .ep-card:hover .btn-play {
+    border-color: var(--spotify-green);
+    color: var(--spotify-green);
+  }
+  .btn-play.btn-brutal {
+    /* Extra brutal state on the active track */
+    background: var(--neon); border-color: var(--neon);
+    color: #030303;
+  }
+  .ep-duration {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-dim);
+    margin-left: auto;
+  }
 
-        /* ─── IMG WRAPPER ─── */
-        .img-wrapper { position: relative; display: inline-flex; overflow: hidden; }
-        .img-wrapper .fallback-ph { position: absolute; inset: 0; display: none; min-width: 40px; min-height: 40px; }
-        .img-wrapper.failed .fallback-ph { display: flex; }
-        .img-wrapper.failed img { visibility: hidden; }
+  /* ─── VIDEO WRAPPER ──────────────────────────────────────────────── */
+  .vid-wrapper {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-muted);
+    border-radius: 4px; overflow: hidden;
+    margin-bottom: 12px; position: relative;
+    opacity: 0; transform: translateY(16px);
+  }
+  .vid-wrapper.active { opacity: 1; transform: translateY(0); transition: opacity 0.4s ease, transform 0.4s ease; }
+  .vid-wrapper.failed { border-color: var(--yt-red); }
+  .vid-wrapper video { width: 100%; display: block; max-height: 220px; object-fit: cover; }
+  .vid-meta {
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .vid-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .vid-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--yt-red);
+    border: 1px solid rgba(255,0,0,0.3);
+    padding: 2px 7px; border-radius: 2px;
+    letter-spacing: 0.1em;
+  }
 
-        /* ─── ASSET STATUS LOG (hidden in UI) ─── */
-        #asset-status-log, #asset-log-toggle { display: none !important; }
+  /* ─── FALLBACK PLACEHOLDER ──────────────────────────────────────── */
+  .fallback-ph {
+    position: absolute; inset: 0;
+    background: rgba(255,0,0,0.06);
+    border: 1px solid rgba(255,0,0,0.25);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--yt-red);
+    text-align: center; gap: 6px;
+    letter-spacing: 0.1em;
+  }
+  .fallback-ph .fph-file {
+    font-size: 9px; color: var(--text-muted);
+    max-width: 200px; word-break: break-all;
+  }
 
-        /* ─── EPISODE BADGE ─── */
-        .ep-badge-new { background: var(--neon); color: #000; }
-        .ep-badge-old { background: transparent; border: 1px solid #333; color: #555; }
+  /* ─── API ERROR ──────────────────────────────────────────────────── */
+  .api-error-block {
+    padding: 60px 40px;
+    text-align: center;
+  }
+  .api-error-block h2 {
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 700; letter-spacing: -0.03em;
+    color: var(--yt-red);
+    line-height: 1;
+  }
+  .api-error-block p {
+    margin-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
 
-        /* ─── PODCAST COMING SOON BANNER ─── */
-        .coming-soon-ticker {
-            overflow: hidden; white-space: nowrap;
-        }
-        .coming-soon-ticker .ticker-inner {
-            display: inline-block;
-            animation: tickerScroll 20s linear infinite;
-        }
-        @keyframes tickerScroll {
-            0%   { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
-        }
+  /* ─── SIDEBAR WIDGETS ───────────────────────────────────────────── */
+  .sidebar-widget {
+    margin-bottom: 28px;
+    border: 1px solid var(--border-muted);
+    border-radius: 4px; overflow: hidden;
+  }
+  .widget-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .widget-body { padding: 16px; }
 
-        /* ─── SPIN RING ─── */
-        @keyframes spinCW  { to { transform: rotate(360deg); } }
-        @keyframes spinCCW { to { transform: rotate(-360deg); } }
-        .spin-cw  { animation: spinCW  4s linear infinite; }
-        .spin-ccw { animation: spinCCW 6s linear infinite; }
+  /* ─── NOW PLAYING ───────────────────────────────────────────────── */
+  #now-playing-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary); margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  #now-playing-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .progress-track {
+    height: 2px; background: var(--border-muted);
+    border-radius: 2px; position: relative; margin-bottom: 8px;
+    cursor: none;
+  }
+  #progress-fill {
+    height: 100%; background: var(--neon);
+    border-radius: 2px; width: 0%;
+    transition: width 0.5s linear;
+    box-shadow: 0 0 6px var(--neon);
+  }
+  .time-row {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-dim);
+  }
 
-        /* ─── EPISODE CARD HOVER ─── */
-        .ep-card {
-            border: 1px solid #1F1F22;
-            background: #0A0A0A;
-            transition: border-color 0.3s, transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s;
-            cursor: pointer;
-        }
-        .ep-card:hover { border-color: var(--spotify-green); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(29,185,84,0.05); }
-        .ep-card:hover .ep-play-label { color: var(--spotify-green); }
-        .ep-card:hover .ep-spotify-icon { color: var(--spotify-green); }
+  /* ─── CHART ─────────────────────────────────────────────────────── */
+  #efficiencyChart { width: 100% !important; }
 
-        /* ─── FUTURE EPISODE PLACEHOLDER CARD ─── */
-        .ep-card-future {
-            border: 1px dashed #222;
-            background: #060606;
-            position: relative; overflow: hidden;
-        }
-        .ep-card-future::after {
-            content: 'COMING SOON'; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-20deg);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px; letter-spacing: 0.3em;
-            color: rgba(224,255,0,0.07); font-weight: bold;
-            pointer-events: none; white-space: nowrap;
-        }
+  /* ─── STATS ROW ─────────────────────────────────────────────────── */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 28px;
+  }
+  .stat-tile {
+    border: 1px solid var(--border-muted);
+    border-radius: 4px; padding: 14px 16px;
+    background: var(--panel-bg);
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 26px; font-weight: 700;
+    color: var(--text-primary); letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .stat-value.neon { color: var(--neon); }
 
-        img, video { max-width: 100%; height: auto; display: block; }
+  /* ─── LOADING SKELETON ──────────────────────────────────────────── */
+  .skeleton-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-muted);
+    border-radius: 4px; padding: 22px 24px;
+    margin-bottom: 12px;
+  }
+  .skel-line {
+    background: var(--border-muted);
+    border-radius: 2px; margin-bottom: 8px;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%,100% { opacity: 0.4; }
+    50%      { opacity: 0.9; }
+  }
 
+  /* ─── BTN BRUTAL ────────────────────────────────────────────────── */
+  .btn-brutal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border: 1px solid var(--border-muted);
+    background: transparent; color: var(--text-muted);
+    padding: 8px 18px; border-radius: 2px;
+    cursor: none; transition: all 0.2s ease;
+  }
+  .btn-brutal:hover {
+    border-color: var(--neon); color: var(--neon);
+    box-shadow: 0 0 14px rgba(224,255,0,0.15);
+  }
 
-        /* ─── RESPONSIVE UX TUNING ─── */
-        @media (max-width: 1024px) {
-            main { padding-left: 1rem !important; padding-right: 1rem !important; }
-            .ep-card:hover { transform: none; box-shadow: none; }
-        }
+  /* ─── RESPONSIVE ────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .sidebar-col { position: static; height: auto; }
+    .hero { grid-template-columns: 1fr; }
+    .site-header { padding: 16px 20px; }
+    .feed-col, .hero { padding-left: 20px; padding-right: 20px; }
+    .sidebar-col { padding: 20px; }
+  }
 
-        @media (max-width: 768px) {
-            header .max-w-6xl { height: 64px !important; padding-left: 1rem !important; padding-right: 1rem !important; }
-            .coming-soon-ticker { top: 64px !important; }
-            main { padding-top: 7.5rem !important; padding-bottom: 4.5rem !important; space-y: 4.5rem; }
-            h1 { font-size: clamp(2rem, 10vw, 2.8rem) !important; line-height: 1.05 !important; }
-            #audio-play-btn { min-width: 3rem; min-height: 3rem; }
-            .btn-brutal, .cat-cta, button, a.btn-brutal { min-height: 44px; }
-            #audio-logs .grid, #data-module .grid { gap: 1rem !important; }
-            .ep-card .tc-desc, .ep-card p { line-height: 1.55; }
-        }
-
-        @media (max-width: 480px) {
-            .mono { letter-spacing: 0.08em !important; }
-            .ticker-inner { letter-spacing: 0.18em !important; font-size: 8px !important; }
-            .ep-card, .ep-card-future, .tilt-container > div, #data-module > div { border-radius: 0 !important; }
-            .reveal { transform: translateY(16px); }
-            #interactive-terminal .p-6, #data-module .p-6, section .p-6 { padding: 1rem !important; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            * { animation: none !important; transition: none !important; }
-            .reveal { opacity: 1 !important; transform: none !important; }
-        }
-    </style>
+  /* ─── SCROLLBAR ─────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: var(--border-muted); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
 </head>
-<body class="selection:bg-[#E0FF00] selection:text-black">
+<body>
 
-<!-- ─── BACKGROUND GRAIN ─── -->
-<div class="noise-overlay"></div>
+<!-- Noise Overlay -->
+<div class="noise-overlay" aria-hidden="true"></div>
 
-<!-- ─── SCROLL PROGRESS ─── -->
-<div id="scroll-progress" class="fixed top-0 left-0 h-[2px] bg-[#E0FF00] w-0 z-[10000] transition-all duration-150"></div>
-
-<!-- ─── CUSTOM CURSOR ─── -->
-<div id="cursor-ring"></div>
+<!-- Custom Cursor -->
 <div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
 
-<!-- Asset log intentionally hidden in UI -->
-<div id="asset-status-log" aria-hidden="true"><div id="asset-log-content" class="space-y-1"></div></div>
-
-<!-- ══════════════════════════════════════
-     HEADER
-══════════════════════════════════════ -->
-<header class="fixed top-0 w-full bg-[#030303]/90 backdrop-blur-md border-b border-zinc-900 z-50">
-    <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-
-        <!-- Logo -->
-        <div class="flex items-center gap-4 cursor-pointer" data-hover>
-            <div class="img-wrapper h-10 w-auto" style="height:40px;min-width:40px;">
-                <img
-                    id="logo-img"
-                    src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/WhatsApp_Image_2026-02-28_at_19_10_37.jpeg"
-                    alt="ViaDecide"
-                    style="height:40px;width:auto;object-fit:contain;opacity:1;display:block;"
-                    onerror="handleImgError(this,'Logo Image')"
-                >
-                <div class="fallback-ph asset-placeholder">LOGO</div>
-            </div>
-            <div class="h-6 w-px bg-zinc-800 mx-2 hidden md:block"></div>
-            <span class="hidden md:block font-bold text-[10px] tracking-[0.2em] uppercase mono text-zinc-500">System_Audio</span>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <div class="w-2 h-2 rounded-full bg-[#E0FF00] animate-pulse shadow-[0_0_8px_#E0FF00]"></div>
-            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mono">Node Online</span>
-        </div>
-    </div>
+<!-- ─── HEADER ─────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="logo-mark">VIA<span>//</span>DECIDE <span>·</span> AUDIO.LOG</div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="header-feed-status" class="mono">INITIALISING...</span>
+  </div>
 </header>
 
-<!-- ══════════════════════════════════════
-     TICKER — PODCAST COMING SOON BANNER
-══════════════════════════════════════ -->
-<div class="fixed top-20 w-full bg-[#E0FF00] z-40 py-1 coming-soon-ticker overflow-hidden">
-    <span class="ticker-inner mono text-[9px] font-bold text-black uppercase tracking-[0.3em]">
-        ✦ NEW PODCAST EPISODES DROPPING SOON — SUBSCRIBE ON SPOTIFY NOW &nbsp;&nbsp;&nbsp;✦ NEW PODCAST EPISODES DROPPING SOON — SUBSCRIBE ON SPOTIFY NOW &nbsp;&nbsp;&nbsp;✦ VIADECIDE // DECISION INFRASTRUCTURE FOR BHARAT COMMERCE &nbsp;&nbsp;&nbsp;
-    </span>
+<!-- ─── HERO ───────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div>
+    <p class="hero-eyebrow">decide.engine · media feed · v2.6</p>
+    <h1 class="hero-title">
+      AUDIO<br/><span class="accent">LOG</span>
+    </h1>
+    <p class="hero-sub">
+      Dynamic media archive streamed live from the <span class="mono" style="color:var(--neon)">decide.engine</span> repository. Auto-parsed, date-tagged, and routed.
+    </p>
+  </div>
+  <div id="visualizer" aria-hidden="true">
+    <!-- bars injected by JS -->
+  </div>
+</section>
+
+<!-- ─── MAIN GRID ──────────────────────────────────────────────────── -->
+<div class="main-grid">
+
+  <!-- FEED COLUMN -->
+  <main class="feed-col">
+    <!-- Stats row -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-tile">
+        <div class="stat-label">Episodes</div>
+        <div class="stat-value neon" id="stat-ep">—</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Video Files</div>
+        <div class="stat-value" id="stat-vid">—</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">New (14d)</div>
+        <div class="stat-value neon" id="stat-new">—</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Upcoming</div>
+        <div class="stat-value" id="stat-upcoming">—</div>
+      </div>
+    </div>
+
+    <!-- Audio Feed -->
+    <div class="section-label">Audio Episodes</div>
+    <div id="audio-feed">
+      <!-- skeleton placeholders -->
+      <div class="skeleton-card">
+        <div class="skel-line" style="width:60px;height:16px;"></div>
+        <div class="skel-line" style="width:80%;height:20px;margin-top:12px;"></div>
+        <div class="skel-line" style="width:50%;height:14px;"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skel-line" style="width:60px;height:16px;"></div>
+        <div class="skel-line" style="width:65%;height:20px;margin-top:12px;"></div>
+        <div class="skel-line" style="width:45%;height:14px;"></div>
+      </div>
+    </div>
+
+    <!-- Video Feed -->
+    <div class="section-label" style="margin-top:32px;" id="video-section-label">Video Files</div>
+    <div id="video-feed"></div>
+  </main>
+
+  <!-- SIDEBAR COLUMN -->
+  <aside class="sidebar-col">
+
+    <!-- Now Playing -->
+    <div class="sidebar-widget">
+      <div class="widget-header">
+        <span>Now Playing</span>
+        <span id="np-badge" class="mono" style="color:var(--text-dim)">IDLE</span>
+      </div>
+      <div class="widget-body">
+        <div id="now-playing-title" style="color:var(--text-dim)">No track selected</div>
+        <div id="now-playing-meta">—</div>
+        <div class="progress-track">
+          <div id="progress-fill"></div>
+        </div>
+        <div class="time-row">
+          <span id="time-current">0:00</span>
+          <span id="time-total">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Efficiency Chart -->
+    <div class="sidebar-widget">
+      <div class="widget-header">
+        <span>Episode Density</span>
+        <span class="mono" style="color:var(--text-dim)">30D</span>
+      </div>
+      <div class="widget-body" style="padding: 12px;">
+        <canvas id="efficiencyChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <!-- Media Type Doughnut -->
+    <div class="sidebar-widget">
+      <div class="widget-header">
+        <span>Media Breakdown</span>
+      </div>
+      <div class="widget-body" style="padding: 12px;">
+        <canvas id="typeChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <!-- Repo Info -->
+    <div class="sidebar-widget">
+      <div class="widget-header"><span>Repository</span></div>
+      <div class="widget-body">
+        <p class="mono" style="font-size:10px;color:var(--text-muted);line-height:1.8;">
+          SOURCE<br/>
+          <span style="color:var(--text-primary)">via-decide/decide.engine</span>
+        </p>
+        <p class="mono" style="font-size:10px;color:var(--text-muted);line-height:1.8;margin-top:10px;">
+          CACHE<br/>
+          <span id="cache-status" style="color:var(--text-primary)">CHECKING...</span>
+        </p>
+        <p class="mono" style="font-size:10px;color:var(--text-muted);line-height:1.8;margin-top:10px;">
+          LAST FETCH<br/>
+          <span id="last-fetch" style="color:var(--text-primary)">—</span>
+        </p>
+        <button class="btn-brutal" style="margin-top:16px;width:100%;" id="btn-refresh">
+          FORCE REFRESH
+        </button>
+      </div>
+    </div>
+
+  </aside>
 </div>
 
-<!-- ══════════════════════════════════════
-     MAIN CONTENT
-══════════════════════════════════════ -->
-<main class="pt-48 pb-24 max-w-6xl mx-auto px-6 space-y-24 md:space-y-32 lg:space-y-40 relative z-10">
-
-    <!-- ═══ SECTION 1: HERO & AUDIO INTERFACE ═══ -->
-    <section class="reveal active space-y-10 relative">
-
-        <!-- Audio Player Card -->
-        <div class="border border-zinc-800 bg-[#0A0A0A] p-4 sm:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 max-w-3xl hover:border-zinc-700 transition-colors">
-            <div class="flex items-center gap-4 sm:gap-6">
-
-                <!-- Track 3 thumbnail (video) -->
-                <div
-                    class="w-16 h-16 sm:w-20 sm:h-20 shrink-0 border border-zinc-800 rounded shadow-md overflow-hidden cursor-pointer"
-                    data-hover data-spotify
-                    onclick="window.open('https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg','_blank')"
-                    style="width:80px;height:80px;"
-                >
-                    <div class="vid-wrapper" id="hero-vid-wrap" style="width:80px;height:80px;">
-                        <video
-                            id="hero-vid"
-                            src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Video_Generation_From_Image.mp4"
-                            poster="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Gemini_Generated_Image_beergybeergybeer.jpeg"
-                            autoplay muted loop playsinline preload="auto"
-                            style="width:100%;height:100%;object-fit:cover;"
-                            onerror="handleVidError('hero-vid-wrap','Track 3 Video')"
-                        ></video>
-                        <div class="fallback-ph asset-placeholder">Track 3<br>Video Not Found</div>
-                    </div>
-                </div>
-
-                <!-- Play Button -->
-                <button id="audio-play-btn" data-hover class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 hover:border-[#E0FF00] hover:text-[#E0FF00] transition-all z-10 bg-[#030303]">
-                    <span id="play-icon" style="margin-left:3px;">&#9658;</span>
-                </button>
-                <audio id="audio-preview" preload="metadata" playsinline></audio>
-
-                <div>
-                    <div class="mono text-[10px] text-zinc-500 uppercase tracking-widest mb-1 flex items-center gap-2">
-                        <span class="w-1 h-1 bg-zinc-500 rounded-full"></span> Track 03
-                    </div>
-                    <div class="font-bold text-base sm:text-lg text-white leading-tight uppercase tracking-tight">The Game of Commerce</div>
-                    <a href="https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg"
-                       target="_blank"
-                       data-hover data-spotify
-                       class="text-[#1DB954] hover:text-white transition-colors flex items-center gap-2 mt-1 text-[10px] mono uppercase tracking-widest font-bold w-max">
-                        <span>[ Spotify Playback ]</span>
-                    </a>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-4 w-full lg:w-auto bg-[#030303] p-3 border border-zinc-900 rounded">
-                <span id="timecode" class="mono text-xs text-[#E0FF00]">00:00</span>
-                <div id="visualizer" class="flex items-end h-6 gap-[2px] w-16">
-                    <div class="bar h-[20%]"></div>
-                    <div class="bar h-[40%]"></div>
-                    <div class="bar h-[30%]"></div>
-                    <div class="bar h-[60%]"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hero Headline -->
-        <h1 class="text-4xl sm:text-5xl md:text-[5rem] font-bold tracking-tighter text-white max-w-4xl leading-[1] uppercase">
-            Why I built <br>3 games to fix <br>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#E0FF00] to-zinc-600 block mt-2 glitch-text" data-text="E-Commerce UX.">E-Commerce UX.</span>
-        </h1>
-
-        <p class="text-base sm:text-lg md:text-xl text-zinc-400 max-w-2xl leading-relaxed font-light border-l border-[#E0FF00] pl-4 sm:pl-6 py-2">
-            Most small businesses don't need more SaaS tools. They need structure. Dive into the psychology of game design and how it's reshaping the future of Bharat commerce.
-        </p>
-
-        <div class="magnetic-wrap pt-4 flex flex-wrap gap-4">
-            <button
-                onclick="document.getElementById('audio-logs').scrollIntoView({behavior:'smooth'})"
-                data-hover
-                class="magnetic-btn btn-brutal px-8 py-5 font-bold text-xs tracking-[0.2em] uppercase flex items-center gap-4 w-max z-10 relative bg-[#050505]">
-                Explore Audio Logs <span class="text-[#E0FF00]">&#8595;</span>
-            </button>
-            <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank"
-               data-hover data-spotify
-               class="magnetic-btn btn-brutal btn-spotify px-8 py-5 font-bold text-xs tracking-[0.2em] uppercase flex items-center gap-4 w-max z-10 relative bg-[#050505]">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
-                Follow Show
-            </a>
-        </div>
-    </section>
-
-    <!-- ═══ SECTION: AUDIO LOGS ═══ -->
-    <section id="audio-logs" class="reveal scroll-mt-36">
-        <div class="flex items-center gap-4 mb-4">
-            <h2 class="mono text-xl font-bold uppercase tracking-widest text-[#E0FF00]">
-                <span class="glitch-text" data-text="Audio_Logs">Audio_Logs</span>
-            </h2>
-            <div class="h-px bg-zinc-800 flex-1"></div>
-            <span class="mono text-[9px] text-zinc-600 uppercase tracking-widest">3 Episodes Live</span>
-        </div>
-        <p class="text-zinc-600 text-xs mono mb-10">Episodes 04–06 in production. Subscribe to catch new drops.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <!-- ── EPISODE 03 (Latest) ── -->
-            <div class="ep-card flex flex-col" role="button" tabindex="0" onclick="window.open('https://open.spotify.com/episode/4CpWmESOXlaC0ZIMOlyVCL?si=BMwf8UwyRDu8jlS9lqgCXg','_blank')" data-hover data-spotify>
-                <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
-                    <div class="vid-wrapper" id="ep3-vid-wrap">
-                        <video
-                            id="ep3-vid"
-                            src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Video_Generation_From_Image.mp4"
-                            poster="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Gemini_Generated_Image_beergybeergybeer.jpeg"
-                            autoplay muted loop playsinline preload="auto"
-                            style="width:100%;height:100%;object-fit:cover;"
-                            onerror="handleVidError('ep3-vid-wrap','Track 3 Video')"
-                        ></video>
-                        <div class="fallback-ph asset-placeholder">Track 3 Video<br>Not Found</div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors duration-300"></div>
-                    <div class="absolute top-4 left-4 mono text-[10px] text-black bg-[#E0FF00] px-2 py-1 uppercase tracking-widest font-bold z-10 ep-badge-new shadow-lg">Track_03 // Latest</div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-bold text-white text-xl uppercase tracking-tight leading-tight">The Game of <br>Commerce</h3>
-                        <svg class="ep-spotify-icon w-6 h-6 shrink-0 text-zinc-600 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
-                    </div>
-                    <p class="text-zinc-400 text-xs leading-relaxed mb-6">Why I built 3 video games to fix e-commerce UX. Discover how cognitive load destroys trust and why structured narratives are the ultimate conversion engine.</p>
-                    <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
-                        <span class="ep-play-label text-[10px] uppercase tracking-widest font-bold text-[#1DB954] transition-colors">Play Episode</span>
-                        <span class="text-zinc-600">&#8594;</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── EPISODE 02 ── -->
-            <div class="ep-card flex flex-col" role="button" tabindex="0" onclick="window.open('https://open.spotify.com/episode/1NX8bsU1Dps3l6LeZkv5yI','_blank')" data-hover data-spotify>
-                <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
-                    <div class="vid-wrapper" id="ep2-vid-wrap">
-                        <video
-                            id="ep2-vid"
-                            src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Image_to_Video_Generation-2.mp4"
-                            poster="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/WhatsApp_Image_2026-03-10_at_01_17_16.jpeg"
-                            autoplay muted loop playsinline preload="auto"
-                            style="width:100%;height:100%;object-fit:cover;"
-                            onerror="handleVidError('ep2-vid-wrap','Track 2 Video')"
-                        ></video>
-                        <div class="fallback-ph asset-placeholder">Track 2 Video<br>Not Found</div>
-                    </div>
-                    <!-- poster fallback img -->
-                    <img
-                        id="ep2-poster"
-                        src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/WhatsApp_Image_2026-03-10_at_01_17_16.jpeg"
-                        alt="Track 2 poster"
-                        style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"
-                        onerror="this.style.display='none'"
-                    >
-                    <div class="absolute inset-0 bg-black/40 hover:bg-transparent transition-colors duration-300"></div>
-                    <div class="absolute top-4 left-4 mono text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-700 px-2 py-1 uppercase tracking-widest font-bold z-10">Track_02</div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-bold text-white text-xl uppercase tracking-tight leading-tight">Beyond SaaS <br>Fatigue</h3>
-                        <svg class="ep-spotify-icon w-6 h-6 shrink-0 text-zinc-600 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
-                    </div>
-                    <p class="text-zinc-400 text-xs leading-relaxed mb-6">Stop overloading your store with SaaS widgets. Learn how to design a foundational decision infrastructure that scales without bloat.</p>
-                    <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
-                        <span class="ep-play-label text-[10px] uppercase tracking-widest font-bold text-zinc-500 transition-colors">Play Episode</span>
-                        <span class="text-zinc-600">&#8594;</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── EPISODE 01 ── -->
-            <div class="ep-card flex flex-col" role="button" tabindex="0" onclick="window.open('https://open.spotify.com/episode/75mlg3wF4Yyvvc14VpNWR1','_blank')" data-hover data-spotify>
-                <div class="w-full aspect-square relative overflow-hidden border-b border-zinc-800 bg-black" style="min-height:200px;">
-                    <div class="vid-wrapper" id="ep1-vid-wrap">
-                        <video
-                            id="ep1-vid"
-                            src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Image_To_Video_Generation.mp4"
-                            poster="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/WhatsApp_Image_2026-03-08_at_20_20_14.jpeg"
-                            autoplay muted loop playsinline preload="auto"
-                            style="width:100%;height:100%;object-fit:cover;"
-                            onerror="handleVidError('ep1-vid-wrap','Track 1 Video')"
-                        ></video>
-                        <div class="fallback-ph asset-placeholder">Track 1 Video<br>Not Found</div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/40 hover:bg-transparent transition-colors duration-300"></div>
-                    <div class="absolute top-4 left-4 mono text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-700 px-2 py-1 uppercase tracking-widest font-bold z-10">Track_01</div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-bold text-white text-xl uppercase tracking-tight leading-tight">The ONDC <br>Revolution</h3>
-                        <svg class="ep-spotify-icon w-6 h-6 shrink-0 text-zinc-600 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
-                    </div>
-                    <p class="text-zinc-400 text-xs leading-relaxed mb-6">Escaping the marketplace trap. How zero-commission networks and independent infrastructure are redefining the D2C margin playbook.</p>
-                    <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
-                        <span class="ep-play-label text-[10px] uppercase tracking-widest font-bold text-zinc-500 transition-colors">Play Episode</span>
-                        <span class="text-zinc-600">&#8594;</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── FUTURE EPISODES ROW ── -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="ep-card-future h-40 flex flex-col items-center justify-center gap-2 rounded-none">
-                <span class="mono text-[9px] text-zinc-700 uppercase tracking-[0.3em]">Track_04</span>
-                <span class="mono text-[10px] text-zinc-800 uppercase tracking-widest">In Production</span>
-            </div>
-            <div class="ep-card-future h-40 flex flex-col items-center justify-center gap-2">
-                <span class="mono text-[9px] text-zinc-700 uppercase tracking-[0.3em]">Track_05</span>
-                <span class="mono text-[10px] text-zinc-800 uppercase tracking-widest">In Production</span>
-            </div>
-            <div class="ep-card-future h-40 flex flex-col items-center justify-center gap-2">
-                <span class="mono text-[9px] text-zinc-700 uppercase tracking-[0.3em]">Track_06</span>
-                <span class="mono text-[10px] text-zinc-800 uppercase tracking-widest">In Production</span>
-            </div>
-        </div>
-
-        <div class="mt-8 flex items-center justify-center gap-4">
-            <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank"
-               data-hover data-spotify
-               class="btn-brutal btn-spotify px-8 py-4 font-bold text-xs tracking-widest uppercase flex items-center gap-3 bg-[#0A0A0A]">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
-                Subscribe — Never Miss a Drop
-            </a>
-        </div>
-    </section>
-
-    <!-- ═══ SECTION: INTERACTIVE TERMINAL ═══ -->
-    <section id="interactive-terminal" class="reveal scroll-mt-32">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-zinc-800 pb-4 gap-6">
-            <div>
-                <h2 class="mono text-2xl font-bold uppercase tracking-tighter text-white mb-2">
-                    <span class="glitch-text" data-text="Architectural Split">Architectural Split</span>
-                </h2>
-                <p class="text-zinc-500 max-w-xl text-sm leading-relaxed">
-                    A good game provides a single, structured objective. Traditional e-commerce provides chaotic cognitive overload. Interact below to compile the divergence.
-                </p>
-            </div>
-        </div>
-
-        <div class="border border-zinc-800 bg-[#0A0A0A] flex flex-col lg:flex-row min-h-[500px]">
-            <div class="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col bg-[#030303]">
-                <div class="p-4 border-b border-zinc-800 flex items-center justify-between">
-                    <div class="flex gap-2">
-                        <div class="w-2 h-2 bg-zinc-700 rounded-full"></div>
-                        <div class="w-2 h-2 bg-zinc-700 rounded-full"></div>
-                    </div>
-                    <span class="mono text-[9px] text-zinc-600 uppercase">UX_Env.exe</span>
-                </div>
-
-                <div class="flex-1 flex flex-col p-4 gap-4">
-                    <button id="btn-chaos" onclick="triggerUX('chaos')" data-hover class="p-5 text-left border border-zinc-800 bg-[#0A0A0A] hover:border-red-500/50 transition-colors group">
-                        <span class="mono font-bold text-white text-sm block mb-1 group-hover:text-red-500 transition-colors">&gt;&gt; EXECUTE: CHAOS</span>
-                        <span class="text-[10px] text-zinc-500 font-light block mt-2">Standard marketplace layout. High cognitive overload.</span>
-                    </button>
-
-                    <button id="btn-game" onclick="triggerUX('game')" data-hover class="p-5 text-left border border-[#E0FF00]/30 bg-[#E0FF00]/5 transition-colors group">
-                        <span class="mono font-bold text-[#E0FF00] text-sm block mb-1">&gt;&gt; EXECUTE: STRUCTURE</span>
-                        <span class="text-[10px] text-zinc-400 font-light block mt-2">ViaDecide framework. One narrative, 3D native.</span>
-                    </button>
-                </div>
-
-                <div class="p-4 bg-[#050505] border-t border-zinc-900">
-                    <div id="terminal-log" class="mono text-[10px] text-zinc-600 leading-relaxed h-16 overflow-y-auto flex flex-col justify-end">
-                        &gt; System ready.<br>
-                        <span class="text-[#E0FF00]">&gt; ViaDecide Structure active.</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full lg:w-2/3 relative bg-[#050505] p-8 overflow-hidden min-h-[450px]">
-                <!-- CHAOS VIEW -->
-                <div id="view-chaos" class="view-panel bg-[#050505]">
-                    <div class="w-full max-w-xs bg-zinc-900 h-[380px] border border-zinc-700 shadow-2xl flex flex-col relative overflow-hidden">
-                        <div class="bg-red-600 text-white text-[9px] font-bold text-center py-1 flex justify-center items-center gap-2">
-                            <span class="animate-pulse">⚠️</span> ENDS IN 05:23
-                        </div>
-                        <div class="flex-1 p-3 space-y-3">
-                            <div class="w-full h-24 bg-zinc-800 rounded-sm"></div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="h-16 bg-zinc-800 rounded-sm"></div>
-                                <div class="h-16 bg-zinc-800 rounded-sm"></div>
-                            </div>
-                            <div class="h-8 bg-zinc-800 w-full rounded-sm"></div>
-                        </div>
-                        <div class="p-2 border-t border-zinc-800 bg-black text-center text-[8px] text-red-500 mono tracking-widest uppercase">CONVERSION BLOCKED</div>
-                    </div>
-                </div>
-
-                <!-- GAME VIEW -->
-                <div id="view-game" class="view-panel active tilt-container">
-                    <div id="tilt-card" class="tilt-element w-full max-w-xs bg-[#0A0A0A] h-[380px] border border-[#E0FF00]/20 relative flex flex-col items-center justify-center p-6 text-center shadow-[0_0_30px_rgba(224,255,0,0.02)]">
-                        <div class="w-32 h-32 bg-[#030303] rounded-full flex items-center justify-center border border-zinc-800 relative shadow-[inset_0_0_20px_rgba(224,255,0,0.05)]" data-hover>
-                            <div class="absolute inset-0 rounded-full border-t border-b border-[#E0FF00]/30 scale-110 spin-cw"></div>
-                            <div class="absolute inset-0 rounded-full border-l border-r border-[#E0FF00]/10 scale-125 spin-ccw"></div>
-                            <div class="w-12 h-12 border border-[#E0FF00] transform rotate-45 hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(224,255,0,0.1)] flex items-center justify-center">
-                                <div class="w-full h-full border border-[#E0FF00]/40 transform rotate-45"></div>
-                            </div>
-                        </div>
-                        <p class="mono text-[9px] text-zinc-600 mt-6 uppercase tracking-widest">One product → One narrative</p>
-                        <p class="mono text-[9px] text-[#E0FF00] mt-2 uppercase tracking-widest">Structure. Trust. Conversion.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══ SECTION: DATA VISUALIZATION ═══ -->
-    <section id="data-module" class="reveal scroll-mt-32">
-        <div class="bg-[#0A0A0A] p-6 sm:p-10 border border-zinc-800 flex flex-col lg:flex-row gap-12 relative overflow-hidden">
-            <div class="w-full lg:w-1/3 flex flex-col justify-center space-y-6 z-10">
-                <h2 class="mono text-xl font-bold uppercase tracking-widest text-white border-b border-zinc-800 pb-4 mb-4">SaaS Fatigue Analytics</h2>
-                <div class="space-y-2 p-4 border-l-2 border-red-500 bg-red-500/5">
-                    <span class="mono text-[9px] text-red-500 uppercase tracking-widest">Error_State</span>
-                    <h4 class="text-sm font-bold text-white uppercase">Widget Overload</h4>
-                    <p class="text-xs text-zinc-500 leading-relaxed">High UI complexity destroys user trust and rapidly degrades conversion rates.</p>
-                </div>
-                <div class="space-y-2 p-4 border-l-2 border-[#E0FF00] bg-[#E0FF00]/5">
-                    <span class="mono text-[9px] text-[#E0FF00] uppercase tracking-widest">Optimized_State</span>
-                    <h4 class="text-sm font-bold text-white uppercase">ViaDecide Structure</h4>
-                    <p class="text-xs text-zinc-500 leading-relaxed">Scroll-based narrative maintains a stable, high conversion rate by eliminating friction.</p>
-                </div>
-            </div>
-            <div class="w-full lg:w-2/3 z-10">
-                <div class="chart-container">
-                    <canvas id="conversionChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══ SECTION: ABOUT / BUILDER ═══ -->
-    <section class="reveal scroll-mt-32">
-        <div class="flex items-center gap-4 mb-10">
-            <h2 class="mono text-xl font-bold uppercase tracking-widest text-[#E0FF00]">
-                <span class="glitch-text" data-text="The_Builder">The_Builder</span>
-            </h2>
-            <div class="h-px bg-zinc-800 flex-1"></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            <div class="space-y-6">
-                <h3 class="font-bold text-3xl text-white uppercase tracking-tighter leading-tight">
-                    Dharam Daxini<br>
-                    <span class="text-zinc-600 text-lg font-normal tracking-normal normal-case">Founder, ViaDecide · Kutch, Gujarat</span>
-                </h3>
-                <p class="text-zinc-400 text-sm leading-relaxed border-l border-zinc-700 pl-4">
-                    Building decision infrastructure for small commerce in Bharat. One product → One narrative. Live 3D inspection. No commission layers. Built for ONDC sellers and independent brands.
-                </p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="border border-zinc-800 p-4 bg-[#050505]">
-                        <div class="mono text-[#E0FF00] text-2xl font-bold">3</div>
-                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Games Built</div>
-                    </div>
-                    <div class="border border-zinc-800 p-4 bg-[#050505]">
-                        <div class="mono text-[#E0FF00] text-2xl font-bold">3</div>
-                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Episodes Live</div>
-                    </div>
-                    <div class="border border-zinc-800 p-4 bg-[#050505]">
-                        <div class="mono text-[#E0FF00] text-2xl font-bold">0%</div>
-                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Commission (ONDC)</div>
-                    </div>
-                    <div class="border border-zinc-800 p-4 bg-[#050505]">
-                        <div class="mono text-[#E0FF00] text-2xl font-bold">∞</div>
-                        <div class="mono text-[9px] text-zinc-600 uppercase tracking-widest mt-1">Margin Control</div>
-                    </div>
-                </div>
-                <div class="flex gap-3 flex-wrap">
-                    <a href="https://www.linkedin.com/in/dharamdaxini-a77508164" target="_blank" data-hover
-                       class="btn-brutal px-5 py-3 text-[10px] mono uppercase tracking-widest bg-[#050505] flex items-center gap-2">
-                        LinkedIn ↗
-                    </a>
-                    <a href="https://viadecide.com/" target="_blank" data-hover
-                       class="btn-brutal px-5 py-3 text-[10px] mono uppercase tracking-widest bg-[#050505] flex items-center gap-2">
-                        ViaDecide.com ↗
-                    </a>
-                </div>
-            </div>
-
-            <!-- Profile image or fallback -->
-            <div class="border border-zinc-800 overflow-hidden relative bg-[#050505]" style="min-height:320px;">
-                <div class="img-wrapper w-full h-full" style="min-height:320px;display:flex;align-items:center;justify-content:center;">
-                    <img
-                        id="profile-img"
-                        src="https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/WhatsApp_Image_2026-03-08_at_20_20_14.jpeg"
-                        alt="Dharam Daxini"
-                        style="width:100%;height:320px;object-fit:cover;object-position:top;display:block;"
-                        onerror="handleImgError(this,'Builder Photo')"
-                    >
-                    <div class="fallback-ph asset-placeholder" style="min-height:320px;">Builder Photo<br>Not Found</div>
-                </div>
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#030303] to-transparent h-32 pointer-events-none"></div>
-                <div class="absolute bottom-4 left-4 mono text-[9px] text-zinc-500 uppercase tracking-widest">Dharam Daxini // Founder</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══ FOOTER ═══ -->
-    <footer class="reveal border-t border-zinc-900 pt-20 pb-12 text-center">
-        <h2 class="mono text-4xl md:text-6xl font-bold mb-6 uppercase tracking-tighter text-white">
-            Stop renting <br><span class="text-zinc-700">your audience.</span>
-        </h2>
-
-        <div class="flex flex-wrap items-center justify-center gap-4 mt-10">
-            <div class="magnetic-wrap">
-                <a href="https://viadecide.com/" target="_blank" data-hover
-                   class="magnetic-btn btn-brutal inline-block px-10 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A]">
-                    Access ViaDecide
-                </a>
-            </div>
-            <div class="magnetic-wrap">
-                <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank" data-hover data-spotify
-                   class="magnetic-btn btn-brutal btn-spotify inline-flex items-center gap-3 px-10 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A]">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.54.3.72 1.02.42 1.56-.299.48-1.02.659-1.56.3z"/></svg>
-                    Subscribe on Spotify
-                </a>
-            </div>
-        </div>
-
-        <div class="mt-24 flex flex-wrap items-center justify-center gap-4 text-zinc-700 text-[9px] uppercase tracking-widest mono font-bold">
-            <span>ViaDecide System</span>
-            <div class="w-1 h-1 bg-zinc-800 rounded-full"></div>
-            <a href="https://open.spotify.com/show/2okZ1WXMWXLrSwFzClUPPp" target="_blank" class="hover:text-[#1DB954] transition-colors" data-hover data-spotify>Show Profile</a>
-            <div class="w-1 h-1 bg-zinc-800 rounded-full"></div>
-            <a href="https://www.youtube.com/@decide.engine" target="_blank" class="hover:text-[#FF0000] transition-colors" data-hover>YouTube</a>
-            <div class="w-1 h-1 bg-zinc-800 rounded-full"></div>
-            <a href="https://www.linkedin.com/in/dharamdaxini-a77508164" target="_blank" class="hover:text-white transition-colors" data-hover>LinkedIn</a>
-        </div>
-        <div class="mt-4 mono text-[8px] text-zinc-800">© 2026 ViaDecide // Dharam Daxini // Kutch, Gujarat, India</div>
-    </footer>
-</main>
-
-
-<!-- ══════════════════════════════════════
-     SCRIPTS
-══════════════════════════════════════ -->
+<!-- ─── SCRIPTS ─────────────────────────────────────────────────────── -->
 <script>
-// ─── ASSET LOGGING ─────────────────────────────────────────────
-const assetLog = [];
-const assetSeen = new Set();
+/* ═══════════════════════════════════════════════════════════════════
+   ViaDecide // Audio.Log — Core Engine
+   ═══════════════════════════════════════════════════════════════════ */
 
-function logAsset(filename, status, reason) {
-    const key = `${status}:${filename}:${reason || ''}`;
-    if (assetSeen.has(key)) return;
-    assetSeen.add(key);
+/* ── CONFIG ──────────────────────────────────────────────────────── */
+const CONFIG = {
+  REPO_OWNER:   'via-decide',
+  REPO_NAME:    'decide.engine',
+  MEDIA_PATH:   'media',           // adjust to actual path in repo
+  CACHE_KEY:    'vd_audiolog_cache',
+  CACHE_TTL_MS: 10 * 60 * 1000,   // 10 minutes
+  NEW_THRESHOLD_DAYS: 14,
+  AUDIO_EXTS:   ['mp3', 'wav', 'ogg', 'm4a'],
+  VIDEO_EXTS:   ['mp4', 'mov', 'webm'],
+};
 
-    assetLog.push({ filename, status, reason });
+/* ── STATE ───────────────────────────────────────────────────────── */
+const STATE = {
+  currentAudio:  null,   // active HTMLAudioElement
+  currentCard:   null,   // active .ep-card element
+  audioContext:  null,
+  chartEff:      null,
+  chartType:     null,
+  tracks:        [],
+  trackIndex:    -1,
+};
 
-    // Keep logs for debugging (console), but do not show in UI.
-    const marker = status === 'OK' ? '✓' : '✗';
-    const msg = `${marker} ${filename}${reason ? ' — ' + reason : ''}`;
-    if (status === 'OK') console.info('[Audio.Log]', msg);
-    else console.warn('[Audio.Log]', msg);
+/* ── CURSOR ──────────────────────────────────────────────────────── */
+(function initCursor() {
+  const dot  = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let rx = 0, ry = 0, dx = 0, dy = 0;
+  document.addEventListener('mousemove', e => {
+    dx = e.clientX; dy = e.clientY;
+    dot.style.left  = dx + 'px';
+    dot.style.top   = dy + 'px';
+  });
+  (function animRing() {
+    rx += (dx - rx) * 0.15;
+    ry += (dy - ry) * 0.15;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+})();
+
+function bindCursorTarget(el, danger = false) {
+  el.addEventListener('mouseenter', () => {
+    document.getElementById('cursor-ring').classList.add('expand');
+    if (danger) document.getElementById('cursor-ring').classList.add('danger');
+  });
+  el.addEventListener('mouseleave', () => {
+    document.getElementById('cursor-ring').classList.remove('expand', 'danger');
+  });
 }
 
-// ─── IMG ONERROR ───────────────────────────────────────────────
-function handleImgError(imgEl, filename) {
-    logAsset(filename, 'FAIL', 'Image not found at raw github link');
-    const wrapper = imgEl.closest('.img-wrapper');
-    if (wrapper) wrapper.classList.add('failed');
+/* ── VISUALIZER ──────────────────────────────────────────────────── */
+(function initVisualizer() {
+  const viz = document.getElementById('visualizer');
+  const BARS = 24;
+  for (let i = 0; i < BARS; i++) {
+    const b = document.createElement('div');
+    b.className = 'bar';
+    const h = 4 + Math.random() * 42;
+    b.style.cssText = `height:${h}px; --h:${h}px; --dur:${0.4 + Math.random() * 0.7}s; animation-delay:${Math.random() * -1}s;`;
+    viz.appendChild(b);
+  }
+})();
+
+function setVisualizerPlaying(playing) {
+  document.getElementById('visualizer').classList.toggle('playing', playing);
 }
 
-// ─── VIDEO ONERROR ─────────────────────────────────────────────
-function handleVidError(wrapId, filename) {
-    logAsset(filename, 'FAIL', 'Video not found or codec error at raw github link');
-    const wrap = document.getElementById(wrapId);
-    if (wrap) wrap.classList.add('failed');
+/* ── TIME FORMAT ─────────────────────────────────────────────────── */
+function fmtTime(sec) {
+  if (!isFinite(sec) || isNaN(sec)) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-// ─── VIDEO LOAD SUCCESS ────────────────────────────────────────
-function attachVideoSuccess(vidId, filename) {
-    const v = document.getElementById(vidId);
-    if (!v) return;
-    v.addEventListener('loadeddata', () => logAsset(filename, 'OK', null), { once: true });
-    v.load();
-    v.play().catch(() => {});
+/* ── METADATA PARSER ─────────────────────────────────────────────── */
+function parseFilename(name) {
+  const ext   = name.split('.').pop().toLowerCase();
+  const base  = name.replace(/\.[^.]+$/, '');
+  const parts = base.split('_');
+
+  // Date: first part matching YYYYMMDD
+  let date = null;
+  const datePart = parts.find(p => /^\d{8}$/.test(p));
+  if (datePart) {
+    const y = datePart.slice(0, 4), mo = datePart.slice(4, 6), d = datePart.slice(6, 8);
+    date = new Date(`${y}-${mo}-${d}`);
+  }
+
+  // Episode number: EPxx
+  let epNum = null;
+  const epPart = parts.find(p => /^EP\d+$/i.test(p));
+  if (epPart) epNum = epPart.toUpperCase();
+
+  // Title: remaining parts
+  const skipParts = new Set([datePart, epPart]);
+  const title = parts.filter(p => p && !skipParts.has(p)).join(' ');
+
+  // Badge type
+  const now = new Date();
+  let badge = 'old';
+  if (date) {
+    const diffDays = (now - date) / (1000 * 60 * 60 * 24);
+    if (date > now) badge = 'future';
+    else if (diffDays <= CONFIG.NEW_THRESHOLD_DAYS) badge = 'new';
+  }
+
+  return { ext, date, epNum, title: title || name, badge };
 }
 
-// ─── CURSOR ────────────────────────────────────────────────────
-const cursorDot  = document.getElementById('cursor-dot');
-const cursorRing = document.getElementById('cursor-ring');
-let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
-let ringX  = window.innerWidth/2, ringY  = window.innerHeight/2;
-const isTouch = () => window.matchMedia('(pointer:coarse)').matches;
-
-if (!isTouch()) {
-    document.addEventListener('mousemove', e => {
-        mouseX = e.clientX; mouseY = e.clientY;
-        cursorDot.style.left = mouseX + 'px';
-        cursorDot.style.top  = mouseY + 'px';
-    });
-    (function animateCursor() {
-        ringX += (mouseX - ringX) * 0.2;
-        ringY += (mouseY - ringY) * 0.2;
-        cursorRing.style.left = ringX + 'px';
-        cursorRing.style.top  = ringY + 'px';
-        requestAnimationFrame(animateCursor);
-    })();
-
-    document.querySelectorAll('[data-hover]').forEach(el => {
-        el.addEventListener('mouseenter', () => {
-            if (el.hasAttribute('data-spotify')) {
-                document.body.classList.add('cursor-spotify');
-                document.body.classList.remove('cursor-hover');
-            } else {
-                document.body.classList.add('cursor-hover');
-                document.body.classList.remove('cursor-spotify');
-            }
-        });
-        el.addEventListener('mouseleave', () => {
-            document.body.classList.remove('cursor-hover', 'cursor-spotify');
-        });
-    });
+/* ── CACHE HELPERS ───────────────────────────────────────────────── */
+function saveCache(sha, data) {
+  try {
+    localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify({
+      sha, data, ts: Date.now()
+    }));
+  } catch(e) { /* storage full, ignore */ }
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CONFIG.CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (Date.now() - obj.ts > CONFIG.CACHE_TTL_MS) return null;
+    return obj;
+  } catch(e) { return null; }
+}
+function clearCache() {
+  localStorage.removeItem(CONFIG.CACHE_KEY);
 }
 
-// ─── MAGNETIC BUTTONS ──────────────────────────────────────────
-if (!isTouch()) {
-    document.querySelectorAll('.magnetic-btn').forEach(btn => {
-        btn.addEventListener('mousemove', e => {
-            const r = btn.getBoundingClientRect();
-            const x = e.clientX - r.left - r.width/2;
-            const y = e.clientY - r.top  - r.height/2;
-            btn.style.transform = `translate(${x*0.2}px,${y*0.2}px)`;
-        });
-        btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0,0)'; });
-    });
-}
+/* ── API FETCH ───────────────────────────────────────────────────── */
+async function fetchMediaFiles(forceRefresh = false) {
+  const url = `https://api.github.com/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${CONFIG.MEDIA_PATH}`;
 
-// ─── SCROLL REVEAL + PROGRESS ──────────────────────────────────
-const progressBar = document.getElementById('scroll-progress');
-function handleScroll() {
-    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
-    const height    = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    if (progressBar) progressBar.style.width = (winScroll / height * 100) + '%';
-    document.querySelectorAll('.reveal').forEach(el => {
-        if (el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
-    });
-}
-window.addEventListener('scroll', handleScroll);
-window.dispatchEvent(new Event('scroll'));
-
-document.querySelectorAll('.ep-card[role="button"]').forEach(card => {
-    card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            card.click();
-        }
-    });
-});
-
-// ─── AUDIO PLAYER (REAL PLAYBACK) ───────────────────────────────
-const playBtn   = document.getElementById('audio-play-btn');
-const vis       = document.getElementById('visualizer');
-const playIcon  = document.getElementById('play-icon');
-const timecode  = document.getElementById('timecode');
-const audioPrev = document.getElementById('audio-preview');
-
-const previewCandidates = [
-    'https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Video_Generation_From_Image.mp4',
-    'https://raw.githubusercontent.com/via-decide/decide.engine/main/assets/audio-log/Image_To_Video_Generation.mp4',
-];
-
-function setPlayUI(isPlaying) {
-    if (!playBtn || !vis || !playIcon) return;
-    if (isPlaying) {
-        vis.classList.add('playing');
-        playIcon.innerHTML = '&#10074;&#10074;';
-        playIcon.style.marginLeft = '0';
-        playBtn.style.borderColor = '#E0FF00';
-        playBtn.style.color = '#E0FF00';
-    } else {
-        vis.classList.remove('playing');
-        playIcon.innerHTML = '&#9658;';
-        playIcon.style.marginLeft = '3px';
-        playBtn.style.borderColor = '';
-        playBtn.style.color = '';
+  // Check cache (unless force refresh)
+  if (!forceRefresh) {
+    const cached = loadCache();
+    if (cached) {
+      document.getElementById('cache-status').textContent = 'HIT (LOCAL)';
+      document.getElementById('last-fetch').textContent   = new Date(cached.ts).toLocaleTimeString();
+      document.getElementById('header-feed-status').textContent = 'CACHE_HIT';
+      return cached.data;
     }
+  }
+
+  document.getElementById('cache-status').textContent = 'FETCHING...';
+  document.getElementById('header-feed-status').textContent = 'FETCHING_REPO...';
+
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/vnd.github.v3+json' }
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+
+  const json = await res.json();
+  // Filter to files only
+  const files = Array.isArray(json)
+    ? json.filter(item => item.type === 'file')
+    : [];
+
+  const sha = json.sha || (json[0] && json[0].sha) || String(Date.now());
+  saveCache(sha, files);
+  document.getElementById('cache-status').textContent = 'MISS (FETCHED)';
+  document.getElementById('last-fetch').textContent   = new Date().toLocaleTimeString();
+  return files;
 }
 
-function setTimecode(sec) {
-    if (!timecode) return;
-    const safe = Number.isFinite(sec) ? Math.max(0, sec) : 0;
-    const m = String(Math.floor(safe / 60)).padStart(2, '0');
-    const s = String(Math.floor(safe % 60)).padStart(2, '0');
-    timecode.textContent = `${m}:${s}`;
-}
+/* ── DOM BUILDERS ────────────────────────────────────────────────── */
 
+// --- Audio Card ---
+function buildAudioCard(file, meta, index) {
+  if (meta.badge === 'future') {
+    return buildFutureCard(file, meta);
+  }
 
-if (audioPrev) {
-    audioPrev.addEventListener('timeupdate', () => setTimecode(audioPrev.currentTime));
-    audioPrev.addEventListener('play', () => setPlayUI(true));
-    audioPrev.addEventListener('pause', () => setPlayUI(false));
-    audioPrev.addEventListener('ended', () => setPlayUI(false));
+  const card = document.createElement('div');
+  card.className = 'ep-card';
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', `Play episode: ${meta.title}`);
 
-    (function primeAudio() {
-        let idx = 0;
-        const tryNext = () => {
-            if (idx >= previewCandidates.length) {
-                logAsset('audio-preview', 'FAIL', 'No playable media source found');
-                return;
-            }
-            const src = previewCandidates[idx++];
-            audioPrev.src = src;
-            audioPrev.load();
-            audioPrev.addEventListener('loadedmetadata', function onMeta() {
-                audioPrev.removeEventListener('loadedmetadata', onMeta);
-                logAsset(src, 'OK', 'Audio preview ready');
-            }, { once: true });
-            audioPrev.addEventListener('error', function onErr() {
-                audioPrev.removeEventListener('error', onErr);
-                tryNext();
-            }, { once: true });
-        };
-        tryNext();
-    })();
-}
+  // Badge
+  const badge = document.createElement('div');
+  badge.className = `ep-badge ep-badge-${meta.badge === 'new' ? 'new' : 'old'}`;
+  badge.textContent = meta.badge === 'new' ? '● NEW' : (meta.epNum || 'EPISODE');
+  card.appendChild(badge);
 
-if (playBtn && audioPrev) {
-    playBtn.addEventListener('click', async () => {
-        if (!audioPrev.src) return;
-        if (!audioPrev.paused) {
-            audioPrev.pause();
-            return;
-        }
-        try {
-            await audioPrev.play();
-        } catch (err) {
-            logAsset('audio-preview', 'FAIL', 'Playback blocked on this device/browser');
-        }
-    });
-}
+  // Meta row
+  const metaRow = document.createElement('div');
+  metaRow.className = 'ep-meta';
+  const epNum = document.createElement('span');
+  epNum.className = 'ep-number mono';
+  epNum.textContent = meta.epNum || `FILE_${index + 1}`;
+  const epDate = document.createElement('span');
+  epDate.className = 'ep-date mono';
+  epDate.textContent = meta.date ? meta.date.toISOString().slice(0,10) : '—';
+  metaRow.append(epNum, epDate);
+  card.appendChild(metaRow);
 
-// ─── TERMINAL UX ───────────────────────────────────────────────
-function updateLog(msg, type) {
-    const log = document.getElementById('terminal-log');
-    if (!log) return;
-    const color = type === 'error' ? '#EF4444' : '#E0FF00';
-    log.innerHTML += `<br><span style="color:${color}">> ${msg}</span>`;
-    log.scrollTop = log.scrollHeight;
-}
+  // Title
+  const title = document.createElement('h3');
+  title.className = 'ep-title';
+  title.textContent = meta.title || file.name;
+  card.appendChild(title);
 
-function triggerUX(view) {
-    const btnChaos = document.getElementById('btn-chaos');
-    const btnGame  = document.getElementById('btn-game');
-    const vChaos   = document.getElementById('view-chaos');
-    const vGame    = document.getElementById('view-game');
-    if (view === 'chaos') {
-        btnChaos.style.borderColor = 'rgba(239,68,68,0.5)';
-        btnGame.style.borderColor  = '';
-        vGame.classList.remove('active');
-        vChaos.classList.add('active');
-        updateLog('Executing Chaos layout...', 'error');
-    } else {
-        btnGame.style.borderColor  = 'rgba(224,255,0,0.3)';
-        btnChaos.style.borderColor = '';
-        vChaos.classList.remove('active');
-        vGame.classList.add('active');
-        updateLog('Loading ViaDecide framework...', 'normal');
+  // Controls row
+  const controls = document.createElement('div');
+  controls.className = 'ep-controls';
+
+  // Spotify icon
+  const spotIcon = document.createElement('div');
+  spotIcon.className = 'ep-spotify-icon';
+  spotIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" style="color:#fff">
+    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.622.622 0 01.207.857zm1.223-2.722a.778.778 0 01-1.07.257C14.15 12.227 10.9 11.7 7.1 12.758a.778.778 0 01-.44-1.49c4.247-1.155 7.898-.586 10.893 1.364a.778.778 0 01.256 1.07zm.105-2.835C15.19 9.24 11.378 9.116 7.84 10.166a.933.933 0 11-.512-1.794c4.046-1.156 8.3-1.009 11.496.942a.933.933 0 01-.91 1.553z"/>
+  </svg>`;
+  controls.appendChild(spotIcon);
+
+  // Play button
+  const playBtn = document.createElement('button');
+  playBtn.className = 'btn-play btn-brutal';
+  playBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="0,0 10,5 0,10"/></svg> PLAY`;
+  controls.appendChild(playBtn);
+
+  // Duration placeholder
+  const dur = document.createElement('span');
+  dur.className = 'ep-duration mono';
+  dur.textContent = '—';
+  controls.appendChild(dur);
+
+  card.appendChild(controls);
+
+  // Hidden audio element
+  const audio = document.createElement('audio');
+  audio.preload = 'metadata';
+  audio.src = file.download_url;
+  card.appendChild(audio);
+
+  // Duration once metadata loads
+  audio.addEventListener('loadedmetadata', () => {
+    dur.textContent = fmtTime(audio.duration);
+  });
+
+  // onerror handler
+  audio.addEventListener('error', () => {
+    injectFallback(card, file.name);
+  });
+
+  // Play / Pause toggle
+  function togglePlay() {
+    if (STATE.currentAudio && STATE.currentAudio !== audio) {
+      stopCurrentAudio();
     }
+    if (audio.paused) {
+      audio.play().catch(() => {});
+      playBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><rect x="0" y="0" width="3.5" height="10"/><rect x="5.5" y="0" width="3.5" height="10"/></svg> PAUSE`;
+      STATE.currentAudio = audio;
+      STATE.currentCard  = card;
+      setNowPlaying(meta, audio);
+      updateChartOnPlay(index);
+    } else {
+      audio.pause();
+      playBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="0,0 10,5 0,10"/></svg> PLAY`;
+    }
+  }
+
+  card.addEventListener('click', togglePlay);
+  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlay(); }});
+
+  audio.addEventListener('play',   () => { setVisualizerPlaying(true);  document.getElementById('np-badge').textContent = 'LIVE'; document.getElementById('np-badge').style.color = 'var(--neon)'; });
+  audio.addEventListener('pause',  () => { setVisualizerPlaying(false); document.getElementById('np-badge').textContent = 'PAUSED'; document.getElementById('np-badge').style.color = 'var(--text-muted)'; });
+  audio.addEventListener('ended',  () => { setVisualizerPlaying(false); playBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="0,0 10,5 0,10"/></svg> PLAY`; document.getElementById('np-badge').textContent = 'ENDED'; document.getElementById('np-badge').style.color = 'var(--text-dim)'; });
+
+  // Progress
+  audio.addEventListener('timeupdate', () => {
+    if (STATE.currentAudio === audio) {
+      const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('time-current').textContent = fmtTime(audio.currentTime);
+      document.getElementById('time-total').textContent   = fmtTime(audio.duration);
+    }
+  });
+
+  bindCursorTarget(card);
+  return card;
 }
 
-// ─── TILT ──────────────────────────────────────────────────────
-const tiltContainer = document.querySelector('.tilt-container');
-const tiltEl        = document.getElementById('tilt-card');
-if (!isTouch() && tiltContainer && tiltEl) {
-    tiltContainer.addEventListener('mousemove', e => {
-        const r  = tiltContainer.getBoundingClientRect();
-        const cx = r.width/2, cy = r.height/2;
-        const rx = ((e.clientY - r.top  - cy) / cy) * -8;
-        const ry = ((e.clientX - r.left - cx) / cx) * 8;
-        tiltEl.style.transform = `perspective(1000px) rotateX(${Math.max(-10,Math.min(10,rx))}deg) rotateY(${Math.max(-10,Math.min(10,ry))}deg)`;
-    });
-    tiltContainer.addEventListener('mouseleave', () => {
-        tiltEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-    });
+// --- Future Card ---
+function buildFutureCard(file, meta) {
+  const card = document.createElement('div');
+  card.className = 'ep-card-future';
+
+  const content = document.createElement('div');
+  content.style.cssText = 'opacity:0.3;pointer-events:none;';
+  content.innerHTML = `
+    <div class="ep-badge ep-badge-old">UPCOMING</div>
+    <div class="ep-meta">
+      <span class="ep-number mono">${meta.epNum || 'EPISODE'}</span>
+      <span class="ep-date mono">${meta.date ? meta.date.toISOString().slice(0,10) : '—'}</span>
+    </div>
+    <h3 class="ep-title">${meta.title || file.name}</h3>
+  `;
+  card.appendChild(content);
+
+  const stamp = document.createElement('div');
+  stamp.className = 'coming-soon-stamp';
+  stamp.textContent = 'COMING SOON';
+  card.appendChild(stamp);
+
+  return card;
 }
 
-// ─── CHART ─────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.font.family = "'Space Grotesk', sans-serif";
-    const ctx = document.getElementById('conversionChart');
-    if (!ctx) return;
-    const c = ctx.getContext('2d');
-    const grad = c.createLinearGradient(0, 0, 0, 350);
-    grad.addColorStop(0, 'rgba(224,255,0,0.15)');
-    grad.addColorStop(1, 'rgba(224,255,0,0)');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['1 (Product)', '2 Elements', '3 Elements', '4 Elements', '5+ (Widgets)'],
-            datasets: [
-                { label: 'ViaDecide (Structured)', data: [3.8,4.0,4.2,4.2,4.2], borderColor: '#E0FF00', backgroundColor: grad, borderWidth: 2, pointBackgroundColor: '#030303', pointBorderColor: '#E0FF00', pointBorderWidth: 2, pointRadius: 5, fill: true, tension: 0 },
-                { label: 'Standard D2C (Chaos)',   data: [3.5,3.2,2.8,1.5,0.5], borderColor: '#EF4444', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4,4], pointBackgroundColor: '#EF4444', pointRadius: 4, tension: 0 }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { position: 'top', align: 'end', labels: { color: '#A1A1AA', usePointStyle: true, boxWidth: 6, font: { family: "'JetBrains Mono',monospace", size: 10 } } },
-                tooltip: { backgroundColor: '#0A0A0A', borderColor: '#27272A', borderWidth: 1, titleColor: '#F4F4F5', bodyColor: '#A1A1AA', cornerRadius: 0 }
-            },
-            scales: {
-                y: { title: { display: true, text: 'CONVERSION (%)', color: '#71717A', font: { size: 9, family: "'JetBrains Mono',monospace" } }, min: 0, max: 5, grid: { color: '#111' }, ticks: { color: '#71717A', font: { size: 10 } } },
-                x: { grid: { color: '#111' }, ticks: { color: '#71717A', font: { size: 10 } } }
-            }
+// --- Video Wrapper ---
+function buildVideoCard(file, meta) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'vid-wrapper';
+
+  const video = document.createElement('video');
+  video.controls = true;
+  video.preload  = 'metadata';
+  video.src = file.download_url;
+  wrapper.appendChild(video);
+
+  video.addEventListener('error', () => {
+    wrapper.classList.add('failed');
+    injectFallback(wrapper, file.name);
+  });
+
+  const metaRow = document.createElement('div');
+  metaRow.className = 'vid-meta';
+  const t = document.createElement('span');
+  t.className = 'vid-title';
+  t.textContent = meta.title || file.name;
+  const tag = document.createElement('span');
+  tag.className = 'vid-tag mono';
+  tag.textContent = meta.ext.toUpperCase();
+  metaRow.append(t, tag);
+  wrapper.appendChild(metaRow);
+
+  bindCursorTarget(wrapper, true);
+  return wrapper;
+}
+
+/* ── FALLBACK INJECTOR ───────────────────────────────────────────── */
+function injectFallback(parent, filename) {
+  parent.style.position = 'relative';
+  const ph = document.createElement('div');
+  ph.className = 'fallback-ph';
+  ph.innerHTML = `ASSET LOADING FAILED<br/><span class="fph-file">${filename}</span>`;
+  parent.appendChild(ph);
+}
+
+/* ── NOW PLAYING ─────────────────────────────────────────────────── */
+function setNowPlaying(meta, audio) {
+  document.getElementById('now-playing-title').textContent = meta.title || '—';
+  document.getElementById('now-playing-title').style.color = 'var(--text-primary)';
+  document.getElementById('now-playing-meta').textContent  =
+    [meta.epNum, meta.date ? meta.date.toISOString().slice(0,10) : null].filter(Boolean).join(' · ');
+}
+
+function stopCurrentAudio() {
+  if (STATE.currentAudio) {
+    STATE.currentAudio.pause();
+    STATE.currentAudio.currentTime = 0;
+    setVisualizerPlaying(false);
+    // reset button in old card
+    if (STATE.currentCard) {
+      const btn = STATE.currentCard.querySelector('.btn-play');
+      if (btn) btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="0,0 10,5 0,10"/></svg> PLAY`;
+    }
+    STATE.currentAudio = null;
+    STATE.currentCard  = null;
+  }
+}
+
+/* ── CHARTS ──────────────────────────────────────────────────────── */
+function initCharts(audioMeta) {
+  // Episode density line chart (last 30 days)
+  const ctxEff = document.getElementById('efficiencyChart').getContext('2d');
+  const days = [];
+  const counts = [];
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    days.push(d.toLocaleDateString('en-US', { month:'short', day:'numeric' }));
+    // count tracks on that day
+    const dStr = d.toISOString().slice(0, 10);
+    counts.push(audioMeta.filter(m => m.date && m.date.toISOString().slice(0,10) === dStr).length);
+  }
+
+  STATE.chartEff = new Chart(ctxEff, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [{
+        data: counts,
+        borderColor: 'rgba(224,255,0,0.8)',
+        backgroundColor: 'rgba(224,255,0,0.06)',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: false },
+        y: { display: false, min: 0 }
+      }
+    }
+  });
+
+  // Donut chart
+  const audioCount = audioMeta.length;
+  const ctxType = document.getElementById('typeChart').getContext('2d');
+  STATE.chartType = new Chart(ctxType, {
+    type: 'doughnut',
+    data: {
+      labels: ['Audio', 'Video', 'Upcoming'],
+      datasets: [{
+        data: [
+          audioMeta.filter(m => m.badge !== 'future').length,
+          parseInt(document.getElementById('stat-vid').textContent) || 0,
+          audioMeta.filter(m => m.badge === 'future').length,
+        ],
+        backgroundColor: ['rgba(224,255,0,0.7)','rgba(255,0,0,0.5)','rgba(31,31,34,0.8)'],
+        borderColor: ['#E0FF00','#FF0000','#2E2E34'],
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            color: '#5A5A60',
+            font: { family: 'JetBrains Mono', size: 9 },
+            boxWidth: 8, padding: 12,
+          }
         }
+      }
+    }
+  });
+}
+
+/* ── CHART UPDATE ON PLAY ────────────────────────────────────────── */
+function updateChartOnPlay(trackIndex) {
+  if (!STATE.chartEff) return;
+  // Highlight the dataset point corresponding to track date
+  const meta = STATE.tracks[trackIndex];
+  if (!meta || !meta.date) return;
+  const dStr = meta.date.toISOString().slice(0,10);
+  const labels = STATE.chartEff.data.labels;
+  const now = new Date();
+  const idx  = Math.round((now - meta.date) / (1000*60*60*24));
+  const labelIdx = 29 - idx;
+  if (labelIdx >= 0 && labelIdx < 30) {
+    STATE.chartEff.data.datasets[0].pointRadius = new Array(30).fill(0).map((_, i) => i === labelIdx ? 5 : 0);
+    STATE.chartEff.data.datasets[0].pointBackgroundColor = new Array(30).fill('transparent').map((_, i) => i === labelIdx ? '#E0FF00' : 'transparent');
+    STATE.chartEff.update();
+  }
+}
+
+/* ── INTERSECTION OBSERVER ───────────────────────────────────────── */
+function initScrollReveal() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        io.unobserve(entry.target);
+      }
     });
+  }, { threshold: 0.1 });
+  return io;
+}
 
-    // ── Attach video success loggers ──
-    attachVideoSuccess('hero-vid', 'Video_Generation_From_Image.mp4');
-    attachVideoSuccess('ep3-vid',  'Video_Generation_From_Image.mp4');
-    attachVideoSuccess('ep2-vid',  'Image_to_Video_Generation-2.mp4');
-    attachVideoSuccess('ep1-vid',  'Image_To_Video_Generation.mp4');
+/* ── ERROR DISPLAY ───────────────────────────────────────────────── */
+function showApiError(msg) {
+  const feed = document.getElementById('audio-feed');
+  feed.innerHTML = '';
+  const block = document.createElement('div');
+  block.className = 'api-error-block';
+  const h = document.createElement('h2');
+  h.className = 'mono glitch-text';
+  h.setAttribute('data-text', 'API_CONNECTION_SEVERED');
+  h.style.color = 'var(--yt-red)';
+  h.textContent = 'API_CONNECTION_SEVERED';
+  const p = document.createElement('p');
+  p.className = 'mono';
+  p.textContent = msg || 'Check console for details.';
+  block.append(h, p);
+  feed.appendChild(block);
+  document.getElementById('header-feed-status').textContent = 'ERROR';
+  document.getElementById('header-feed-status').style.color = 'var(--yt-red)';
+  document.getElementById('cache-status').textContent = 'FAILED';
+}
 
-    // ── Image load success loggers ──
-    [
-        { id: 'logo-img',    file: 'WhatsApp_Image_2026-02-28_at_19_10_37.jpeg' },
-        { id: 'profile-img', file: 'WhatsApp_Image_2026-03-08_at_20_20_14.jpeg' },
-    ].forEach(({ id, file }) => {
-        const img = document.getElementById(id);
-        if (!img) return;
-        if (img.complete && img.naturalWidth > 0) {
-            logAsset(file, 'OK', null);
-        } else {
-            img.addEventListener('load', () => logAsset(file, 'OK', null), { once: true });
-        }
+/* ── DEMO/FALLBACK DATA ──────────────────────────────────────────── */
+function getDemoFiles() {
+  const now = new Date();
+  const fmt = d => d.toISOString().slice(0,10).replace(/-/g,'');
+  const past7  = new Date(now); past7.setDate(now.getDate()-7);
+  const past20 = new Date(now); past20.setDate(now.getDate()-20);
+  const past45 = new Date(now); past45.setDate(now.getDate()-45);
+  const fut7   = new Date(now); fut7.setDate(now.getDate()+7);
+  return [
+    { name: `${fmt(now)}_EP47_Decision_Intelligence_Framework.mp3`,     download_url: '', type: 'file' },
+    { name: `${fmt(past7)}_EP46_ONDC_Commerce_Deep_Dive.mp3`,           download_url: '', type: 'file' },
+    { name: `${fmt(past20)}_EP45_AI_Supply_Chain_Automation.mp3`,        download_url: '', type: 'file' },
+    { name: `${fmt(past45)}_EP44_India_Market_Entry_Strategy.mp3`,       download_url: '', type: 'file' },
+    { name: `${fmt(past7)}_VID01_Platform_Demo_Walkthrough.mp4`,         download_url: '', type: 'file' },
+    { name: `${fmt(past20)}_VID02_Alchemist_EdTech_Preview.mp4`,          download_url: '', type: 'file' },
+    { name: `${fmt(fut7)}_EP48_Generative_Commerce_Futures.mp3`,         download_url: '', type: 'file' },
+  ];
+}
+
+/* ── MAIN INIT ───────────────────────────────────────────────────── */
+async function init(forceRefresh = false) {
+  document.getElementById('audio-feed').innerHTML = `
+    <div class="skeleton-card"><div class="skel-line" style="width:60px;height:16px;"></div><div class="skel-line" style="width:80%;height:20px;margin-top:12px;"></div><div class="skel-line" style="width:50%;height:14px;"></div></div>
+    <div class="skeleton-card"><div class="skel-line" style="width:60px;height:16px;"></div><div class="skel-line" style="width:65%;height:20px;margin-top:12px;"></div><div class="skel-line" style="width:45%;height:14px;"></div></div>`;
+  document.getElementById('video-feed').innerHTML = '';
+
+  let files;
+  try {
+    files = await fetchMediaFiles(forceRefresh);
+  } catch (err) {
+    console.warn('GitHub API fetch failed, using demo data:', err.message);
+    // Use demo data so the UI stays alive
+    files = getDemoFiles();
+    document.getElementById('cache-status').textContent = 'DEMO_MODE';
+    document.getElementById('header-feed-status').textContent = 'DEMO_DATA';
+    document.getElementById('header-feed-status').style.color = 'var(--neon)';
+  }
+
+  if (!files || files.length === 0) {
+    files = getDemoFiles();
+    document.getElementById('cache-status').textContent = 'DEMO_MODE (EMPTY)';
+  }
+
+  // Route files
+  const audioFiles = [];
+  const videoFiles = [];
+  files.forEach(f => {
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (CONFIG.AUDIO_EXTS.includes(ext)) audioFiles.push(f);
+    else if (CONFIG.VIDEO_EXTS.includes(ext)) videoFiles.push(f);
+  });
+
+  // Sort audio by date desc
+  audioFiles.sort((a, b) => {
+    const ma = parseFilename(a.name), mb = parseFilename(b.name);
+    if (!ma.date || !mb.date) return 0;
+    return mb.date - ma.date;
+  });
+
+  // Parse all meta
+  const audioMeta = audioFiles.map(f => parseFilename(f.name));
+  const videoMeta = videoFiles.map(f => parseFilename(f.name));
+  STATE.tracks = audioMeta;
+
+  // Update stats
+  document.getElementById('stat-ep').textContent  = audioFiles.filter((_, i) => audioMeta[i].badge !== 'future').length;
+  document.getElementById('stat-vid').textContent = videoFiles.length;
+  document.getElementById('stat-new').textContent = audioMeta.filter(m => m.badge === 'new').length;
+  document.getElementById('stat-upcoming').textContent = audioMeta.filter(m => m.badge === 'future').length;
+
+  // Build cards
+  const audioFeed = document.getElementById('audio-feed');
+  const videoFeed = document.getElementById('video-feed');
+  audioFeed.innerHTML = '';
+  videoFeed.innerHTML = '';
+
+  const io = initScrollReveal();
+
+  if (audioFiles.length === 0) {
+    audioFeed.innerHTML = `<p class="mono" style="color:var(--text-muted);font-size:11px;padding:20px 0;">No audio files found in repository path.</p>`;
+  } else {
+    audioFiles.forEach((file, i) => {
+      const card = buildAudioCard(file, audioMeta[i], i);
+      audioFeed.appendChild(card);
+      // Stagger reveal
+      setTimeout(() => io.observe(card), i * 60);
     });
+  }
 
+  if (videoFiles.length === 0) {
+    document.getElementById('video-section-label').style.display = 'none';
+  } else {
+    document.getElementById('video-section-label').style.display = '';
+    videoFiles.forEach((file, i) => {
+      const card = buildVideoCard(file, videoMeta[i]);
+      videoFeed.appendChild(card);
+      setTimeout(() => io.observe(card), i * 80);
+    });
+  }
+
+  // Charts
+  initCharts(audioMeta);
+
+  // Header status
+  document.getElementById('header-feed-status').textContent =
+    `${files.length}_FILES_LOADED`;
+
+  // Bind btn-brutal cursor targets
+  document.querySelectorAll('.btn-brutal').forEach(b => bindCursorTarget(b));
+}
+
+/* ── FORCE REFRESH BUTTON ────────────────────────────────────────── */
+document.getElementById('btn-refresh').addEventListener('click', () => {
+  clearCache();
+  init(true);
 });
+bindCursorTarget(document.getElementById('btn-refresh'));
+
+/* ── BOOT ────────────────────────────────────────────────────────── */
+init();
 </script>
 </body>
 </html>
