@@ -254,7 +254,7 @@
     },
     {
       "source": "/why-small-businesses-dont-need-saas/index.html",
-      "destination": "/Viadecide-blogs.html",
+      "destination": "/not-a-saas/index.html",
       "permanent": true
     },
     {
@@ -265,6 +265,16 @@
     {
       "source": "/DharamDaxini/index.html",
       "destination": "/DharamDaxini.html",
+      "permanent": true
+    },
+    {
+      "source": "/not-a-saas",
+      "destination": "/not-a-saas/index.html",
+      "permanent": true
+    },
+    {
+      "source": "/why-small-businesses-dont-need-saas",
+      "destination": "/not-a-saas/index.html",
       "permanent": true
     }
   ]
