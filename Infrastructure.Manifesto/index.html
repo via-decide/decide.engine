@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViaDecide // Infrastructure.Manifesto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Dark Neon Industrial (Base: #030303, Panel: #0A0A0A, Accents: #E0FF00, #FF6B00, #1DB954) -->
+    <!-- Application Structure Plan: The SPA translates the static PDF into an interactive narrative. It moves chronologically through the presentation's logical arc: The Problem (Fragmented Tool Stack & Data Silos) -> The Theory (Input/Intent/Decision Framework) -> The Solution (ViaDecide Structured Infrastructure). The layout uses a scroll-based reveal mechanism, brutalist interactive toggle panels, and a central data visualization to contrast chaos vs. structure, retaining the exact ViaDecide design language. -->
+    <!-- Visualization & Content Choices: Report Info: Fragmentation vs Structure -> Goal: Compare decision speed/efficiency -> Viz/Presentation Method: Interactive state-toggled UI panels and Line Chart -> Interaction: Hovering elements to see "Silo" warnings, scrolling to trigger animations -> Justification: Engaging the user physically reinforces the core message of the PDF better than static reading. -> Library/Method: HTML/Tailwind for UI, Chart.js for data viz. NO SVG or Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        :root {
+            --neon: #E0FF00;
+            --brand-orange: #FF6B00;
+            --spotify-green: #1DB954;
+            --yt-red: #FF0000;
+            --bg-base: #030303;
+            --panel-bg: #0A0A0A;
+            --border-muted: #1F1F22;
+            --text-main: #F4F4F5;
+            --text-dim: #71717A;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            width: 100%;
+            cursor: none;
+            margin: 0; padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* ─── CUSTOM CURSOR ─── */
+        #cursor-dot, #cursor-ring {
+            position: fixed; top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%; pointer-events: none; z-index: 9999;
+        }
+        #cursor-dot { width: 6px; height: 6px; background-color: var(--neon); }
+        #cursor-ring {
+            width: 34px; height: 34px;
+            border: 1px solid rgba(224,255,0,0.5);
+            transition: width 0.3s cubic-bezier(0.16,1,0.3,1), height 0.3s cubic-bezier(0.16,1,0.3,1), background-color 0.3s, border-color 0.3s;
+        }
+        .cursor-hover #cursor-ring { width: 56px; height: 56px; background: rgba(224,255,0,0.06); border-color: var(--neon); }
+        @media (hover: none) and (pointer: coarse) {
+            #cursor-dot, #cursor-ring { display: none !important; }
+            body, html { cursor: auto !important; }
+        }
+
+        /* ─── NOISE / GRAIN ─── */
+        .noise-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ─── GLITCH TEXT ─── */
+        .glitch-text { position: relative; display: inline-block; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: var(--bg-base); opacity: 0; pointer-events: none;
+        }
+        .glitch-text:hover::before { left: 2px; text-shadow: -1px 0 red; opacity: 1; animation: g1 0.2s infinite linear alternate-reverse; }
+        .glitch-text:hover::after  { left: -2px; text-shadow: -1px 0 blue; opacity: 1; animation: g2 0.3s infinite linear alternate-reverse; }
+        @keyframes g1 { 0%{clip:rect(10px,9999px,40px,0)} 100%{clip:rect(30px,9999px,15px,0)} }
+        @keyframes g2 { 0%{clip:rect(15px,9999px,50px,0)} 100%{clip:rect(45px,9999px,30px,0)} }
+
+        /* ─── BUTTONS & CARDS ─── */
+        .btn-brutal {
+            border: 1px solid var(--border-muted); color: var(--text-main);
+            position: relative; overflow: hidden; transition: color 0.3s, border-color 0.3s;
+            display: inline-flex; justify-content: center; align-items: center; text-decoration: none;
+        }
+        .btn-brutal::before {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0;
+            background-color: var(--neon); transition: height 0.3s cubic-bezier(0.16,1,0.3,1); z-index: -1;
+        }
+        .btn-brutal:hover { color: #000; border-color: var(--neon); }
+        .btn-brutal:hover::before { height: 100%; }
+
+        .feature-card {
+            border: 1px solid var(--border-muted);
+            background: var(--panel-bg);
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        .feature-card:hover {
+            border-color: var(--neon);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(224, 255, 0, 0.05);
+        }
+
+        /* ─── SCROLL REVEAL ─── */
+        .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* ─── CHART CONTAINER ─── */
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; height: 300px; }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--border-muted); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+
+        /* ─── CUSTOM ANIMATIONS ─── */
+        @keyframes pulse-border {
+            0% { border-color: rgba(255, 0, 0, 0.2); box-shadow: 0 0 0 rgba(255, 0, 0, 0); }
+            50% { border-color: rgba(255, 0, 0, 0.8); box-shadow: 0 0 15px rgba(255, 0, 0, 0.3); }
+            100% { border-color: rgba(255, 0, 0, 0.2); box-shadow: 0 0 0 rgba(255, 0, 0, 0); }
+        }
+        .silo-active { animation: pulse-border 2s infinite; }
+        
+        .noise-bg {
+            background-image: repeating-linear-gradient(45deg, #0A0A0A 25%, transparent 25%, transparent 75%, #0A0A0A 75%, #0A0A0A), repeating-linear-gradient(45deg, #0A0A0A 25%, #050505 25%, #050505 75%, #0A0A0A 75%, #0A0A0A);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+        }
+
+    </style>
+</head>
+<body class="selection:bg-[#E0FF00] selection:text-black">
+
+<!-- BACKGROUND GRAIN -->
+<div class="noise-overlay"></div>
+<div id="scroll-progress" class="fixed top-0 left-0 h-[2px] bg-[#E0FF00] w-0 z-[10000] transition-all duration-150"></div>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<!-- HEADER -->
+<header class="fixed top-0 w-full bg-[#030303]/90 backdrop-blur-md border-b border-zinc-900 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-4 cursor-pointer" data-hover onclick="window.scrollTo(0,0)">
+            <div class="w-10 h-10 bg-[#1F1F22] rounded flex items-center justify-center font-bold text-[#E0FF00] font-mono border border-[#E0FF00]/30 shadow-[0_0_10px_rgba(224,255,0,0.1)]">
+                VD
+            </div>
+            <div class="h-6 w-px bg-zinc-800 mx-2 hidden md:block"></div>
+            <span class="hidden md:block font-bold text-[10px] tracking-[0.2em] uppercase mono text-zinc-500">Manifesto.Report</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-[#E0FF00] animate-pulse shadow-[0_0_8px_#E0FF00]"></div>
+            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mono hidden sm:block">System Analytics Live</span>
+            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mono sm:hidden">Live</span>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="pt-32 pb-24 max-w-6xl mx-auto px-6 space-y-32 relative z-10">
+
+    <!-- HERO SECTION -->
+    <section class="reveal active pt-12 space-y-6">
+        <div class="mono text-[10px] text-[#E0FF00] uppercase tracking-widest border border-[#E0FF00]/30 bg-[#E0FF00]/5 px-3 py-1 w-max">
+            Dharam Daxini // ViaDecide
+        </div>
+        <h1 class="text-5xl md:text-[6rem] font-bold tracking-tighter text-white max-w-5xl leading-[0.9] uppercase">
+            Most Small Businesses Are <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-zinc-600 glitch-text" data-text="Trapped In The Tool Stack.">Trapped In The Tool Stack.</span>
+        </h1>
+        <p class="text-lg sm:text-xl text-zinc-400 max-w-2xl leading-relaxed font-light border-l border-[#E0FF00] pl-6 py-2 mt-8">
+            Shopify, WhatsApp, Excel. Each tool solves a specific problem, but fragments your decision-making. 
+            This leads to severe inefficiencies. Welcome to the architecture of structural alignment.
+        </p>
+        
+        <div class="pt-8">
+            <a href="#problem" data-hover class="btn-brutal px-8 py-4 font-bold text-xs tracking-[0.2em] uppercase bg-[#0A0A0A]">
+                Analyze Fragmentation ↓
+            </a>
+        </div>
+    </section>
+
+    <!-- SECTION: THE PROBLEM (DATA SILOS) -->
+    <section id="problem" class="reveal space-y-12 scroll-mt-32">
+        <div class="flex items-center gap-4 border-b border-zinc-800 pb-4">
+            <h2 class="mono text-2xl font-bold uppercase tracking-widest text-[#FF0000]">
+                <span class="glitch-text" data-text="01_The_Problem">01_The_Problem</span>
+            </h2>
+            <div class="h-px bg-zinc-800 flex-1"></div>
+            <span class="mono text-[9px] text-zinc-600 uppercase tracking-widest hidden sm:block">Fragmented Structures</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-8">
+                <h3 class="text-3xl font-bold uppercase tracking-tight">The Fragmented Tool Stack</h3>
+                <p class="text-zinc-400 leading-relaxed">Small businesses often use a disconnected assortment of tools to manage operations. Each tool addresses specific issues but fails to integrate decision-making across the business landscape. Business owners struggle to connect the dots without a cohesive system in place.</p>
+                
+                <div class="space-y-4">
+                    <div class="border border-zinc-800 p-4 bg-[#0A0A0A] border-l-2 border-l-red-500 cursor-pointer" data-hover onmouseenter="highlightSilo('silo-1')" onmouseleave="resetSilos()">
+                        <h4 class="font-mono text-[#F4F4F5] uppercase text-sm mb-1">Data Silos</h4>
+                        <p class="text-xs text-zinc-500">Information is trapped in isolated systems (e.g., inventory vs. sales vs. comms).</p>
+                    </div>
+                    <div class="border border-zinc-800 p-4 bg-[#0A0A0A] border-l-2 border-l-red-500 cursor-pointer" data-hover onmouseenter="highlightSilo('silo-2')" onmouseleave="resetSilos()">
+                        <h4 class="font-mono text-[#F4F4F5] uppercase text-sm mb-1">No Customer View</h4>
+                        <p class="text-xs text-zinc-500">No single view of customer behavior exists across the fragmented landscape.</p>
+                    </div>
+                    <div class="border border-zinc-800 p-4 bg-[#0A0A0A] border-l-2 border-l-red-500 cursor-pointer" data-hover onmouseenter="highlightSilo('silo-3')" onmouseleave="resetSilos()">
+                        <h4 class="font-mono text-[#F4F4F5] uppercase text-sm mb-1">Reactive Decisions</h4>
+                        <p class="text-xs text-zinc-500">Decisions are slow, lagging, and often inconsistent due to broken data pipelines.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Architecture Map -->
+            <div class="noise-bg border border-zinc-800 p-8 h-[400px] flex flex-col justify-between relative overflow-hidden">
+                <div class="flex justify-between items-start relative z-10">
+                    <div id="silo-1" class="border border-zinc-700 bg-[#0A0A0A] p-4 text-center w-24 sm:w-32 transition-all">
+                        <span class="text-3xl block mb-2 font-mono text-zinc-500">[DB]</span>
+                        <span class="mono text-[9px] uppercase text-zinc-400 block">Inventory</span>
+                    </div>
+                    <div id="silo-2" class="border border-zinc-700 bg-[#0A0A0A] p-4 text-center w-24 sm:w-32 transition-all">
+                        <span class="text-3xl block mb-2 font-mono text-zinc-500">[WEB]</span>
+                        <span class="mono text-[9px] uppercase text-zinc-400 block">E-Commerce</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-center relative z-10 my-4">
+                    <div id="silo-3" class="border border-red-500/50 bg-red-500/10 p-5 text-center w-full max-w-[250px] transition-all silo-active text-red-500">
+                        <span class="mono text-sm font-bold uppercase block mb-1">Data Bottleneck</span>
+                        <span class="mono text-[9px] uppercase">Decision Friction Detected</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-center relative z-10">
+                    <div class="border border-zinc-700 bg-[#0A0A0A] p-4 text-center w-24 sm:w-32">
+                        <span class="text-3xl block mb-2 font-mono text-zinc-500">[MSG]</span>
+                        <span class="mono text-[9px] uppercase text-zinc-400 block">Comms App</span>
+                    </div>
+                </div>
+
+                <!-- Disconnected lines (CSS drawn) -->
+                <div class="absolute top-[90px] left-[20%] w-[1px] h-[90px] border-l-2 border-dashed border-red-500/40"></div>
+                <div class="absolute top-[90px] right-[20%] w-[1px] h-[90px] border-l-2 border-dashed border-red-500/40"></div>
+                <div class="absolute bottom-[90px] left-[50%] w-[1px] h-[80px] border-l-2 border-dashed border-red-500/40"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: THE FRAMEWORK -->
+    <section class="reveal space-y-12 bg-[#050505] -mx-6 px-6 py-20 border-y border-zinc-900">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-zinc-800 pb-6 mb-8">
+            <div>
+                <h2 class="mono text-2xl font-bold uppercase tracking-widest text-[#E0FF00]">
+                    <span class="glitch-text" data-text="02_The_Framework">02_The_Framework</span>
+                </h2>
+                <p class="text-zinc-500 mt-2 text-sm max-w-xl">From Input, to Intent, to Structured Decision.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="feature-card p-8 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-2">
+                    <span class="mono text-[10px] text-zinc-600 uppercase tracking-widest">Phase 1</span>
+                    <span class="mono text-[10px] text-zinc-500 font-bold">[ IN ]</span>
+                </div>
+                <h3 class="text-xl font-bold uppercase mb-4 text-[#F4F4F5]">Input & Signals</h3>
+                <p class="text-sm text-zinc-400 flex-grow leading-relaxed">Customer actions shape business goals and strategic direction. Every click, view, and inquiry is a signal that matters.</p>
+                <div class="mt-8 h-1 w-full bg-zinc-800 overflow-hidden relative">
+                    <div class="absolute top-0 left-0 h-full w-1/3 bg-zinc-500"></div>
+                </div>
+            </div>
+
+            <div class="feature-card p-8 flex flex-col h-full border-[#E0FF00]/30 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-[#E0FF00]/5 to-transparent pointer-events-none"></div>
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-6 border-b border-[#E0FF00]/20 pb-2">
+                        <span class="mono text-[10px] text-[#E0FF00] uppercase tracking-widest">Phase 2</span>
+                        <span class="mono text-[10px] text-[#E0FF00] font-bold">[ PROCESS ]</span>
+                    </div>
+                    <h3 class="text-xl font-bold uppercase mb-4 text-[#E0FF00]">Determine Intent</h3>
+                    <p class="text-sm text-zinc-400 flex-grow leading-relaxed">Identify exactly what the customer needs based on the signals provided. Connecting the dots from fragmented sources to understand true demand.</p>
+                    <div class="mt-8 h-1 w-full bg-zinc-800 overflow-hidden relative">
+                        <div class="absolute top-0 left-0 h-full w-2/3 bg-[#E0FF00]/70"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-card p-8 flex flex-col h-full border-[#1DB954]/30">
+                <div class="flex justify-between items-center mb-6 border-b border-[#1DB954]/20 pb-2">
+                    <span class="mono text-[10px] text-[#1DB954] uppercase tracking-widest">Phase 3</span>
+                    <span class="mono text-[10px] text-[#1DB954] font-bold">[ OUT ]</span>
+                </div>
+                <h3 class="text-xl font-bold uppercase mb-4 text-[#1DB954]">Structured Decision</h3>
+                <p class="text-sm text-zinc-400 flex-grow leading-relaxed">Signals drive business decisions. A unified, structured layer enables faster, clearer logic execution and shapes outcomes effectively.</p>
+                <div class="mt-8 h-1 w-full bg-zinc-800 overflow-hidden relative">
+                    <div class="absolute top-0 left-0 h-full w-full bg-[#1DB954]"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: THE SOLUTION (VIADECIDE PLATFORM) -->
+    <section class="reveal space-y-12">
+        <div class="flex items-center gap-4 border-b border-zinc-800 pb-4">
+            <h2 class="mono text-2xl font-bold uppercase tracking-widest text-[#1DB954]">
+                <span class="glitch-text" data-text="03_The_Architecture">03_The_Architecture</span>
+            </h2>
+            <div class="h-px bg-zinc-800 flex-1"></div>
+            <span class="mono text-[9px] text-zinc-600 uppercase tracking-widest hidden sm:block">ViaDecide Infrastructure</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold uppercase tracking-tight">Guided Decisions</h3>
+                <p class="text-zinc-400 mb-8 leading-relaxed">Streamlining choices for optimal outcomes. The ViaDecide Infrastructure removes friction to build confidence and unifies the decision process.</p>
+                
+                <div class="grid gap-4">
+                    <div class="flex gap-5 p-5 bg-[#050505] border border-zinc-800 hover:border-[#1DB954] transition-colors group" data-hover>
+                        <div class="text-[#1DB954] font-mono text-xl mt-1 group-hover:scale-110 transition-transform">01</div>
+                        <div>
+                            <h4 class="font-bold uppercase text-[#F4F4F5] mb-1">Product Inspections</h4>
+                            <p class="text-sm text-zinc-500">Real-time evaluations enhance trustworthiness. Ensuring the product matches the signal.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-5 p-5 bg-[#050505] border border-zinc-800 hover:border-[#1DB954] transition-colors group" data-hover>
+                        <div class="text-[#1DB954] font-mono text-xl mt-1 group-hover:scale-110 transition-transform">02</div>
+                        <div>
+                            <h4 class="font-bold uppercase text-[#F4F4F5] mb-1">Reduced Friction</h4>
+                            <p class="text-sm text-zinc-500">Seamless interactions improve efficiency. Eliminating the multi-tool jump and redundant steps.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-5 p-5 bg-[#050505] border border-zinc-800 hover:border-[#1DB954] transition-colors group" data-hover>
+                        <div class="text-[#1DB954] font-mono text-xl mt-1 group-hover:scale-110 transition-transform">03</div>
+                        <div>
+                            <h4 class="font-bold uppercase text-[#F4F4F5] mb-1">Increased Trust</h4>
+                            <p class="text-sm text-zinc-500">Build confidence with transparent practices. A unified data environment fosters reliability.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization: Chart comparing efficiency -->
+            <div class="bg-[#0A0A0A] p-6 border border-zinc-800 shadow-2xl relative">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#1DB954] to-transparent opacity-50"></div>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="mono text-xs uppercase text-zinc-500 tracking-widest">Decision Velocity Analytics</h4>
+                    <span class="text-[#1DB954] text-[9px] mono border border-[#1DB954]/30 bg-[#1DB954]/10 px-2 py-1 uppercase tracking-widest animate-pulse">Live</span>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-zinc-900 text-center">
+                    <p class="text-[10px] text-zinc-500 mono uppercase tracking-widest">Result: Structured decisions lead to improved business outcomes.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER / CONTACT -->
+    <footer class="reveal border-t border-zinc-900 pt-24 pb-12 text-center bg-[#030303]">
+        <div class="mono text-[10px] text-[#E0FF00] uppercase tracking-widest mb-6">Contact & Operations</div>
+        <h2 class="mono text-4xl md:text-5xl font-bold mb-6 uppercase tracking-tighter text-white">
+            Ready to upgrade your<br><span class="text-zinc-600">Decision Infrastructure?</span>
+        </h2>
+        
+        <p class="text-zinc-500 text-sm max-w-lg mx-auto mb-10">Questions for Founders and Operators.</p>
+
+        <div class="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-6 mt-10">
+            <a href="https://www.viadecide.com" target="_blank" data-hover class="btn-brutal px-8 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A] min-w-[220px]">
+                viadecide.com ↗
+            </a>
+            <a href="mailto:dharam@viadecide.com" data-hover class="btn-brutal px-8 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A] border-[#E0FF00] text-[#E0FF00] min-w-[220px]">
+                dharam@viadecide.com ↗
+            </a>
+            <a href="tel:+916351537770" data-hover class="btn-brutal px-8 py-5 font-bold text-xs tracking-widest uppercase bg-[#0A0A0A] min-w-[220px]">
+                +91 6351 537 770 ↗
+            </a>
+        </div>
+
+        <div class="mt-32 pt-8 border-t border-zinc-900 flex flex-col md:flex-row items-center justify-between gap-4 text-zinc-700 text-[10px] uppercase tracking-widest mono font-bold">
+            <div>Dharam Daxini // ViaDecide</div>
+            <div>Presentation Reconstructed // 2026</div>
+        </div>
+    </footer>
+
+</main>
+
+<script>
+    // ─── CURSOR LOGIC ───
+    const cursorDot  = document.getElementById('cursor-dot');
+    const cursorRing = document.getElementById('cursor-ring');
+    let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+    let ringX  = window.innerWidth/2, ringY  = window.innerHeight/2;
+    const isTouch = () => window.matchMedia('(pointer:coarse)').matches;
+
+    if (!isTouch()) {
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top  = mouseY + 'px';
+        });
+        (function animateCursor() {
+            ringX += (mouseX - ringX) * 0.2;
+            ringY += (mouseY - ringY) * 0.2;
+            cursorRing.style.left = ringX + 'px';
+            cursorRing.style.top  = ringY + 'px';
+            requestAnimationFrame(animateCursor);
+        })();
+
+        document.querySelectorAll('[data-hover]').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+        });
+    }
+
+    // ─── SCROLL REVEAL & PROGRESS ───
+    const progressBar = document.getElementById('scroll-progress');
+    function handleScroll() {
+        const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+        const height    = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        if (progressBar) progressBar.style.width = (winScroll / height * 100) + '%';
+        
+        document.querySelectorAll('.reveal').forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight - 100) {
+                el.classList.add('active');
+            }
+        });
+    }
+    window.addEventListener('scroll', handleScroll);
+    setTimeout(handleScroll, 100);
+
+    // ─── SILO INTERACTION LOGIC ───
+    function highlightSilo(id) {
+        document.querySelectorAll('[id^="silo-"]').forEach(el => {
+            el.style.opacity = '0.3';
+            el.classList.remove('silo-active');
+            el.style.borderColor = '#27272A'; // zinc-800
+        });
+        const target = document.getElementById(id);
+        if(target) {
+            target.style.opacity = '1';
+            target.classList.add('silo-active');
+            target.style.borderColor = '#EF4444'; // red-500
+        }
+    }
+
+    function resetSilos() {
+        document.querySelectorAll('[id^="silo-"]').forEach(el => {
+            el.style.opacity = '1';
+            el.classList.remove('silo-active');
+            el.style.borderColor = '#27272A';
+        });
+        // re-activate bottleneck by default
+        const btn = document.getElementById('silo-3');
+        if(btn) {
+            btn.classList.add('silo-active');
+            btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        }
+    }
+
+    // ─── CHART.JS INIT ───
+    document.addEventListener('DOMContentLoaded', () => {
+        Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+        const ctx = document.getElementById('efficiencyChart');
+        if (!ctx) return;
+        
+        const c = ctx.getContext('2d');
+        const gradVia = c.createLinearGradient(0, 0, 0, 300);
+        gradVia.addColorStop(0, 'rgba(29, 185, 84, 0.25)');
+        gradVia.addColorStop(1, 'rgba(29, 185, 84, 0)');
+
+        const gradFrag = c.createLinearGradient(0, 0, 0, 300);
+        gradFrag.addColorStop(0, 'rgba(239, 68, 68, 0.15)');
+        gradFrag.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Initiation', 'Discovery', 'Intent Check', 'Logic Processing', 'Resolution'],
+                datasets: [
+                    { 
+                        label: 'ViaDecide Structured Layer', 
+                        data: [40, 60, 85, 95, 100], 
+                        borderColor: '#1DB954', 
+                        backgroundColor: gradVia, 
+                        borderWidth: 2, 
+                        pointBackgroundColor: '#0A0A0A', 
+                        pointBorderColor: '#1DB954', 
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true, 
+                        tension: 0.3 
+                    },
+                    { 
+                        label: 'Fragmented Tool Stack', 
+                        data: [35, 30, 45, 40, 30], 
+                        borderColor: '#EF4444', 
+                        backgroundColor: gradFrag, 
+                        borderWidth: 2, 
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#0A0A0A', 
+                        pointBorderColor: '#EF4444', 
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.3 
+                    }
+                ]
+            },
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { 
+                        position: 'top', 
+                        labels: { color: '#A1A1AA', usePointStyle: true, boxWidth: 8, font: { family: "'JetBrains Mono',monospace", size: 10 } } 
+                    },
+                    tooltip: { 
+                        backgroundColor: '#050505', 
+                        borderColor: '#27272A', 
+                        borderWidth: 1, 
+                        titleColor: '#F4F4F5', 
+                        bodyColor: '#A1A1AA', 
+                        cornerRadius: 2,
+                        padding: 12,
+                        titleFont: { family: "'JetBrains Mono',monospace", size: 11 },
+                        bodyFont: { family: "'Space Grotesk',sans-serif", size: 12 }
+                    }
+                },
+                scales: {
+                    y: { 
+                        title: { display: true, text: 'DECISION VELOCITY', color: '#71717A', font: { size: 9, family: "'JetBrains Mono',monospace", letterSpacing: 2 } }, 
+                        min: 0, max: 110, 
+                        grid: { color: '#111111' }, 
+                        ticks: { color: '#71717A', font: { size: 10, family: "'JetBrains Mono',monospace" } } 
+                    },
+                    x: { 
+                        grid: { color: '#111111' }, 
+                        ticks: { color: '#71717A', font: { size: 10, family: "'JetBrains Mono',monospace" } } 
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
