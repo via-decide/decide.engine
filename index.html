@@ -1225,7 +1225,7 @@ function _modalSetup(file, icon, name) {
 
   if (frame) {
     frame.style.display = 'block';
-    frame.src = '';
+    frame.src = 'about:blank'; // FIXED: '' resolves to parent URL → SW caches bad redirect → iframe broken-doc icon
     setTimeout(() => { frame.src = normalizedPath; }, 80); // 80ms — prevents blank/flicker
   }
   document.getElementById('modal').classList.add('open');
@@ -1590,6 +1590,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         <div class="pt-desc">Turn simple ideas into working web tools. Describe what you need and the engine generates a fully functional app on the spot.</div>
         <div class="pt-footer-row">
           <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/app-generator.html','🔧','Custom Web App Generator')">Open Tool <span class="cta-arrow">→</span></button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+      <div class="pt-card" data-c="gold" onclick="openModal('/agent.html','🤖','ViaDecide Agent')" role="button" tabindex="0">
+        <div class="pt-num">07</div>
+        <div class="pt-icon-row"><div class="pt-icon">🤖</div><span class="pt-pill">Agent</span></div>
+        <div class="pt-name">ViaDecide Agent</div>
+        <div class="pt-desc">AI-powered site assistant. Chat, plan tasks, and navigate ViaDecide tools — all from one widget. Ask it anything.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/agent.html','🤖','ViaDecide Agent')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
