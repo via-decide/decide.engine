@@ -249,11 +249,26 @@
     },
     {
       "source": "/the-decision-stack/index.html",
-      "destination": "/Viadecide-blogs.html",
+      "destination": "/The Decision Stack.html",
       "permanent": true
     },
     {
       "source": "/why-small-businesses-dont-need-saas/index.html",
+      "destination": "/not-a-saas/index.html",
+      "permanent": true
+    },
+    {
+      "source": "/the-decision-stack.html",
+      "destination": "/The Decision Stack.html",
+      "permanent": true
+    },
+    {
+      "source": "/why-smbs-dont-need-saas",
+      "destination": "/not-a-saas/index.html",
+      "permanent": true
+    },
+    {
+      "source": "/why-smbs-dont-need-saas.html",
       "destination": "/not-a-saas/index.html",
       "permanent": true
     },
