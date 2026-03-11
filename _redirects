@@ -1,4 +1,3 @@
-```
 # ============================================================
 # ViaDecide — Cloudflare Pages _redirects
 # Rule: /* must stay LAST. Cloudflare evaluates top-to-bottom,
@@ -86,4 +85,9 @@
 /terms                            /terms.html                            200
 
 # ── SPA fallback — MUST BE LAST ──────────────────────────────
+
+# ── Audio Log ────────────────────────────────────────────────
+/audio.log                        /audio.log.html                        200
+/audiolog                         /audio.log.html                        200
+
 /*                                /index.html                            200
