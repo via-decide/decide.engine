@@ -811,6 +811,13 @@ function clearCache() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
 }
 
+function getMediaSrc(file, type) {
+  if (file.localPath) return file.localPath;
+  if (file.download_url) return file.download_url;
+  const folder = type === 'video' ? 'video' : 'audio';
+  return `./assets/${folder}/${file.name}`;
+}
+
 /* ── API FETCH ───────────────────────────────────────────────────── */
 async function fetchMediaFiles(forceRefresh = false) {
   const url = `https://api.github.com/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${CONFIG.MEDIA_PATH}`;
@@ -917,12 +924,13 @@ function buildAudioCard(file, meta, index) {
   // Hidden audio element
   const audio = document.createElement('audio');
   audio.preload = 'metadata';
-  audio.src = file.download_url;
+  audio.src = getMediaSrc(file, 'audio');
   card.appendChild(audio);
 
   // Duration once metadata loads
   audio.addEventListener('loadedmetadata', () => {
     dur.textContent = fmtTime(audio.duration);
+    clearFallback(card);
   });
 
   // onerror handler
@@ -1002,8 +1010,13 @@ function buildVideoCard(file, meta) {
   const video = document.createElement('video');
   video.controls = true;
   video.preload  = 'metadata';
-  video.src = file.download_url;
+  video.src = getMediaSrc(file, 'video');
+  if (file.poster) video.poster = file.poster;
   wrapper.appendChild(video);
+
+  video.addEventListener('loadedmetadata', () => {
+    clearFallback(wrapper);
+  });
 
   video.addEventListener('error', () => {
     wrapper.classList.add('failed');
@@ -1014,7 +1027,7 @@ function buildVideoCard(file, meta) {
   metaRow.className = 'vid-meta';
   const t = document.createElement('span');
   t.className = 'vid-title';
-  t.textContent = meta.title || file.name;
+  t.textContent = file.title || meta.title || file.name;
   const tag = document.createElement('span');
   tag.className = 'vid-tag mono';
   tag.textContent = meta.ext.toUpperCase();
@@ -1028,10 +1041,17 @@ function buildVideoCard(file, meta) {
 /* ── FALLBACK INJECTOR ───────────────────────────────────────────── */
 function injectFallback(parent, filename) {
   parent.style.position = 'relative';
+  clearFallback(parent);
   const ph = document.createElement('div');
   ph.className = 'fallback-ph';
   ph.innerHTML = `ASSET LOADING FAILED<br/><span class="fph-file">${filename}</span>`;
   parent.appendChild(ph);
+}
+
+function clearFallback(parent) {
+  const existing = parent.querySelector('.fallback-ph');
+  if (existing) existing.remove();
+  parent.classList.remove('failed');
 }
 
 /* ── NOW PLAYING ─────────────────────────────────────────────────── */
@@ -1193,13 +1213,20 @@ function getDemoFiles() {
   const past45 = new Date(now); past45.setDate(now.getDate()-45);
   const fut7   = new Date(now); fut7.setDate(now.getDate()+7);
   return [
-    { name: `${fmt(now)}_EP47_Decision_Intelligence_Framework.mp3`,     download_url: '', type: 'file' },
-    { name: `${fmt(past7)}_EP46_ONDC_Commerce_Deep_Dive.mp3`,           download_url: '', type: 'file' },
-    { name: `${fmt(past20)}_EP45_AI_Supply_Chain_Automation.mp3`,        download_url: '', type: 'file' },
-    { name: `${fmt(past45)}_EP44_India_Market_Entry_Strategy.mp3`,       download_url: '', type: 'file' },
-    { name: `${fmt(past7)}_VID01_Platform_Demo_Walkthrough.mp4`,         download_url: '', type: 'file' },
-    { name: `${fmt(past20)}_VID02_Alchemist_EdTech_Preview.mp4`,          download_url: '', type: 'file' },
-    { name: `${fmt(fut7)}_EP48_Generative_Commerce_Futures.mp3`,         download_url: '', type: 'file' },
+    {
+      name: `${fmt(now)}_VID00_Decision_Infrastructure_Systems_for_Bharat_Commerce.mp4`,
+      localPath: './assets/video/gemini_generated_video_8365a72c.mp4',
+      poster: './assets/images/file_000000007fc47208a82a6ac8d64faeeb.png',
+      title: 'Decision Infrastructure: Systems for Bharat Commerce',
+      type: 'file'
+    },
+    { name: `${fmt(now)}_EP47_Decision_Intelligence_Framework.mp3`,     localPath: './assets/audio/decision_intelligence_framework.mp3', type: 'file' },
+    { name: `${fmt(past7)}_EP46_ONDC_Commerce_Deep_Dive.mp3`,           localPath: './assets/audio/ondc_commerce_deep_dive.mp3', type: 'file' },
+    { name: `${fmt(past20)}_EP45_AI_Supply_Chain_Automation.mp3`,       localPath: './assets/audio/ai_supply_chain_automation.mp3', type: 'file' },
+    { name: `${fmt(past45)}_EP44_India_Market_Entry_Strategy.mp3`,      localPath: './assets/audio/india_market_entry_strategy.mp3', type: 'file' },
+    { name: `${fmt(past7)}_VID01_Platform_Demo_Walkthrough.mp4`,        localPath: './assets/video/platform_demo_walkthrough.mp4', poster: './assets/images/platform_demo_walkthrough.png', type: 'file' },
+    { name: `${fmt(past20)}_VID02_Alchemist_EdTech_Preview.mp4`,        localPath: './assets/video/alchemist_edtech_preview.mp4', poster: './assets/images/alchemist_edtech_preview.png', type: 'file' },
+    { name: `${fmt(fut7)}_EP48_Generative_Commerce_Futures.mp3`,        localPath: './assets/audio/generative_commerce_futures.mp3', type: 'file' },
   ];
 }
 
@@ -1238,6 +1265,13 @@ async function init(forceRefresh = false) {
 
   // Sort audio by date desc
   audioFiles.sort((a, b) => {
+    const ma = parseFilename(a.name), mb = parseFilename(b.name);
+    if (!ma.date || !mb.date) return 0;
+    return mb.date - ma.date;
+  });
+
+  // Sort video by date desc so latest appears first
+  videoFiles.sort((a, b) => {
     const ma = parseFilename(a.name), mb = parseFilename(b.name);
     if (!ma.date || !mb.date) return 0;
     return mb.date - ma.date;
@@ -1282,6 +1316,13 @@ async function init(forceRefresh = false) {
       videoFeed.appendChild(card);
       setTimeout(() => io.observe(card), i * 80);
     });
+
+    // Always pin featured entry to the top.
+    const featuredTitle = 'Decision Infrastructure: Systems for Bharat Commerce';
+    const featuredCard = Array.from(videoFeed.children).find(el =>
+      el.querySelector('.vid-title')?.textContent?.trim() === featuredTitle
+    );
+    if (featuredCard) videoFeed.prepend(featuredCard);
   }
 
   // Charts
