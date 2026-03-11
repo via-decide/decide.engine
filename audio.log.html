@@ -585,19 +585,7 @@
 
     <!-- Audio Feed -->
     <div class="section-label">Audio Episodes</div>
-    <div id="audio-feed">
-      <!-- skeleton placeholders -->
-      <div class="skeleton-card">
-        <div class="skel-line" style="width:60px;height:16px;"></div>
-        <div class="skel-line" style="width:80%;height:20px;margin-top:12px;"></div>
-        <div class="skel-line" style="width:50%;height:14px;"></div>
-      </div>
-      <div class="skeleton-card">
-        <div class="skel-line" style="width:60px;height:16px;"></div>
-        <div class="skel-line" style="width:65%;height:20px;margin-top:12px;"></div>
-        <div class="skel-line" style="width:45%;height:14px;"></div>
-      </div>
-    </div>
+    <div id="media-catalog-container"></div>
 
     <!-- Video Feed -->
     <div class="section-label" style="margin-top:32px;" id="video-section-label">Video Files</div>
@@ -1165,7 +1153,7 @@ function initScrollReveal() {
 
 /* ── ERROR DISPLAY ───────────────────────────────────────────────── */
 function showApiError(msg) {
-  const feed = document.getElementById('audio-feed');
+  const feed = document.getElementById('media-catalog-container');
   feed.innerHTML = '';
   const block = document.createElement('div');
   block.className = 'api-error-block';
@@ -1205,7 +1193,7 @@ function getDemoFiles() {
 
 /* ── MAIN INIT ───────────────────────────────────────────────────── */
 async function init(forceRefresh = false) {
-  document.getElementById('audio-feed').innerHTML = `
+  document.getElementById('media-catalog-container').innerHTML = `
     <div class="skeleton-card"><div class="skel-line" style="width:60px;height:16px;"></div><div class="skel-line" style="width:80%;height:20px;margin-top:12px;"></div><div class="skel-line" style="width:50%;height:14px;"></div></div>
     <div class="skeleton-card"><div class="skel-line" style="width:60px;height:16px;"></div><div class="skel-line" style="width:65%;height:20px;margin-top:12px;"></div><div class="skel-line" style="width:45%;height:14px;"></div></div>`;
   document.getElementById('video-feed').innerHTML = '';
@@ -1255,7 +1243,7 @@ async function init(forceRefresh = false) {
   document.getElementById('stat-upcoming').textContent = audioMeta.filter(m => m.badge === 'future').length;
 
   // Build cards
-  const audioFeed = document.getElementById('audio-feed');
+  const audioFeed = document.getElementById('media-catalog-container');
   const videoFeed = document.getElementById('video-feed');
   audioFeed.innerHTML = '';
   videoFeed.innerHTML = '';
@@ -1295,15 +1283,69 @@ async function init(forceRefresh = false) {
   document.querySelectorAll('.btn-brutal').forEach(b => bindCursorTarget(b));
 }
 
+/* ── MEDIA CATALOG LOADER ───────────────────────────────────────── */
+function createMediaCardTemplate(item, index) {
+  const isNew = Boolean(item.isNew);
+  const mediaTag = (item.type || '').toLowerCase() === 'video'
+    ? `<video class="hidden" preload="metadata" src="${item.src}" poster="${item.thumbnail || ''}"></video>`
+    : `<audio class="hidden" preload="metadata" src="${item.src}"></audio>`;
+
+  return `
+    <article class="ep-card active" role="button" tabindex="0" aria-label="Play episode: ${item.title}">
+      <div class="ep-badge ${isNew ? 'ep-badge-new' : 'ep-badge-old'}">${isNew ? '● NEW' : (item.id || `EP_${index + 1}`)}</div>
+      <div class="ep-meta">
+        <span class="ep-number mono">${item.id || `EP_${index + 1}`}</span>
+        <span class="ep-date mono">${item.dateAdded || '—'}</span>
+      </div>
+      <h3 class="ep-title">${item.title || 'Untitled Episode'}</h3>
+      <div class="ep-controls">
+        <div class="ep-spotify-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="color:#fff">
+            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.622.622 0 01.207.857zm1.223-2.722a.778.778 0 01-1.07.257C14.15 12.227 10.9 11.7 7.1 12.758a.778.778 0 01-.44-1.49c4.247-1.155 7.898-.586 10.893 1.364a.778.778 0 01.256 1.07zm.105-2.835C15.19 9.24 11.378 9.116 7.84 10.166a.933.933 0 11-.512-1.794c4.046-1.156 8.3-1.009 11.496.942a.933.933 0 01-.91 1.553z"/>
+          </svg>
+        </div>
+        <button class="btn-play btn-brutal" type="button">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="0,0 10,5 0,10"/></svg>
+          PLAY
+        </button>
+      </div>
+      ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.title}" class="hidden" />` : ''}
+      ${mediaTag}
+    </article>`;
+}
+
+async function loadMediaCatalog() {
+  const container = document.getElementById('media-catalog-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  await fetch('./media_catalog.json')
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then((catalog) => {
+      catalog.forEach((item, index) => {
+        container.insertAdjacentHTML('beforeend', createMediaCardTemplate(item, index));
+      });
+    })
+    .catch(() => {
+      container.innerHTML = '<p class="mono" style="color:var(--yt-red);font-size:12px;padding:20px 0;">Failed to load catalog</p>';
+    });
+}
+
 /* ── FORCE REFRESH BUTTON ────────────────────────────────────────── */
 document.getElementById('btn-refresh').addEventListener('click', () => {
   clearCache();
-  init(true);
+  loadMediaCatalog();
 });
 bindCursorTarget(document.getElementById('btn-refresh'));
 
 /* ── BOOT ────────────────────────────────────────────────────────── */
-init();
+document.addEventListener('DOMContentLoaded', () => {
+  loadMediaCatalog();
+});
 </script>
 </body>
 </html>
