@@ -123,7 +123,12 @@
         'printbydd-store':           { file: 'printbydd-store/index.html',     url: 'printbydd'                 },
         'printbydd':                 { file: 'printbydd-store/index.html',     url: 'printbydd'                 },
         'numberplate':               { file: 'printbydd-store/numberplate.html',url: 'printbydd/numberplate'    },
-        'keychain':                  { file: 'printbydd-store/keychain.html',  url: 'printbydd/keychain'        },
+        'keychain':                  { file: 'printbydd-store/keychain.html',  url: 'keychain'                  },
+        'printbydd/':                { file: 'printbydd-store/index.html',     url: 'printbydd/'                },
+        'printbydd/keychain':        { file: 'printbydd-store/keychain.html',  url: 'printbydd/keychain'        },
+        'printbydd/numberplate':     { file: 'printbydd-store/numberplate.html',url: 'printbydd/numberplate'    },
+        'printbydd/products':        { file: 'printbydd-store/products.html',  url: 'printbydd/products'        },
+        'printbydd/gifts':           { file: 'printbydd-store/gifts-that-mean-more.html', url: 'printbydd/gifts' },
         'gifts-that-mean-more':      { file: 'printbydd-store/gifts-that-mean-more.html', url: 'gifts-that-mean-more' },
         'smarttag-lite':             { file: 'printbydd-store/smarttag-lite.html', url: 'smarttag-lite'         },
         'products':                  { file: 'printbydd-store/products.html',  url: 'products'                  },
@@ -140,9 +145,11 @@
         // ── Blog / Content ─────────────────────────────────────────────────
         'viadecide-blogs':           { file: 'Viadecide-blogs.html',           url: 'viadecide-blogs'           },
         'the-decision-stack':        { file: 'The Decision Stack.html',        url: 'the-decision-stack'        },
+        'the-decision-stack.html':   { file: 'The Decision Stack.html',             url: 'the-decision-stack.html'   },
         'not-a-saas':                { file: 'not-a-saas/index.html',          url: 'not-a-saas'                },
-        'why-small-businesses-dont-need-saas': { file: 'not-a-saas/index.html', url: 'not-a-saas'              },
-        'why-smbs-dont-need-saas':   { file: 'not-a-saas/index.html',          url: 'not-a-saas'                },
+        'why-small-businesses-dont-need-saas': { file: 'not-a-saas/index.html', url: 'why-small-businesses-dont-need-saas' },
+        'why-smbs-dont-need-saas':   { file: 'not-a-saas/index.html',          url: 'why-smbs-dont-need-saas'   },
+        'why-smbs-dont-need-saas.html': { file: 'not-a-saas/index.html',         url: 'why-smbs-dont-need-saas.html' },
         'decision-infrastructure-india': { file: 'decision-infrastructure-india.html', url: 'decision-infrastructure-india' },
         'ondc-for-bharat':           { file: 'ondc-for-bharat.html',           url: 'ondc-for-bharat'           },
         'indiaai-mission-2025':      { file: 'indiaai-mission-2025.html',      url: 'indiaai-mission-2025'      },
@@ -158,7 +165,7 @@
 
         // ── Audio / Media ──────────────────────────────────────────────────
         'audio.log':                 { file: 'audio.log.html',                 url: 'audio.log'                 },
-        'audiolog':                  { file: 'audio.log.html',                 url: 'audio.log'                 },
+        'audiolog':                  { file: 'audio.log.html',                 url: 'audiolog'                  },
         'audio-log':                 { file: 'audio.log.html',                 url: 'audio.log'                 },
     };
 
