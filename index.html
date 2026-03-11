@@ -138,6 +138,7 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 .nav-chip.nc-b:hover{color:var(--cb);background:rgba(155,109,255,.08);border-color:rgba(155,109,255,.2)}
 .nav-chip.nc-fi:hover{color:var(--cfi);background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2)}
 .nav-chip.nc-pb:hover{color:var(--cpb);background:rgba(200,104,152,.08);border-color:rgba(200,104,152,.2)}
+.nav-chip.nc-a:hover{color:var(--ca);background:rgba(29,185,84,.08);border-color:rgba(29,185,84,.2)}
 .nav-right{display:flex;align-items:center;gap:.5rem}
 .nav-cta{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.3rem;background:var(--gold);color:#fff;border-radius:99px;cursor:none;transition:all .22s;display:inline-flex;align-items:center;gap:.4rem}
 .nav-cta:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,147,42,.35)}
@@ -345,9 +346,9 @@ section{position:relative;z-index:10}
 @media(max-width:1024px){.ondc-strip{grid-template-columns:1fr}}
 
 
-.hero-sub{max-width:760px;font-size:1rem;color:var(--tx2);line-height:1.75;margin:-1.2rem auto 1.2rem;opacity:.95}
-.hero-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin:0 0 1rem}
-.hero-proof{font-size:.74rem;color:var(--tx3);letter-spacing:.04em;margin:.2rem 0 1.6rem}
+.hero-sub{max-width:760px;font-size:1rem;color:var(--tx2);line-height:1.75;margin:-1.2rem auto 1.2rem;opacity:0;animation:riseUp .8s .3s forwards}
+.hero-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin:0 0 1rem;opacity:0;animation:riseUp .8s .5s forwards}
+.hero-proof{font-size:.74rem;color:var(--tx3);letter-spacing:.04em;margin:.2rem 0 1.6rem;opacity:0;animation:riseUp .8s .65s forwards}
 
 #why-matters{max-width:1120px;margin:0 auto;padding:4.2rem 2.5rem;border-top:1px solid var(--bd)}
 .why-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:1.4rem}
@@ -598,7 +599,7 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-b" href="#cat-blog">✍️ Blog</a>
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
-    <a class="nav-chip" href="#cat-audio">🎙 Audio.Log</a>
+    <a class="nav-chip nc-a" href="#cat-audio">🎙 Audio.Log</a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
@@ -633,12 +634,16 @@ section{position:relative;z-index:10}
       <input type="text" id="orb-input" data-command-router="true" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
       <button class="orb-go" id="orb-go" title="Find the right tool">→</button>
     </div>
-    <div id="orb-suggest" aria-label="Search suggestions"></div>
+    <div id="orb-suggest" aria-label="Search suggestions" aria-live="polite" role="listbox"></div>
     <div class="orb-chips">
-      <button class="orb-chip" data-cat="tools" onclick="document.getElementById('audience-routing').scrollIntoView({behavior:'smooth'})">🧭 Route by Audience</button>
-      <button class="orb-chip" data-cat="finance" onclick="document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'})">📊 MSME Finance</button>
-      <button class="orb-chip" data-cat="commerce" onclick="window.VDRouter?VDRouter.go('ondc-demo',{overlay:true}):openModal('/ONDC-demo.html','🛒','ONDC Demo')">🛒 ONDC Demo</button>
-      <button class="orb-chip" data-cat="tools" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'">⚖️ Decision Tools</button>
+      <button class="orb-chip" data-cat="tools" onclick="document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'})">🛠 Tools</button>
+      <button class="orb-chip" data-cat="finance" onclick="document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'})">📊 Finance</button>
+      <button class="orb-chip" data-cat="commerce" onclick="window.VDRouter?VDRouter.go('ondc-demo',{overlay:true}):openModal('/ONDC-demo.html','🛒','ONDC Demo')">🛒 Commerce</button>
+      <button class="orb-chip" data-cat="games" onclick="document.getElementById('cat-games').scrollIntoView({behavior:'smooth'})">🎮 Games</button>
+      <button class="orb-chip" data-cat="store" onclick="document.getElementById('cat-store').scrollIntoView({behavior:'smooth'})">🛍 Store</button>
+      <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
+      <button class="orb-chip" data-cat="services" onclick="document.getElementById('cat-services').scrollIntoView({behavior:'smooth'})">🎯 Services</button>
+      <button class="orb-chip" data-cat="personal" onclick="document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'})">🙋 Personal</button>
     </div>
   </div>
   <div class="hero-scroll"><div class="scroll-mouse"></div>scroll to explore</div>
@@ -925,10 +930,10 @@ section{position:relative;z-index:10}
       <div>
         <div style="font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tx3);display:flex;align-items:center;gap:.5rem;margin-bottom:.9rem"><span style="display:block;width:26px;height:1px;background:var(--gold2)"></span>GPT Private Beta</div>
         <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.2rem);line-height:.96;font-weight:500;letter-spacing:-.02em;margin:0 0 .8rem">Option A Access: <em style="color:var(--gold)">Email Verified</em></h2>
-        <p style="max-width:680px;color:var(--tx2);font-size:.95rem;line-height:1.7;margin:0">We are rolling out a secure API-wrapped GPT experience where access is unlocked only after email verification. Request beta access by emailing <strong>dharam@viadecide.com</strong>.</p>
+        <p style="max-width:680px;color:var(--tx2);font-size:.95rem;line-height:1.7;margin:0">We are rolling out a secure API-wrapped GPT experience where access is unlocked only after email verification. Request beta access by emailing <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8befe3eaf9eae6cbfde2eaefeee8e2efeea5e8e4e6">[email&#160;protected]</a></strong>.</p>
       </div>
       <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-        <a class="btn-p" href="mailto:dharam@viadecide.com?subject=ViaDecide%20GPT%20Beta%20Access&body=Hi%20Dharam,%0A%0APlease%20add%20me%20to%20the%20ViaDecide%20GPT%20private%20beta.%0A%0AMy%20details:%0A-%20Name:%0A-%20Use%20case:%0A-%20Expected%20usage:%0A" style="font-size:.9rem;padding:.82rem 1.45rem;text-decoration:none">Request Beta Access ✉️</a>
+        <a class="btn-p" href="/cdn-cgi/l/email-protection#b8dcd0d9cad9d5f8ced1d9dcdddbd1dcdd96dbd7d587cbcddad2dddbcc85eed1d9fcdddbd1dcdd9d8a88ffe8ec9d8a88faddccd99d8a88f9dbdbddcbcb9edad7dcc185f0d19d8a88fcd0d9cad9d5949d88f99d88f9e8d4ddd9cbdd9d8a88d9dcdc9d8a88d5dd9d8a88ccd79d8a88ccd0dd9d8a88eed1d9fcdddbd1dcdd9d8a88ffe8ec9d8a88c8cad1ced9ccdd9d8a88daddccd9969d88f99d88f9f5c19d8a88dcddccd9d1d4cb829d88f9959d8a88f6d9d5dd829d88f9959d8a88edcbdd9d8a88dbd9cbdd829d88f9959d8a88fdc0c8dddbccdddc9d8a88cdcbd9dfdd829d88f9" style="font-size:.9rem;padding:.82rem 1.45rem;text-decoration:none">Request Beta Access ✉️</a>
         <a class="btn-g" href="/contact.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0" style="font-size:.9rem;padding:.82rem 1.2rem;text-decoration:none">Contact Team</a>
       </div>
     </div>
@@ -1014,7 +1019,7 @@ section{position:relative;z-index:10}
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ============================================================
    TAP HIGHLIGHT SAFETY PATCH
    Passive touchstart listener — prevents iOS Safari from
@@ -1299,13 +1304,27 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
   function parseLocHref(oc){const m=(oc||'').match(/location\.href='([^']+)'/);if(!m)return null;return{type:'nav',file:m[1],icon:'↗',name:m[1]};}
   function parseGoSlug(oc){const m=(oc||'').match(/VDRouter\.go\('([^']+)'/);if(!m)return null;const slug=m[1];return{type:'route',slug,icon:'↗',name:slug};}
   function buildIndex(){
-    return Array.from(document.querySelectorAll('.tc')).map(card=>{
+    const selectors = '.tc, .pt-card[onclick], .build-card[onclick]';
+    return Array.from(document.querySelectorAll(selectors)).map(card=>{
       const oc=card.getAttribute('onclick')||'';
       const tgt=parseOpenModal(oc)||parseGoSlug(oc)||parseLocHref(oc);
       if(!tgt)return null;
-      const title=txt(card.querySelector('.tc-name-lg'))||txt(card.querySelector('.tc-name'))||tgt.name;
-      const desc=txt(card.querySelector('.tc-desc-lg'))||txt(card.querySelector('.tc-desc'))||'';
-      return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
+      // For pt-card / build-card, title comes from .pt-name / .build-card-title or falls back to tgt.name
+      const title=
+        txt(card.querySelector('.tc-name-lg'))||
+        txt(card.querySelector('.tc-name'))||
+        txt(card.querySelector('.pt-name'))||
+        txt(card.querySelector('.build-card-title'))||
+        tgt.name;
+      const desc=
+        txt(card.querySelector('.tc-desc-lg'))||
+        txt(card.querySelector('.tc-desc'))||
+        txt(card.querySelector('.pt-desc'))||
+        txt(card.querySelector('.build-card-sub'))||'';
+      const cat=norm(card.dataset.cat||card.closest('[data-cat]')?.dataset.cat||'');
+      const orbit=norm(card.dataset.orbit||'');
+      const intent=norm(card.dataset.intent||'');
+      return{title,desc,cat,orbit,intent,...tgt};
     }).filter(Boolean).reduce((acc,it)=>{
       const k=`${it.type}|${it.slug||it.file}|${norm(it.title)}`;
       if(!acc.seen.has(k)){acc.seen.add(k);acc.items.push(it);} 
@@ -1344,7 +1363,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
   go.addEventListener('click',()=>{if(results.length)openItem(results[0]);else fallbackScroll(input.value);});
   suggest.addEventListener('click',e=>{const row=e.target.closest('.orb-row');if(!row)return;openItem(results[Number(row.dataset.i)]);});
   document.addEventListener('mousedown',e=>{const wrap=document.getElementById('orb-wrap');if(!wrap)return;if(!wrap.contains(e.target))hideSuggest();});
-  input.addEventListener('blur',()=>setTimeout(hideSuggest,120));
+  input.addEventListener('blur',()=>{const delay=window.matchMedia('(pointer:coarse)').matches?300:120;setTimeout(hideSuggest,delay);});
 })();
 
 /* PWA */
@@ -1514,7 +1533,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
     <div class="pt-rule"></div>
     <div class="pt-grid" id="pt-grid">
-      <div class="pt-card pt-card--wip" data-c="teal" onclick="openModal('/interview-prep.html','🎤','Interview Simulator')" role="button" tabindex="0">
+      <div class="pt-card" data-c="teal" onclick="openModal('/interview-prep.html','🎤','Interview Simulator')" role="button" tabindex="0">
         <div class="pt-num">01</div>
         <div class="pt-icon-row"><div class="pt-icon">🎤</div><span class="pt-pill">Simulator</span></div>
         <div class="pt-name">Interview Simulator</div>
@@ -1608,16 +1627,6 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <button class="cat-cta" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'">Try Alchemist ✨</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('memory'):location.href='memory.html'" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('prompt-alchemy'):location.href='prompt-alchemy.html'" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s5" onclick="window.VDRouter?VDRouter.go('sales-dashboard'):location.href='sales-dashboard.html'" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('app-generator'):location.href='app-generator.html'" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('viaguide'):location.href='ViaGuide.html'" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('studyos'):location.href='StudyOS.html'" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('brief'):location.href='brief.html'" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('student-research'):location.href='student-research.html'" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('swipeos'):location.href='SwipeOS.html'" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,products,rapid" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-feat tc-s8" onclick="openModal('/alchemist/index.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="openModal('/memory/index.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" onclick="openModal('/prompt-alchemy/index.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
@@ -1672,20 +1681,11 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="cat-header-l"><div class="cat-num">03</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Simulations & Games</span></div><p class="cat-desc">Decision-making at play. Strategy games and immersive sims.</p></div></div>
     </div>
     <div class="bento">
-      <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('hexwars'):location.href='HexWars.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('mars-rover-simulator-game'):location.href='mars-rover-simulator-game.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('hivaland'):location.href='HivaLand.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?window.VDRouter.go('wings-of-fire'):location.href='WingsOfFire.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire</div><div class="tc-desc">Fast-paced aerial strategy skirmish with risk and energy management.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
-      <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
-      <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('hexwars'):location.href='HexWars.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('mars-rover-simulator-game'):location.href='mars-rover-simulator-game.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('hivaland'):location.href='HivaLand.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/HexWars.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
-      <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/HivaLand.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/HexWars.html','⬡','HexWars')" data-cat="games" data-orbit="hexwars" data-intent="hex,strategy,conquest,territory,war,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" data-cat="games" data-orbit="mars-rover-simulator-game" data-intent="mars,rover,simulator,physics,engineering,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/HivaLand.html','🌍','HivaLand')" data-cat="games" data-orbit="hivaland" data-intent="hivaland,world,building,simulation,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/WingsOfFire.html','🔥','Wings of Fire')" data-cat="games" data-orbit="wings-of-fire" data-intent="wings,fire,aerial,strategy,skirmish,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire</div><div class="tc-desc">Fast-paced aerial strategy skirmish with risk and energy management.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" data-cat="games" data-orbit="wings-of-fire-quiz" data-intent="wings,fire,quiz,kalam,multiplayer,knowledge,battle" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
     </div>
   </div>
 </section>
@@ -1978,15 +1978,4 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 <section id="final-cta">
   <div class="final-card">
     <h3>Start one decision today.</h3>
-    <p>Pick one module, complete one outcome, and then expand into the rest of the engine.</p>
-    <div class="hero-actions" style="margin-bottom:0">
-      <button class="btn-p" onclick="window.VDRouter?VDRouter.go('alchemist'):location.href='alchemist.html'">Open Alchemist</button>
-      <button class="btn-fi" onclick="openModal('/finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Open FinTrack</button>
-    </div>
-  </div>
-</section>
-</main>
-
-<script src="js/viadecide-agent.js"></script>
-</body>
-</html>
+    <p>Pick one module, complete one outcome, and th
