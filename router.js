@@ -1,39 +1,50 @@
 /**
- * ViaDecide Router (VDRouter) — v2.0
- *
- * Handles SPA routing, prefetching, GitHub Pages 404 redirects,
+ * ViaDecide Router (VDRouter) — v3.0
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Handles SPA routing, prefetching, Cloudflare Pages 404 redirects,
  * and history-synced modal overlays.
  *
- * Public API (unchanged from v1):
- *   VDRouter.on(event, cb)          — subscribe to a router event
- *   VDRouter.off(event, cb)         — unsubscribe a listener            [NEW]
- *   VDRouter.emit(event, data)      — fire a router event
- *   VDRouter.routes()               — return the full routes map
- *   VDRouter.resolve(pathOrSlug)    — resolve a slug to a relative file path
- *   VDRouter.prefetch(slug)         — hint the browser to prefetch a page
- *   VDRouter.openOverlay(file, opts)— open a file in the modal overlay
- *   VDRouter.go(slug, opts)         — navigate to a slug (overlay or full-page)
- *   VDRouter.bindLinks()            — wire [data-router] anchor elements
- *   VDRouter.bindBackLinks()        — wire [data-back] elements
- *   VDRouter.bindIframeBridge()     — listen for vd:close-overlay postMessage
- *   VDRouter.init()                 — called automatically on DOMContentLoaded
+ * KEY ARCHITECTURAL FIX (v2 → v3):
+ *   Full-page navigation now uses clean /slug URLs, NOT resolved .html file
+ *   paths. Cloudflare's _redirects rules are keyed on /slug (200 rewrites).
+ *   Navigating to slug.html directly bypasses those rules, falls through to
+ *   the /* catch-all, and when combined with a stale Service Worker cache
+ *   produces ERR_TOO_MANY_REDIRECTS.
  *
- * FIX LOG (v1 → v2):
- *   #1  resolve()     — eliminated double-.html-extension on nested paths
- *   #2  routesMap     — removed '#audio.log' hash-prefix key (unreachable);
- *                       added 'audio-log' alias; marked duplicate wof/* aliases
- *   #3  openOverlay() — replaced thin-space + surrogate-only emoji parsing
- *                       with a single Unicode-aware regex covering all emoji
- *   #4  init() 404    — full redirect path is now resolved, not just segment[0]
- *   #5  closeModal    — replaced one-shot DOMContentLoaded patch with a
- *                       defineProperty getter/setter trap so late-defined
- *                       closeModal functions are still intercepted correctly
- *   #6  go()          — switched to window.location.assign() (explicit, testable)
- *   #7  events        — added off() to allow listener removal and prevent leaks
- *   #8  prefetch()    — guards against empty/non-string resolve() results
- *   #9  bindLinks()   — added MutationObserver so dynamically injected
- *                       [data-router] and [data-back] links are auto-wired
- *  #10  popstate      — all DOM element lookups are null-guarded before access
+ *   Overlays still receive the resolved .html path (used as iframe src).
+ *
+ * Public API (unchanged):
+ *   VDRouter.on(event, cb)           subscribe to a router event
+ *   VDRouter.off(event, cb)          unsubscribe                      [v2]
+ *   VDRouter.emit(event, data)       fire a router event
+ *   VDRouter.routes()                return the full routes table
+ *   VDRouter.resolve(slug)           → relative .html path  (iframe use)
+ *   VDRouter.resolveURL(slug)        → /clean-url           (navigation) [NEW v3]
+ *   VDRouter.prefetch(slug)          hint browser to prefetch a page
+ *   VDRouter.openOverlay(file, opts) open a file in the modal overlay
+ *   VDRouter.go(slug, opts)          navigate (overlay or full-page)
+ *   VDRouter.bindLinks()             wire [data-router] anchors
+ *   VDRouter.bindBackLinks()         wire [data-back] elements
+ *   VDRouter.bindIframeBridge()      listen for vd:close-overlay postMessage
+ *   VDRouter.init()                  called automatically on DOMContentLoaded
+ *
+ * FIX LOG:
+ *  v2 #1  resolve()       double-.html on nested paths                   ✓
+ *  v2 #2  routesMap       '#audio.log' hash-key unreachable              ✓
+ *  v2 #3  openOverlay()   thin-space + surrogate-only emoji parsing      ✓
+ *  v2 #4  init() 404      only first path segment used for redirect      ✓
+ *  v2 #5  closeModal      one-shot DOMContentLoaded patch race           ✓
+ *  v2 #6  go()            .href setter → .assign()                       ✓
+ *  v2 #7  events          no off() → listener leaks                      ✓
+ *  v2 #8  prefetch()      no guard on empty resolve() output             ✓
+ *  v2 #9  bindLinks()     no MutationObserver for dynamic links          ✓
+ *  v2 #10 popstate        no null guards on DOM element lookups          ✓
+ *  v3 #11 go() full-page  navigated to slug.html → bypassed _redirects,
+ *                         caused redirect loop with SW cache              ✓
+ *  v3 #12 sessionStorage  dual __vd_redirect__ handlers in router.js
+ *                         AND index.html — router.js is now sole owner   ✓
+ *  v3 #13 resolve()       aliases (wof, wings-of-fire) had no canonical
+ *                         URL — resolveURL() returns the Cloudflare slug ✓
  */
 (function (global) {
     'use strict';
@@ -45,187 +56,165 @@
 
     // ─── State ────────────────────────────────────────────────────────────────
 
-    /** Files already handed to <link rel=prefetch> */
     const _prefetched = new Set();
+    let _originalCloseModal  = null;
+    let _closeModalTrapped   = false;
 
-    /** The original closeModal before we intercept it */
-    let _originalCloseModal = null;
-
-    /** True once the closeModal trap has been installed */
-    let _closeModalTrapped = false;
-
-    // ─── Routes Map ───────────────────────────────────────────────────────────
+    // ─── Routes Table ─────────────────────────────────────────────────────────
     //
-    //  Keys   — lowercase slugs, NO leading slash, NO hash prefix.
-    //  Values — relative file paths exactly as they exist on disk.
+    //  Each entry: slug → { file, url }
     //
-    //  FIX #2: Removed '#audio.log' (hash prefix made it unreachable).
-    //          Added 'audio-log' as the canonical alias.
-    //          Retained existing wof/* aliases; one canonical per target.
+    //    file  — relative path to the actual .html file on disk.
+    //            Used as iframe src in openOverlay().
+    //
+    //    url   — the canonical Cloudflare _redirects slug (no leading slash).
+    //            Used for full-page navigation so _redirects 200-rewrites fire.
+    //            Aliases share the file but point to the canonical url.
+    //
+    //  RULE: every `url` value MUST have a matching entry in _redirects.
+    //        If you add a new page, add it to BOTH _redirects AND here.
 
-    const _routes = {
+    const _table = {
         // ── Tools ──────────────────────────────────────────────────────────
-        'interview-prep':               'interview-prep.html',
-        'sales-dashboard':              'sales-dashboard.html',
-        'app-generator':                'app-generator.html',
-        'memory':                       'memory.html',
-        'prompt-alchemy':               'prompt-alchemy.html',
-        'viaguide':                     'ViaGuide.html',
-        'studyos':                      'StudyOS.html',
-        'brief':                        'brief.html',
-        'student-research':             'student-research.html',
-        'agent':                        'agent.html',
-        'laptops-under-50000':          'laptops-under-50000.html',
-        'decision-brief':               'decision-brief.html',
+        'interview-prep':            { file: 'interview-prep.html',            url: 'interview-prep'            },
+        'sales-dashboard':           { file: 'sales-dashboard.html',           url: 'sales-dashboard'           },
+        'app-generator':             { file: 'app-generator.html',             url: 'app-generator'             },
+        'memory':                    { file: 'memory.html',                    url: 'memory'                    },
+        'prompt-alchemy':            { file: 'prompt-alchemy.html',            url: 'prompt-alchemy'            },
+        'viaguide':                  { file: 'ViaGuide.html',                  url: 'viaguide'                  },
+        'studyos':                   { file: 'StudyOS.html',                   url: 'studyos'                   },
+        'brief':                     { file: 'brief.html',                     url: 'brief'                     },
+        'student-research':          { file: 'student-research.html',          url: 'student-research'          },
+        'agent':                     { file: 'agent.html',                     url: 'agent'                     },
+        'laptops-under-50000':       { file: 'laptops-under-50000.html',       url: 'laptops-under-50000'       },
+        'decision-brief':            { file: 'decision-brief.html',            url: 'decision-brief'            },
 
         // ── Commerce ───────────────────────────────────────────────────────
-        'jalaram-food-court-rajkot':    'Jalaram-food-court-rajkot.html',
-        'ondc-demo':                    'ONDC-demo.html',
-        'engine-deals':                 'engine-deals.html',
-        'discounts':                    'discounts.html',
-        'cashback-rules':               'cashback-rules.html',
-        'cashback-claim':               'cashback-claim.html',
-        'decide-service':               'decide-service.html',
-        'decide-foodrajkot':            'decide-foodrajkot.html',
-        'swipeos':                      'SwipeOS.html',
-        'swipeos-gandhidham':           'SwipeOS-gandhidham.html',
-        'customswipeengineform':        'CustomSwipeEngineForm.html',
+        'jalaram-food-court-rajkot': { file: 'Jalaram-food-court-rajkot.html', url: 'jalaram-food-court-rajkot' },
+        'ondc-demo':                 { file: 'ONDC-demo.html',                 url: 'ondc-demo'                 },
+        'engine-deals':              { file: 'engine-deals.html',              url: 'engine-deals'              },
+        'discounts':                 { file: 'discounts.html',                 url: 'discounts'                 },
+        'cashback-rules':            { file: 'cashback-rules.html',            url: 'cashback-rules'            },
+        'cashback-claim':            { file: 'cashback-claim.html',            url: 'cashback-claim'            },
+        'decide-service':            { file: 'decide-service.html',            url: 'decide-service'            },
+        'decide-foodrajkot':         { file: 'decide-foodrajkot.html',         url: 'decide-foodrajkot'         },
+        'swipeos':                   { file: 'SwipeOS.html',                   url: 'swipeos'                   },
+        'swipeos-gandhidham':        { file: 'SwipeOS-gandhidham.html',        url: 'swipeos-gandhidham'        },
+        'customswipeengineform':     { file: 'CustomSwipeEngineForm.html',     url: 'customswipeengineform'     },
 
         // ── Finance ────────────────────────────────────────────────────────
-        'finance-dashboard-msme':       'finance-dashboard-msme.html',
+        'finance-dashboard-msme':    { file: 'finance-dashboard-msme.html',    url: 'finance-dashboard-msme'    },
 
-        // ── EdTech / Alchemist ─────────────────────────────────────────────
-        'alchemist':                    'alchemist.html',
-        'cohort-apply-here':            'cohort-apply-here.html',
+        // ── EdTech ─────────────────────────────────────────────────────────
+        'alchemist':                 { file: 'alchemist.html',                 url: 'alchemist'                 },
+        'cohort-apply-here':         { file: 'cohort-apply-here.html',         url: 'cohort-apply-here'         },
 
         // ── Games ──────────────────────────────────────────────────────────
-        'hexwars':                      'HexWars.html',
-        'mars-rover-simulator-game':    'mars-rover-simulator-game.html',
-        'hivaland':                     'HivaLand.html',
-        // Canonical: wings-of-fire-quiz (aliases kept for back-compat)
-        'wings-of-fire-quiz':           'wings-of-fire-quiz.html',
-        'wings-of-fire':                'wings-of-fire-quiz.html',
-        'wingsoffire':                  'wings-of-fire-quiz.html',
-        'wof':                          'wings-of-fire-quiz.html',
+        'hexwars':                   { file: 'HexWars.html',                   url: 'hexwars'                   },
+        'mars-rover-simulator-game': { file: 'mars-rover-simulator-game.html', url: 'mars-rover-simulator-game' },
+        'hivaland':                  { file: 'HivaLand.html',                  url: 'hivaland'                  },
+        // Canonical URL: wings-of-fire-quiz. Aliases share file + canonical url.
+        'wings-of-fire-quiz':        { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+        'wings-of-fire':             { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+        'wingsoffire':               { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+        'wof':                       { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
 
         // ── Store / 3D Print ───────────────────────────────────────────────
-        'printbydd-store':              'printbydd-store/index.html',
-        'numberplate':                  'printbydd-store/numberplate.html',
-        'keychain':                     'printbydd-store/keychain.html',
-        'gifts-that-mean-more':         'printbydd-store/gifts-that-mean-more.html',
-        'dharamdaxini':                 'DharamDaxini/index.html',
-        'dharamdaxini-legacy':          'DharamDaxini.html',
+        'printbydd-store':           { file: 'printbydd-store/index.html',     url: 'printbydd'                 },
+        'printbydd':                 { file: 'printbydd-store/index.html',     url: 'printbydd'                 },
+        'numberplate':               { file: 'printbydd-store/numberplate.html',url: 'printbydd/numberplate'    },
+        'keychain':                  { file: 'printbydd-store/keychain.html',  url: 'printbydd/keychain'        },
+        'gifts-that-mean-more':      { file: 'printbydd-store/gifts-that-mean-more.html', url: 'gifts-that-mean-more' },
+        'smarttag-lite':             { file: 'printbydd-store/smarttag-lite.html', url: 'smarttag-lite'         },
+        'products':                  { file: 'printbydd-store/products.html',  url: 'products'                  },
+        'gift-psychology':           { file: 'printbydd-store/gift-psychology.html', url: 'gift-psychology'     },
+        'dharamdaxini':              { file: 'DharamDaxini/index.html',        url: 'dharamdaxini'              },
+        'dharamdaxini-legacy':       { file: 'DharamDaxini.html',              url: 'dharamdaxini-legacy'       },
 
         // ── Licensing / Payments ───────────────────────────────────────────
-        'engine-license':               'engine-license.html',
-        'engine-activation-request':    'Engine Activation Request.html',
-        'payment-register':             'payment-register.html',
-        'pricing':                      'pricing.html',
+        'engine-license':            { file: 'engine-license.html',            url: 'engine-license'            },
+        'engine-activation-request': { file: 'Engine Activation Request.html', url: 'engine-activation-request'},
+        'payment-register':          { file: 'payment-register.html',          url: 'payment-register'          },
+        'pricing':                   { file: 'pricing.html',                   url: 'pricing'                   },
 
         // ── Blog / Content ─────────────────────────────────────────────────
-        'viadecide-blogs':              'Viadecide-blogs.html',
-        'the-decision-stack':           'The Decision Stack.html',
-        'why-small-businesses-dont-need-saas': 'not-a-saas/index.html',
-        'why-smbs-dont-need-saas':      'not-a-saas/index.html',
-        'not-a-saas':                   'not-a-saas/index.html',
-        'decision-infrastructure-india':'decision-infrastructure-india.html',
-        'ondc-for-bharat':              'ondc-for-bharat.html',
-        'indiaai-mission-2025':         'indiaai-mission-2025.html',
-        'multi-source-research-explained': 'multi-source-research-explained.html',
-        'decision-brief-guide':         'decision-brief-guide.html',
-        'viadecide-public-beta':        'viadecide-public-beta.html',
+        'viadecide-blogs':           { file: 'Viadecide-blogs.html',           url: 'viadecide-blogs'           },
+        'the-decision-stack':        { file: 'The Decision Stack.html',        url: 'the-decision-stack'        },
+        'not-a-saas':                { file: 'not-a-saas/index.html',          url: 'not-a-saas'                },
+        'why-small-businesses-dont-need-saas': { file: 'not-a-saas/index.html', url: 'not-a-saas'              },
+        'why-smbs-dont-need-saas':   { file: 'not-a-saas/index.html',          url: 'not-a-saas'                },
+        'decision-infrastructure-india': { file: 'decision-infrastructure-india.html', url: 'decision-infrastructure-india' },
+        'ondc-for-bharat':           { file: 'ondc-for-bharat.html',           url: 'ondc-for-bharat'           },
+        'indiaai-mission-2025':      { file: 'indiaai-mission-2025.html',      url: 'indiaai-mission-2025'      },
+        'multi-source-research-explained': { file: 'multi-source-research-explained.html', url: 'multi-source-research-explained' },
+        'decision-brief-guide':      { file: 'decision-brief-guide.html',      url: 'decision-brief-guide'      },
+        'viadecide-public-beta':     { file: 'viadecide-public-beta.html',     url: 'viadecide-public-beta'     },
 
         // ── Meta ───────────────────────────────────────────────────────────
-        'founder':                      'founder.html',
-        'contact':                      'contact.html',
-        'privacy':                      'privacy.html',
-        'terms':                        'terms.html',
+        'founder':                   { file: 'founder.html',                   url: 'founder'                   },
+        'contact':                   { file: 'contact.html',                   url: 'contact'                   },
+        'privacy':                   { file: 'privacy.html',                   url: 'privacy'                   },
+        'terms':                     { file: 'terms.html',                     url: 'terms'                     },
 
         // ── Audio / Media ──────────────────────────────────────────────────
-        // FIX #2: 'audio.log' and 'audiolog' kept; '#audio.log' removed.
-        //         'audio-log' added as the hyphenated canonical form.
-        'audio.log':                    'audio.log.html',
-        'audiolog':                     'audio.log.html',
-        'audio-log':                    'audio.log.html',
+        'audio.log':                 { file: 'audio.log.html',                 url: 'audio.log'                 },
+        'audiolog':                  { file: 'audio.log.html',                 url: 'audio.log'                 },
+        'audio-log':                 { file: 'audio.log.html',                 url: 'audio.log'                 },
     };
 
-    // ─── Emoji Parsing Helper ─────────────────────────────────────────────────
-    //
-    //  FIX #3: Replaced thin-space (U+2009) contract + surrogate-pair-only
-    //  regex with a single Unicode-aware pattern that covers:
-    //    • Surrogate pairs (U+1F000–U+1FFFF, e.g. 🔬)
-    //    • BMP emoji (U+2000–U+2FFF, e.g. ✅ ™ ©)
-    //    • Dingbats / misc symbols
-    //    • Emoji with variation selector (U+FE0F)
-    //    • ZWJ sequences (👨‍💻)
+    // ─── Normalise input slug ─────────────────────────────────────────────────
+
+    function _normalise(raw) {
+        if (!raw || typeof raw !== 'string') return '';
+        return raw
+            .replace(/^[/#\s]+|[\s/]+$/g, '')
+            .toLowerCase()
+            .replace(/\.html$/i, '')
+            .replace(/\/index$/i, '');
+    }
+
+    // ─── Emoji Parsing ────────────────────────────────────────────────────────
 
     const _EMOJI_RE = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/u;
 
-    /**
-     * Split a title string into { icon, name }.
-     * Accepts either "🔬 Tool Name" or the legacy thin-space format.
-     *
-     * @param {string} title
-     * @returns {{ icon: string, name: string }}
-     */
     function _parseTitle(title) {
         if (!title) return { icon: '🔬', name: 'Tool' };
-
-        // Legacy thin-space contract (U+2009) — preserved for callers that
-        // still use the old format so nothing breaks during migration.
         const THIN = '\u2009';
         if (title.includes(THIN)) {
             const parts = title.split(THIN);
             return { icon: parts[0] || '🔬', name: parts.slice(1).join(THIN) || 'Tool' };
         }
-
-        // Unicode emoji at the start of the string
-        const match = title.match(_EMOJI_RE);
-        if (match) {
-            const icon = match[0];
-            const name = title.slice(icon.length).trimStart();
-            return { icon, name: name || 'Tool' };
+        const m = title.match(_EMOJI_RE);
+        if (m) {
+            const icon = m[0];
+            return { icon, name: title.slice(icon.length).trimStart() || 'Tool' };
         }
-
         return { icon: '🔬', name: title };
     }
 
     // ─── closeModal Trap ──────────────────────────────────────────────────────
-    //
-    //  FIX #5: The v1 approach patched global.closeModal once at
-    //  DOMContentLoaded. If index.html defined closeModal in a script tag
-    //  *after* that event (or asynchronously), the patch was silently skipped.
-    //
-    //  New approach: defineProperty a getter/setter on `window` for
-    //  'closeModal'. Whenever *any* script assigns window.closeModal, we
-    //  immediately wrap it. The setter fires regardless of when the assignment
-    //  happens — no race condition.
 
     function _installCloseModalTrap() {
         if (_closeModalTrapped) return;
         _closeModalTrapped = true;
 
-        let _stored = global.closeModal; // capture any value already present
+        let _stored = global.closeModal;
 
         Object.defineProperty(global, 'closeModal', {
             configurable: true,
-            enumerable:   true,
-            get() {
-                return _stored;
-            },
+            enumerable: true,
+            get() { return _stored; },
             set(fn) {
                 if (typeof fn !== 'function') { _stored = fn; return; }
-                if (fn._vdWrapped) { _stored = fn; return; } // avoid double-wrapping
+                if (fn._vdWrapped) { _stored = fn; return; }
 
                 _originalCloseModal = fn;
 
                 const wrapped = function vdCloseModal() {
                     if (global.history.state && global.history.state.modalOpen) {
-                        // Popstate handler will do the actual DOM teardown.
                         global.history.back();
                     } else {
                         _originalCloseModal();
-                        // Clean up any stale ?m= query param.
                         const url = new URL(global.location.href);
                         if (url.searchParams.has('m')) {
                             url.searchParams.delete('m');
@@ -241,178 +230,111 @@
             }
         });
 
-        // Trigger the setter for any closeModal already defined at install time.
         if (typeof _stored === 'function' && !_stored._vdWrapped) {
-            global.closeModal = _stored; // triggers the setter above
+            global.closeModal = _stored;
         }
     }
 
-    // ─── Modal DOM Helper ─────────────────────────────────────────────────────
-    //
-    //  FIX #10: All getElementById calls are null-guarded.
+    // ─── Modal DOM fallback ───────────────────────────────────────────────────
 
     function _closeModalDOM() {
         const modal = document.getElementById('modal');
         if (modal) modal.classList.remove('open');
         document.body.style.overflow = '';
-
         setTimeout(() => {
             const frame = document.getElementById('modal-frame');
-            if (frame) {
-                frame.src = 'about:blank';
-                frame.style.display = 'block';
-            }
+            if (frame) { frame.src = 'about:blank'; frame.style.display = 'block'; }
             const err = document.getElementById('modal-err');
             if (err) err.classList.remove('show');
         }, 400);
     }
 
-    // ─── MutationObserver for dynamic links ───────────────────────────────────
-    //
-    //  FIX #9: Watches the document body for newly inserted [data-router] and
-    //  [data-back] elements and wires them automatically.
+    // ─── MutationObserver ─────────────────────────────────────────────────────
 
     function _observeDynamicLinks() {
         if (!('MutationObserver' in global)) return;
-        const observer = new MutationObserver(() => {
+        const obs = new MutationObserver(() => {
             VDRouter.bindLinks();
             VDRouter.bindBackLinks();
         });
-        observer.observe(document.body, { childList: true, subtree: true });
+        obs.observe(document.body, { childList: true, subtree: true });
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  VDRouter — Public Interface
+    //  VDRouter
     // ═════════════════════════════════════════════════════════════════════════
 
     const VDRouter = {
 
-        // ── Event Bus ─────────────────────────────────────────────────────────
-
-        /**
-         * Subscribe to a router event.
-         * @param {string}   event
-         * @param {Function} cb
-         */
         on(event, cb) {
             if (!_events[event]) _events[event] = [];
             if (!_events[event].includes(cb)) _events[event].push(cb);
         },
 
-        /**
-         * Unsubscribe a listener.  FIX #7 — prevents memory leaks.
-         * @param {string}   event
-         * @param {Function} cb
-         */
         off(event, cb) {
             if (!_events[event]) return;
             _events[event] = _events[event].filter(fn => fn !== cb);
         },
 
-        /**
-         * Fire all listeners for an event.
-         * @param {string} event
-         * @param {*}      data
-         */
         emit(event, data) {
             (_events[event] || []).slice().forEach(cb => {
                 try { cb(data); } catch (e) { console.error('[VDRouter] emit error:', e); }
             });
         },
 
-        // ── Routes ────────────────────────────────────────────────────────────
-
-        /** Returns the full routes map (read-only reference). */
         routes() {
-            return _routes;
+            return _table;
         },
 
         /**
-         * Resolve a slug or path to a relative file path.
-         *
-         * FIX #1: v1 could double-append .html on nested paths and risked
-         * returning paths like "folder/index/index.html". The new logic:
-         *   1. Strip leading/trailing slashes and hashes.
-         *   2. Normalise slug for map lookup (lowercase, strip .html, /index).
-         *   3. Return map value if found.
-         *   4. If the input already ends in .html, return it as-is.
-         *   5. Fallback: single-segment → slug.html,
-         *                multi-segment  → path as-is + .html (NOT /index.html,
-         *                because nested pages in this project are flat .html
-         *                files, not directories — printbydd-store is the
-         *                exception and is already in the map).
-         *
-         * @param  {string} pathOrSlug
-         * @returns {string} Relative file path
+         * resolve(slug) → relative .html file path
+         * Use for iframe src. Do NOT use for browser navigation.
          */
         resolve(pathOrSlug) {
-            if (!pathOrSlug || typeof pathOrSlug !== 'string') return '';
+            const slug = _normalise(pathOrSlug);
+            if (!slug) return '';
+            if (_table[slug]) return _table[slug].file;
 
-            // Strip leading slashes AND hash characters (fixes '#audio.log' style input)
-            const clean = pathOrSlug.replace(/^[/#]+|[/]+$/g, '');
-            if (!clean) return '';
-
-            // Normalise for map lookup
-            const slug = clean
-                .toLowerCase()
-                .replace(/\.html$/i, '')
-                .replace(/\/index$/i, '');
-
-            // 1. Known route
-            if (_routes[slug]) return _routes[slug];
-
-            // 2. Already has extension — trust it
+            const clean = (pathOrSlug || '').replace(/^[/#\s]+|[\s/]+$/g, '');
             if (/\.html$/i.test(clean)) return clean;
-
-            // 3. Ends with /index without extension
             if (clean.endsWith('/index')) return clean + '.html';
-
-            // 4. Flat fallback — append .html regardless of depth.
-            //    Folder-based routes (printbydd-store, dharamdaxini, not-a-saas)
-            //    are all registered in the map above, so they never reach here.
-            return clean + '.html';
+            return slug + '.html';
         },
 
-        // ── Prefetch ──────────────────────────────────────────────────────────
+        /**
+         * resolveURL(slug) → /canonical-slug  [NEW v3]
+         * Always use this for full-page navigation.
+         * Ensures Cloudflare _redirects 200-rewrites fire correctly.
+         */
+        resolveURL(pathOrSlug) {
+            const slug = _normalise(pathOrSlug);
+            if (!slug) return '/';
+            if (_table[slug]) return '/' + _table[slug].url;
+            return '/' + slug;
+        },
 
         /**
-         * Hint the browser to prefetch a page.
-         * FIX #8: Guards against empty or non-string resolve() output.
-         * @param {string} slug
+         * Prefetch via clean URL (matches what _redirects will serve).
          */
         prefetch(slug) {
-            const file = this.resolve(slug);
-            if (!file || _prefetched.has(file)) return;
-
+            const url = this.resolveURL(slug);
+            if (!url || url === '/' || _prefetched.has(url)) return;
             const link = document.createElement('link');
             link.rel  = 'prefetch';
-            link.href = file;
+            link.href = url;
             link.as   = 'document';
             document.head.appendChild(link);
-            _prefetched.add(file);
+            _prefetched.add(url);
         },
 
-        // ── Overlay ───────────────────────────────────────────────────────────
-
-        /**
-         * Open a file in the modal overlay and push a history entry.
-         *
-         * FIX #3: Title parsing uses Unicode-aware _parseTitle() instead of
-         *         thin-space split + surrogate-pair-only regex.
-         *
-         * @param {string} file             Relative file path to load in the iframe
-         * @param {{ title?: string }} opts
-         */
         openOverlay(file, opts = {}) {
             const { icon, name } = _parseTitle(opts.title || '');
 
-            // Build the new URL — keep all existing params except ?m=
             const url = new URL(global.location.href);
             url.searchParams.set('m', encodeURIComponent(file));
 
-            // Only push a new history entry if this is a different overlay.
-            const currentState = global.history.state;
-            if (!currentState || currentState.file !== file) {
+            const cur = global.history.state;
+            if (!cur || cur.file !== file) {
                 global.history.pushState({ modalOpen: true, file, icon, name }, '', url);
             }
 
@@ -423,36 +345,26 @@
             this.emit('routechange', { type: 'overlay', file, icon, name });
         },
 
-        // ── Navigation ────────────────────────────────────────────────────────
-
         /**
-         * Navigate to a slug — either as an overlay or a full-page load.
-         * FIX #6: Uses window.location.assign() instead of .href setter.
+         * go(slug, opts)
          *
-         * @param {string}  slug
-         * @param {{ overlay?: boolean, title?: string }} opts
+         * overlay: true  → resolve to .html file, open in iframe
+         * overlay: false → resolveURL to /slug, navigate via assign()
+         *                  FIX #11: this prevents the redirect loop
          */
         go(slug, opts = {}) {
-            const file = this.resolve(slug);
-            if (!file) {
-                console.warn('[VDRouter] go(): could not resolve slug:', slug);
-                return;
-            }
-
+            if (!slug) return;
             if (opts.overlay) {
+                const file = this.resolve(slug);
+                if (!file) { console.warn('[VDRouter] cannot resolve file for:', slug); return; }
                 this.openOverlay(file, opts);
             } else {
-                this.emit('routechange', { type: 'navigate', file });
-                global.location.assign(file);
+                const navURL = this.resolveURL(slug);
+                this.emit('routechange', { type: 'navigate', slug, url: navURL });
+                global.location.assign(navURL);
             }
         },
 
-        // ── Link Binding ──────────────────────────────────────────────────────
-
-        /**
-         * Wire all [data-router] anchors that have not yet been bound.
-         * Called on init and automatically by MutationObserver (FIX #9).
-         */
         bindLinks() {
             document.querySelectorAll('a[data-router]:not([data-router-bound])').forEach(el => {
                 el.setAttribute('data-router-bound', '');
@@ -466,82 +378,43 @@
             });
         },
 
-        /**
-         * Wire all [data-back] elements that have not yet been bound.
-         */
         bindBackLinks() {
             document.querySelectorAll('[data-back]:not([data-back-bound])').forEach(el => {
                 el.setAttribute('data-back-bound', '');
                 el.addEventListener('click', e => {
                     e.preventDefault();
-
-                    // Inside a modal iframe → ask the parent to close.
                     if (global.self !== global.top) {
                         try {
-                            global.parent.postMessage(
-                                { type: 'vd:close-overlay' },
-                                global.location.origin
-                            );
+                            global.parent.postMessage({ type: 'vd:close-overlay' }, global.location.origin);
                             return;
                         } catch (_) {}
                     }
-
-                    if (global.history.length > 1) {
-                        global.history.back();
-                    } else {
-                        global.location.assign('index.html');
-                    }
+                    global.history.length > 1 ? global.history.back() : global.location.assign('/');
                 });
             });
         },
 
-        /**
-         * Listen for vd:close-overlay postMessage from iframe children.
-         * Idempotent — safe to call multiple times.
-         */
         bindIframeBridge() {
             if (global._vdIframeBridgeBound) return;
             global._vdIframeBridgeBound = true;
-
             global.addEventListener('message', event => {
                 if (event.origin !== global.location.origin) return;
                 if ((event.data || {}).type !== 'vd:close-overlay') return;
-
-                if (typeof global.closeModal === 'function') {
-                    global.closeModal();
-                } else if (global.history.state && global.history.state.modalOpen) {
-                    global.history.back();
-                }
+                typeof global.closeModal === 'function'
+                    ? global.closeModal()
+                    : global.history.state?.modalOpen && global.history.back();
             });
         },
 
-        // ── Init ─────────────────────────────────────────────────────────────
-
-        /**
-         * Initialise the router. Called automatically on DOMContentLoaded.
-         *
-         * FIX #4: GitHub Pages 404 redirect now resolves the *full* stored
-         *         path rather than just the first path segment, so deep routes
-         *         like 'printbydd-store/keychain' open the correct overlay.
-         *
-         * FIX #5: closeModal trap is installed here via defineProperty so it
-         *         catches assignments made at any point in the page lifecycle.
-         */
         init() {
-            // Install the closeModal interceptor as early as possible.
             _installCloseModalTrap();
 
-            // 1. GitHub Pages 404 redirect
-            //    The 404.html page stores the original pathname in sessionStorage
-            //    as '__vd_redirect__'. We pick it up here and open the overlay.
+            // 1. Cloudflare 404 restore — router.js is sole __vd_redirect__ owner
             try {
                 const redirect = sessionStorage.getItem('__vd_redirect__');
                 if (redirect) {
                     sessionStorage.removeItem('__vd_redirect__');
-
-                    const params = new URLSearchParams(global.location.search);
-                    if (!params.has('m')) {
-                        // FIX #4: resolve the full redirect path, not just segment[0]
+                    if (!new URLSearchParams(global.location.search).has('m')) {
                         const slug = redirect.replace(/^\/+|\/+$/g, '');
                         if (slug) {
                             const file  = this.resolve(slug);
@@ -552,10 +425,8 @@
                 }
             } catch (_) {}
 
-            // 2. Direct URL visits with ?m=file
-            const url         = new URL(global.location.href);
-            const modalParam  = url.searchParams.get('m');
-
+            // 2. Direct ?m=file visits
+            const modalParam = new URLSearchParams(global.location.search).get('m');
             if (modalParam) {
                 const file = decodeURIComponent(modalParam);
                 setTimeout(() => {
@@ -564,32 +435,20 @@
                     }
                     global.history.replaceState(
                         { modalOpen: true, file, icon: '🔬', name: 'ViaDecide Tool' },
-                        '',
-                        global.location.href
+                        '', global.location.href
                     );
                 }, 300);
             } else {
                 global.history.replaceState({ modalOpen: false }, '', global.location.href);
             }
 
-            // 3. Back / Forward navigation (popstate)
+            // 3. Back / Forward
             global.addEventListener('popstate', e => {
-                if (e.state && e.state.modalOpen) {
-                    // Forward into an overlay
-                    if (typeof global._modalSetup === 'function') {
-                        global._modalSetup(
-                            e.state.file,
-                            e.state.icon || '🔬',
-                            e.state.name || ''
-                        );
-                    }
+                if (e.state?.modalOpen) {
+                    typeof global._modalSetup === 'function' &&
+                        global._modalSetup(e.state.file, e.state.icon || '🔬', e.state.name || '');
                 } else {
-                    // Back out of an overlay — FIX #10: null-guarded DOM access
-                    if (typeof _originalCloseModal === 'function') {
-                        _originalCloseModal();
-                    } else {
-                        _closeModalDOM();
-                    }
+                    typeof _originalCloseModal === 'function' ? _originalCloseModal() : _closeModalDOM();
                 }
             });
 
@@ -600,10 +459,7 @@
         }
     };
 
-    // ─── Expose & Auto-Init ───────────────────────────────────────────────────
-
     global.VDRouter = VDRouter;
-
     document.addEventListener('DOMContentLoaded', () => VDRouter.init());
 
 })(window);
