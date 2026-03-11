@@ -954,7 +954,7 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
     <div id="demo-err" class="demo-err">That code didn't match. If you need access, email us and we'll send a working code.</div>
     <div class="demo-tip">
       Opened from Instagram/Facebook? Tap <b>⋯</b> → <b>Open in browser</b> for best performance.<br>
-      Need a code? <a href="mailto:via.decide@gmail.com?subject=Mars%20Decision%20Lab%20Demo%20Code%20Request&body=Hi%20team%2C%0A%0ACould%20I%20get%20a%20demo%20code%20for%20Mars%20Decision%20Lab%3F%0A%0AThanks!">Request a demo code via email</a>.
+      Need a code? <a href="/cdn-cgi/l/email-protection#c1b7a8a0efa5a4a2a8a5a481a6aca0a8adefa2aeacfeb2b4a3aba4a2b5fc8ca0b3b2e4f3f185a4a2a8b2a8aeafe4f3f18da0a3e4f3f185a4acaee4f3f182aea5a4e4f3f193a4b0b4a4b2b5e7a3aea5b8fc89a8e4f3f1b5a4a0ace4f382e4f180e4f18082aeb4ada5e4f3f188e4f3f1a6a4b5e4f3f1a0e4f3f1a5a4acaee4f3f1a2aea5a4e4f3f1a7aeb3e4f3f18ca0b3b2e4f3f185a4a2a8b2a8aeafe4f3f18da0a3e4f287e4f180e4f18095a9a0afaab2e0">Request a demo code via email</a>.
     </div>
   </div>
 </div>
@@ -978,7 +978,7 @@ body.perf-low .night-layer, body.perf-low .storm-layer { transition:none !import
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ══════════════════════════════════════════════════════
    DEMO LOGIN GUARD
 ══════════════════════════════════════════════════════ */
@@ -1105,13 +1105,6 @@ function showDemoApiFailSafe(errEl){
     });
     btn._bound = true;
   }
-  const resp = await fetch('/api/demo-auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code })
-  });
-  const data = await resp.json().catch(() => ({ ok: false }));
-  return Boolean(resp.ok && data && data.ok);
 }
 
 async function demoUnlock(){
@@ -2501,13 +2494,14 @@ function logEvent(type,data={}){ GS.log.push({t:nowISO(),type,...data}); if(GS.l
 /* ══════════════════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════════════════ */
-updateAllUI();
-bindCoach();
-bindRoleLaunchers();
-bindPerfToggle();
-buildMissions();
-updateSkillTree();
-buildCerts();
+document.addEventListener('DOMContentLoaded', () => {
+  bindRoleLaunchers();
+  bindPerfToggle();
+  bindCoach();
+  updateAllUI();
+  updateValidationPips();
+});
 </script>
 </body>
 </html>
+�
