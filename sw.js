@@ -1,4 +1,4 @@
-const CACHE = "viadecide-pwa-v3";
+const CACHE = "viadecide-pwa-v4"; // bumped: evicts stale cached redirect responses
 const CORE = [
   "/",
   "/index.html",
@@ -40,8 +40,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(req);
+        // CRITICAL: never cache opaque redirects (3xx).
+        // SW navigate-mode fetch returns redirect as opaque — caching it
+        // causes ERR_TOO_MANY_REDIRECTS in iframes on every future load.
         const cache = await caches.open(CACHE);
-        cache.put(req, fresh.clone());
+        if (fresh.ok) cache.put(req, fresh.clone());
         return fresh;
       } catch {
         const cached = await caches.match(req);
