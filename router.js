@@ -51,6 +51,8 @@
  *  v3.1 #15 _redirects   alias slugs /wings-of-fire /wof /wingsoffire
  *                         /audio-log /numberplate /printbydd-store had no
  *                         _redirects entry — direct visits showed homepage  ✓
+ *  v3.2 #16 routes       added skillhex-recruiter (hiring-dashboard.html)
+ *                         with aliases skillhex/recruiter, hiring-dashboard ✓
  */
 (function (global) {
     'use strict';
@@ -119,9 +121,12 @@
         'hexwars':                   { file: 'HexWars.html',                   url: 'hexwars'                   },
         'mars-rover-simulator-game': { file: 'mars-rover-simulator-game.html', url: 'mars-rover-simulator-game' },
         'hivaland':                  { file: 'HivaLand.html',                  url: 'hivaland'                  },
-        'skillhex-mission-control': { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
-        'skillhex':                 { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
-        'apps/skillhex':            { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
+        'skillhex-mission-control': { file: 'apps/skillhex/index.html',              url: 'skillhex-mission-control'   },
+        'skillhex':                 { file: 'apps/skillhex/index.html',              url: 'skillhex-mission-control'   },
+        'apps/skillhex':            { file: 'apps/skillhex/index.html',              url: 'skillhex-mission-control'   },
+        'skillhex-recruiter':       { file: 'apps/skillhex/hiring-dashboard.html',   url: 'skillhex-recruiter'         },
+        'skillhex/recruiter':       { file: 'apps/skillhex/hiring-dashboard.html',   url: 'skillhex-recruiter'         },
+        'hiring-dashboard':         { file: 'apps/skillhex/hiring-dashboard.html',   url: 'skillhex-recruiter'         },
         'wings-of-fire-quiz':        { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
         'wings-of-fire':             { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
         'wingsoffire':               { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },

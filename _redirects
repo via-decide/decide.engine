@@ -49,6 +49,9 @@
 /skillhex                         /apps/skillhex/index.html               200
 /apps/skillhex                    /apps/skillhex/index.html               200
 /apps/skillhex/                   /apps/skillhex/index.html               200
+/skillhex-recruiter               /apps/skillhex/hiring-dashboard.html    200
+/skillhex/recruiter               /apps/skillhex/hiring-dashboard.html    200
+/hiring-dashboard                 /apps/skillhex/hiring-dashboard.html    200
 
 # ── Services ─────────────────────────────────────────────────
 /decide-service                   /decide-service.html                   200
