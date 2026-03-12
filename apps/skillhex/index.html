@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <!-- UPG-05: max-scale=1 prevents double-tap zoom on Android/iOS -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SkillHex — Operations Console v3</title>
 <!-- UPG-01: PWA meta tags -->
 <meta name="theme-color" content="#00E5FF">
@@ -15,12 +15,16 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap"
+  onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap"></noscript>
 
 <!-- Firebase 9 Compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
 /* ═══════════════════════════════════════════════════════ TOKENS */
@@ -60,6 +64,22 @@
 /* ═══════════════════════════════════════════════════════ RESET */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; }
+
+/* ═══════════════════════════════════════════════════════ VIADECIDE UX PATCH */
+/* 1. Kill iOS/Android tap highlight on every element */
+* { -webkit-tap-highlight-color: transparent; }
+/* 2. Disable text selection globally; re-enable for inputs/textareas/code */
+*, *::before, *::after { user-select: none; -webkit-user-select: none; }
+input, textarea, [contenteditable="true"], pre, code, .allow-select {
+  user-select: text; -webkit-user-select: text;
+}
+/* 3. Kill focus outline for mouse/pointer; preserve for keyboard nav */
+*:focus { outline: none; }
+*:focus-visible { outline: 2px solid #7ee8fa; outline-offset: 2px; border-radius: 3px; }
+/* KEY-02: Input-specific focus ring (replaces generic outline for .inp) */
+.inp:focus-visible { outline: none; border-color: var(--cyan); box-shadow: var(--cyan-glow); }
+/* 4. Consistent selection colour across the page */
+::selection { background: #7ee8fa33; color: #e0f7ff; }
 body {
   background: var(--bg);
   color: var(--txt);
@@ -91,6 +111,7 @@ body::before {
   content: '';
   position: fixed; inset: 0; pointer-events: none; z-index: 9999;
   background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.14) 2px, rgba(0,0,0,.14) 4px);
+  will-change: transform; transform: translateZ(0);
 }
 body::after {
   content: '';
@@ -98,6 +119,7 @@ body::after {
   background: radial-gradient(circle at 1px 1px, #152240 1px, transparent 0);
   background-size: 28px 28px;
   opacity: .45;
+  will-change: transform; transform: translateZ(0);
 }
 
 /* ═══════════════════════════════════════════════════════ SCROLLBAR */
@@ -152,6 +174,15 @@ header { min-height: 48px; }
 
 /* Leaderboard rows */
 .lb-row { transition: background .2s; border-radius: 5px; }
+/* DSK-05: Leaderboard skeleton loading state */
+.lb-skeleton { display: flex; flex-direction: column; gap: .35rem; }
+.lb-sk-row {
+  height: 32px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--panel2) 25%, var(--border) 50%, var(--panel2) 75%);
+  background-size: 200% 100%;
+  animation: lbShimmer 1.4s ease infinite;
+}
+@keyframes lbShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .lb-row:hover { background: #0c1830; }
 .lb-row.me { background: #00e5ff08; }
 
@@ -185,7 +216,7 @@ header { min-height: 48px; }
 
 /* Section sub-labels — replace raw inline font styles */
 .section-sublabel {
-  font-family: var(--fmono); font-size: .48rem; color: var(--txt-dim);
+  font-family: var(--fmono); font-size: clamp(.6rem, 1.2vw, .7rem); color: var(--txt-dim);
   letter-spacing: .12em; margin-bottom: .4rem; text-transform: uppercase;
 }
 
@@ -193,14 +224,24 @@ header { min-height: 48px; }
 .bar-fill { box-shadow: 0 0 6px rgba(0,229,255,.35); }
 
 /* HEX JSON block — hide by default on small screens, shown on hover */
-#hex-json { transition: max-height .3s; }
+#hex-json {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .3s ease, opacity .2s ease;
+}
+#hex-json.open {
+  max-height: 100px; opacity: 1;
+}
+.panel:hover #hex-json {
+  max-height: 100px; opacity: 1;
+}
 
 /* Pipe nodes — click cursor */
-.pipe-node { cursor: default; }
+.pipe-node { cursor: default; min-height: 44px; display: flex; align-items: center; }
 .pipe-node.done { cursor: pointer; }
 
 /* BUG-06: use CSS touch-action instead of JS preventDefault to avoid blocking Android scroll */
 #kada-wrap  { touch-action: none; }
+@media(max-width:760px) { #kada-wrap { max-width: 300px; margin: 0 auto; } }
 #rotor      { touch-action: none; }
 #tether-node { touch-action: none; }
 #tether-wrap { touch-action: none; }
@@ -240,11 +281,12 @@ header {
 
 .logo-name { font-family: var(--fhud); font-size: .8rem; font-weight: 700; color: var(--cyan); text-shadow: var(--cyan-glow); letter-spacing: .1em; line-height: 1; }
 .logo-sub  { font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .25em; display: block; }
+@media(max-width:480px) { .logo-sub { display: none; } }
 
 .hud-row { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin-left: auto; }
 
 .hud-stat { display: flex; flex-direction: column; align-items: flex-end; }
-.hud-lbl  { font-family: var(--fmono); font-size: .48rem; color: var(--txt-dim); letter-spacing: .2em; text-transform: uppercase; }
+.hud-lbl  { font-family: var(--fmono); font-size: clamp(.6rem, 1.2vw, .7rem); color: var(--txt-dim); letter-spacing: .2em; text-transform: uppercase; }
 .hud-val  { font-family: var(--fhud); font-size: .9rem; font-weight: 700; letter-spacing: .04em; }
 .hud-val.c { color: var(--green);  text-shadow: var(--green-glow); }
 .hud-val.a { color: var(--amber);  text-shadow: var(--amber-glow); }
@@ -261,10 +303,21 @@ header {
 
 .hdr-btn {
   font-family: var(--fhud); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
-  padding: .38rem .75rem; border-radius: 5px; border: 1px solid var(--border2);
+  padding: .6rem 1rem; border-radius: 5px; border: 1px solid var(--border2);
   background: transparent; color: var(--txt-dim); cursor: pointer; transition: all .2s;
+  min-height: 44px; display: inline-flex; align-items: center; gap: .35rem;
 }
 .hdr-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--cyan-glow); background: #00e5ff0a; }
+.hdr-btn:active {
+  transform: scale(.96); background: #00e5ff18; border-color: var(--cyan);
+  transition-duration: 0.05s;
+}
+.btn:active, .room-tab:active, .tut-btn:active {
+  transform: scale(.97); opacity: .85; transition-duration: 0.05s;
+}
+.choice-item:active {
+  transform: scale(.98); opacity: .85; transition-duration: 0.04s;
+}
 
 /* ═══════════════════════════════════════════════════════ MAIN GRID */
 .grid-main {
@@ -289,7 +342,7 @@ header {
 }
 
 .panel-hd {
-  font-family: var(--fmono); font-size: .55rem; color: var(--txt-dim); letter-spacing: .28em;
+  font-family: var(--fmono); font-size: clamp(.65rem, 1.5vw, .72rem); color: var(--txt-dim); letter-spacing: .28em;
   text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
 }
 .panel-hd::before { content: ''; width: 3px; height: 1em; background: var(--cyan); box-shadow: var(--cyan-glow); border-radius: 2px; }
@@ -323,7 +376,7 @@ header {
 .m-desc { font-size: .95rem; line-height: 1.65; color: var(--txt); font-weight: 300; margin-bottom: .6rem; }
 .warmup-box { border:1px solid var(--border); background:var(--panel2); border-radius:6px; padding:.6rem; margin-bottom:.8rem; }
 .warmup-row { display:flex; gap:.45rem; align-items:flex-start; }
-.warmup-row textarea { flex:1; min-height:58px; background:var(--bg2); border:1px solid var(--border); color:var(--txt); border-radius:5px; padding:.45rem; font-family:var(--fmono); font-size:.55rem; }
+.warmup-row textarea { flex:1; min-height:58px; background:var(--bg2); border:1px solid var(--border); color:var(--txt); border-radius:5px; padding:.45rem; font-family:var(--fmono); font-size:clamp(.75rem, 2vw, .85rem); }
 .warmup-meta { margin-top:.35rem; display:flex; justify-content:space-between; font-family:var(--fmono); font-size:.5rem; color:var(--txt-dim); }
 
 .prebrief {
@@ -429,6 +482,7 @@ header {
 
 /* ═══════════════════════════════════════════════════════ KADA WHEEL */
 #wheel-panel { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+@media(max-width:1100px) { #wheel-panel { overflow-y: auto; max-height: 70vh; } }
 
 .kada-wrap {
   position: relative; width: 240px; height: 240px; margin: .5rem auto;
@@ -546,7 +600,7 @@ header {
   gap: 1px;
   background: var(--border);
 }
-@media(max-width:900px){ .sections-bottom { grid-template-columns: 1fr 1fr; } }
+@media(max-width:1100px){ .sections-bottom { grid-template-columns: 1fr 1fr; } }
 @media(max-width:600px){ .sections-bottom { grid-template-columns: 1fr; } }
 
 /* ═══════════════════════════════════════════════════════ INTERVIEW PANEL */
@@ -554,10 +608,10 @@ header {
 .interview-side { background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:.55rem; }
 .interview-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.4rem; }
 .interview-stream {
-  height: 220px; overflow:auto; background:#071021; border:1px solid #153154; border-radius:6px;
+  height: clamp(160px, 28vh, 400px); overflow:auto; background:#071021; border:1px solid #153154; border-radius:6px;
   padding:.55rem; display:flex; flex-direction:column; gap:.45rem;
 }
-.bubble { border-radius:6px; padding:.45rem .55rem; font-family:var(--fmono); font-size:.56rem; line-height:1.5; }
+.bubble { border-radius:6px; padding:.45rem .55rem; font-family:var(--fmono); font-size:clamp(.8rem, 1.8vw, .92rem); line-height:1.5; }
 .bubble.ai { background:#0b1f3b; border:1px solid #1d3f70; color:#d5e8ff; }
 .bubble.user { background:#021f18; border:1px solid #0b6a5b; color:#c8ffea; align-self:flex-end; }
 .interview-composer { display:flex; gap:.45rem; }
@@ -566,7 +620,12 @@ header {
   border:1px solid var(--border); border-radius:6px; font-family:var(--fmono); font-size:.56rem; padding:.5rem;
 }
 .interview-meta { font-family:var(--fmono); font-size:.5rem; color:var(--txt-dim); display:flex; justify-content:space-between; margin-top:.35rem; }
-.cat-chip { font-size:.47rem; border:1px solid var(--border); padding:.2rem .4rem; border-radius:20px; cursor:pointer; color:var(--txt-dim); }
+.cat-chip {
+  font-size:.47rem; border:1px solid var(--border); padding:.3rem .65rem; border-radius:20px;
+  cursor:pointer; color:var(--txt-dim); position:relative; min-height:32px;
+  display:inline-flex; align-items:center;
+}
+.cat-chip::after { content:''; position:absolute; inset:-8px; }
 .cat-chip.on { border-color:var(--cyan); color:var(--cyan); }
 .interview-modal {
   position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:350;
@@ -583,7 +642,9 @@ header {
   display: grid; grid-template-columns: repeat(5, 1fr);
   gap: .4rem; margin-bottom: .75rem;
 }
+@media(max-width:1100px){ .scene-grid { grid-template-columns: repeat(4,1fr); } }
 @media(max-width:700px){ .scene-grid { grid-template-columns: repeat(3, 1fr); } }
+@media(max-width:480px){ .scene-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .scene-thumb {
   aspect-ratio: 16/9; border: 1px solid var(--border); border-radius: 4px;
@@ -624,6 +685,10 @@ header {
 .branch-chip {
   font-family: var(--fmono); font-size: .5rem; padding: .25rem .45rem; border-radius: 3px;
   border: 1px solid var(--border); color: var(--txt-dim); white-space: nowrap; cursor: pointer; transition: all .15s;
+  position: relative; min-height: 36px; display: inline-flex; align-items: center;
+}
+.branch-chip::after {
+  content: ''; position: absolute; inset: -8px;
 }
 .branch-chip.main { border-color: var(--cyan-d); color: var(--cyan); }
 .branch-chip.A    { border-color: #2563eb44; color: #60a5fa; }
@@ -636,8 +701,9 @@ header {
 .room-tabs { display: flex; gap: .35rem; margin-bottom: .9rem; }
 .room-tab {
   font-family: var(--fhud); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase;
-  padding: .35rem .7rem; border-radius: 4px; border: 1px solid var(--border);
+  padding: .6rem .85rem; border-radius: 4px; border: 1px solid var(--border);
   background: transparent; color: var(--txt-dim); cursor: pointer; transition: all .2s;
+  min-height: 44px; display: inline-flex; align-items: center;
 }
 .room-tab.on { border-color: var(--cyan); color: var(--cyan); background: #00e5ff0a; }
 
@@ -685,12 +751,16 @@ footer {
   background: var(--bg2); border-top: 1px solid var(--border);
   padding: .35rem 1.25rem; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
 }
+@media(max-width:760px) { footer { display: none; } }
 .stat-item { font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .15em; display: flex; align-items: center; gap: .4rem; }
 .stat-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: var(--green-glow); animation: blink 2s ease infinite; }
 
 /* ═══════════════════════════════════════════════════════ TOASTS / OVERLAYS */
 #toast {
-  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 600;
+  position: fixed;
+  bottom: max(1.5rem, env(safe-area-inset-bottom) + .75rem);
+  right:  max(1.5rem, env(safe-area-inset-right)  + .75rem);
+  z-index: 600;
   padding: .65rem 1.1rem; border-radius: 5px; font-family: var(--fmono); font-size: .72rem;
   transform: translateY(60px); opacity: 0; transition: all .3s cubic-bezier(.4,0,.2,1);
   max-width: 280px; pointer-events: none;
@@ -866,8 +936,11 @@ footer {
 
 /* Help button (persistent) */
 #tut-help-btn {
-  position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 7000;
-  width: 36px; height: 36px; border-radius: 50%;
+  position: fixed;
+  bottom: max(1.5rem, env(safe-area-inset-bottom) + .5rem);
+  left:   max(1.5rem, env(safe-area-inset-left)   + .5rem);
+  z-index: 7000;
+  width: 44px; height: 44px; border-radius: 50%;
   background: var(--panel2); border: 1px solid var(--border2);
   color: var(--txt-dim); font-family: var(--fhud); font-size: .75rem;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -906,8 +979,8 @@ footer {
       <span id="fb-status">CONNECTING</span>
     </div>
     <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()" aria-label="Toggle Skill Matrix panel">⬡ Matrix</button>
-    <button class="hdr-btn" onclick="showRoom()">⊕ Room</button>
-    <button class="hdr-btn" id="hdr-login-btn" onclick="triggerLogin()">⬡ Login</button>
+    <button class="hdr-btn" onclick="showRoom()" aria-label="Open Squad Room">⊕ Room</button>
+    <button class="hdr-btn" id="hdr-login-btn" onclick="triggerLogin()" aria-label="Sign in to SkillHex">⬡ Login</button>
   </div>
 </header>
 
@@ -1019,7 +1092,10 @@ footer {
 
     <div class="panel">
       <div class="panel-hd">Live Leaderboard <span id="fb-sync-badge" style="font-size:.45rem;color:var(--txt-dim);margin-left:.3rem">(local)</span></div>
-      <div id="lb-list"></div>
+      <div id="lb-list">
+  <!-- Skeleton rows — replaced by renderLeaderboard() -->
+  <div class="lb-skeleton"><div class="lb-sk-row"></div><div class="lb-sk-row"></div><div class="lb-sk-row"></div><div class="lb-sk-row"></div><div class="lb-sk-row"></div></div>
+</div>
     </div>
 
   </div><!-- /col-right -->
@@ -1205,6 +1281,32 @@ footer {
 <!-- ═══════════════════════════════════════════════════════════════════
      SCRIPTS
 ═══════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════
+     VIADECIDE TOUCH POLISH — iOS/Android tap highlight fix
+     Passive listeners only — never blocks scroll or click.
+═══════════════════════════════════════════════════ -->
+<script>
+(function(){
+  var touchActive = false;
+  document.addEventListener('touchstart', function(e){
+    touchActive = true;
+    if(document.activeElement && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+      document.activeElement.blur();
+    }
+  }, {passive: true});
+  document.addEventListener('touchend', function(){
+    setTimeout(function(){ touchActive = false; }, 300);
+  }, {passive: true});
+  document.addEventListener('focusin', function(e){
+    if(touchActive) e.target.setAttribute('data-touch-focus','1');
+    else e.target.removeAttribute('data-touch-focus');
+  });
+  var s = document.createElement('style');
+  s.textContent = '[data-touch-focus]:focus-visible{outline:none!important;}';
+  document.head.appendChild(s);
+})();
+</script>
+
 <script>
 "use strict";
 
@@ -2353,6 +2455,9 @@ function renderHexMap() {
   svg.innerHTML = out;
 
   document.querySelectorAll('.hex-group').forEach(g => {
+    g.style.cursor = 'pointer';
+    g.setAttribute('role', 'img');
+    g.setAttribute('aria-label', (g.dataset.skill || 'Skill') + ' hex, Level ' + (g.dataset.level || '1'));
     g.addEventListener('mousemove', e => {
       tip.style.display = 'block';
       tip.style.left = (e.clientX + 14) + 'px';
@@ -3014,7 +3119,8 @@ function buildSceneGrids() {
         ? `previewScene('${id}')`
         : `jumpToMission(${slot},'${id}')`;
       const extra = isFuture ? 'opacity:.32;cursor:not-allowed' : '';
-      return `<div class="scene-thumb" data-id="${id}" style="border-color:${borderCol};${extra}" onclick="${clickFn}" title="${isFuture ? 'Future mission' : hasLog ? 'Click to inspect result' : isInterviewScene ? 'Launch interview round' : 'Click to jump to this mission'}">
+            const sceneA11y = isFuture ? '' : `role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${clickFn};}"`;
+      return `<div class="scene-thumb" data-id="${id}" style="border-color:${borderCol};${extra}" onclick="${clickFn}" ${sceneA11y} title="${isFuture ? 'Future mission' : hasLog ? 'Click to inspect result' : isInterviewScene ? 'Launch interview round' : 'Click to jump to this mission'}">
         ${buildSceneCardSVG(id, log, def)}
       </div>`;
     }).join('');
@@ -3028,15 +3134,15 @@ function buildSceneGrids() {
       const id  = `V${String(idx+1).padStart(2,'0')}`;
       if (!log) {
         return `<div class="branch-col">
-          <div class="branch-chip main" style="opacity:.4;cursor:pointer" onclick="jumpToMission(${idx},'${id}')" title="Jump to this mission">${id}</div>
-          <div class="branch-chip" style="color:var(--txt-mute);font-size:.44rem;cursor:pointer" onclick="jumpToMission(${idx},'${id}')">→ play</div>
+          <div class="branch-chip main" style="opacity:.4;cursor:pointer" role="button" tabindex="0" onclick="jumpToMission(${idx},'${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToMission(${idx},'${id}');}" title="Jump to this mission">${id}</div>
+          <div class="branch-chip" style="color:var(--txt-mute);font-size:.44rem;cursor:pointer" role="button" tabindex="0" onclick="jumpToMission(${idx},'${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToMission(${idx},'${id}');}">→ play</div>
         </div>`;
       }
       const choiceIdx = m.choices.findIndex(c => c.l === log.choice);
       const pass = log.result === 'pass';
       const demoTag = log.isDemo ? ' style="opacity:.65"' : '';
       return `<div class="branch-col"${demoTag}>
-        <div class="branch-chip main" onclick="previewScene('${id}')" style="cursor:pointer">${id}${log.isDemo?' ·demo':''}</div>
+        <div class="branch-chip main" onclick="previewScene('${id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();previewScene('${id}');}" style="cursor:pointer">${id}${log.isDemo?' ·demo':''}</div>
         ${m.choices.map((c, ci) => {
           const taken = ci === choiceIdx;
           const correct = c.ok;
@@ -3044,7 +3150,7 @@ function buildSceneGrids() {
           const bg  = taken ? (correct ? '#00ff880a' : '#ff3a500a') : 'transparent';
           const prefix = taken ? (correct ? '✓ ' : '✗ ') : '';
           const weight = taken ? 'font-weight:700' : '';
-          return `<div class="branch-chip" onclick="previewScene('${id}')" style="border-color:${taken ? col : 'var(--border)'};color:${col};background:${bg};font-size:.44rem;${weight};cursor:pointer">
+          return `<div class="branch-chip" onclick="previewScene('${id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();previewScene('${id}');}" style="border-color:${taken ? col : 'var(--border)'};color:${col};background:${bg};font-size:.44rem;${weight};cursor:pointer">
             ${prefix}${BRANCH_LETTERS[ci]}: ${c.l.slice(0,14)}${c.l.length>14?'…':''}
           </div>`;
         }).join('')}
@@ -3539,6 +3645,9 @@ function tutBuildDots() {
     d.id          = 'tut-dot-' + i;
     d.style.cursor = 'pointer';
     d.onclick = (function(n){ return function(){ tutIdx = n; tutShow(n); }; })(i);
+    d.setAttribute('tabindex','0');
+    d.setAttribute('aria-label', 'Go to tutorial step ' + (i+1));
+    d.addEventListener('keydown', (function(n){ return function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tutIdx=n; tutShow(n); } }; })(i));
     c.appendChild(d);
   });
 }
@@ -3680,6 +3789,8 @@ function tutClearHole() {
 function tutClamp(val, min, max) { return Math.min(max, Math.max(min, val)); }
 
 function tutPositionCard(spotlight, prefer) {
+  var vw = (window.visualViewport ? window.visualViewport.width  : vw);
+  var vh = (window.visualViewport ? window.visualViewport.height : vh);
   var card  = document.getElementById('tut-card');
   var arrow = document.getElementById('tut-arrow');
   if (!card) return;
@@ -3688,8 +3799,8 @@ function tutPositionCard(spotlight, prefer) {
   card.style.top  = '-9999px';
   var cw = card.offsetWidth  || 360;
   var ch = card.offsetHeight || 280;
-  var vw = window.innerWidth;
-  var vh = window.innerHeight;
+  var vw = vw;
+  var vh = vh;
   var GAP = 18;
   var arrowSide = null;
   var left, top;
@@ -3836,5 +3947,5 @@ function tutMaybeAutoLaunch() {
 <!-- Persistent help / replay button -->
 <button id="tut-help-btn" onclick="tutStart()" title="Show tutorial" aria-label="Show tutorial">?</button>
 
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9db68c647e51eae0',t:'MTc3MzM1NzgyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
   </html>
