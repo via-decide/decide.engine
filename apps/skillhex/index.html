@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SkillHex">
 <meta name="description" content="SkillHex Operations Console — scenario-based skill-building missions, interview simulator and live leaderboard.">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -745,7 +744,8 @@ footer {
   pointer-events: none;
   display: none;
 }
-#tut-overlay.active { display: block; pointer-events: all; }
+#tut-overlay.active { display: block; pointer-events: none; }
+/* Pointer events handled by tut-card only; overlay SVG is visual-only */
 #tut-overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 /* Spotlight ring around the focused element */
@@ -884,7 +884,7 @@ footer {
 
 </style>
 </head>
-<body style="overscroll-behavior:none;touch-action:pan-y;">
+<body>
 <div class="root">
 
 <!-- ═══════════════════ HEADER ═══════════════════════════════════ -->
@@ -1241,21 +1241,34 @@ function svgEscape(str) {
    4. In Firestore → Rules, paste the rules from the runbook comment below.
  ═════════════════════════════════════════════════════════════════════ */
 /* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
-   SECURITY: For production / Play Store builds, do NOT hardcode these values.
-   Inject via build-time env (Capacitor: capacitor.config.ts server.env,
-   or Cloudflare Pages: Environment Variables → replace at build with sed/envsubst).
-   The apiKey is safe to expose publicly but the combination with open Firestore
-   rules creates write-abuse risk — see rules below.
+   BUG-04 FIX: Keys replaced with build-time placeholders.
+   ─────────────────────────────────────────────────────────────────
+   CLOUDFLARE PAGES (recommended):
+     1. Dashboard → Settings → Environment Variables → add all 7 vars
+     2. Add build command:
+        sed -i \
+          -e "s|__FB_API_KEY__|$FB_API_KEY|g" \
+          -e "s|__FB_AUTH_DOMAIN__|$FB_AUTH_DOMAIN|g" \
+          -e "s|__FB_DATABASE_URL__|$FB_DATABASE_URL|g" \
+          -e "s|__FB_PROJECT_ID__|$FB_PROJECT_ID|g" \
+          -e "s|__FB_STORAGE_BUCKET__|$FB_STORAGE_BUCKET|g" \
+          -e "s|__FB_MESSAGING_SENDER_ID__|$FB_MESSAGING_SENDER_ID|g" \
+          -e "s|__FB_APP_ID__|$FB_APP_ID|g" \
+          index.html
+   CAPACITOR (Play Store build):
+     Inject via capacitor.config.ts → server.env at build time.
+     Never commit filled values to git.
+   ─────────────────────────────────────────────────────────────────
+   LOCAL DEV: copy .env.example → .env.local and run: npm run dev:inject
  ═════════════════════════════════════════════════════════════════════ */
 const FB_CONFIG = {
-  apiKey:            "AIzaSyBixS7kmf5R5BbsCecSgfGqagGrY2cme6Y",
-  authDomain:        "skillhex-mission-control.firebaseapp.com",
-  databaseURL:       "https://skillhex-mission-control-default-rtdb.firebaseio.com",
-  projectId:         "skillhex-mission-control",
-  storageBucket:     "skillhex-mission-control.firebasestorage.app",
-  messagingSenderId: "859943015449",
-  appId:             "1:859943015449:web:42dcdbe56a64574060c688",
-  measurementId:     "G-JTFLZSJHWK"
+  apiKey:            "__FB_API_KEY__",
+  authDomain:        "__FB_AUTH_DOMAIN__",
+  databaseURL:       "__FB_DATABASE_URL__",
+  projectId:         "__FB_PROJECT_ID__",
+  storageBucket:     "__FB_STORAGE_BUCKET__",
+  messagingSenderId: "__FB_MESSAGING_SENDER_ID__",
+  appId:             "__FB_APP_ID__"
 };
 
 /* FIRESTORE SECURITY RULES — paste into Firebase Console → Firestore → Rules
@@ -3354,7 +3367,7 @@ function init() {
 
   // UPG-01: register service worker for PWA/TWA offline support
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
   // decide.engine integration: signal ready
@@ -3496,6 +3509,11 @@ function tutClose() {
   if (ring) ring.style.display = 'none';
   tutClearHole();
   document.getElementById('tut-help-btn').style.display = '';
+  // Clean up any elements force-shown during tutorial
+  document.querySelectorAll('[data-tut-forced]').forEach(function(n){ n.style.removeProperty('display'); delete n._tutForced; });
+  // Restore col-right to its natural responsive state (remove tutorial-added .visible)
+  var cr = document.querySelector('.col-right');
+  if (cr && window.innerWidth < 1100) cr.classList.remove('visible');
   try { localStorage.setItem('shx-tut-done', '1'); } catch(e) {}
 }
 
@@ -3533,6 +3551,34 @@ function tutUpdateDots(idx) {
   });
 }
 
+function tutEnsureVisible(el) {
+  // Walk up and unhide any hidden ancestor that can be safely revealed
+  var node = el.parentElement;
+  while (node && node !== document.body) {
+    var cs = window.getComputedStyle(node);
+    if (cs.display === 'none') {
+      // col-right: toggled via .visible class
+      if (node.classList.contains('col-right')) {
+        node.classList.add('visible');
+      } else if (node.classList.contains('room-pane')) {
+        // make the right room tab active
+        document.querySelectorAll('.room-pane').forEach(function(p){ p.classList.remove('on'); });
+        node.classList.add('on');
+      } else {
+        // generic: temporarily force-show (scroll step will scroll it into view)
+        node.style.setProperty('display', 'block', 'important');
+        node._tutForced = true;
+      }
+    }
+    node = node.parentElement;
+  }
+}
+
+function tutCheckRect(el) {
+  var r = el.getBoundingClientRect();
+  return (r.width > 0 && r.height > 0);
+}
+
 function tutShow(idx) {
   var step = TUT_STEPS[idx];
   if (!step) return;
@@ -3556,11 +3602,33 @@ function tutShow(idx) {
   if (step.target) {
     var el = document.querySelector(step.target);
     if (el) {
+      // Ensure all ancestors are visible before measuring
+      tutEnsureVisible(el);
+
       if (step.scroll) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(function(){ tutSpotlight(el, step.position || 'bottom'); }, 340);
+        // Wait for scroll + layout — use two rAF cycles after timeout for accuracy
+        setTimeout(function() {
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              if (tutCheckRect(el)) {
+                tutSpotlight(el, step.position || 'bottom');
+              } else {
+                tutClearHole();
+                tutPositionCard(null, 'center');
+              }
+            });
+          });
+        }, 400);
       } else {
-        tutSpotlight(el, step.position || 'bottom');
+        requestAnimationFrame(function() {
+          if (tutCheckRect(el)) {
+            tutSpotlight(el, step.position || 'bottom');
+          } else {
+            tutClearHole();
+            tutPositionCard(null, 'center');
+          }
+        });
       }
     } else {
       tutClearHole();
