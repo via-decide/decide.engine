@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SkillHex">
 <meta name="description" content="SkillHex Operations Console — scenario-based skill-building missions, interview simulator and live leaderboard.">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -884,7 +884,7 @@ footer {
 
 </style>
 </head>
-<body>
+<body style="overscroll-behavior:none;touch-action:pan-y;">
 <div class="root">
 
 <!-- ═══════════════════ HEADER ═══════════════════════════════════ -->
@@ -3354,7 +3354,7 @@ function init() {
 
   // UPG-01: register service worker for PWA/TWA offline support
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   }
 
   // decide.engine integration: signal ready
