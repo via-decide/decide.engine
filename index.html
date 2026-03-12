@@ -600,6 +600,7 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
     <a class="nav-chip nc-a" href="#cat-audio">🎙 Audio.Log</a>
+    <a class="nav-chip nc-g" href="/skillhex-mission-control">🧩 Products · SkillHex</a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
@@ -866,6 +867,7 @@ section{position:relative;z-index:10}
     {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('/finance-dashboard-msme.html','💰','Finance Dashboard');}},
     {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('/alchemist.html','⚖️','Decision Tools');}},
     {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('/app-generator.html','🔧','Custom Web Apps');}},
+    {kw:['skillhex','mission','control','kada','interview','hex'],fn:function(){openModal('/apps/skillhex/index.html','🧩','SkillHex Mission Control');}},
   ];
   function runBuildSearch(q){if(!q)return;var lq=q.toLowerCase();var best=null,top=0;routes.forEach(function(r){var sc=r.kw.reduce(function(acc,k){return acc+(lq.includes(k)?1:0);},0);if(sc>top){top=sc;best=r;}});if(best&&top>0)best.fn();else{var el=document.getElementById('cat-tools');if(el)el.scrollIntoView({behavior:'smooth'});}}
   bGo.addEventListener('click',function(){runBuildSearch(bInput.value.trim());});
@@ -1166,14 +1168,38 @@ function normalizeInternalPath(file) {
   return file.replace(/^\/+/, '');
 }
 
-function deriveSlug(file) {
-  if (!file) return '';
-  return file
-    .replace(/\.html?$/i, '')   // strip .html / .htm
-    .replace(/\/index$/i, '')   // strip trailing /index
-    .replace(/^\/+/, '')        // strip leading slashes
-    .split('/')[0]              // take only first path segment (the slug)
-    .toLowerCase();             // normalise case
+function getRouteCandidates(file) {
+  const normalizedPath = normalizeInternalPath(file);
+  const clean = normalizedPath.replace(/^\/+/, '');
+  const noHtml = clean.replace(/\.html?$/i, '');
+  const noIndexHtml = clean.replace(/\/index\.html?$/i, '');
+  const noIndex = clean.replace(/\/index$/i, '');
+  const firstSeg = noHtml.split('/')[0] || '';
+  const leaf = noHtml.split('/').pop() || '';
+
+  return [
+    clean.toLowerCase(),
+    noHtml.toLowerCase(),
+    noIndexHtml.toLowerCase(),
+    noIndex.toLowerCase(),
+    firstSeg.toLowerCase(),
+    leaf.toLowerCase()
+  ].filter(Boolean);
+}
+
+function resolveModalFile(file) {
+  const normalizedPath = normalizeInternalPath(file);
+  if (!window.VDRouter || typeof window.VDRouter.resolve !== 'function' || typeof window.VDRouter.routes !== 'function') {
+    return normalizedPath;
+  }
+
+  const table = window.VDRouter.routes() || {};
+  const candidates = getRouteCandidates(file);
+  for (const key of candidates) {
+    if (table[key]) return window.VDRouter.resolve(key);
+  }
+
+  return normalizedPath;
 }
 
 function openModal(file, icon, name) {
@@ -1183,20 +1209,15 @@ function openModal(file, icon, name) {
     return;
   }
 
-  const normalizedPath = normalizeInternalPath(file);
-  const slug = deriveSlug(file);
+  const resolvedFile = resolveModalFile(file);
 
   // ── VDRouter path (preferred — router v2 always has openOverlay) ──
   if (window.VDRouter && typeof window.VDRouter.openOverlay === 'function') {
-    const resolvedFile = (window.VDRouter.resolve ? window.VDRouter.resolve(slug) : null) || normalizedPath;
-    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + '\u2009' : '') + (name || '') });
+    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + ' ' : '') + (name || '') });
     return;
   }
 
   // ── Iframe fallback ──
-  const resolvedFile = (window.VDRouter && window.VDRouter.resolve)
-    ? (window.VDRouter.resolve(slug) || normalizedPath)
-    : normalizedPath;
   _modalSetup(resolvedFile, icon, name);
 }
 
@@ -1691,6 +1712,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
     <div class="bento">
       <div class="tc tc-s4" onclick="openModal('/HexWars.html','⬡','HexWars')" data-cat="games" data-orbit="hexwars" data-intent="hex,strategy,conquest,territory,war,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/apps/skillhex/index.html','🧩','SkillHex Mission Control')" data-cat="games" data-orbit="skillhex" data-intent="skillhex,mission,control,kada,interview,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧩</span><div class="tc-name">SkillHex Mission Control</div><div class="tc-desc">Mission timers, KADA wheel interactions, and interview conversion logbook.</div><div class="tc-st live">● Integrated</div></div>
       <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" data-cat="games" data-orbit="mars-rover-simulator-game" data-intent="mars,rover,simulator,physics,engineering,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="openModal('/HivaLand.html','🌍','HivaLand')" data-cat="games" data-orbit="hivaland" data-intent="hivaland,world,building,simulation,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s4" onclick="openModal('/WingsOfFire.html','🔥','Wings of Fire')" data-cat="games" data-orbit="wings-of-fire" data-intent="wings,fire,aerial,strategy,skirmish,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire</div><div class="tc-desc">Fast-paced aerial strategy skirmish with risk and energy management.</div><div class="tc-st live">● Live</div></div>

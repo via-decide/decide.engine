@@ -148,6 +148,14 @@
       aliases:  ['hiva'],
     },
     {
+      slug:     'skillhex-mission-control',
+      icon:     '🧩',
+      name:     'SkillHex Mission Control',
+      keywords: ['skillhex', 'mission control', 'mission', 'kada', 'interview mode', 'interview conversion', 'leaderboard'],
+      verbs:    ['open', 'play', 'launch', 'start', 'run'],
+      aliases:  ['skillhex mission control', 'skillhex', 'kada wheel'],
+    },
+    {
       slug:     'decide-service',
       icon:     '🎯',
       name:     'Decide.Service',
@@ -507,7 +515,7 @@
     limit = limit || 6;
     if (!partial || partial.length < 1) {
       // Default: most popular modules
-      var defaults = ['alchemist', 'ondc-demo', 'hexwars', 'student-research', 'finance-dashboard-msme', 'mars-rover-simulator-game'];
+      var defaults = ['alchemist', 'ondc-demo', 'skillhex-mission-control', 'hexwars', 'student-research', 'finance-dashboard-msme'];
       return defaults.slice(0, limit).map(function (slug) {
         var intent = _findIntent(slug);
         return intent ? { slug: intent.slug, icon: intent.icon, name: intent.name, hint: 'open ' + intent.name.toLowerCase() } : null;
