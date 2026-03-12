@@ -1,4 +1,4 @@
-# SkillHex Mission Control Integration Notes
+# SkillHex Operations Console Integration Notes
 
 - Static mount path: `/apps/skillhex/index.html`.
 - Storage keys preserved:
