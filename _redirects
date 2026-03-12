@@ -57,7 +57,7 @@
 /cohort-apply-here                /cohort-apply-here.html                200
 /customswipeengineform            /CustomSwipeEngineForm.html            200
 /pricing                          /pricing.html                          200
-/engine-activation-request        /Engine Activation Request.html        200
+/engine-activation-request        /Engine%20Activation%20Request.html    200
 
 # ── Store ────────────────────────────────────────────────────
 /smarttag-lite                    /printbydd-store/smarttag-lite.html    200
@@ -68,8 +68,8 @@
 
 # ── Blog & Content ───────────────────────────────────────────
 /viadecide-blogs                  /Viadecide-blogs.html                  200
-/the-decision-stack               /The Decision Stack.html               200
-/the-decision-stack.html          /The Decision Stack.html               200
+/the-decision-stack               /The%20Decision%20Stack.html           200
+/the-decision-stack.html          /The%20Decision%20Stack.html           200
 /why-small-businesses-dont-need-saas /not-a-saas/index.html               200
 /why-smbs-dont-need-saas          /not-a-saas/index.html                 200
 /why-smbs-dont-need-saas.html     /not-a-saas/index.html                 200
@@ -91,10 +91,9 @@
 /privacy                          /privacy.html                          200
 /terms                            /terms.html                            200
 
-# ── SPA fallback — MUST BE LAST ──────────────────────────────
-
 # ── Audio Log ────────────────────────────────────────────────
 /audio.log                        /audio.log.html                        200
 /audiolog                         /audio.log.html                        200
 
+# ── SPA fallback — MUST BE LAST ──────────────────────────────
 /*                                /index.html                            200
