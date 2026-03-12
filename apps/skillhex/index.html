@@ -683,6 +683,152 @@ footer {
 .streak-pips { display: flex; gap: .3rem; flex-wrap: wrap; margin: .4rem 0; }
 .streak-pip { width: 9px; height: 9px; border-radius: 50%; background: var(--txt-mute); border: 1px solid var(--border); transition: all .3s; }
 .streak-pip.done { background: var(--amber); box-shadow: var(--amber-glow); border-color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════════ TUTORIAL */
+
+/* Dim layer — SVG-based spotlight cutout */
+#tut-overlay {
+  position: fixed; inset: 0; z-index: 8000;
+  pointer-events: none;
+  display: none;
+}
+#tut-overlay.active { display: block; pointer-events: all; }
+#tut-overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Spotlight ring around the focused element */
+#tut-ring {
+  position: fixed; z-index: 8001; pointer-events: none;
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px var(--cyan), 0 0 20px rgba(0,229,255,.5), 0 0 50px rgba(0,229,255,.2);
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+  display: none;
+}
+#tut-overlay.active #tut-ring,
+#tut-overlay.active + #tut-ring { display: block; }
+
+/* Tutorial card */
+#tut-card {
+  position: fixed; z-index: 8100;
+  width: min(360px, 90vw);
+  background: #07101e;
+  border: 1px solid var(--cyan);
+  box-shadow: 0 0 30px rgba(0,229,255,.25), 0 16px 48px rgba(0,0,0,.7);
+  border-radius: 10px;
+  padding: 1.25rem 1.35rem 1rem;
+  display: none;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+#tut-card.active { display: block; }
+
+/* Top accent bar */
+#tut-card::before {
+  content: '';
+  display: block;
+  height: 2px;
+  margin: -1.25rem -1.35rem 1rem;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--green));
+}
+
+.tut-step-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .65rem;
+}
+.tut-step-label {
+  font-family: var(--fmono); font-size: .46rem; letter-spacing: .22em;
+  color: var(--cyan); text-transform: uppercase;
+}
+.tut-step-dots {
+  display: flex; gap: 4px; align-items: center;
+}
+.tut-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--txt-mute); transition: background .25s, transform .25s;
+}
+.tut-dot.done  { background: var(--green); }
+.tut-dot.cur   { background: var(--cyan); transform: scale(1.4);
+                 box-shadow: 0 0 6px rgba(0,229,255,.7); }
+
+.tut-icon {
+  font-size: 1.6rem; line-height: 1; margin-bottom: .5rem;
+  display: block;
+}
+.tut-title {
+  font-family: var(--fhud); font-size: .9rem; font-weight: 700;
+  color: #fff; letter-spacing: .04em; margin-bottom: .4rem; line-height: 1.2;
+}
+.tut-body {
+  font-family: var(--fbody); font-size: .88rem; color: var(--txt);
+  line-height: 1.6; font-weight: 300; margin-bottom: .9rem;
+}
+.tut-body strong { color: var(--cyan); font-weight: 600; }
+.tut-body code {
+  font-family: var(--fmono); font-size: .78rem;
+  background: var(--panel2); border: 1px solid var(--border);
+  padding: .1rem .35rem; border-radius: 3px; color: var(--amber);
+}
+
+/* Tip chip */
+.tut-tip {
+  font-family: var(--fmono); font-size: .5rem; color: var(--amber);
+  background: #f59e0b0d; border: 1px solid #f59e0b22;
+  border-radius: 4px; padding: .3rem .6rem;
+  margin-bottom: .85rem; line-height: 1.5;
+  display: none;
+}
+.tut-tip.show { display: block; }
+
+.tut-btn-row {
+  display: flex; gap: .5rem; align-items: center;
+  border-top: 1px solid var(--border); padding-top: .75rem;
+}
+.tut-btn {
+  font-family: var(--fhud); font-size: .55rem; letter-spacing: .1em;
+  text-transform: uppercase; padding: .45rem .9rem; border-radius: 5px;
+  cursor: pointer; transition: all .18s; border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.tut-btn-next {
+  background: var(--cyan); color: #030508; font-weight: 700;
+  border-color: var(--cyan);
+}
+.tut-btn-next:hover { background: #fff; box-shadow: var(--cyan-glow); transform: translateY(-1px); }
+.tut-btn-prev {
+  background: transparent; color: var(--txt-dim); border-color: var(--border);
+}
+.tut-btn-prev:hover { color: var(--txt); border-color: var(--txt-dim); }
+.tut-btn-skip {
+  background: transparent; color: var(--txt-mute); border: none;
+  font-size: .5rem; margin-left: auto; padding: .3rem .5rem;
+  cursor: pointer; font-family: var(--fmono);
+}
+.tut-btn-skip:hover { color: var(--txt-dim); }
+
+/* Arrow pointer on the card */
+.tut-arrow {
+  position: absolute; width: 10px; height: 10px;
+  background: #07101e; border: 1px solid var(--cyan);
+  transform: rotate(45deg);
+}
+
+/* Help button (persistent) */
+#tut-help-btn {
+  position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 7000;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--panel2); border: 1px solid var(--border2);
+  color: var(--txt-dim); font-family: var(--fhud); font-size: .75rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+#tut-help-btn:hover {
+  border-color: var(--cyan); color: var(--cyan);
+  box-shadow: var(--cyan-glow); transform: scale(1.1);
+}
+
+/* Pulse on first load to draw attention */
+@keyframes helpPulse { 0%,100%{box-shadow:0 2px 8px rgba(0,0,0,.4);} 50%{box-shadow:0 0 0 6px rgba(0,229,255,.15),var(--cyan-glow);} }
+#tut-help-btn.pulse { animation: helpPulse 2s ease 3; }
+
 </style>
 </head>
 <body>
@@ -3000,6 +3146,9 @@ function init() {
 
   // decide.engine integration: signal ready
   try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, '*'); } catch(_) {}
+
+  // Launch tutorial on first visit
+  tutMaybeAutoLaunch();
 }
 
 // Wait for DOM + Firebase SDK load
@@ -3008,6 +3157,403 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+/* =================================================================
+   TUTORIAL ENGINE
+   Each step: target (CSS selector|null), icon, title, body (HTML),
+   tip (optional), position ('bottom'|'top'|'left'|'right'|'center'),
+   scroll (bool)
+================================================================= */
+const TUT_STEPS = [
+  {
+    target:   null,
+    icon:     '⬡',
+    title:    'Welcome to SkillHex Operations Console',
+    body:     '<strong>SkillHex</strong> is an interactive skill-building platform disguised as a mission briefing console.<br><br>You play <strong>scenario-based missions</strong>, practice with an <strong>interview simulator</strong>, build your <strong>Skill Matrix</strong>, and track your rank on a live leaderboard.<br><br>This tutorial walks you through every major feature — takes about 2 minutes.',
+    position: 'center',
+  },
+  {
+    target:   '#hdr-login-btn',
+    icon:     '⬡',
+    title:    'Step 1 — Set Your Callsign & Login',
+    body:     'Click <strong>Login</strong> to sign in with Google.<br><br>This does two things:<br>• Saves your callsign to the <strong>live leaderboard</strong><br>• Starts your <strong>daily streak</strong> counter (+5 tokens per day)<br><br>If you skip login, the game still works fully in <strong>local mode</strong> — your progress is saved to this browser only.',
+    tip:      'Logging in daily without breaking the chain builds your streak. 3-day streak = +30 bonus tokens!',
+    position: 'bottom',
+  },
+  {
+    target:   '#mission-card',
+    icon:     '🎯',
+    title:    'Step 2 — The Mission Card',
+    body:     'The left panel is your <strong>Active Mission</strong>. Each mission is a real-world scenario from ops, analytics, negotiation, AI, strategy, or leadership.<br><br>Look at:<br>• <strong>Category badge</strong> — the skill domain<br>• <strong>Difficulty pips</strong> — 1–5 amber dots<br>• <strong>Mission description</strong> — read it carefully before choosing',
+    tip:      'Higher difficulty missions give more SR (Skill Rating) on a correct answer.',
+    position: 'right',
+    scroll:   true,
+  },
+  {
+    target:   '#mission-prebrief',
+    icon:     '📋',
+    title:    'Step 3 — Pre-Brief Warm-up',
+    body:     'Before choosing, answer a <strong>warm-up question</strong> related to the mission skill. Type your answer in the textarea.<br><br>• <strong>15+ words</strong> unlocks a <code>x1.15</code> score multiplier<br>• <strong>30+ words</strong> unlocks a <code>x1.30</code> score multiplier<br><br>Click <code>Apply</code> to lock the boost, or <code>Skip</code> to proceed.',
+    tip:      'Your warm-up answers also count toward Interview Simulator progress passively — nothing is wasted.',
+    position: 'right',
+    scroll:   true,
+  },
+  {
+    target:   '#choices-list',
+    icon:     '🔘',
+    title:    'Step 4 — Make Your Choice',
+    body:     'Click any of the <strong>A / B / C / D</strong> cards to submit your answer.<br><br>After selecting:<br>• <strong>Green</strong> = correct answer revealed<br>• <strong>Red</strong> = wrong choice<br>• <strong>Faded</strong> = unchosen alternatives<br><br>A correct answer awards <strong>SR, XP, and Skill XP</strong> scaled by difficulty and your remaining timer.',
+    tip:      'Faster answers score higher — the KADA timer counts down from 30 seconds.',
+    position: 'right',
+    scroll:   true,
+  },
+  {
+    target:   '#wheel-panel',
+    icon:     '🌀',
+    title:    'Step 5 — KADA Input Wheel',
+    body:     'The centre wheel is an alternative way to make choices.<br><br><strong>How to use it:</strong><br>• <strong>Rotate</strong> the outer ring to browse choices A→B→C→D<br>• <strong>Pull</strong> the tether node outward to aim<br>• <strong>Release</strong> to confirm your selection<br><br>In <strong>Interview mode</strong> the four sectors switch rounds V07 / V08 / V09 / V10. Pull to skip a question.',
+    tip:      'Works on touchscreen too — drag the ring with your finger.',
+    position: 'left',
+    scroll:   true,
+  },
+  {
+    target:   '.col-right',
+    icon:     '⬡',
+    title:    'Step 6 — Skill Matrix & Leaderboard',
+    body:     'The right column shows your <strong>Skill Matrix</strong> — a hex grid where each node represents a skill domain.<br><br>Nodes <strong>brighten and grow</strong> as you earn XP from missions. Reach <strong>Level 3 in Systems + Strategy</strong> to unlock the special <strong>Tech Leader</strong> hex.<br><br>Below it, the <strong>Live Leaderboard</strong> shows your SR rank against real players.',
+    tip:      'On tablet or mobile, tap the Matrix button in the header to toggle this column.',
+    position: 'left',
+    scroll:   false,
+  },
+  {
+    target:   '#scene-grid-main',
+    icon:     '📓',
+    title:    'Step 7 — Mission Logbook',
+    body:     'Every completed mission appears as a card in the <strong>Mission Logbook</strong> below.<br><br>• <strong>Click a completed card</strong> to inspect your result, score, and choice path<br>• <strong>Click a pending card</strong> to jump directly to that mission<br>• The <strong>Choice Paths tree</strong> shows every branch taken across all missions',
+    tip:      'Use Demo Fill to preview the logbook with sample data before you have real results.',
+    position: 'top',
+    scroll:   true,
+  },
+  {
+    target:   '#rt-create',
+    icon:     '⊕',
+    title:    'Step 8 — Squad Room (Multiplayer)',
+    body:     'Create or join a <strong>Squad Room</strong> to play missions alongside teammates in real time.<br><br><strong>To create:</strong> name your room → click <code>Create Room</code> → share the generated code<br><strong>To join:</strong> switch to the Join tab → paste the code → click <code>Join</code><br><br>Members appear in the lobby live as they join via <strong>Firebase sync</strong>.',
+    tip:      'Login with Google first so squad rooms sync reliably across devices and sessions.',
+    position: 'top',
+    scroll:   true,
+  },
+  {
+    target:   '#interview-panel',
+    icon:     '🎙',
+    title:    'Step 9 — Interview Simulator',
+    body:     'The <strong>Interview Simulator</strong> lets you practice with ORBIT, an AI interviewer covering 14 categories: Intro, Motivation, Projects, CS Basics, System Design, Behavioral, HR, and more.<br><br>Type answers in Hinglish or English. When done, click <code>Convert to SkillHex XP</code> to turn your session score into SR and Skill XP.<br><br>Use the <strong>KADA wheel sectors</strong> to switch between interview rounds V07 / V08 / V09 / V10.',
+    tip:      'V10 is the Full Mock — all 14 categories with deep follow-up questions enabled.',
+    position: 'top',
+    scroll:   true,
+  },
+  {
+    target:   null,
+    icon:     '🏆',
+    title:    "You're Ready to Operate",
+    body:     'Quick cheatsheet:<br><br><strong>SR</strong> — Skill Rating, rises on correct answers<br><strong>XP</strong> — levels up your Battle Pass<br><strong>Tokens</strong> — earned from daily streaks and events<br><strong>Streak</strong> — log in daily, don\'t break the chain<br><br>Click <strong>Login</strong> to register your first day, then dive into <strong>Mission 01</strong>. Good luck, Operative.',
+    position: 'center',
+  },
+];
+
+let tutIdx    = 0;
+let tutActive = false;
+
+function tutStart(fromStep) {
+  fromStep  = fromStep || 0;
+  tutIdx    = fromStep;
+  tutActive = true;
+  document.getElementById('tut-overlay').classList.add('active');
+  document.getElementById('tut-card').classList.add('active');
+  tutBuildDots();
+  tutShow(tutIdx);
+  document.getElementById('tut-help-btn').style.display = 'none';
+}
+
+function tutClose() {
+  tutActive = false;
+  document.getElementById('tut-overlay').classList.remove('active');
+  document.getElementById('tut-card').classList.remove('active');
+  var ring = document.getElementById('tut-ring');
+  if (ring) ring.style.display = 'none';
+  tutClearHole();
+  document.getElementById('tut-help-btn').style.display = '';
+  try { localStorage.setItem('shx-tut-done', '1'); } catch(e) {}
+}
+
+function tutNext() {
+  if (tutIdx >= TUT_STEPS.length - 1) { tutClose(); return; }
+  tutIdx++;
+  tutShow(tutIdx);
+}
+
+function tutPrev() {
+  if (tutIdx <= 0) return;
+  tutIdx--;
+  tutShow(tutIdx);
+}
+
+function tutBuildDots() {
+  var c = document.getElementById('tut-dots');
+  if (!c) return;
+  c.innerHTML = '';
+  TUT_STEPS.forEach(function(_, i) {
+    var d = document.createElement('div');
+    d.className   = 'tut-dot';
+    d.id          = 'tut-dot-' + i;
+    d.style.cursor = 'pointer';
+    d.onclick = (function(n){ return function(){ tutIdx = n; tutShow(n); }; })(i);
+    c.appendChild(d);
+  });
+}
+
+function tutUpdateDots(idx) {
+  TUT_STEPS.forEach(function(_, i) {
+    var d = document.getElementById('tut-dot-' + i);
+    if (!d) return;
+    d.className = 'tut-dot' + (i < idx ? ' done' : i === idx ? ' cur' : '');
+  });
+}
+
+function tutShow(idx) {
+  var step = TUT_STEPS[idx];
+  if (!step) return;
+
+  document.getElementById('tut-step-lbl').textContent = 'Step ' + (idx + 1) + ' / ' + TUT_STEPS.length;
+  document.getElementById('tut-icon').textContent  = step.icon  || '\u2B21';
+  document.getElementById('tut-title').textContent = step.title || '';
+  document.getElementById('tut-body').innerHTML    = step.body  || '';
+
+  var tipEl = document.getElementById('tut-tip');
+  if (step.tip) { tipEl.textContent = step.tip; tipEl.classList.add('show'); }
+  else          { tipEl.textContent = '';        tipEl.classList.remove('show'); }
+
+  var prevBtn = document.getElementById('tut-prev');
+  var nextBtn = document.getElementById('tut-next');
+  if (prevBtn) prevBtn.style.visibility = idx === 0 ? 'hidden' : 'visible';
+  if (nextBtn) nextBtn.textContent = idx === TUT_STEPS.length - 1 ? '\u2713 Start Playing' : 'Next \u2192';
+
+  tutUpdateDots(idx);
+
+  if (step.target) {
+    var el = document.querySelector(step.target);
+    if (el) {
+      if (step.scroll) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(function(){ tutSpotlight(el, step.position || 'bottom'); }, 340);
+      } else {
+        tutSpotlight(el, step.position || 'bottom');
+      }
+    } else {
+      tutClearHole();
+      tutPositionCard(null, step.position || 'center');
+    }
+  } else {
+    tutClearHole();
+    tutPositionCard(null, step.position || 'center');
+  }
+}
+
+function tutSpotlight(el, position) {
+  var PAD  = 10;
+  var rect = el.getBoundingClientRect();
+  var x = rect.left   - PAD;
+  var y = rect.top    - PAD;
+  var w = rect.width  + PAD * 2;
+  var h = rect.height + PAD * 2;
+
+  var hole = document.getElementById('tut-hole');
+  if (hole) {
+    hole.setAttribute('x',      x);
+    hole.setAttribute('y',      y);
+    hole.setAttribute('width',  w);
+    hole.setAttribute('height', h);
+    hole.setAttribute('rx',     10);
+  }
+
+  var ring = document.getElementById('tut-ring');
+  if (ring) {
+    ring.style.display      = 'block';
+    ring.style.left         = x + 'px';
+    ring.style.top          = y + 'px';
+    ring.style.width        = w + 'px';
+    ring.style.height       = h + 'px';
+    ring.style.borderRadius = '10px';
+  }
+
+  tutPositionCard({ x:x, y:y, w:w, h:h }, position);
+}
+
+function tutClearHole() {
+  var hole = document.getElementById('tut-hole');
+  if (hole) { hole.setAttribute('width',0); hole.setAttribute('height',0); }
+  var ring = document.getElementById('tut-ring');
+  if (ring) ring.style.display = 'none';
+}
+
+function tutClamp(val, min, max) { return Math.min(max, Math.max(min, val)); }
+
+function tutPositionCard(spotlight, prefer) {
+  var card  = document.getElementById('tut-card');
+  var arrow = document.getElementById('tut-arrow');
+  if (!card) return;
+
+  card.style.left = '-9999px';
+  card.style.top  = '-9999px';
+  var cw = card.offsetWidth  || 360;
+  var ch = card.offsetHeight || 280;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+  var GAP = 18;
+  var arrowSide = null;
+  var left, top;
+
+  if (!spotlight || prefer === 'center') {
+    left = Math.max(12, (vw - cw) / 2);
+    top  = Math.max(12, (vh - ch) / 2);
+    if (arrow) arrow.style.display = 'none';
+  } else {
+    var sx = spotlight.x, sy = spotlight.y, sw = spotlight.w, sh = spotlight.h;
+    var sides = [];
+    if ([prefer,'bottom','top','right','left'].indexOf(prefer) >= 0) sides.push(prefer);
+    ['bottom','top','right','left'].forEach(function(s){ if (sides.indexOf(s) < 0) sides.push(s); });
+
+    var placed = false;
+    for (var si = 0; si < sides.length; si++) {
+      var side = sides[si];
+      if (side === 'bottom' && sy + sh + GAP + ch < vh) {
+        left = tutClamp(sx + sw/2 - cw/2, 12, vw - cw - 12);
+        top  = sy + sh + GAP;
+        arrowSide = 'top'; placed = true; break;
+      }
+      if (side === 'top' && sy - GAP - ch > 0) {
+        left = tutClamp(sx + sw/2 - cw/2, 12, vw - cw - 12);
+        top  = sy - GAP - ch;
+        arrowSide = 'bottom'; placed = true; break;
+      }
+      if (side === 'right' && sx + sw + GAP + cw < vw) {
+        left = sx + sw + GAP;
+        top  = tutClamp(sy + sh/2 - ch/2, 12, vh - ch - 12);
+        arrowSide = 'left'; placed = true; break;
+      }
+      if (side === 'left' && sx - GAP - cw > 0) {
+        left = sx - GAP - cw;
+        top  = tutClamp(sy + sh/2 - ch/2, 12, vh - ch - 12);
+        arrowSide = 'right'; placed = true; break;
+      }
+    }
+    if (!placed) {
+      left = Math.max(12, (vw - cw) / 2);
+      top  = Math.max(12, (vh - ch) / 2);
+    }
+
+    if (arrow && arrowSide) {
+      arrow.style.cssText = 'display:block;position:absolute;width:10px;height:10px;background:#07101e;border:1px solid var(--cyan);transform:rotate(45deg);';
+      if (arrowSide === 'top') {
+        arrow.style.top    = '-6px';
+        arrow.style.left   = tutClamp(sx + sw/2 - left, 16, cw - 16) + 'px';
+        arrow.style.borderBottom = 'none';
+        arrow.style.borderRight  = 'none';
+      } else if (arrowSide === 'bottom') {
+        arrow.style.bottom = '-6px';
+        arrow.style.left   = tutClamp(sx + sw/2 - left, 16, cw - 16) + 'px';
+        arrow.style.borderTop  = 'none';
+        arrow.style.borderLeft = 'none';
+      } else if (arrowSide === 'left') {
+        arrow.style.left = '-6px';
+        arrow.style.top  = tutClamp(sy + sh/2 - top, 16, ch - 16) + 'px';
+        arrow.style.borderRight  = 'none';
+        arrow.style.borderBottom = 'none';
+      } else {
+        arrow.style.right = '-6px';
+        arrow.style.top   = tutClamp(sy + sh/2 - top, 16, ch - 16) + 'px';
+        arrow.style.borderLeft = 'none';
+        arrow.style.borderTop  = 'none';
+      }
+    } else if (arrow) {
+      arrow.style.display = 'none';
+    }
+  }
+
+  card.style.left = Math.round(left) + 'px';
+  card.style.top  = Math.round(top)  + 'px';
+}
+
+/* Keyboard nav */
+document.addEventListener('keydown', function(e) {
+  if (!tutActive) return;
+  if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); tutNext(); }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); tutPrev(); }
+  if (e.key === 'Escape')     { e.preventDefault(); tutClose(); }
+});
+
+/* Reposition on resize */
+var _tutResizeT;
+window.addEventListener('resize', function() {
+  if (!tutActive) return;
+  clearTimeout(_tutResizeT);
+  _tutResizeT = setTimeout(function(){ tutShow(tutIdx); }, 150);
+});
+
+/* Auto-launch on first visit */
+function tutMaybeAutoLaunch() {
+  try {
+    if (!localStorage.getItem('shx-tut-done')) {
+      setTimeout(function(){ tutStart(0); }, 900);
+    } else {
+      setTimeout(function(){
+        var btn = document.getElementById('tut-help-btn');
+        if (btn) { btn.classList.add('pulse'); setTimeout(function(){ btn.classList.remove('pulse'); }, 7000); }
+      }, 1400);
+    }
+  } catch(e) {}
+}
+
 </script>
+
+<!-- ═══════════════════ TUTORIAL SYSTEM ════════════════════════════ -->
+
+<!-- Dim overlay with SVG cutout hole -->
+<div id="tut-overlay">
+  <svg id="tut-svg" preserveAspectRatio="none">
+    <defs>
+      <mask id="tut-mask">
+        <rect width="100%" height="100%" fill="white"/>
+        <rect id="tut-hole" x="0" y="0" width="0" height="0" rx="8" fill="black"/>
+      </mask>
+    </defs>
+    <rect width="100%" height="100%" fill="rgba(3,5,8,0.82)" mask="url(#tut-mask)"/>
+  </svg>
+</div>
+
+<!-- Spotlight glow ring (outside overlay so it layers above dim) -->
+<div id="tut-ring"></div>
+
+<!-- Tutorial card -->
+<div id="tut-card">
+  <div class="tut-step-row">
+    <span class="tut-step-label" id="tut-step-lbl">Step 1 / 10</span>
+    <div class="tut-step-dots" id="tut-dots"></div>
+  </div>
+  <span class="tut-icon" id="tut-icon">⬡</span>
+  <div class="tut-title" id="tut-title">Welcome</div>
+  <div class="tut-body"  id="tut-body"></div>
+  <div class="tut-tip"   id="tut-tip"></div>
+  <div class="tut-btn-row">
+    <button class="tut-btn tut-btn-prev" id="tut-prev" onclick="tutPrev()">← Back</button>
+    <button class="tut-btn tut-btn-next" id="tut-next" onclick="tutNext()">Next →</button>
+    <button class="tut-btn-skip" onclick="tutClose()">Skip tutorial</button>
+  </div>
+  <div class="tut-arrow" id="tut-arrow" style="display:none"></div>
+</div>
+
+<!-- Persistent help / replay button -->
+<button id="tut-help-btn" onclick="tutStart()" title="Show tutorial">?</button>
+
 </body>
   </html>
