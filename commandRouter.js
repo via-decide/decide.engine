@@ -148,7 +148,7 @@
       aliases:  ['hiva'],
     },
     {
-      slug:     'skillhex-mission-control',
+      slug:     'apps/skillhex',
       icon:     '🧩',
       name:     'SkillHex Mission Control',
       keywords: ['skillhex', 'mission control', 'mission', 'kada', 'interview mode', 'interview conversion', 'leaderboard'],
@@ -515,7 +515,7 @@
     limit = limit || 6;
     if (!partial || partial.length < 1) {
       // Default: most popular modules
-      var defaults = ['alchemist', 'ondc-demo', 'skillhex-mission-control', 'hexwars', 'student-research', 'finance-dashboard-msme'];
+      var defaults = ['alchemist', 'ondc-demo', 'apps/skillhex', 'hexwars', 'student-research', 'finance-dashboard-msme'];
       return defaults.slice(0, limit).map(function (slug) {
         var intent = _findIntent(slug);
         return intent ? { slug: intent.slug, icon: intent.icon, name: intent.name, hint: 'open ' + intent.name.toLowerCase() } : null;

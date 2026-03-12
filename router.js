@@ -113,9 +113,9 @@
         'hexwars':                   { file: 'HexWars.html',                   url: 'hexwars'                   },
         'mars-rover-simulator-game': { file: 'mars-rover-simulator-game.html', url: 'mars-rover-simulator-game' },
         'hivaland':                  { file: 'HivaLand.html',                  url: 'hivaland'                  },
-        'skillhex-mission-control': { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
-        'skillhex':                 { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
-        'apps/skillhex':            { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
+        'skillhex-mission-control': { file: 'apps/skillhex/index.html',        url: 'apps/skillhex'               },
+        'skillhex':                 { file: 'apps/skillhex/index.html',        url: 'apps/skillhex'               },
+        'apps/skillhex':            { file: 'apps/skillhex/index.html',        url: 'apps/skillhex'               },
         // Canonical URL: wings-of-fire-quiz. Aliases share file + canonical url.
         'wings-of-fire-quiz':        { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
         'wings-of-fire':             { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
