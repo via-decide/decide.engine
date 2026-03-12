@@ -136,7 +136,7 @@ header {
   background: var(--border);
   min-height: calc(100vh - 52px);
 }
-@media(max-width:1100px){ .grid-main { grid-template-columns: 1fr 280px; } .col-right { display: none; } }
+@media(max-width:1100px){ .grid-main { grid-template-columns: 1fr 280px; } .col-right { display: none; } .col-right.visible { display: flex; flex-direction:column; gap:1px; background:var(--border); } }
 @media(max-width:760px) { .grid-main { grid-template-columns: 1fr; } }
 
 /* ═══════════════════════════════════════════════════════ PANELS */
@@ -233,6 +233,24 @@ header {
   line-height: 1.5;
   margin-top: .45rem;
   min-height: 1.5em;
+}
+
+/* prebrief visibility toggle */
+.prebrief { transition: opacity .25s, max-height .35s cubic-bezier(.4,0,.2,1); overflow: hidden; max-height: 400px; }
+.prebrief.hidden { opacity: 0; max-height: 0; pointer-events: none; margin: 0; padding: 0; border: none; }
+
+/* live word counter */
+.prebrief-wc { font-family: var(--fmono); font-size: .48rem; color: var(--txt-dim); letter-spacing: .1em; }
+.prebrief-wc.ok   { color: var(--green); }
+.prebrief-wc.good { color: var(--amber); }
+
+/* multiplier flash */
+.prebrief-mult.boosted {
+  animation: multFlash .55s ease;
+}
+@keyframes multFlash {
+  0%,100% { color: var(--amber); }
+  40%     { color: var(--green); text-shadow: var(--green-glow); transform: scale(1.25); }
 }
 
 /* progress */
@@ -584,6 +602,7 @@ footer {
       <div class="fb-led" id="fb-led"></div>
       <span id="fb-status">CONNECTING</span>
     </div>
+    <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()">⬡ Matrix</button>
     <button class="hdr-btn" onclick="showRoom()">⊕ Room</button>
     <button class="hdr-btn" onclick="triggerLogin()">⬡ Login</button>
   </div>
@@ -604,48 +623,29 @@ footer {
     </div>
     <h2 class="m-title" id="m-title">Initialising…</h2>
     <p class="m-desc" id="m-desc">Awaiting mission briefing from command.</p>
-    <div id="warmup-card" style="margin:-.35rem 0 1rem;display:none;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.6rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.4rem">
-        <div style="font-family:var(--fmono);font-size:.52rem;letter-spacing:.12em;color:var(--cyan)">PRE-BRIEF WARM-UP</div>
-        <div id="warmup-mult" style="font-family:var(--fhud);font-size:.56rem;color:var(--amber)">×1.00</div>
-      </div>
-      <div id="warmup-question" style="font-size:.8rem;line-height:1.45;color:var(--txt);margin-bottom:.45rem"></div>
-      <textarea id="warmup-answer" class="inp" style="min-height:70px;resize:vertical" placeholder="Quick pre-brief answer likho…"></textarea>
-      <div class="btn-row" style="margin-top:.45rem">
-        <button class="btn btn-c" onclick="applyWarmupAnswer()">Apply</button>
-      </div>
+
     <div class="prebrief" id="mission-prebrief">
       <div class="prebrief-hd">
         <span class="prebrief-title">Pre-Brief Warm-up</span>
-        <span class="prebrief-mult" id="warmup-mult">x1.00</span>
+        <span style="display:flex;align-items:center;gap:.45rem">
+          <span class="prebrief-wc" id="warmup-wc">0w</span>
+          <span class="prebrief-mult" id="warmup-mult">×1.00</span>
+        </span>
       </div>
       <div class="prebrief-q" id="warmup-question">Warm-up unavailable for this mission.</div>
-      <textarea id="warmup-answer" placeholder="Draft a short warm-up response to tune your approach..."></textarea>
+      <textarea id="warmup-answer" placeholder="Draft a short warm-up response to tune your approach…" oninput="onWarmupInput(this.value)"></textarea>
       <div class="btn-row" style="margin-bottom:0">
         <button class="btn btn-c" onclick="applyWarmup()">Apply</button>
         <button class="btn btn-ghost" onclick="skipWarmup()">Skip</button>
       </div>
-      <div class="prebrief-hint" id="warmup-hint">Answering is optional. Mission choices stay active.</div>
+      <div class="prebrief-hint" id="warmup-hint">Answering is optional — multiplier resets each mission.</div>
     </div>
     <div class="prog-wrap">
       <div class="prog-row"><span>Mission Progress</span><span id="prog-txt">1/6</span></div>
       <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:10%"></div></div>
     </div>
-    <div class="warmup-box" id="warmup-box" style="display:none">
-      <div style="font-family:var(--fhud);font-size:.58rem;color:var(--amber);margin-bottom:.35rem">MISSION PRE-BRIEF (OPTIONAL)</div>
-      <div id="warmup-q" style="font-family:var(--fmono);font-size:.56rem;color:var(--txt);line-height:1.5"></div>
-      <div class="warmup-row" style="margin-top:.45rem">
-        <textarea id="warmup-answer" placeholder="Type your warm-up answer (20–40 sec optional)"></textarea>
-        <div style="display:flex;flex-direction:column;gap:.35rem">
-          <button class="btn btn-c" onclick="submitWarmup()">Apply</button>
-          <button class="btn btn-ghost" onclick="skipWarmup()">Skip</button>
-        </div>
-      </div>
-      <div class="warmup-meta">
-        <span id="warmup-status">Multiplier: 1.00x</span>
-        <span id="warmup-followup"></span>
-      </div>
-    </div>
+
+    </div><!-- /mission-prebrief -->
     <div class="choices-list" id="choices-list"></div>
     <div class="btn-row">
       <button class="btn btn-ghost" id="wheel-hint-btn" onclick="toggleWheelGuide()">⬡ Wheel Mode</button>
@@ -871,6 +871,19 @@ footer {
 
 </div><!-- /root -->
 
+<!-- ═══════════════════ CALLSIGN MODAL ═══════════════════════════════ -->
+<div id="callsign-modal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(3,9,18,.85);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+  <div style="background:var(--panel);border:1px solid var(--cyan);box-shadow:var(--cyan-glow);border-radius:8px;padding:1.5rem;width:min(380px,92vw);display:flex;flex-direction:column;gap:.75rem">
+    <div style="font-family:var(--fhud);font-size:.85rem;color:var(--cyan);letter-spacing:.1em">ENTER CALLSIGN</div>
+    <div style="font-family:var(--fmono);font-size:.58rem;color:var(--txt-dim)">1–16 chars · letters, numbers, spaces, hyphens only</div>
+    <input id="callsign-input" class="inp" placeholder="OPERATIVE" maxlength="16" style="font-size:1.1rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:0">
+    <div id="callsign-error" style="font-family:var(--fmono);font-size:.52rem;color:var(--red);display:none">Invalid callsign. Use A-Z, 0-9, spaces or hyphens only.</div>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn btn-c" onclick="confirmCallsign()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- toast -->
 <div id="toast"></div>
 
@@ -879,6 +892,18 @@ footer {
 ═══════════════════════════════════════════════════════════════════ -->
 <script>
 "use strict";
+
+/* ═══ XSS SANITIZATION ══════════════════════════════════════════════ */
+function sanitizeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 
 /* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
    Replace with your own Firebase project config.
@@ -940,14 +965,20 @@ function startLeaderboardListener() {
   } catch(e) { setFbStatus(false); }
 }
 
-async function fbWritePlayer() {
-  if (!db || !STATE.playerName || STATE.playerName === 'OPERATIVE') return;
+let _fbWriteTimer = null;
+function fbWritePlayer() {
+  clearTimeout(_fbWriteTimer);
+  _fbWriteTimer = setTimeout(_doFbWrite, 3000);
+}
+async function _doFbWrite() {
+  const name = sanitizeName(STATE.playerName);
+  if (!db || !name || name === 'OPERATIVE' || !CALLSIGN_RE.test(name)) return;
   try {
-    await db.collection('skillhex_leaderboard').doc(STATE.playerName).set({
-      sr:      STATE.sr,
-      xp:      STATE.xp,
-      tokens:  STATE.tokens,
-      streak:  STATE.streak.count,
+    await db.collection('skillhex_leaderboard').doc(name).set({
+      sr:      Math.max(0, Math.min(999999, Number(STATE.sr) || 0)),
+      xp:      Math.max(0, Math.min(999999, Number(STATE.xp) || 0)),
+      tokens:  Math.max(0, Math.min(999999, Number(STATE.tokens) || 0)),
+      streak:  Math.max(0, Math.min(9999, Number(STATE.streak.count) || 0)),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
   } catch(e) { console.warn('[Firebase] Write error:', e); }
@@ -1116,6 +1147,18 @@ const S = {
   hexSkills:   { ...DEFAULT.hexSkills,   ...(saved.hexSkills||{}) },
   leaderboardBots: DEFAULT.leaderboardBots,
 };
+// Clamp numeric fields to prevent localStorage manipulation
+S.sr      = Math.max(300,  Math.min(999999, Number(S.sr)      || 1000));
+S.xp      = Math.max(0,    Math.min(999999, Number(S.xp)      || 0));
+S.tokens  = Math.max(0,    Math.min(999999, Number(S.tokens)  || 0));
+S.passLevel = Math.max(1,  Math.min(20,     Number(S.passLevel)|| 1));
+S.lastScore = Math.max(0,  Math.min(999999, Number(S.lastScore)|| 0));
+if (S.streak && typeof S.streak === 'object') {
+  S.streak.count = Math.max(0, Math.min(9999, Number(S.streak.count) || 0));
+}
+// Sanitize playerName loaded from storage
+if (S.playerName) S.playerName = sanitizeName(S.playerName) || 'OPERATIVE';
+
 // treat S as STATE alias
 const STATE = S;
 
@@ -1269,155 +1312,122 @@ function calcWarmupMultiplier(answer = '') {
 
 function setWarmupMultiplier(mult = 1.0) {
   const el = document.getElementById('warmup-mult');
-  if (el) el.textContent = `x${Number(mult).toFixed(2)}`;
+  if (el) el.textContent = `×${Number(mult).toFixed(2)}`;
+}
+
+/* Live word-count + multiplier preview as user types */
+function onWarmupInput(val) {
+  const wc   = wordsOf(val || '');
+  const mult = calcWarmupMultiplier(val);
+  const wcEl   = document.getElementById('warmup-wc');
+  const multEl = document.getElementById('warmup-mult');
+  const hintEl = document.getElementById('warmup-hint');
+  if (wcEl) {
+    wcEl.textContent = `${wc}w`;
+    wcEl.className = 'prebrief-wc' + (wc >= 30 ? ' ok' : wc >= 15 ? ' good' : '');
+  }
+  if (multEl) multEl.textContent = `×${mult.toFixed(2)}`;
+  if (hintEl) {
+    if (!val.trim())   hintEl.textContent = 'Add 15+ words for ×1.15 or 30+ words for ×1.30 boost.';
+    else if (wc >= 30) hintEl.textContent = `✓ Max boost ready — hit Apply to lock ×1.30.`;
+    else if (wc >= 15) hintEl.textContent = `Good (${wc} words) — at 30+ words you'll unlock ×1.30.`;
+    else               hintEl.textContent = `${wc} words typed. Reach 15 for ×1.15, 30 for ×1.30.`;
+  }
 }
 
 function getWarmupForMission(mission) {
   const warmMap = {
-    Systems: ['CS Basics', 'System Design'],
-    Analytics: ['Databases', 'Projects'],
+    Systems:     ['CS Basics', 'System Design'],
+    Analytics:   ['Databases', 'Projects'],
     Negotiation: ['Teamwork', 'Behavioral', 'HR'],
-    Strategy: ['Motivation', 'Wrap-up'],
-    Leadership: ['Behavioral', 'Motivation'],
-    Execution: ['Communication', 'Teamwork'],
-    'AI Ops': ['Backend', 'System Design'],
+    Strategy:    ['Motivation', 'Wrap-up'],
+    Leadership:  ['Behavioral', 'Motivation'],
+    Execution:   ['Communication', 'Teamwork'],
+    'AI Ops':    ['Backend', 'System Design'],
   };
   const cats = warmMap[mission.skill] || ['Projects'];
   const pool = INTERVIEW_BANK.filter(q => cats.includes(q.cat));
   if (!pool.length) return null;
   const picked = pool[(missionIdx + mission.title.length) % pool.length];
-  const prior = INTERVIEW.answers.find(a => a.fromWarmup && a.q === picked.q);
-  const wc = prior ? wordsOf(prior.answer || '') : 0;
-  const mult = prior ? (wc >= 30 ? 1.3 : wc >= 15 ? 1.15 : 1.0) : 1.0;
-  return { ...picked, mult, prior: prior?.answer || '', words: wc, done: !!prior };
-}
 
-function renderWarmupBox() {
-  const box = document.getElementById('warmup-box');
-  const q = document.getElementById('warmup-q');
-  const ans = document.getElementById('warmup-answer');
-  const status = document.getElementById('warmup-status');
-  const follow = document.getElementById('warmup-followup');
-  if (!box || !q || !ans || !status || !follow) return;
-  if (!missionWarmup) { box.style.display = 'none'; return; }
-  box.style.display = '';
-  q.textContent = missionWarmup.q;
-  ans.value = missionWarmup.prior || '';
-  status.textContent = `Multiplier: ${(missionWarmup.mult || 1).toFixed(2)}x`;
-  follow.textContent = missionWarmup.followUp || '';
-}
-
-function submitWarmup() {
-  if (!missionWarmup) return;
-  const ta = document.getElementById('warmup-answer');
-  if (!ta) return;
-  const txt = ta.value.trim();
-  if (!txt) return;
-  const wc = wordsOf(txt);
-  missionWarmup.mult = wc >= 30 ? 1.3 : wc >= 15 ? 1.15 : 1.0;
-  missionWarmup.followUp = wc < 30 ? (chooseFollowUp(txt, missionWarmup.cat) || 'Thoda aur depth add karo for stronger multiplier.') : '';
-  missionWarmup.prior = txt;
-
-  const hit = INTERVIEW.answers.find(a => a.fromWarmup && a.q === missionWarmup.q);
-  if (hit) {
-    hit.answer = txt;
-    hit.ts = Date.now();
-  } else {
-    INTERVIEW.answers.push({ q: missionWarmup.q, cat: missionWarmup.cat, answer: txt, ts: Date.now(), fromWarmup: true });
-  }
-  INTERVIEW.transcript.push({ role:'user', text:txt, cat:missionWarmup.cat, ts:Date.now(), fromWarmup:true });
-  save();
-  renderWarmupBox();
-  showToast(`Warm-up applied · ${(missionWarmup.mult).toFixed(2)}x`, missionWarmup.mult > 1 ? 'ok' : 'info');
-}
-
-function skipWarmup() {
-  if (!missionWarmup) return;
-  missionWarmup.mult = 1.0;
-  missionWarmup.followUp = '';
-  renderWarmupBox();
-  showToast('Warm-up skipped · multiplier 1.00x', 'info');
-  const prior = INTERVIEW.answers.find(a => a.fromWarmup === picked.q);
+  // stable key = skill::title::missionIdx so same q in different missions stays separate
   const warmupKey = warmupKeyForMission(mission, missionIdx);
   const prior = INTERVIEW.answers.find(a => a.warmupKey === warmupKey)
     || INTERVIEW.answers.find(a => a.fromWarmup === true && a.q === picked.q);
-  const wc = prior ? wordsOf(prior.answer || '') : 0;
+  const wc  = prior ? wordsOf(prior.answer || '') : 0;
   const mult = prior ? (wc >= 30 ? 1.3 : wc >= 15 ? 1.15 : 1.0) : 1.0;
-  return { ...picked, warmupKey, mult, prior: prior?.answer || '' };
-  const prior = INTERVIEW.answers.find(a => a.fromWarmup === picked.q);
-  const priorAnswer = prior?.answer || '';
-  const mult = calcWarmupMultiplier(priorAnswer);
-  return { ...picked, mult, prior: priorAnswer, skipped: !!prior?.skipped };
+  return { ...picked, warmupKey, mult, prior: prior?.answer || '', words: wc, done: !!prior, skipped: !!prior?.skipped };
 }
+
+// renderWarmupBox / submitWarmup consolidated into applyWarmup below
+function renderWarmupBox() { /* no-op: warmup UI now handled by renderMission + applyWarmup */ }
 
 function applyWarmup() {
   if (!missionWarmup) return;
   const answerEl = document.getElementById('warmup-answer');
-  const hintEl = document.getElementById('warmup-hint');
-  const txt = (answerEl?.value || '').trim();
+  const hintEl   = document.getElementById('warmup-hint');
+  const multEl   = document.getElementById('warmup-mult');
+  const txt  = (answerEl?.value || '').trim();
   const mult = calcWarmupMultiplier(txt);
+  const wc   = wordsOf(txt);
 
-  missionWarmup.prior = txt;
-  missionWarmup.mult = mult;
+  missionWarmup.prior   = txt;
+  missionWarmup.mult    = mult;
   missionWarmup.skipped = false;
 
-  const hit = INTERVIEW.answers.find(a => a.fromWarmup === missionWarmup.q);
-  if (hit) {
-    hit.answer = txt;
-    hit.cat = missionWarmup.cat;
-    hit.skipped = false;
-    hit.ts = Date.now();
-  } else {
-    INTERVIEW.answers.push({
-      q: missionWarmup.q,
-      fromWarmup: missionWarmup.q,
-      cat: missionWarmup.cat,
-      answer: txt,
-      skipped: false,
-      ts: Date.now(),
-    });
+  // Upsert using stable warmupKey — never collide with unrelated mission warm-ups
+  const warmupKey = missionWarmup.warmupKey;
+  upsertInterviewAnswer({
+    q:         missionWarmup.q,
+    cat:       missionWarmup.cat,
+    answer:    txt,
+    warmupKey,
+    fromWarmup: true,
+    skipped:   false,
+    ts:        Date.now(),
+  });
+  // Also push to transcript so interview analytics see it passively
+  if (txt) {
+    INTERVIEW.transcript.push({ role:'user', text: txt, cat: missionWarmup.cat, ts: Date.now(), fromWarmup: true });
   }
 
   setWarmupMultiplier(mult);
+  // Live hint update
   if (hintEl) {
-    if (!txt) hintEl.textContent = 'Applied with no response. Add 15+ words for x1.15 or 30+ words for x1.30.';
-    else if (mult >= 1.3) hintEl.textContent = 'Strong pre-brief. Max boost locked at x1.30 for this mission.';
-    else if (mult >= 1.15) hintEl.textContent = 'Good warm-up. Add more depth to reach x1.30.';
-    else hintEl.textContent = 'Warm-up saved. Expand with concrete detail to reach x1.15/x1.30.';
+    if (!txt)        hintEl.textContent = 'Add 15+ words for ×1.15 or 30+ words for ×1.30 boost.';
+    else if (mult >= 1.3)  hintEl.textContent = '✓ Strong pre-brief — ×1.30 boost locked.';
+    else if (mult >= 1.15) hintEl.textContent = `Good start (${wc} words). Add more depth to hit ×1.30.`;
+    else                   hintEl.textContent = `Warm-up saved (${wc} words). Reach 15+ for ×1.15, 30+ for ×1.30.`;
   }
-
+  // Flash multiplier badge
+  if (multEl) { multEl.classList.add('boosted'); setTimeout(() => multEl.classList.remove('boosted'), 600); }
+  showToast(`Pre-brief applied · ×${mult.toFixed(2)}`, mult > 1 ? 'ok' : 'info');
   save();
 }
 
 function skipWarmup() {
   if (!missionWarmup) return;
   const answerEl = document.getElementById('warmup-answer');
-  const hintEl = document.getElementById('warmup-hint');
-  missionWarmup.prior = '';
-  missionWarmup.mult = 1.0;
+  const hintEl   = document.getElementById('warmup-hint');
+
+  missionWarmup.prior   = '';
+  missionWarmup.mult    = 1.0;
   missionWarmup.skipped = true;
 
-  const hit = INTERVIEW.answers.find(a => a.fromWarmup === missionWarmup.q);
-  if (hit) {
-    hit.answer = '';
-    hit.cat = missionWarmup.cat;
-    hit.skipped = true;
-    hit.ts = Date.now();
-  } else {
-    INTERVIEW.answers.push({
-      q: missionWarmup.q,
-      fromWarmup: missionWarmup.q,
-      cat: missionWarmup.cat,
-      answer: '',
-      skipped: true,
-      ts: Date.now(),
-    });
-  }
+  upsertInterviewAnswer({
+    q:         missionWarmup.q,
+    cat:       missionWarmup.cat,
+    answer:    '',
+    warmupKey: missionWarmup.warmupKey,
+    fromWarmup: true,
+    skipped:   true,
+    ts:        Date.now(),
+  });
 
   if (answerEl) answerEl.value = '';
   setWarmupMultiplier(1.0);
-  if (hintEl) hintEl.textContent = 'Warm-up skipped. You can still answer mission choices normally.';
-
+  if (hintEl) hintEl.textContent = 'Pre-brief skipped. Mission choices still active — multiplier is ×1.00.';
+  showToast('Pre-brief skipped · ×1.00', 'info');
   save();
 }
 
@@ -1489,9 +1499,9 @@ function renderInterviewStream(containerId) {
   const curAns = INTERVIEW.answers.find(a => a.q === current?.q)?.answer || '';
   const pending = INTERVIEW.pendingFollowUp;
   stream.innerHTML = `
-    <div class="bubble ai"><strong>${current?.cat || 'Round'}</strong><br>${current?.q || 'No question available'}</div>
-    ${curAns ? `<div class="bubble user">${curAns}</div>` : ''}
-    ${pending ? `<div class="bubble ai">${pending}</div>` : ''}
+    <div class="bubble ai"><strong>${sanitizeHTML(current?.cat || 'Round')}</strong><br>${sanitizeHTML(current?.q || 'No question available')}</div>
+    ${curAns ? `<div class="bubble user">${sanitizeHTML(curAns)}</div>` : ''}
+    ${pending ? `<div class="bubble ai">${sanitizeHTML(pending)}</div>` : ''}
   `;
   const ta = document.getElementById(`${containerId}-answer`);
   if (ta) ta.value = curAns;
@@ -1553,44 +1563,7 @@ function downloadInterviewTranscript() {
 }
 
 /* ═══ MISSION ENGINE ═══════════════════════════════════════════════ */
-function renderWarmupUI() {
-  const card = document.getElementById('warmup-card');
-  const qEl = document.getElementById('warmup-question');
-  const multEl = document.getElementById('warmup-mult');
-  const ta = document.getElementById('warmup-answer');
-  if (!card || !qEl || !multEl || !ta) return;
-  if (!missionWarmup) {
-    card.style.display = 'none';
-    return;
-  }
-  card.style.display = 'block';
-  qEl.textContent = missionWarmup.q;
-  multEl.textContent = `×${(missionWarmup.mult || 1).toFixed(2)}`;
-  ta.value = missionWarmup.prior || '';
-}
 
-function applyWarmupAnswer() {
-  if (!missionWarmup) return;
-  const ta = document.getElementById('warmup-answer');
-  const m = MISSIONS[missionIdx];
-  if (!ta || !m) return;
-  const answer = ta.value.trim();
-  if (!answer) return;
-
-  upsertInterviewAnswer({
-    q: missionWarmup.q,
-    cat: missionWarmup.cat,
-    answer,
-    ts: Date.now(),
-    fromWarmup: true,
-    warmupKey: missionWarmup.warmupKey || warmupKeyForMission(m, missionIdx),
-  });
-
-  missionWarmup = getWarmupForMission(m);
-  renderWarmupUI();
-  updateStats();
-  save();
-}
 
 function renderMission() {
   const m = MISSIONS[missionIdx];
@@ -1610,26 +1583,38 @@ function renderMission() {
   const warmAnsEl = document.getElementById('warmup-answer');
   const warmHintEl = document.getElementById('warmup-hint');
 
+  const prebriefEl = document.getElementById('mission-prebrief');
   if (missionWarmup) {
-    if (warmQEl) warmQEl.textContent = missionWarmup.q;
-    if (warmAnsEl) warmAnsEl.value = missionWarmup.prior || '';
+    // Show the prebrief panel
+    if (prebriefEl) prebriefEl.classList.remove('hidden');
+    if (warmQEl)   warmQEl.textContent   = missionWarmup.q;
+    if (warmAnsEl) warmAnsEl.value       = missionWarmup.prior || '';
     setWarmupMultiplier(missionWarmup.mult || 1.0);
+    // Sync live word counter with any loaded prior answer
+    const wcEl = document.getElementById('warmup-wc');
+    const priorWc = wordsOf(missionWarmup.prior || '');
+    if (wcEl) {
+      wcEl.textContent = `${priorWc}w`;
+      wcEl.className = 'prebrief-wc' + (priorWc >= 30 ? ' ok' : priorWc >= 15 ? ' good' : '');
+    }
     if (warmHintEl) {
-      if (missionWarmup.skipped) warmHintEl.textContent = 'Warm-up skipped for this mission. You can still answer choices normally.';
-      else if ((missionWarmup.prior || '').trim()) warmHintEl.textContent = 'Previous response loaded. Edit and Apply to update your boost.';
-      else warmHintEl.textContent = 'Answering is optional. Apply to tune your mission score boost.';
+      if (missionWarmup.skipped)
+        warmHintEl.textContent = 'Pre-brief skipped — multiplier is ×1.00. Edit and Apply to change.';
+      else if ((missionWarmup.prior || '').trim())
+        warmHintEl.textContent = `Previous response loaded (${priorWc} words). Edit and Apply to update boost.`;
+      else
+        warmHintEl.textContent = 'Answering is optional — Apply to lock your multiplier before making your choice.';
     }
   } else {
-    if (warmQEl) warmQEl.textContent = 'Warm-up unavailable for this mission.';
-    if (warmAnsEl) warmAnsEl.value = '';
+    // Hide prebrief entirely when no warmup available for this mission
+    if (prebriefEl) prebriefEl.classList.add('hidden');
+    if (warmAnsEl)  warmAnsEl.value = '';
     setWarmupMultiplier(1.0);
-    if (warmHintEl) warmHintEl.textContent = 'No pre-brief prompt for this mission. Proceed with choices as normal.';
   }
 
   const pips = document.querySelectorAll('#m-diff .pip');
   pips.forEach((p,i) => p.classList.toggle('on', i < m.diff));
 
-  renderWarmupUI();
   buildChoiceList(m);
   renderWarmupBox();
   buildSectors(m);
@@ -1740,7 +1725,7 @@ function pushReward(text) {
 function renderRewardLog() {
   const el = document.getElementById('reward-log');
   if (!el) return;
-  el.innerHTML = STATE.rewardLog.map(r => `<div class="reward-item">${r}</div>`).join('') || '<div class="reward-item" style="color:var(--txt-dim)">No rewards yet.</div>';
+  el.innerHTML = STATE.rewardLog.map(r => `<div class="reward-item">${sanitizeHTML(r)}</div>`).join('') || '<div class="reward-item" style="color:var(--txt-dim)">No rewards yet.</div>';
 }
 
 /* ═══ DAILY LOGIN / STREAK ═════════════════════════════════════════ */
@@ -1888,8 +1873,8 @@ function renderShareCard() {
     <rect x="12" y="12" width="456" height="176" rx="10" fill="#0c1224" stroke="#152240"/>
     <rect x="12" y="12" width="456" height="3" rx="1.5" fill="url(#scg)"/>
     <text x="28" y="46" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">SkillHex Operations Console</text>
-    <text x="28" y="72" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">${STATE.playerName} · SR: ${STATE.sr} · Pass Lv: ${STATE.passLevel}</text>
-    <text x="28" y="94" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">Tokens: ${STATE.tokens} · Streak: ${STATE.streak.count}d · Score: ${STATE.lastScore}</text>
+    <text x="28" y="72" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">${sanitizeHTML(STATE.playerName)} · SR: ${Number(STATE.sr)} · Pass Lv: ${Number(STATE.passLevel)}</text>
+    <text x="28" y="94" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">Tokens: ${Number(STATE.tokens)} · Streak: ${Number(STATE.streak.count)}d · Score: ${Number(STATE.lastScore)}</text>
     <rect x="28" y="112" width="280" height="8" rx="4" fill="#050810"/>
     <rect x="28" y="112" width="${Math.min(280,(STATE.xp/(STATE.passLevel*100))*280)}" height="8" rx="4" fill="url(#scg)"/>
     <text x="28" y="148" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Top Skills: ${Object.entries(STATE.hexSkills).sort((a,b)=>b[1].level-a[1].level).slice(0,3).map(([k,v])=>`${k} L${v.level}`).join(' · ')}</text>
@@ -1972,7 +1957,15 @@ function joinRoom() {
 function renderLobby() {
   const el = document.getElementById('lobby-members');
   if (!el) return;
-  el.innerHTML = (STATE.squad.members.length ? STATE.squad.members : [STATE.playerName]).map((m,i)=>`<div class="lb-row${i===0?' me':''}" style="margin-bottom:.3rem"><span class="lb-rank">${i+1}</span><span class="lb-name">${m}</span><span style="font-family:var(--fmono);font-size:.55rem;color:var(--amber)">${i===0?'HOST':''}</span></div>`).join('');
+  const members = STATE.squad.members.length ? STATE.squad.members : [STATE.playerName];
+  el.innerHTML = '';
+  members.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (i === 0 ? ' me' : '');
+    row.style.marginBottom = '.3rem';
+    row.innerHTML = `<span class="lb-rank">${i+1}</span><span class="lb-name">${sanitizeHTML(m)}</span><span style="font-family:var(--fmono);font-size:.55rem;color:var(--amber)">${i===0?'HOST':''}</span>`;
+    el.appendChild(row);
+  });
 }
 
 function leaveRoom() { STATE.squad.room=''; STATE.squad.members=[]; document.getElementById('ft-room').textContent='—'; switchRoomTab('create'); save(); }
@@ -2104,47 +2097,52 @@ function highlightSector(idx) {
   if (val) val.className = 'kada-hud-val' + (isPulled ? ' pull' : '');
 }
 
+/* ── KADA sector confirm ──────────────────────────────────────────────
+   Interview mode (modal open):
+     Rotate → sector 0=V07 · 1=V08 · 2=V09 · 3=V10  (switch active round)
+     Pull   → skip current interview question
+   Mission mode (normal):
+     Rotate → highlight choice A/B/C/D
+     Pull   → confirm highlighted choice
+─────────────────────────────────────────────────────────────────── */
 function confirmSector(idx) {
   const modalOpen = document.getElementById('interview-modal')?.classList.contains('open');
+
   if (modalOpen) {
-    const sectorRounds = ['V07','V08','V09','V10'];
+    // Pull = skip question; rotate = switch to that interview round
     if (isPulled) {
       skipInterviewQuestion('interview-modal-body');
-      showToast('Interview: skipped to next question', 'info');
-      updateKadaHUD('INTV', 'SKIP QUESTION');
+      showToast('Interview: question skipped', 'info');
+      updateKadaHUD('INTV', 'SKIP ▶');
     } else {
-      const roundId = sectorRounds[idx % 4];
-      openInterviewModal(roundId);
-      showToast('Interview round: ' + (INTERVIEW_ROUNDS[roundId]?.label || roundId), 'info');
-      updateKadaHUD('INTV', roundId);
+      const scene = INTERVIEW_WHEEL_SCENES[idx % 4] || 'V10';
+      const round = INTERVIEW_ROUNDS[scene] || INTERVIEW_ROUNDS.V10;
+      // Only remount if the round is actually changing
+      if (INTERVIEW.activeScene !== scene) {
+        INTERVIEW.activeScene = scene;
+        const titleEl = document.getElementById('interview-modal-title');
+        if (titleEl) titleEl.textContent = `${scene} · ${round.label}`;
+        mountInterview('interview-modal-body', round.cats, { deepDive: !!round.deepDive, compact: false });
+      }
+      showToast(`Round → ${scene}: ${round.label}`, 'info');
+      updateKadaHUD(scene, round.label.slice(0, 12));
     }
-    const round = INTERVIEW_ROUNDS[INTERVIEW.activeScene || 'V10'];
-    const cats = round?.cats || INTERVIEW_ROUNDS.V10.cats;
-    const scene = INTERVIEW_WHEEL_SCENES[idx] || INTERVIEW.activeScene || 'V10';
-    const round = INTERVIEW_ROUNDS[scene] || INTERVIEW_ROUNDS.V10;
-    if (isPulled) {
-      skipInterviewQuestion('interview-modal-body');
-      showToast('Interview: skipped to next question', 'info');
-    } else {
-      INTERVIEW.activeScene = scene;
-      const title = document.getElementById('interview-modal-title');
-      if (title) title.textContent = `${scene} · ${round.label}`;
-      mountInterview('interview-modal-body', round.cats, { deepDive: !!round.deepDive, compact:false });
-      showToast('Interview round: ' + scene, 'info');
-    }
-    updateKadaHUD(scene, isPulled ? 'SKIP QUESTION' : round.label);
     refreshWheelSectorLabels();
     return;
   }
 
+  // ── Mission mode ───────────────────────────────────────────────────
   const m = MISSIONS[missionIdx];
   if (!m || choiceMade || idx < 0) return;
   const choice = m.choices[idx];
   if (!choice) return;
 
-  // flash confirm
+  // flash the arc green briefly, then confirm
   const p = document.getElementById('sec-' + idx);
-  if (p) { p.className.baseVal = 'sector-arc confirm'; setTimeout(() => { if(p) p.className.baseVal='sector-arc idle'; }, 600); }
+  if (p) {
+    p.className.baseVal = 'sector-arc confirm';
+    setTimeout(() => { if (p) p.className.baseVal = 'sector-arc idle'; }, 600);
+  }
 
   handleChoice(choice);
 }
@@ -2606,6 +2604,97 @@ function runCaptureSim() { showToast('Run missions to generate log entries', 'in
 function resetCapture() { clearMissionLog(); }
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
+/* ═══ CALLSIGN MODAL ═══════════════════════════════════════════════ */
+const CALLSIGN_RE = /^[A-Z0-9 \-]{1,16}$/;
+
+function sanitizeName(raw) {
+  return (raw || '').trim().toUpperCase().replace(/[^A-Z0-9 \-]/g, '').slice(0, 16);
+}
+
+function showCallsignModal() {
+  const modal = document.getElementById('callsign-modal');
+  if (modal) { modal.style.display = 'flex'; }
+  setTimeout(() => { const inp = document.getElementById('callsign-input'); if (inp) inp.focus(); }, 100);
+}
+
+function confirmCallsign() {
+  const inp   = document.getElementById('callsign-input');
+  const errEl = document.getElementById('callsign-error');
+  const raw   = (inp?.value || '').trim().toUpperCase();
+  const clean = sanitizeName(raw);
+  if (!clean || !CALLSIGN_RE.test(clean)) {
+    if (errEl) errEl.style.display = 'block';
+    return;
+  }
+  STATE.playerName = clean;
+  save();
+  const modal = document.getElementById('callsign-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+/* ═══ SKILL MATRIX TOGGLE (tablet) ═══════════════════════════════════ */
+function toggleSkillMatrix() {
+  const col = document.querySelector('.col-right');
+  const btn = document.getElementById('matrix-toggle-btn');
+  if (!col) return;
+  const on = col.classList.toggle('visible');
+  if (btn) { btn.style.borderColor = on ? 'var(--cyan)' : ''; btn.style.color = on ? 'var(--cyan)' : ''; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DECIDE.ENGINE INTEGRATION RUNBOOK  (PR #14 → upstream sync)
+   ═══════════════════════════════════════════════════════════════════
+
+   REPO TOPOLOGY
+   ─────────────
+   upstream:  github.com/decide-engine/skillhex-mc   (this file lives here)
+   downstream: decide.engine main website repo        (embeds via <iframe> or copy)
+
+   REPRODUCIBLE MERGE PLAYBOOK
+   ───────────────────────────
+   1. In upstream repo, tag the release commit:
+        git tag -a vX.Y.Z -m "SkillHex vX.Y.Z — <summary>"
+        git push origin vX.Y.Z
+
+   2. In decide.engine repo, update the embedded version ref:
+        # Edit embed config or copy the single-file build:
+        cp dist/index.html ../decide.engine/public/skillhex/index.html
+        git add public/skillhex/index.html
+        git commit -m "chore: sync SkillHex vX.Y.Z from upstream"
+
+   3. Verify these integration contracts are still intact after merge:
+        a. window.postMessage('skillhex:ready') fires on init()
+        b. window.postMessage({ type:'skillhex:result', sr, xp, playerName }) fires on each fbWritePlayer()
+        c. Firebase project ID must match decide.engine's env var: SKILLHEX_FB_PROJECT_ID
+        d. CSP in decide.engine nginx config must allow:
+              connect-src https://*.googleapis.com https://*.firebaseio.com;
+              font-src    https://fonts.gstatic.com;
+
+   STATE CONTRACT (localStorage key: 'skillhex-v3')
+   ─────────────────────────────────────────────────
+   Fields consumed by decide.engine dashboard:
+     sr          — Skill Rating (number, 300–999999)
+     xp          — Total XP earned this session
+     tokens      — Token balance
+     passLevel   — Battle pass level (1–20)
+     streak      — { count, lastLogin }
+     playerName  — Sanitised callsign (A-Z 0-9 spaces hyphens, max 16)
+     hexSkills   — { [skillKey]: { xp, level } }
+
+   INTERVIEW SESSION KEY: 'retroInterviewSession_v1'
+   ──────────────────────────────────────────────────
+   Fields: qIndex, asked[], transcript[], answers[], pendingFollowUp
+   The answers[] array uses warmupKey (skill::title::idx) as the stable
+   de-dup key for warm-up entries (fromWarmup: true).
+
+   BREAKING CHANGE POLICY
+   ──────────────────────
+   - Increment localStorage key suffix (e.g. skillhex-v4) on any breaking
+     state schema change to avoid silent data corruption on existing users.
+   - Always provide a migration shim in loadInterviewState() and the S merge block.
+
+ ════════════════════════════════════════════════════════════════════ */
+
 /* ═══ FOOTER SEASON ════════════════════════════════════════════════ */
 function updateFooter() {
   const d = new Date();
@@ -2618,11 +2707,7 @@ function init() {
   loadInterviewState();
   // Ensure player has a name
   if (!STATE.playerName || STATE.playerName === 'OPERATIVE') {
-    const input = prompt('Enter your callsign:');
-    if (input && input.trim()) {
-      STATE.playerName = input.trim().toUpperCase().slice(0, 16);
-      save();
-    }
+    showCallsignModal();
   }
 
   buildSceneGrids();
