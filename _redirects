@@ -94,6 +94,14 @@
 # ── Audio Log ────────────────────────────────────────────────
 /audio.log                        /audio.log.html                        200
 /audiolog                         /audio.log.html                        200
+/audio-log                        /audio.log.html                        200
+
+# ── Aliases (fix #15) ────────────────────────────────────────
+/wings-of-fire                    /wings-of-fire-quiz.html               200
+/wingsoffire                      /wings-of-fire-quiz.html               200
+/wof                              /wings-of-fire-quiz.html               200
+/numberplate                      /printbydd-store/numberplate.html      200
+/printbydd-store                  /printbydd-store/index.html            200
 
 # ── SPA fallback — MUST BE LAST ──────────────────────────────
 /*                                /index.html                            200
