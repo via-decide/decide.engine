@@ -28,11 +28,14 @@ async function apiFetch(path, options = {}) {
 
   return response;
 }
+const candidateList = document.getElementById('candidateList');
+const evidencePane = document.getElementById('evidencePane');
 
 async function searchCandidates() {
   const skill = document.getElementById('skill').value.trim();
   const minScore = document.getElementById('minScore').value;
   const res = await apiFetch(`/api/candidates?skill=${encodeURIComponent(skill)}&minScore=${encodeURIComponent(minScore)}`);
+  const res = await fetch(`/api/candidates?skill=${encodeURIComponent(skill)}&minScore=${encodeURIComponent(minScore)}`);
   const data = await res.json();
 
   candidateList.innerHTML = '';
@@ -46,6 +49,7 @@ async function searchCandidates() {
 
 async function loadCandidate(id) {
   const res = await apiFetch(`/api/candidate/${id}?includeQuestions=1`);
+  const res = await fetch(`/api/candidate/${id}?includeQuestions=1`);
   const data = await res.json();
   const candidate = data.candidate;
 
@@ -80,6 +84,7 @@ async function createJob() {
   };
 
   const res = await apiFetch('/api/jobs', {
+  const res = await fetch('/api/jobs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -109,3 +114,5 @@ function init() {
 }
 
 init();
+document.getElementById('searchBtn').onclick = searchCandidates;
+document.getElementById('createJobBtn').onclick = createJob;

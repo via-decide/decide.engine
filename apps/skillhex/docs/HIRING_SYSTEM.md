@@ -73,6 +73,9 @@ All recruiter endpoints are wrapped by Bearer-token auth via `verifyRecruiterAut
   - Calls `POST /api/recruiter-auth`
   - Stores session token and redirects to dashboard
 - **Dashboard Left panel**
+`apps/skillhex/hiring-dashboard.html`
+
+- **Left panel**
   - Skill search input
   - Minimum score filter
   - Job creation form

@@ -6,6 +6,9 @@ export async function onRequest({ request, env, params }) {
     return json({ ok: false, error: auth.error }, auth.status);
   }
 
+import { generateInterviewQuestions, json } from '../_skillhex.js';
+
+export async function onRequest({ request, env, params }) {
   if (request.method !== 'GET') {
     return json({ ok: false, error: 'Method Not Allowed' }, 405);
   }

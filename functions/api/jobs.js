@@ -6,6 +6,9 @@ export async function onRequest({ request, env }) {
     return json({ ok: false, error: auth.error }, auth.status);
   }
 
+import { json, parseJsonBody } from './_skillhex.js';
+
+export async function onRequest({ request, env }) {
   if (request.method !== 'POST') {
     return json({ ok: false, error: 'Method Not Allowed' }, 405);
   }
