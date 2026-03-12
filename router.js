@@ -393,13 +393,7 @@
                 el.setAttribute('data-back-bound', '');
                 el.addEventListener('click', e => {
                     e.preventDefault();
-                    if (global.self !== global.top) {
-                        try {
-                            global.parent.postMessage({ type: 'vd:close-overlay' }, global.location.origin);
-                            return;
-                        } catch (_) {}
-                    }
-                    global.history.length > 1 ? global.history.back() : global.location.assign('/');
+                    global.parent.postMessage({ type: 'vd-nav', route: '/' }, '*');
                 });
             });
         },
@@ -417,6 +411,8 @@
         },
 
         init() {
+            if (global.self !== global.top) return;
+
             _installCloseModalTrap();
 
             // 1. Cloudflare 404 restore — router.js is sole __vd_redirect__ owner
