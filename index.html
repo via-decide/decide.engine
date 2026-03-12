@@ -600,6 +600,7 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
     <a class="nav-chip nc-a" href="#cat-audio">🎙 Audio.Log</a>
+    <a class="nav-chip nc-g" href="/skillhex-mission-control">🧩 Products · SkillHex</a>
     <a class="nav-chip nc-g" href="/skillhex-mission-control.html">🧩 Products · SkillHex</a>
   </div>
   <div class="nav-right">
@@ -1168,14 +1169,38 @@ function normalizeInternalPath(file) {
   return file.replace(/^\/+/, '');
 }
 
-function deriveSlug(file) {
-  if (!file) return '';
-  return file
-    .replace(/\.html?$/i, '')   // strip .html / .htm
-    .replace(/\/index$/i, '')   // strip trailing /index
-    .replace(/^\/+/, '')        // strip leading slashes
-    .split('/')[0]              // take only first path segment (the slug)
-    .toLowerCase();             // normalise case
+function getRouteCandidates(file) {
+  const normalizedPath = normalizeInternalPath(file);
+  const clean = normalizedPath.replace(/^\/+/, '');
+  const noHtml = clean.replace(/\.html?$/i, '');
+  const noIndexHtml = clean.replace(/\/index\.html?$/i, '');
+  const noIndex = clean.replace(/\/index$/i, '');
+  const firstSeg = noHtml.split('/')[0] || '';
+  const leaf = noHtml.split('/').pop() || '';
+
+  return [
+    clean.toLowerCase(),
+    noHtml.toLowerCase(),
+    noIndexHtml.toLowerCase(),
+    noIndex.toLowerCase(),
+    firstSeg.toLowerCase(),
+    leaf.toLowerCase()
+  ].filter(Boolean);
+}
+
+function resolveModalFile(file) {
+  const normalizedPath = normalizeInternalPath(file);
+  if (!window.VDRouter || typeof window.VDRouter.resolve !== 'function' || typeof window.VDRouter.routes !== 'function') {
+    return normalizedPath;
+  }
+
+  const table = window.VDRouter.routes() || {};
+  const candidates = getRouteCandidates(file);
+  for (const key of candidates) {
+    if (table[key]) return window.VDRouter.resolve(key);
+  }
+
+  return normalizedPath;
 }
 
 function openModal(file, icon, name) {
@@ -1185,20 +1210,15 @@ function openModal(file, icon, name) {
     return;
   }
 
-  const normalizedPath = normalizeInternalPath(file);
-  const slug = deriveSlug(file);
+  const resolvedFile = resolveModalFile(file);
 
   // ── VDRouter path (preferred — router v2 always has openOverlay) ──
   if (window.VDRouter && typeof window.VDRouter.openOverlay === 'function') {
-    const resolvedFile = (window.VDRouter.resolve ? window.VDRouter.resolve(slug) : null) || normalizedPath;
-    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + '\u2009' : '') + (name || '') });
+    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + ' ' : '') + (name || '') });
     return;
   }
 
   // ── Iframe fallback ──
-  const resolvedFile = (window.VDRouter && window.VDRouter.resolve)
-    ? (window.VDRouter.resolve(slug) || normalizedPath)
-    : normalizedPath;
   _modalSetup(resolvedFile, icon, name);
 }
 
