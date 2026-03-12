@@ -1211,6 +1211,25 @@ let _roomUnsub = null; // squad room Firestore listener unsubscribe handle
     // Offline persistence so the app still works without network
     db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
+    // Handle redirect result from mobile Google sign-in
+    auth.getRedirectResult().then(result => {
+      if (result && result.user) {
+        fbUser = result.user;
+        if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
+          const clean = sanitizeName(fbUser.displayName);
+          if (clean && CALLSIGN_RE.test(clean)) STATE.playerName = clean;
+        }
+        setFbStatus(true, fbUser.displayName?.toUpperCase().slice(0,10) || 'GOOGLE');
+        const claimed = claimDailyLogin();
+        updateStats(); renderStreak(); save(); fbWritePlayer();
+        showToast(claimed ? 'Signed in · Streak: ' + STATE.streak.count : 'Welcome back, ' + (fbUser.displayName || STATE.playerName), 'ok');
+      }
+    }).catch(e => {
+      if (e.code !== 'auth/popup-closed-by-user') {
+        console.warn('[Firebase Auth] Redirect result error:', e.message);
+      }
+    });
+
     // Sign in anonymously on first visit so Firestore rules can gate writes
     auth.onAuthStateChanged(user => {
       if (user) {
@@ -2082,6 +2101,13 @@ async function triggerLogin() {
   try {
     setFbStatus(fbOnline, 'SIGNING IN…');
     const provider = new firebase.auth.GoogleAuthProvider();
+    // Mobile browsers block signInWithPopup — use redirect flow instead
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if (isMobile) {
+      await auth.signInWithRedirect(provider);
+      // Page will reload; result handled in getRedirectResult() above
+      return;
+    }
     const result   = await auth.signInWithPopup(provider);
     fbUser = result.user;
     // Persist the Google display name as callsign if player is still default
