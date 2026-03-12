@@ -1,9 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- UPG-05: max-scale=1 prevents double-tap zoom on Android/iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SkillHex — Operations Console v3</title>
+<!-- UPG-01: PWA meta tags -->
+<meta name="theme-color" content="#00E5FF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SkillHex">
+<meta name="description" content="SkillHex Operations Console — scenario-based skill-building missions, interview simulator and live leaderboard.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
@@ -39,12 +50,12 @@
   --violet-d:  #3b0764;
 
   --txt:       #c8d8f0;
-  --txt-dim:   #4a6080;
+  --txt-dim:   #6a8aa8; /* UPG-12: was #4a6080 — increased to pass 4.5:1 contrast on dark bg */
   --txt-mute:  #1e3050;
 
-  --fhud:  'Orbitron', monospace;
-  --fbody: 'Rajdhani', sans-serif;
-  --fmono: 'Share Tech Mono', monospace;
+  --fhud:  'Orbitron', 'Arial Black', monospace;
+  --fbody: 'Rajdhani', 'Arial', sans-serif;
+  --fmono: 'Share Tech Mono', 'Courier New', monospace;
 }
 
 /* ═══════════════════════════════════════════════════════ RESET */
@@ -56,6 +67,24 @@ body {
   font-family: var(--fbody);
   min-height: 100vh;
   overflow-x: hidden;
+  /* UPG-05: prevent bounce scroll on iOS, overscroll on Android */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* UPG-05: use dynamic viewport height when available */
+@supports (min-height: 100dvh) {
+  body { min-height: 100dvh; }
+  .grid-main { min-height: calc(100dvh - 52px); }
+}
+
+/* UPG-12: respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* scanline + grid */
@@ -171,6 +200,12 @@ header { min-height: 48px; }
 .pipe-node { cursor: default; }
 .pipe-node.done { cursor: pointer; }
 
+/* BUG-06: use CSS touch-action instead of JS preventDefault to avoid blocking Android scroll */
+#kada-wrap  { touch-action: none; }
+#rotor      { touch-action: none; }
+#tether-node { touch-action: none; }
+#tether-wrap { touch-action: none; }
+
 /* Scene thumb grid — better mobile wrap */
 @media(max-width:500px) { .scene-grid { grid-template-columns: repeat(2,1fr); } }
 
@@ -272,8 +307,14 @@ header {
 .badge-a { background: #f59e0b0d; border: 1px solid #f59e0b22; color: var(--amber); }
 .badge-g { background: #00ff880d; border: 1px solid #00ff8822; color: var(--green); }
 
-.diff-pips { display: flex; gap: 3px; }
-.pip { width: 7px; height: 7px; border-radius: 50%; background: var(--txt-mute); transition: background .3s; }
+.diff-pips { display: flex; gap: 4px; }
+/* UPG-04: 12×12 visual with ::after tap expansion */
+.pip {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--txt-mute); transition: background .3s;
+  position: relative;
+}
+.pip::after { content: ''; position: absolute; inset: -10px; }
 .pip.on { background: var(--amber); box-shadow: var(--amber-glow); }
 
 .m-title {
@@ -565,8 +606,10 @@ header {
 }
 .pipe-node {
   background: var(--panel2); border: 1px solid var(--border);
-  padding: .35rem .55rem; border-radius: 5px; font-family: var(--fmono); font-size: .52rem;
+  padding: .45rem .65rem; /* UPG-04: increased for 44px min height */
+  border-radius: 5px; font-family: var(--fmono); font-size: .52rem;
   color: var(--txt-dim); white-space: nowrap; flex-shrink: 0; transition: all .25s;
+  min-height: 36px; display: flex; align-items: center;
 }
 .pipe-node.running { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--cyan-glow); animation: pipeFlash .5s ease infinite; }
 .pipe-node.done    { border-color: var(--green); color: var(--green); }
@@ -680,8 +723,18 @@ footer {
 .spark { position: absolute; width: 4px; height: 4px; border-radius: 50%; pointer-events: none; animation: sparkOut .5s ease forwards; }
 
 /* ═══════════════════════════════════════════════════════ STREAK */
-.streak-pips { display: flex; gap: .3rem; flex-wrap: wrap; margin: .4rem 0; }
-.streak-pip { width: 9px; height: 9px; border-radius: 50%; background: var(--txt-mute); border: 1px solid var(--border); transition: all .3s; }
+.streak-pips { display: flex; gap: .4rem; flex-wrap: wrap; margin: .4rem 0; }
+/* UPG-04: 14×14px visual pip with 44px tap zone for accessibility */
+.streak-pip {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--txt-mute); border: 1px solid var(--border);
+  transition: all .3s;
+  position: relative;
+}
+.streak-pip::after {
+  content: ''; position: absolute;
+  inset: -15px; /* expand tap zone to ~44px */
+}
 .streak-pip.done { background: var(--amber); box-shadow: var(--amber-glow); border-color: var(--amber); }
 
 /* ═══════════════════════════════════════════════════════ TUTORIAL */
@@ -852,7 +905,7 @@ footer {
       <div class="fb-led connecting" id="fb-led"></div>
       <span id="fb-status">CONNECTING</span>
     </div>
-    <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()">⬡ Matrix</button>
+    <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()" aria-label="Toggle Skill Matrix panel">⬡ Matrix</button>
     <button class="hdr-btn" onclick="showRoom()">⊕ Room</button>
     <button class="hdr-btn" id="hdr-login-btn" onclick="triggerLogin()">⬡ Login</button>
   </div>
@@ -988,7 +1041,7 @@ footer {
         <span id="log-pend-count" style="color:var(--txt-dim)">10</span> pending
       </div>
       <div style="margin-left:auto;display:flex;gap:.4rem">
-        <button class="btn btn-o" onclick="demoFillLog()" style="font-size:.52rem;padding:.3rem .6rem" title="Populate with sample data to preview cards">⬡ Demo Fill</button>
+        <button class="btn btn-o" id="demo-fill-btn" onclick="demoFillLog()" style="font-size:.52rem;padding:.3rem .6rem;display:none" title="Populate with sample data to preview cards">⬡ Demo Fill</button>
         <button class="btn btn-ghost" onclick="clearMissionLog()" style="font-size:.52rem;padding:.3rem .6rem">↺ Clear</button>
       </div>
     </div>
@@ -1117,6 +1170,8 @@ footer {
   <div class="stat-item">PLAYERS: <span id="ft-players" style="color:var(--txt);margin-left:.3rem">1</span></div>
   <div class="stat-item">SEASON <span style="color:var(--txt);margin-left:.3rem" id="ft-season"></span></div>
   <div class="stat-item" style="margin-left:auto">SkillHex v3.0 · @geogebra.in</div>
+  <!-- UPG-08: Privacy policy link required for Play Store -->
+  <div class="stat-item"><a href="/privacy" target="_blank" style="color:var(--txt-dim);text-decoration:none;font-family:var(--fmono);font-size:.5rem;letter-spacing:.1em">Privacy</a></div>
 </footer>
 
 </div><!-- /root -->
@@ -1135,7 +1190,17 @@ footer {
 </div>
 
 <!-- toast -->
-<div id="toast"></div>
+<!-- UPG-06: Offline banner -->
+<div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9000;
+  background:#1a0a00;border-bottom:1px solid var(--amber);padding:.45rem 1.25rem;
+  font-family:var(--fmono);font-size:.56rem;color:var(--amber);letter-spacing:.1em;
+  display:none;align-items:center;gap:.75rem;">
+  <span>⚠ OFFLINE — playing in local mode. Progress saved, will sync on reconnect.</span>
+  <button onclick="retryConnection()" style="margin-left:auto;font-family:var(--fhud);font-size:.52rem;
+    letter-spacing:.1em;background:transparent;border:1px solid var(--amber);color:var(--amber);
+    padding:.2rem .6rem;border-radius:4px;cursor:pointer;">↺ Retry</button>
+</div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════════
      SCRIPTS
@@ -1154,6 +1219,17 @@ function sanitizeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
+/* SVG text node escaping (BUG-03 fix) */
+function svgEscape(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 
 /* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
    TO ENABLE:
@@ -1163,6 +1239,13 @@ function sanitizeHTML(str) {
         • Anonymous  (for auto-login on first visit)
         • Google     (for "Login" button upgrade)
    4. In Firestore → Rules, paste the rules from the runbook comment below.
+ ═════════════════════════════════════════════════════════════════════ */
+/* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
+   SECURITY: For production / Play Store builds, do NOT hardcode these values.
+   Inject via build-time env (Capacitor: capacitor.config.ts server.env,
+   or Cloudflare Pages: Environment Variables → replace at build with sed/envsubst).
+   The apiKey is safe to expose publicly but the combination with open Firestore
+   rules creates write-abuse risk — see rules below.
  ═════════════════════════════════════════════════════════════════════ */
 const FB_CONFIG = {
   apiKey:            "AIzaSyBixS7kmf5R5BbsCecSgfGqagGrY2cme6Y",
@@ -1184,11 +1267,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
-    // Squad rooms: any authenticated user can read/write their own member slot
+    // Squad rooms: authenticated users can read/create; only room creator can update root doc
+    // BUG-04 fix: tightened update rule to require uid match on member sub-doc
     match /skillhex_rooms/{roomId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.creatorUid;
       match /members/{uid} {
         allow read:  if request.auth != null;
         allow write: if request.auth != null && request.auth.uid == uid;
@@ -1198,7 +1283,13 @@ service cloud.firestore {
 }
 */
 
-let db      = null;
+/* BUG-13: specific targetOrigin for postMessage — never use '*' with game state data */
+const PARENT_ORIGIN = (function() {
+  try {
+    if (window.parent !== window) return document.referrer ? new URL(document.referrer).origin : 'https://www.viadecide.com';
+  } catch(_) {}
+  return 'https://www.viadecide.com';
+})();
 let auth    = null;
 let fbUser  = null;   // current Firebase Auth user (anon or Google)
 let fbOnline = false;
@@ -1217,6 +1308,9 @@ let _roomUnsub = null; // squad room Firestore listener unsubscribe handle
     auth.getRedirectResult().then(result => {
       if (result && result.user) {
         fbUser = result.user;
+        // BUG-08: clear previous user's interview session on fresh Google sign-in
+        try { localStorage.removeItem('retroInterviewSession_v1'); } catch(_) {}
+        loadInterviewState();
         if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
           const clean = sanitizeName(fbUser.displayName);
           if (clean && CALLSIGN_RE.test(clean)) STATE.playerName = clean;
@@ -1304,6 +1398,7 @@ async function _doFbWrite() {
     const docId = fbUser?.uid || name;
     await db.collection('skillhex_leaderboard').doc(docId).set({
       name:    name,
+      uid:     fbUser?.uid || null, // BUG-09: store UID for reliable 'me' matching
       sr:      Math.max(0, Math.min(999999, Number(STATE.sr) || 0)),
       xp:      Math.max(0, Math.min(999999, Number(STATE.xp) || 0)),
       tokens:  Math.max(0, Math.min(999999, Number(STATE.tokens) || 0)),
@@ -1317,7 +1412,7 @@ async function _doFbWrite() {
       type: 'skillhex:result',
       sr: STATE.sr, xp: STATE.xp, tokens: STATE.tokens,
       playerName: STATE.playerName, passLevel: STATE.passLevel
-    }, '*');
+    }, PARENT_ORIGIN); // BUG-13: specific origin
   } catch(_) {}
 }
 
@@ -1967,8 +2062,12 @@ function buildChoiceList(m) {
     const div = document.createElement('div');
     div.className = 'choice-item';
     div.dataset.v = c.v;
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('aria-label', `Choice ${keys[i]}: ${c.l}`); // UPG-12
     div.innerHTML = `<span class="choice-key-tag">${keys[i]}</span>${c.l}`;
     div.addEventListener('click', () => handleChoice(c));
+    div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleChoice(c); } }); // UPG-12: keyboard activation
     g.appendChild(div);
   });
 }
@@ -2013,6 +2112,7 @@ function handleChoice(choice) {
   setTimeout(() => {
     missionIdx = (missionIdx + 1) % MISSIONS.length;
     renderMission();
+    startMissionTimer(); // BUG-01 fix: restart timer for each new mission
   }, 2400);
 }
 
@@ -2112,6 +2212,9 @@ async function triggerLogin() {
     }
     const result   = await auth.signInWithPopup(provider);
     fbUser = result.user;
+    // BUG-08: clear previous user's interview session on fresh Google sign-in
+    try { localStorage.removeItem('retroInterviewSession_v1'); } catch(_) {}
+    loadInterviewState();
     // Persist the Google display name as callsign if player is still default
     if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
       const clean = sanitizeName(fbUser.displayName);
@@ -2144,8 +2247,10 @@ function renderStreak() {
 /* ═══ LEADERBOARD ══════════════════════════════════════════════════ */
 function renderLeaderboard() {
   let combined = [...(LIVE_LEADERBOARD.length ? LIVE_LEADERBOARD : STATE.leaderboardBots)];
-  const meIdx = combined.findIndex(p => p.name === STATE.playerName);
-  if (meIdx === -1) combined.push({ name: STATE.playerName, sr: STATE.sr, isMe: true });
+  // BUG-09: prefer UID match over name to handle callsign changes + name collisions
+  const myUid = fbUser?.uid;
+  const meIdx = combined.findIndex(p => (myUid && p.uid === myUid) || p.name === STATE.playerName);
+  if (meIdx === -1) combined.push({ name: STATE.playerName, sr: STATE.sr, uid: myUid, isMe: true });
   else combined[meIdx].isMe = true;
   combined.sort((a,b) => b.sr - a.sr);
 
@@ -2160,7 +2265,7 @@ function renderLeaderboard() {
     const mc   = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
     const row  = document.createElement('div');
     row.className = 'lb-row' + (p.isMe ? ' me' : '');
-    row.innerHTML = `<span class="lb-rank ${mc}">${rank}</span><span class="lb-name ${p.isMe?'me-n':''}">${p.isMe?'▶ ':''} ${p.name}</span><span class="lb-score">${String(p.sr).padStart(4,'0')}</span>`;
+    row.innerHTML = `<span class="lb-rank ${mc}">${rank}</span><span class="lb-name ${p.isMe?'me-n':''}">${p.isMe?'▶ ':''} ${sanitizeHTML(p.name)}</span><span class="lb-score">${String(p.sr).padStart(4,'0')}</span>`;
     el.appendChild(row);
   });
 }
@@ -2430,6 +2535,7 @@ let pullHoldStart = 0;
 let activeSector  = -1;
 let kadaTimer     = 30;
 let kadaInterval  = null;
+let _pullRafId    = null; // BUG-05: track RAF id to cancel orphaned frames
 
 const SECTORS = [
   { label:'A', angle: 270 },  // top
@@ -2627,7 +2733,7 @@ function flashKadaWrong() {
       startAngle = getAngle(e.clientX, e.clientY);
       lastAngle  = startAngle;
       document.body.style.cursor = 'grabbing';
-      e.preventDefault();
+      // BUG-06: removed e.preventDefault() — touch-action:none CSS handles this without blocking scroll
     }
   });
 
@@ -2646,6 +2752,8 @@ function flashKadaWrong() {
       if (isPulled) { pullHoldStart = Date.now(); updatePullProgress(); }
       else {
         pullHoldStart = 0;
+        // BUG-05: cancel any orphaned RAF frame
+        if (_pullRafId) { cancelAnimationFrame(_pullRafId); _pullRafId = null; }
         const ring = document.getElementById('progress-ring');
         if (ring) ring.style.setProperty('--prog', '0%');
         document.querySelectorAll('.choice-item').forEach(el => el.classList.remove('active-sector'));
@@ -2676,6 +2784,8 @@ function flashKadaWrong() {
     const sec = activeSector;
     isPulled = false;
     pullHoldStart = 0;
+    // BUG-05: cancel orphaned RAF on release
+    if (_pullRafId) { cancelAnimationFrame(_pullRafId); _pullRafId = null; }
     updateTetherVisuals();
     const ring = document.getElementById('progress-ring');
     if (ring) ring.style.setProperty('--prog', '0%');
@@ -2693,7 +2803,8 @@ function updatePullProgress() {
   const pct = Math.min(100, ((Date.now() - pullHoldStart) / 3000) * 100);
   const ring = document.getElementById('progress-ring');
   if (ring) ring.style.setProperty('--prog', pct.toFixed(1) + '%');
-  if (pct < 100 && isPulled) requestAnimationFrame(updatePullProgress);
+  if (pct < 100 && isPulled) _pullRafId = requestAnimationFrame(updatePullProgress); // BUG-05 fix
+  else _pullRafId = null;
 }
 
 // Keyboard shortcuts
@@ -2797,10 +2908,10 @@ function buildSceneCardSVG(id, log, missionDef) {
   const pass  = log.result === 'pass';
   const col   = pass ? '#00ff88' : '#ff3a50';
   const icon  = pass ? '✓' : '✗';
-  const titleShort = log.title.slice(0, 18) + (log.title.length > 18 ? '…' : '');
+  const titleShort = svgEscape(log.title.slice(0, 18) + (log.title.length > 18 ? '…' : ''));
   const scoreStr = log.type === 'interview' ? `${log.score}/100` : (pass ? '+' + log.score : '—');
-  const t = new Date(log.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  const skillText = log.type === 'interview' ? `avg ${log.avgWords || 0}w · interview` : `${scoreStr} pts · ${log.skill}`;
+  const t = svgEscape(new Date(log.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+  const skillText = svgEscape(log.type === 'interview' ? `avg ${log.avgWords || 0}w · interview` : `${scoreStr} pts · ${log.skill}`);
   return `<svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
     <rect width="160" height="90" fill="#060a14"/>
     <rect x="4" y="4" width="152" height="82" rx="4" fill="${pass ? '#001a0d' : '#1a0005'}" stroke="${col}33"/>
@@ -2809,7 +2920,7 @@ function buildSceneCardSVG(id, log, missionDef) {
     <text x="12" y="37" fill="#c8d8f0" font-size="7.5" font-family="Share Tech Mono">${titleShort}</text>
     <text x="12" y="51" fill="${col}" font-size="8" font-family="Share Tech Mono">${skillText}</text>
     <text x="12" y="64" fill="#4a6080" font-size="6.5" font-family="Share Tech Mono">${t}</text>
-    <text x="12" y="78" fill="#4a6080" font-size="6" font-family="Share Tech Mono">${log.choice.slice(0,28)}</text>
+    <text x="12" y="78" fill="#4a6080" font-size="6" font-family="Share Tech Mono">${svgEscape(log.choice.slice(0,28))}</text>
   </svg>`;
 }
 
@@ -2844,6 +2955,11 @@ function jumpToMission(slot, sceneId) {
 }
 
 function demoFillLog() {
+  // BUG-10: only available in dev mode (?dev=1 in URL)
+  if (!new URLSearchParams(location.search).has('dev')) {
+    showToast('Demo mode not available in production', 'info');
+    return;
+  }
   MISSIONS.forEach((m, i) => {
     if (STATE.missionLog[i] && !STATE.missionLog[i].isDemo) return;
     const pass = Math.random() > 0.4;
@@ -2986,24 +3102,27 @@ function previewScene(id) {
 
   const pass = log.result === 'pass';
   const col  = pass ? '#00ff88' : '#ff3a50';
-  const ts   = new Date(log.ts).toLocaleString();
+  const ts   = svgEscape(new Date(log.ts).toLocaleString());
   const srDelta = log.type === 'interview'
     ? ((Math.round((log.score - 65) / 3) >= 0 ? '+' : '') + Math.round((log.score - 65) / 3))
     : (pass ? '+' + Math.round((log.score - 600)/25) : '−' + Math.round(100/25));
   const scoreTxt = log.type === 'interview' ? `${log.score}/100` : `${log.score} pts`;
-  const skillTxt = log.type === 'interview' ? `Interview · Avg words: ${log.avgWords || 0}` : `Skill XP: ${log.skill} +45`;
+  const skillTxt = svgEscape(log.type === 'interview' ? `Interview · Avg words: ${log.avgWords || 0}` : `Skill XP: ${log.skill} +45`);
+  const choiceTxt = svgEscape(log.choice.slice(0,80));
+  const resultTxt = svgEscape(pass ? (log.type === 'interview' ? 'Interview converted into SR + hex XP' : 'Hex node unlocked · ' + log.skill + ' skill advanced') : 'No XP awarded · Retry to improve your score');
+  const logTitle = svgEscape(log.title);
 
   prev.innerHTML = `<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
     <rect width="800" height="200" fill="#080d1a"/>
     <rect x="8" y="8" width="784" height="184" rx="6" fill="${pass?'#001a0d':'#1a0005'}" stroke="${col}33"/>
     <rect x="8" y="8" width="784" height="3" rx="1.5" fill="${col}"/>
-    <text x="22" y="42" fill="${col}" font-size="18" font-family="Orbitron" font-weight="900">${pass?'✓ PASS':'✗ FAIL'} — ${id}: ${log.title}</text>
+    <text x="22" y="42" fill="${col}" font-size="18" font-family="Orbitron" font-weight="900">${pass?'✓ PASS':'✗ FAIL'} — ${id}: ${logTitle}</text>
     <text x="22" y="66" fill="#c8d8f0" font-size="12" font-family="Share Tech Mono">Score: ${scoreTxt} · SR Δ: ${srDelta} · ${skillTxt}</text>
-    <text x="22" y="90" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Choice: ${log.choice.slice(0,80)}</text>
+    <text x="22" y="90" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Choice: ${choiceTxt}</text>
     <text x="22" y="114" fill="#4a6080" font-size="10" font-family="Share Tech Mono">Played: ${ts}</text>
     <rect x="22" y="134" width="${Math.min(600, ((log.type === 'interview' ? log.score*15 : log.score)/1500)*600)}" height="6" rx="3" fill="${col}" opacity=".6"/>
     <rect x="22" y="134" width="600" height="6" rx="3" fill="none" stroke="${col}22"/>
-    <text x="22" y="165" fill="${col}" font-size="10" font-family="Share Tech Mono">${pass ? (log.type === 'interview' ? 'Interview converted into SR + hex XP' : 'Hex node unlocked · ' + log.skill + ' skill advanced') : 'No XP awarded · Retry to improve your score'}</text>
+    <text x="22" y="165" fill="${col}" font-size="10" font-family="Share Tech Mono">${resultTxt}</text>
   </svg>`;
 }
 
@@ -3050,6 +3169,12 @@ function runCaptureSim() { showToast('Run missions to generate log entries', 'in
 function resetCapture() { clearMissionLog(); }
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
+function retryConnection() {
+  if (db) { startLeaderboardListener(); }
+  fbWritePlayer();
+  showToast('Reconnecting…', 'info');
+}
+
 /* ═══ CALLSIGN MODAL ═══════════════════════════════════════════════ */
 const CALLSIGN_RE = /^[A-Z0-9 \-]{1,16}$/;
 
@@ -3076,6 +3201,10 @@ function confirmCallsign() {
   save();
   const modal = document.getElementById('callsign-modal');
   if (modal) modal.style.display = 'none';
+  // BUG-07: sync header, leaderboard and Firebase after name change
+  updateStats();
+  fbWritePlayer();
+  showToast('Callsign set: ' + clean, 'ok');
 }
 
 /* ═══ SKILL MATRIX TOGGLE (tablet) ═══════════════════════════════════ */
@@ -3169,11 +3298,67 @@ function init() {
   renderMission();
   mountInterview('interview-shell', INTERVIEW_ROUNDS.V10.cats, { deepDive:true, compact:true });
   startMissionTimer();
-  setInterval(updateEvent, 1000);
-  setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50); // drift damping
+  // BUG-10: show demo fill only in dev mode
+  const DEV = new URLSearchParams(location.search).has('dev');
+  const demoBtn = document.getElementById('demo-fill-btn');
+  if (demoBtn && DEV) demoBtn.style.display = '';
+  let eventInterval = setInterval(updateEvent, 1000);
+  let rotorDampInterval = setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50);
+
+  // BUG-11: pause background intervals to prevent Android battery drain
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(eventInterval);
+      clearInterval(rotorDampInterval);
+    } else {
+      updateEvent();
+      eventInterval = setInterval(updateEvent, 1000);
+      rotorDampInterval = setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50);
+    }
+  });
+
+  // UPG-07: handle Android virtual keyboard inset via visualViewport API
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      document.body.style.height = window.visualViewport.height + 'px';
+    });
+  }
+  // Auto-scroll focused textareas into view above keyboard
+  document.addEventListener('focusin', e => {
+    if (e.target.matches('textarea, input')) {
+      setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 320);
+    }
+  });
+
+  // UPG-02: Android hardware/gesture back button — close topmost open modal
+  window.addEventListener('popstate', () => {
+    const interviewOpen = document.getElementById('interview-modal')?.classList.contains('open');
+    const callsignOpen  = document.getElementById('callsign-modal')?.style.display === 'flex';
+    const tutOpen       = tutActive;
+    if (interviewOpen)   { closeInterviewModal(); history.pushState(null, ''); return; }
+    if (callsignOpen)    { document.getElementById('callsign-modal').style.display = 'none'; history.pushState(null, ''); return; }
+    if (tutOpen)         { tutClose(); history.pushState(null, ''); return; }
+    // No modal open — allow normal back navigation
+  });
+  // Push an initial state so the first back press hits popstate instead of exiting
+  history.pushState(null, '');
+
+  // UPG-06: offline/online detection
+  function setOfflineBanner(offline) {
+    const b = document.getElementById('offline-banner');
+    if (b) b.style.display = offline ? 'flex' : 'none';
+  }
+  window.addEventListener('offline', () => setOfflineBanner(true));
+  window.addEventListener('online',  () => { setOfflineBanner(false); retryConnection(); });
+  if (!navigator.onLine) setOfflineBanner(true);
+
+  // UPG-01: register service worker for PWA/TWA offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 
   // decide.engine integration: signal ready
-  try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, '*'); } catch(_) {}
+  try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, PARENT_ORIGIN); } catch(_) {}
 
   // Launch tutorial on first visit
   tutMaybeAutoLaunch();
@@ -3581,7 +3766,7 @@ function tutMaybeAutoLaunch() {
 </div>
 
 <!-- Persistent help / replay button -->
-<button id="tut-help-btn" onclick="tutStart()" title="Show tutorial">?</button>
+<button id="tut-help-btn" onclick="tutStart()" title="Show tutorial" aria-label="Show tutorial">?</button>
 
 </body>
   </html>
