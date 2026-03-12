@@ -9,6 +9,7 @@
 
 <!-- Firebase 9 Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
@@ -75,6 +76,109 @@ body::after {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan-d); }
+
+/* ═══════════════════════════════════════════════════════ UI REFINEMENTS */
+
+/* Smooth page transitions */
+.panel { transition: background .2s; }
+.panel:hover { background: #09102096; }
+
+/* Header — tighter, cleaner on mobile */
+header { min-height: 48px; }
+.hud-stat { cursor: default; }
+.hud-val { transition: color .3s, text-shadow .3s; }
+
+/* Animated counter flash when value changes */
+@keyframes valBump { 0%,100%{transform:scale(1);} 40%{transform:scale(1.18);} }
+.hud-val.bump { animation: valBump .35s ease; }
+
+/* Better badge pills */
+.badge { transition: box-shadow .2s; }
+.badge-c:hover { box-shadow: 0 0 8px #00e5ff44; }
+
+/* Mission card — breathing room */
+#mission-card { gap: 0; }
+.m-title { transition: color .3s; }
+
+/* Choice items — smoother feedback */
+.choice-item { transition: all .18s cubic-bezier(.4,0,.2,1); }
+.choice-item::before {
+  content: ''; position: absolute; inset: 0; border-radius: 5px;
+  background: linear-gradient(135deg, transparent 60%, #00e5ff08);
+  opacity: 0; transition: opacity .2s;
+}
+.choice-item:hover::before { opacity: 1; }
+.choice-item.correct { animation: choiceReveal .4s ease forwards; }
+.choice-item.wrong   { animation: choiceShake  .4s ease; }
+@keyframes choiceReveal { from{opacity:.6;transform:translateX(-4px);} to{opacity:1;transform:none;} }
+@keyframes choiceShake  { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+
+/* Progress bar label */
+.prog-row span:last-child { font-weight: 700; color: var(--cyan); }
+
+/* Stat cards — hover lift */
+.stat-card { transition: transform .2s, border-color .2s, box-shadow .2s; cursor: default; }
+.stat-card:hover { transform: translateY(-2px); border-color: var(--border2); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+.sc-val { transition: color .3s; }
+
+/* Leaderboard rows */
+.lb-row { transition: background .2s; border-radius: 5px; }
+.lb-row:hover { background: #0c1830; }
+.lb-row.me { background: #00e5ff08; }
+
+/* Reward log items — fade in */
+@keyframes rewardIn { from{opacity:0;transform:translateX(8px);} to{opacity:1;transform:none;} }
+.reward-item:first-child { animation: rewardIn .3s ease; }
+
+/* Panel headers — stronger marker */
+.panel-hd::before { transition: box-shadow .2s; }
+
+/* Room code box — glow pulse on new code */
+@keyframes codeGlow { 0%,100%{box-shadow:none;} 50%{box-shadow:0 0 20px #00e5ff44;} }
+.room-code-box.new { animation: codeGlow .8s ease 2; }
+
+/* Firebase status dot — connecting pulse */
+@keyframes fbPulse { 0%,100%{opacity:.4;transform:scale(.85);} 50%{opacity:1;transform:scale(1);} }
+.fb-led.connecting { background: var(--amber); box-shadow: var(--amber-glow); animation: fbPulse 1s ease infinite; }
+
+/* Bottom sections — equal height rows with better gaps */
+.sections-bottom { gap: 1px; }
+
+/* Interview modal card — subtle gradient top */
+.interview-modal-card::before {
+  content: ''; display: block; height: 2px; margin: -.8rem -.8rem .6rem;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--green));
+  border-radius: 8px 8px 0 0;
+}
+
+/* Toast — slightly larger, icon spacing */
+#toast { letter-spacing: .04em; }
+
+/* Section sub-labels — replace raw inline font styles */
+.section-sublabel {
+  font-family: var(--fmono); font-size: .48rem; color: var(--txt-dim);
+  letter-spacing: .12em; margin-bottom: .4rem; text-transform: uppercase;
+}
+
+/* Pass level bar — glow on fill */
+.bar-fill { box-shadow: 0 0 6px rgba(0,229,255,.35); }
+
+/* HEX JSON block — hide by default on small screens, shown on hover */
+#hex-json { transition: max-height .3s; }
+
+/* Pipe nodes — click cursor */
+.pipe-node { cursor: default; }
+.pipe-node.done { cursor: pointer; }
+
+/* Scene thumb grid — better mobile wrap */
+@media(max-width:500px) { .scene-grid { grid-template-columns: repeat(2,1fr); } }
+
+/* Input focus ring */
+.inp:focus { outline: none; }
+
+/* Select element styling */
+select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a6080'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .75rem center; padding-right: 2rem; }
 
 /* ═══════════════════════════════════════════════════════ LAYOUT */
 .root { position: relative; z-index: 1; }
@@ -599,12 +703,12 @@ footer {
     <div class="hud-stat"><span class="hud-lbl">Tokens</span><span class="hud-val v" id="hdr-tok">0</span></div>
     <div class="hud-stat"><span class="hud-lbl">Streak</span><span class="hud-val" style="color:var(--amber)" id="hdr-streak">0d</span></div>
     <div class="firebase-dot">
-      <div class="fb-led" id="fb-led"></div>
+      <div class="fb-led connecting" id="fb-led"></div>
       <span id="fb-status">CONNECTING</span>
     </div>
     <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()">⬡ Matrix</button>
     <button class="hdr-btn" onclick="showRoom()">⊕ Room</button>
-    <button class="hdr-btn" onclick="triggerLogin()">⬡ Login</button>
+    <button class="hdr-btn" id="hdr-login-btn" onclick="triggerLogin()">⬡ Login</button>
   </div>
 </header>
 
@@ -743,14 +847,14 @@ footer {
       </div>
     </div>
 
-    <div style="font-family:var(--fmono);font-size:.48rem;color:var(--txt-dim);letter-spacing:.12em;margin-bottom:.4rem">MISSIONS — click card to inspect · click pending card to jump/launch</div>
+    <div class="section-sublabel">MISSIONS — click card to inspect · click pending card to jump/launch</div>
     <div class="scene-grid" id="scene-grid-main"></div>
 
-    <div style="font-family:var(--fmono);font-size:.48rem;color:var(--txt-dim);letter-spacing:.12em;margin-bottom:.4rem;margin-top:.65rem">CHOICE PATHS — ✓ correct · ✗ wrong · faded = unchosen</div>
+    <div class="section-sublabel" style="margin-top:.65rem">CHOICE PATHS — ✓ correct · ✗ wrong · faded = unchosen</div>
     <div class="branch-tree" id="branch-tree"></div>
 
     <div style="margin-top:.75rem">
-      <div style="font-family:var(--fmono);font-size:.48rem;color:var(--txt-dim);letter-spacing:.12em;margin-bottom:.4rem">MISSION DETAIL</div>
+      <div class="section-sublabel">MISSION DETAIL</div>
       <div class="scene-preview" id="scene-preview">
         <div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fmono);font-size:.6rem;color:var(--txt-dim);flex-direction:column;gap:.5rem;text-align:center;padding:1rem">
           <span style="font-size:1.8rem;opacity:.3">⬡</span>
@@ -906,8 +1010,13 @@ function sanitizeHTML(str) {
 
 
 /* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
-   Replace with your own Firebase project config.
-   Get it from: console.firebase.google.com → Project Settings → Your Apps
+   TO ENABLE:
+   1. Go to console.firebase.google.com → your project → Project Settings → Your Apps
+   2. Copy your web app config and paste it below, replacing every field.
+   3. In Firebase Console → Authentication → Sign-in method, enable:
+        • Anonymous  (for auto-login on first visit)
+        • Google     (for "Login" button upgrade)
+   4. In Firestore → Rules, paste the rules from the runbook comment below.
  ═════════════════════════════════════════════════════════════════════ */
 const FB_CONFIG = {
   apiKey:            "AIzaSyPLACEHOLDER_REPLACE_ME",
@@ -918,32 +1027,83 @@ const FB_CONFIG = {
   appId:             "1:000000000000:web:PLACEHOLDER"
 };
 
-let db = null;
+/* FIRESTORE SECURITY RULES — paste into Firebase Console → Firestore → Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Leaderboard: anyone can read; only authenticated owner can write their own entry
+    match /skillhex_leaderboard/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+    // Squad rooms: any authenticated user can read/write their own member slot
+    match /skillhex_rooms/{roomId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      match /members/{uid} {
+        allow read:  if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
+*/
+
+let db      = null;
+let auth    = null;
+let fbUser  = null;   // current Firebase Auth user (anon or Google)
 let fbOnline = false;
+let _roomUnsub = null; // squad room Firestore listener unsubscribe handle
 
 (function initFirebase() {
   try {
     firebase.initializeApp(FB_CONFIG);
-    db = firebase.firestore();
-    // Enable offline persistence
-    db.enablePersistence().catch(() => {});
-    fbOnline = true;
-    setFbStatus(true);
-    startLeaderboardListener();
+    db   = firebase.firestore();
+    auth = firebase.auth();
+
+    // Offline persistence so the app still works without network
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
+    // Sign in anonymously on first visit so Firestore rules can gate writes
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        fbUser   = user;
+        fbOnline = true;
+        setFbStatus(true, user.isAnonymous ? 'ANON' : user.displayName || 'SIGNED IN');
+        startLeaderboardListener();
+      } else {
+        auth.signInAnonymously().catch(e => {
+          console.warn('[Firebase Auth] Anonymous sign-in failed:', e.message);
+          setFbStatus(false);
+        });
+      }
+    });
+
   } catch (e) {
     setFbStatus(false);
     console.warn('[Firebase] Using local-only mode:', e.message);
   }
 })();
 
-function setFbStatus(online) {
+function setFbStatus(online, label) {
   fbOnline = online;
   const led = document.getElementById('fb-led');
   const st  = document.getElementById('fb-status');
-  if (led) { led.className = 'fb-led ' + (online ? 'online' : 'offline'); }
-  if (st)  { st.textContent = online ? 'FIREBASE LIVE' : 'LOCAL ONLY'; }
+  const loginBtn = document.getElementById('hdr-login-btn');
+  if (led) led.className = 'fb-led ' + (online ? 'online' : 'offline');
+  if (st)  st.textContent = label || (online ? 'FIREBASE' : 'LOCAL');
   const badge = document.getElementById('fb-sync-badge');
-  if (badge) badge.textContent = online ? '(firebase live)' : '(local)';
+  if (badge) badge.textContent = online ? '(live)' : '(local)';
+  // Update login button text based on auth state
+  if (loginBtn) {
+    const isGoogle = fbUser && !fbUser.isAnonymous;
+    loginBtn.textContent = isGoogle
+      ? '⬡ ' + (fbUser.displayName || 'SIGNED IN').toUpperCase().slice(0, 12)
+      : '⬡ Login';
+    loginBtn.style.borderColor = isGoogle ? 'var(--green)' : '';
+    loginBtn.style.color       = isGoogle ? 'var(--green)' : '';
+  }
 }
 
 /* ═══ FIREBASE LEADERBOARD ══════════════════════════════════════════ */
@@ -955,7 +1115,7 @@ function startLeaderboardListener() {
       .limit(12)
       .onSnapshot(snap => {
         const entries = [];
-        snap.forEach(doc => entries.push({ name: doc.id, ...doc.data() }));
+        snap.forEach(doc => { const d = doc.data(); entries.push({ name: d.name || doc.id, ...d }); });
         LIVE_LEADERBOARD = entries;
         renderLeaderboard();
       }, err => {
@@ -974,7 +1134,9 @@ async function _doFbWrite() {
   const name = sanitizeName(STATE.playerName);
   if (!db || !name || name === 'OPERATIVE' || !CALLSIGN_RE.test(name)) return;
   try {
-    await db.collection('skillhex_leaderboard').doc(name).set({
+    const docId = fbUser?.uid || name;
+    await db.collection('skillhex_leaderboard').doc(docId).set({
+      name:    name,
       sr:      Math.max(0, Math.min(999999, Number(STATE.sr) || 0)),
       xp:      Math.max(0, Math.min(999999, Number(STATE.xp) || 0)),
       tokens:  Math.max(0, Math.min(999999, Number(STATE.tokens) || 0)),
@@ -982,6 +1144,14 @@ async function _doFbWrite() {
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
   } catch(e) { console.warn('[Firebase] Write error:', e); }
+  // decide.engine integration: notify parent of updated stats
+  try {
+    window.parent.postMessage({
+      type: 'skillhex:result',
+      sr: STATE.sr, xp: STATE.xp, tokens: STATE.tokens,
+      playerName: STATE.playerName, passLevel: STATE.passLevel
+    }, '*');
+  } catch(_) {}
 }
 
 /* ═══ CONSTANTS ════════════════════════════════════════════════════ */
@@ -1731,23 +1901,59 @@ function renderRewardLog() {
 /* ═══ DAILY LOGIN / STREAK ═════════════════════════════════════════ */
 const dayOf = (ts = Date.now()) => new Date(ts).toISOString().slice(0,10);
 
-function triggerLogin() {
+function claimDailyLogin() {
   const today = dayOf();
-  if (STATE.streak.lastLogin === today) { showToast('Already logged in today', 'info'); return; }
-  const prev = STATE.streak.lastLogin;
+  if (STATE.streak.lastLogin === today) return false; // already claimed
   const yesterday = dayOf(Date.now() - 86400000);
-  STATE.streak.count = prev === yesterday ? STATE.streak.count + 1 : 1;
+  STATE.streak.count = STATE.streak.lastLogin === yesterday ? STATE.streak.count + 1 : 1;
   STATE.streak.lastLogin = today;
   STATE.tokens += 5;
   pushReward(`Daily login! Streak: ${STATE.streak.count} days · +5 tokens`);
   if (STATE.streak.count === 3)  { STATE.tokens += 30; pushReward('3-day streak bonus: +30 tokens!'); }
   if (STATE.streak.count === 7)  { pushReward('7-day streak: Rare Mission Voucher unlocked!'); }
   if (STATE.streak.count === 30) { pushReward('30-day streak: Elite Consistency Badge!'); }
-  updateStats();
-  renderStreak();
-  save();
-  fbWritePlayer();
-  showToast('Login registered · Streak: ' + STATE.streak.count, 'ok');
+  return true;
+}
+
+async function triggerLogin() {
+  // If already Google-authenticated just claim daily streak
+  if (fbUser && !fbUser.isAnonymous) {
+    const claimed = claimDailyLogin();
+    if (!claimed) { showToast('Already logged in today', 'info'); return; }
+    updateStats(); renderStreak(); save(); fbWritePlayer();
+    showToast('Login registered · Streak: ' + STATE.streak.count, 'ok');
+    return;
+  }
+  // Upgrade anonymous → Google
+  if (!auth) {
+    // No Firebase: just claim daily streak locally
+    const claimed = claimDailyLogin();
+    if (!claimed) { showToast('Already logged in today', 'info'); return; }
+    updateStats(); renderStreak(); save();
+    showToast('Login registered · Streak: ' + STATE.streak.count, 'ok');
+    return;
+  }
+  try {
+    setFbStatus(fbOnline, 'SIGNING IN…');
+    const provider = new firebase.auth.GoogleAuthProvider();
+    const result   = await auth.signInWithPopup(provider);
+    fbUser = result.user;
+    // Persist the Google display name as callsign if player is still default
+    if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
+      const clean = sanitizeName(fbUser.displayName);
+      if (clean && CALLSIGN_RE.test(clean)) STATE.playerName = clean;
+    }
+    setFbStatus(true, fbUser.displayName?.toUpperCase().slice(0,10) || 'GOOGLE');
+    const claimed = claimDailyLogin();
+    updateStats(); renderStreak(); save(); fbWritePlayer();
+    showToast(claimed ? 'Signed in · Streak: ' + STATE.streak.count : 'Welcome back, ' + (fbUser.displayName || STATE.playerName), 'ok');
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      console.warn('[Firebase Auth] Google sign-in failed:', e.message);
+      showToast('Sign-in failed — check console', 'err');
+    }
+    setFbStatus(fbOnline);
+  }
 }
 
 function renderStreak() {
@@ -1786,14 +1992,28 @@ function renderLeaderboard() {
 }
 
 /* ═══ STATS UPDATE ═════════════════════════════════════════════════ */
+function bumpEl(id, val) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  const prev = e.textContent;
+  e.textContent = val;
+  if (String(prev) !== String(val)) {
+    e.classList.remove('bump');
+    void e.offsetWidth; // force reflow
+    e.classList.add('bump');
+    setTimeout(() => e.classList.remove('bump'), 400);
+  }
+}
+
 function updateStats() {
-  const ids = ['hdr-sr','st-sr'];
-  ids.forEach(id => { const e=document.getElementById(id); if(e) e.textContent = STATE.sr; });
-  ['hdr-xp'].forEach(id=>{const e=document.getElementById(id);if(e) e.textContent=STATE.xp;});
-  ['hdr-tok','st-tokens'].forEach(id=>{const e=document.getElementById(id);if(e) e.textContent=STATE.tokens;});
-  ['st-streak'].forEach(id=>{const e=document.getElementById(id);if(e) e.textContent=STATE.streak.count;});
-  ['hdr-streak'].forEach(id=>{const e=document.getElementById(id);if(e) e.textContent=STATE.streak.count+'d';});
-  ['st-score'].forEach(id=>{const e=document.getElementById(id);if(e) e.textContent=STATE.lastScore;});
+  bumpEl('hdr-sr',     STATE.sr);
+  bumpEl('st-sr',      STATE.sr);
+  bumpEl('hdr-xp',     STATE.xp);
+  bumpEl('hdr-tok',    STATE.tokens);
+  bumpEl('st-tokens',  STATE.tokens);
+  bumpEl('st-streak',  STATE.streak.count);
+  bumpEl('hdr-streak', STATE.streak.count + 'd');
+  bumpEl('st-score',   STATE.lastScore);
   renderLeaderboard();
   renderShareCard();
 }
@@ -1912,8 +2132,10 @@ function showToast(msg, type='info') {
   const el = document.getElementById('toast');
   if (!el) return;
   clearTimeout(_toastT);
-  el.textContent = msg; el.className = 'show ' + type;
-  _toastT = setTimeout(() => { el.className = ''; }, 2800);
+  const icons = { ok: '✓ ', err: '✗ ', info: '· ' };
+  el.textContent = (icons[type] || '') + msg;
+  el.className = 'show ' + type;
+  _toastT = setTimeout(() => { el.className = ''; }, 3000);
 }
 
 /* ═══ SQUAD ROOM ═══════════════════════════════════════════════════ */
@@ -1928,30 +2150,69 @@ function genCode() {
   return 'HX-' + Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');
 }
 
-function createRoom() {
+async function createRoom() {
   const name = document.getElementById('room-name').value.trim() || 'Alpha Squadron';
-  const max  = document.getElementById('room-max').value;
-  STATE.squad.room = genCode();
+  const max  = parseInt(document.getElementById('room-max').value) || 4;
+  const code = genCode();
+  STATE.squad.room = code;
   STATE.squad.members = [STATE.playerName];
-  document.getElementById('room-code-display').textContent = STATE.squad.room;
-  document.getElementById('ft-room').textContent = STATE.squad.room;
+
+  if (db && fbUser) {
+    try {
+      await db.collection('skillhex_rooms').doc(code).set({
+        name, max, host: fbUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('skillhex_rooms').doc(code).collection('members').doc(fbUser.uid).set({
+        name: STATE.playerName, sr: STATE.sr, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      subscribeRoom(code);
+    } catch(e) { console.warn('[Room] Create error:', e); }
+  }
+
+  const rcDisplay = document.getElementById('room-code-display');
+  if (rcDisplay) { rcDisplay.textContent = code; rcDisplay.classList.remove('new'); void rcDisplay.offsetWidth; rcDisplay.classList.add('new'); }
+  document.getElementById('ft-room').textContent = code;
   document.getElementById('ft-players').textContent = '1';
   renderLobby();
   switchRoomTab('lobby');
   save();
-  showToast('Room created: ' + STATE.squad.room, 'ok');
+  showToast('Room created: ' + code, 'ok');
 }
 
-function joinRoom() {
+async function joinRoom() {
   const code = document.getElementById('room-code-in').value.trim().toUpperCase();
   if (!code || code.length < 4) { showToast('Enter a valid room code', 'err'); return; }
   STATE.squad.room = code;
+
+  if (db && fbUser) {
+    try {
+      const roomDoc = await db.collection('skillhex_rooms').doc(code).get();
+      if (!roomDoc.exists) { showToast('Room not found: ' + code, 'err'); return; }
+      await db.collection('skillhex_rooms').doc(code).collection('members').doc(fbUser.uid).set({
+        name: STATE.playerName, sr: STATE.sr, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      subscribeRoom(code);
+    } catch(e) { console.warn('[Room] Join error:', e); }
+  }
+
   document.getElementById('room-code-display').textContent = code;
   document.getElementById('ft-room').textContent = code;
-  document.getElementById('ft-players').textContent = '2';
   switchRoomTab('lobby');
   save();
   showToast('Joined room ' + code, 'ok');
+}
+
+function subscribeRoom(code) {
+  if (_roomUnsub) _roomUnsub(); // detach previous listener
+  if (!db) return;
+  _roomUnsub = db.collection('skillhex_rooms').doc(code).collection('members')
+    .onSnapshot(snap => {
+      const members = [];
+      snap.forEach(doc => members.push(doc.data().name || '?'));
+      STATE.squad.members = members;
+      document.getElementById('ft-players').textContent = members.length;
+      renderLobby();
+    }, err => console.warn('[Room] Listener error:', err));
 }
 
 function renderLobby() {
@@ -1968,7 +2229,18 @@ function renderLobby() {
   });
 }
 
-function leaveRoom() { STATE.squad.room=''; STATE.squad.members=[]; document.getElementById('ft-room').textContent='—'; switchRoomTab('create'); save(); }
+function leaveRoom() {
+  if (db && fbUser && STATE.squad.room) {
+    db.collection('skillhex_rooms').doc(STATE.squad.room).collection('members').doc(fbUser.uid).delete().catch(() => {});
+  }
+  if (_roomUnsub) { _roomUnsub(); _roomUnsub = null; }
+  STATE.squad.room = '';
+  STATE.squad.members = [];
+  document.getElementById('ft-room').textContent = '—';
+  document.getElementById('ft-players').textContent = '1';
+  switchRoomTab('create');
+  save();
+}
 function launchRoom() { if (!STATE.squad.room) return; switchRoomTab('create'); renderMission(); showToast('Game launched for room ' + STATE.squad.room, 'ok'); }
 function showRoom() { switchRoomTab('create'); document.getElementById('rt-create').scrollIntoView({behavior:'smooth'}); }
 
@@ -2725,6 +2997,9 @@ function init() {
   startMissionTimer();
   setInterval(updateEvent, 1000);
   setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50); // drift damping
+
+  // decide.engine integration: signal ready
+  try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, '*'); } catch(_) {}
 }
 
 // Wait for DOM + Firebase SDK load
