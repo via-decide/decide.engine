@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillHex Recruiter Dashboard</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #0b1020; color: #d6e4ff; }
+    .layout { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+    aside { background: #121a33; padding: 1rem; border-right: 1px solid #2a355e; }
+    main { padding: 1rem; }
+    .card { background: #161f3d; border: 1px solid #2a355e; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    input, button { padding: .6rem; border-radius: 8px; border: 1px solid #38477a; background: #0f1730; color: #d6e4ff; }
+    button { cursor: pointer; background: #2d68ff; border: none; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { padding: .65rem; border-bottom: 1px solid #2a355e; }
+    .muted { color: #95a6d8; font-size: .9rem; }
+    .auth-bar { margin: 1rem; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="card auth-bar" id="authNotice">
+  Recruiter session required. Please login via <a href="./recruiter-wrapper.html">Recruiter Wrapper</a> with login ID and password.
+</div>
+
+<div class="layout hidden" id="dashboardLayout">
+  <aside>
+    <h2>Recruiter Controls</h2>
+    <div class="card">
+      <label>Skill Search</label>
+      <input id="skill" placeholder="e.g. Redis" />
+      <label>Min Score</label>
+      <input id="minScore" type="number" value="70" min="0" max="100" />
+      <button id="searchBtn">Search Candidates</button>
+    </div>
+    <div class="card">
+      <h3>Create Job</h3>
+      <input id="jobTitle" placeholder="Role title" />
+      <input id="jobSkill" placeholder="Primary skill" />
+      <button id="createJobBtn">POST /jobs</button>
+      <div id="jobResult" class="muted"></div>
+    </div>
+  </aside>
+  <main>
+    <section class="card">
+      <h2>Candidate Results</h2>
+      <ul id="candidateList"></ul>
+    </section>
+    <section class="card">
+      <h2>Candidate Evidence</h2>
+      <div id="evidencePane" class="muted">Select a candidate to inspect projects, assessments, coding problems, and peer reviews.</div>
+    </section>
+  </main>
+</div>
+<script type="module" src="./js/hiring-dashboard.js"></script>
+</body>
+</html>

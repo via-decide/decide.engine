@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillHex Recruiter Login Wrapper</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #0b1020; color: #d6e4ff; display:grid; place-items:center; min-height:100vh; }
+    .box { width: min(420px, 92vw); background:#161f3d; border:1px solid #2a355e; border-radius:12px; padding:1rem; }
+    input, button { width:100%; box-sizing:border-box; margin:.35rem 0; padding:.65rem; border-radius:8px; border:1px solid #38477a; background:#0f1730; color:#d6e4ff; }
+    button { background:#2d68ff; border:none; cursor:pointer; }
+    .muted { color:#95a6d8; font-size:.92rem; }
+    .error { color:#ff9aa6; font-size:.92rem; min-height:1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Recruiter Login</h2>
+    <p class="muted">Access is restricted. Enter login ID and password.</p>
+    <input id="loginId" placeholder="Login ID" autocomplete="username" />
+    <input id="password" placeholder="Password" type="password" autocomplete="current-password" />
+    <button id="loginBtn">Login</button>
+    <div class="error" id="error"></div>
+  </div>
+
+<script type="module">
+  const TOKEN_KEY = 'skillhex.recruiter.token';
+
+  async function login() {
+    const loginId = document.getElementById('loginId').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorEl = document.getElementById('error');
+    errorEl.textContent = '';
+
+    if (!loginId || !password) {
+      errorEl.textContent = 'Login ID and password are required.';
+      return;
+    }
+
+    const res = await fetch('/api/recruiter-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ loginId, password })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok || !data.token) {
+      errorEl.textContent = data.error || 'Login failed.';
+      return;
+    }
+
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    location.href = './hiring-dashboard.html';
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', login);
+</script>
+</body>
+</html>
