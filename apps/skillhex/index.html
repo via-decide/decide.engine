@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillHex Mission Control</title>
+  <link rel="stylesheet" href="./css/app.css"/>
+</head>
+<body>
+  <header>
+    <div>
+      <strong>SkillHex Mission Control</strong>
+      <div class="small">Mounted at <code>/apps/skillhex/</code> with isolated localStorage keys.</div>
+    </div>
+    <div class="row small">
+      <span>Score: <strong id="score">0</strong></span>
+      <span>Multiplier: <strong id="mult">1.00</strong></span>
+      <span>Timer: <strong id="timer">-</strong></span>
+    </div>
+  </header>
+  <main>
+    <section class="panel">
+      <h3>Missions</h3>
+      <div class="row" style="margin:8px 0 12px">
+        <button id="applyWarmup">Warm-up Apply</button>
+        <button id="skipWarmup">Warm-up Skip</button>
+      </div>
+      <div id="missions" class="grid"></div>
+    </section>
+    <aside class="panel">
+      <h3>KADA Wheel</h3>
+      <canvas id="kada"></canvas>
+      <div class="row" style="justify-content:center;margin-top:10px"><button id="spinKada">Spin KADA</button></div>
+      <h3 style="margin-top:14px">Mission Logbook</h3>
+      <div id="log" class="log"></div>
+    </aside>
+  </main>
+
+  <div id="interviewModal">
+    <div class="box">
+      <h3>Interview Conversion</h3>
+      <p class="small" id="interviewMission"></p>
+      <div class="row"><input id="pName" placeholder="name"/><input id="pCompany" placeholder="company"/></div>
+      <div class="row"><input id="pRole" placeholder="role"/><input id="pLevel" placeholder="level"/></div>
+      <textarea id="pNotes" rows="4" placeholder="Interview notes"></textarea>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="closeInterview">Close</button>
+        <button id="convertInterview">Convert to Logbook</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

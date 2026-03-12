@@ -1,0 +1,12 @@
+[
+  {"id":"V01","title":"Signal Sweep","seconds":120,"type":"warmup"},
+  {"id":"V02","title":"Market Drift","seconds":180,"type":"tactical"},
+  {"id":"V03","title":"Decision Compression","seconds":180,"type":"tactical"},
+  {"id":"V04","title":"Execution Pulse","seconds":180,"type":"tactical"},
+  {"id":"V05","title":"Constraint Fork","seconds":240,"type":"strategy"},
+  {"id":"V06","title":"Narrative Sync","seconds":240,"type":"strategy"},
+  {"id":"V07","title":"Interview: Product Clarity","seconds":300,"type":"interview"},
+  {"id":"V08","title":"Interview: GTM Story","seconds":300,"type":"interview"},
+  {"id":"V09","title":"Interview: Leadership Stress-Test","seconds":300,"type":"interview"},
+  {"id":"V10","title":"Interview: Systems Thinking","seconds":300,"type":"interview"}
+]
