@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <!-- UPG-01 -->
+<meta name="theme-color" content="#00E5FF"> <!-- UPG-01 -->
+<meta name="mobile-web-app-capable" content="yes"> <!-- UPG-01 -->
+<meta name="apple-mobile-web-app-capable" content="yes"> <!-- UPG-01 -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- UPG-01 -->
+<meta name="apple-mobile-web-app-title" content="SkillHex"> <!-- UPG-01 -->
+<meta name="description" content="Scenario-based skill-building missions, interview simulator and live leaderboard."> <!-- UPG-01 -->
+<link rel="manifest" href="manifest.json"> <!-- UPG-01 -->
+<link rel="apple-touch-icon" href="icons/icon-192.png"> <!-- UPG-01 -->
 <title>SkillHex — Operations Console v3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -39,12 +47,12 @@
   --violet-d:  #3b0764;
 
   --txt:       #c8d8f0;
-  --txt-dim:   #4a6080;
+  --txt-dim:   #6a8aa8; /* UPG-12 */
   --txt-mute:  #1e3050;
 
-  --fhud:  'Orbitron', monospace;
-  --fbody: 'Rajdhani', sans-serif;
-  --fmono: 'Share Tech Mono', monospace;
+  --fhud:  'Orbitron', 'Arial Black', monospace; /* BUG-12 fix */
+  --fbody: 'Rajdhani', 'Arial', sans-serif; /* BUG-12 fix */
+  --fmono: 'Share Tech Mono', 'Courier New', monospace; /* BUG-12 fix */
 }
 
 /* ═══════════════════════════════════════════════════════ RESET */
@@ -56,6 +64,8 @@ body {
   font-family: var(--fbody);
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior: none; /* UPG-05 */
+  -webkit-tap-highlight-color: transparent; /* UPG-05 */
 }
 
 /* scanline + grid */
@@ -242,6 +252,10 @@ header {
 }
 @media(max-width:1100px){ .grid-main { grid-template-columns: 1fr 280px; } .col-right { display: none; } .col-right.visible { display: flex; flex-direction:column; gap:1px; background:var(--border); } }
 @media(max-width:760px) { .grid-main { grid-template-columns: 1fr; } }
+@supports (min-height: 100dvh) { /* UPG-05 */
+  body { min-height: 100dvh; } /* UPG-05 */
+  .grid-main { min-height: calc(100dvh - 52px); } /* UPG-05 */
+} /* UPG-05 */
 
 /* ═══════════════════════════════════════════════════════ PANELS */
 .panel {
@@ -273,7 +287,8 @@ header {
 .badge-g { background: #00ff880d; border: 1px solid #00ff8822; color: var(--green); }
 
 .diff-pips { display: flex; gap: 3px; }
-.pip { width: 7px; height: 7px; border-radius: 50%; background: var(--txt-mute); transition: background .3s; }
+.pip { width: 12px; height: 12px; border-radius: 50%; background: var(--txt-mute); transition: background .3s; position: relative; } /* UPG-04 */
+.pip::after { content:''; position:absolute; inset:-15px; } /* UPG-04 */
 .pip.on { background: var(--amber); box-shadow: var(--amber-glow); }
 
 .m-title {
@@ -414,7 +429,7 @@ header {
 /* tether node */
 .tether-wrap {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; z-index: 40; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; z-index: 40; pointer-events: none; touch-action: none; /* BUG-06 fix */
 }
 .tether-node {
   width: 28px; height: 28px; background: #0c1628; border: 2px solid var(--cyan);
@@ -565,8 +580,8 @@ header {
 }
 .pipe-node {
   background: var(--panel2); border: 1px solid var(--border);
-  padding: .35rem .55rem; border-radius: 5px; font-family: var(--fmono); font-size: .52rem;
-  color: var(--txt-dim); white-space: nowrap; flex-shrink: 0; transition: all .25s;
+  padding: .45rem .65rem; border-radius: 5px; font-family: var(--fmono); font-size: .52rem; /* UPG-04 */
+  color: var(--txt-dim); white-space: nowrap; flex-shrink: 0; transition: all .25s; min-height: 36px; display: flex; align-items: center; /* UPG-04 */
 }
 .pipe-node.running { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--cyan-glow); animation: pipeFlash .5s ease infinite; }
 .pipe-node.done    { border-color: var(--green); color: var(--green); }
@@ -657,6 +672,8 @@ footer {
 #toast.ok   { background: var(--panel); border: 1px solid var(--green); color: var(--green); box-shadow: var(--green-glow); }
 #toast.err  { background: var(--panel); border: 1px solid var(--red);   color: var(--red);   box-shadow: 0 0 14px #ff3a5066; }
 #toast.info { background: var(--panel); border: 1px solid var(--cyan);  color: var(--cyan);  box-shadow: var(--cyan-glow); }
+#offline-banner { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 650; display: none; background: #3a2a05; border: 1px solid var(--amber); color: var(--amber); padding: .45rem .7rem; border-radius: 6px; font-family: var(--fmono); font-size: .56rem; gap: .6rem; align-items: center; } /* UPG-06 */
+#offline-banner button { border: 1px solid var(--amber); color: var(--amber); padding: .15rem .45rem; border-radius: 4px; cursor: pointer; } /* UPG-06 */
 
 /* ═══════════════════════════════════════════════════════ REWARD LOG */
 .reward-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: .3rem; }
@@ -681,8 +698,16 @@ footer {
 
 /* ═══════════════════════════════════════════════════════ STREAK */
 .streak-pips { display: flex; gap: .3rem; flex-wrap: wrap; margin: .4rem 0; }
-.streak-pip { width: 9px; height: 9px; border-radius: 50%; background: var(--txt-mute); border: 1px solid var(--border); transition: all .3s; }
+.streak-pip { width: 14px; height: 14px; border-radius: 50%; background: var(--txt-mute); border: 1px solid var(--border); transition: all .3s; position: relative; } /* UPG-04 */
+.streak-pip::after { content:''; position:absolute; inset:-15px; } /* UPG-04 */
 .streak-pip.done { background: var(--amber); box-shadow: var(--amber-glow); border-color: var(--amber); }
+@media (prefers-reduced-motion: reduce) { /* UPG-12 */
+  *, *::before, *::after { /* UPG-12 */
+    animation-duration: 0.01ms !important; /* UPG-12 */
+    animation-iteration-count: 1 !important; /* UPG-12 */
+    transition-duration: 0.01ms !important; /* UPG-12 */
+  } /* UPG-12 */
+} /* UPG-12 */
 
 /* ═══════════════════════════════════════════════════════ TUTORIAL */
 
@@ -852,7 +877,7 @@ footer {
       <div class="fb-led connecting" id="fb-led"></div>
       <span id="fb-status">CONNECTING</span>
     </div>
-    <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()">⬡ Matrix</button>
+    <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()" aria-label="Toggle Skill Matrix panel">⬡ Matrix</button> <!-- UPG-12 -->
     <button class="hdr-btn" onclick="showRoom()">⊕ Room</button>
     <button class="hdr-btn" id="hdr-login-btn" onclick="triggerLogin()">⬡ Login</button>
   </div>
@@ -988,7 +1013,7 @@ footer {
         <span id="log-pend-count" style="color:var(--txt-dim)">10</span> pending
       </div>
       <div style="margin-left:auto;display:flex;gap:.4rem">
-        <button class="btn btn-o" onclick="demoFillLog()" style="font-size:.52rem;padding:.3rem .6rem" title="Populate with sample data to preview cards">⬡ Demo Fill</button>
+        <button class="btn btn-o" id="demo-fill-btn" onclick="demoFillLog()" style="display:none;font-size:.52rem;padding:.3rem .6rem" title="Populate with sample data to preview cards">⬡ Demo Fill</button> <!-- BUG-10 fix -->
         <button class="btn btn-ghost" onclick="clearMissionLog()" style="font-size:.52rem;padding:.3rem .6rem">↺ Clear</button>
       </div>
     </div>
@@ -1117,6 +1142,10 @@ footer {
   <div class="stat-item">PLAYERS: <span id="ft-players" style="color:var(--txt);margin-left:.3rem">1</span></div>
   <div class="stat-item">SEASON <span style="color:var(--txt);margin-left:.3rem" id="ft-season"></span></div>
   <div class="stat-item" style="margin-left:auto">SkillHex v3.0 · @geogebra.in</div>
+  <div class="stat-item">
+    <a href="/privacy" target="_blank" style="color:var(--txt-dim);text-decoration:none;
+    font-family:var(--fmono);font-size:.5rem;letter-spacing:.1em">Privacy</a>
+  </div> <!-- UPG-08 -->
 </footer>
 
 </div><!-- /root -->
@@ -1134,8 +1163,10 @@ footer {
   </div>
 </div>
 
+<div id="offline-banner">Offline mode — reconnect to sync <button onclick="retryConnection()">↺ Retry</button></div> <!-- UPG-06 -->
+
 <!-- toast -->
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div> <!-- UPG-12 -->
 
 <!-- ═══════════════════════════════════════════════════════════════════
      SCRIPTS
@@ -1153,6 +1184,7 @@ function sanitizeHTML(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+function svgEscape(str) { return sanitizeHTML(str); } // BUG-03 fix
 
 
 /* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
@@ -1164,6 +1196,7 @@ function sanitizeHTML(str) {
         • Google     (for "Login" button upgrade)
    4. In Firestore → Rules, paste the rules from the runbook comment below.
  ═════════════════════════════════════════════════════════════════════ */
+/* SECURITY: inject via env in production — never commit real keys to VCS */ // BUG-04 fix
 const FB_CONFIG = {
   apiKey:            "AIzaSyBixS7kmf5R5BbsCecSgfGqagGrY2cme6Y",
   authDomain:        "skillhex-mission-control.firebaseapp.com",
@@ -1188,7 +1221,8 @@ service cloud.firestore {
     match /skillhex_rooms/{roomId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null;
+      allow update: if request.auth != null
+              && request.auth.uid == resource.data.creatorUid; // BUG-04 fix
       match /members/{uid} {
         allow read:  if request.auth != null;
         allow write: if request.auth != null && request.auth.uid == uid;
@@ -1197,6 +1231,14 @@ service cloud.firestore {
   }
 }
 */
+
+const PARENT_ORIGIN = (function() { // BUG-13 fix
+  try { // BUG-13 fix
+    if (window.parent !== window)
+      return document.referrer ? new URL(document.referrer).origin : 'https://www.viadecide.com'; // BUG-13 fix
+  } catch(_) {} // BUG-13 fix
+  return 'https://www.viadecide.com'; // BUG-13 fix
+})(); // BUG-13 fix
 
 let db      = null;
 let auth    = null;
@@ -1217,6 +1259,8 @@ let _roomUnsub = null; // squad room Firestore listener unsubscribe handle
     auth.getRedirectResult().then(result => {
       if (result && result.user) {
         fbUser = result.user;
+        try { localStorage.removeItem('retroInterviewSession_v1'); } catch(_) {} // BUG-08 fix
+        loadInterviewState(); // BUG-08 fix
         if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
           const clean = sanitizeName(fbUser.displayName);
           if (clean && CALLSIGN_RE.test(clean)) STATE.playerName = clean;
@@ -1274,6 +1318,7 @@ function setFbStatus(online, label) {
 }
 
 /* ═══ FIREBASE LEADERBOARD ══════════════════════════════════════════ */
+function retryConnection() { startLeaderboardListener(); fbWritePlayer(); } // UPG-06
 function startLeaderboardListener() {
   if (!db) return;
   try {
@@ -1308,6 +1353,7 @@ async function _doFbWrite() {
       xp:      Math.max(0, Math.min(999999, Number(STATE.xp) || 0)),
       tokens:  Math.max(0, Math.min(999999, Number(STATE.tokens) || 0)),
       streak:  Math.max(0, Math.min(9999, Number(STATE.streak.count) || 0)),
+      uid: fbUser?.uid || null, // BUG-09 fix
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
   } catch(e) { console.warn('[Firebase] Write error:', e); }
@@ -1317,7 +1363,7 @@ async function _doFbWrite() {
       type: 'skillhex:result',
       sr: STATE.sr, xp: STATE.xp, tokens: STATE.tokens,
       playerName: STATE.playerName, passLevel: STATE.passLevel
-    }, '*');
+    }, PARENT_ORIGIN); // BUG-13 fix
   } catch(_) {}
 }
 
@@ -1968,7 +2014,11 @@ function buildChoiceList(m) {
     div.className = 'choice-item';
     div.dataset.v = c.v;
     div.innerHTML = `<span class="choice-key-tag">${keys[i]}</span>${c.l}`;
+    div.setAttribute('role', 'button'); // UPG-12
+    div.setAttribute('tabindex', '0'); // UPG-12
+    div.setAttribute('aria-label', `Choice ${keys[i]}: ${c.l}`); // UPG-12
     div.addEventListener('click', () => handleChoice(c));
+    div.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleChoice(c); } }); // UPG-12
     g.appendChild(div);
   });
 }
@@ -2013,6 +2063,7 @@ function handleChoice(choice) {
   setTimeout(() => {
     missionIdx = (missionIdx + 1) % MISSIONS.length;
     renderMission();
+    startMissionTimer(); // BUG-01 fix
   }, 2400);
 }
 
@@ -2112,6 +2163,8 @@ async function triggerLogin() {
     }
     const result   = await auth.signInWithPopup(provider);
     fbUser = result.user;
+    try { localStorage.removeItem('retroInterviewSession_v1'); } catch(_) {} // BUG-08 fix
+    loadInterviewState(); // BUG-08 fix
     // Persist the Google display name as callsign if player is still default
     if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
       const clean = sanitizeName(fbUser.displayName);
@@ -2144,7 +2197,8 @@ function renderStreak() {
 /* ═══ LEADERBOARD ══════════════════════════════════════════════════ */
 function renderLeaderboard() {
   let combined = [...(LIVE_LEADERBOARD.length ? LIVE_LEADERBOARD : STATE.leaderboardBots)];
-  const meIdx = combined.findIndex(p => p.name === STATE.playerName);
+  const myUid = fbUser?.uid; // BUG-09 fix
+  const meIdx = combined.findIndex(p => (myUid && p.uid === myUid) || p.name === STATE.playerName); // BUG-09 fix
   if (meIdx === -1) combined.push({ name: STATE.playerName, sr: STATE.sr, isMe: true });
   else combined[meIdx].isMe = true;
   combined.sort((a,b) => b.sr - a.sr);
@@ -2160,7 +2214,7 @@ function renderLeaderboard() {
     const mc   = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
     const row  = document.createElement('div');
     row.className = 'lb-row' + (p.isMe ? ' me' : '');
-    row.innerHTML = `<span class="lb-rank ${mc}">${rank}</span><span class="lb-name ${p.isMe?'me-n':''}">${p.isMe?'▶ ':''} ${p.name}</span><span class="lb-score">${String(p.sr).padStart(4,'0')}</span>`;
+    row.innerHTML = `<span class="lb-rank ${mc}">${rank}</span><span class="lb-name ${p.isMe?'me-n':''}">${p.isMe?'▶ ':''} ${sanitizeHTML(p.name)}</span><span class="lb-score">${String(p.sr).padStart(4,'0')}</span>`; // BUG-02 fix
     el.appendChild(row);
   });
 }
@@ -2267,7 +2321,7 @@ function renderShareCard() {
     <rect x="12" y="12" width="456" height="176" rx="10" fill="#0c1224" stroke="#152240"/>
     <rect x="12" y="12" width="456" height="3" rx="1.5" fill="url(#scg)"/>
     <text x="28" y="46" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">SkillHex Operations Console</text>
-    <text x="28" y="72" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">${sanitizeHTML(STATE.playerName)} · SR: ${Number(STATE.sr)} · Pass Lv: ${Number(STATE.passLevel)}</text>
+    <text x="28" y="72" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">${svgEscape(STATE.playerName)} · SR: ${Number(STATE.sr)} · Pass Lv: ${Number(STATE.passLevel)}</text> <!-- BUG-03 fix -->
     <text x="28" y="94" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">Tokens: ${Number(STATE.tokens)} · Streak: ${Number(STATE.streak.count)}d · Score: ${Number(STATE.lastScore)}</text>
     <rect x="28" y="112" width="280" height="8" rx="4" fill="#050810"/>
     <rect x="28" y="112" width="${Math.min(280,(STATE.xp/(STATE.passLevel*100))*280)}" height="8" rx="4" fill="url(#scg)"/>
@@ -2430,6 +2484,7 @@ let pullHoldStart = 0;
 let activeSector  = -1;
 let kadaTimer     = 30;
 let kadaInterval  = null;
+let _pullRafId    = null; // BUG-05 fix
 
 const SECTORS = [
   { label:'A', angle: 270 },  // top
@@ -2626,8 +2681,7 @@ function flashKadaWrong() {
       isDragging = true;
       startAngle = getAngle(e.clientX, e.clientY);
       lastAngle  = startAngle;
-      document.body.style.cursor = 'grabbing';
-      e.preventDefault();
+      document.body.style.cursor = 'grabbing'; // BUG-06 fix
     }
   });
 
@@ -2645,6 +2699,7 @@ function flashKadaWrong() {
       updateTetherVisuals();
       if (isPulled) { pullHoldStart = Date.now(); updatePullProgress(); }
       else {
+        if (_pullRafId) { cancelAnimationFrame(_pullRafId); _pullRafId = null; } // BUG-05 fix
         pullHoldStart = 0;
         const ring = document.getElementById('progress-ring');
         if (ring) ring.style.setProperty('--prog', '0%');
@@ -2674,6 +2729,7 @@ function flashKadaWrong() {
     document.body.style.cursor = '';
     const wasPulled = isPulled;
     const sec = activeSector;
+    if (_pullRafId) { cancelAnimationFrame(_pullRafId); _pullRafId = null; } // BUG-05 fix
     isPulled = false;
     pullHoldStart = 0;
     updateTetherVisuals();
@@ -2693,7 +2749,8 @@ function updatePullProgress() {
   const pct = Math.min(100, ((Date.now() - pullHoldStart) / 3000) * 100);
   const ring = document.getElementById('progress-ring');
   if (ring) ring.style.setProperty('--prog', pct.toFixed(1) + '%');
-  if (pct < 100 && isPulled) requestAnimationFrame(updatePullProgress);
+  if (pct < 100 && isPulled) _pullRafId = requestAnimationFrame(updatePullProgress); // BUG-05 fix
+  else _pullRafId = null; // BUG-05 fix
 }
 
 // Keyboard shortcuts
@@ -2799,17 +2856,17 @@ function buildSceneCardSVG(id, log, missionDef) {
   const icon  = pass ? '✓' : '✗';
   const titleShort = log.title.slice(0, 18) + (log.title.length > 18 ? '…' : '');
   const scoreStr = log.type === 'interview' ? `${log.score}/100` : (pass ? '+' + log.score : '—');
-  const t = new Date(log.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  const skillText = log.type === 'interview' ? `avg ${log.avgWords || 0}w · interview` : `${scoreStr} pts · ${log.skill}`;
+  const t = new Date(log.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); // BUG-03 fix
+  const skillText = log.type === 'interview' ? `avg ${log.avgWords || 0}w · interview` : `${scoreStr} pts · ${svgEscape(log.skill)}`;
   return `<svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
     <rect width="160" height="90" fill="#060a14"/>
     <rect x="4" y="4" width="152" height="82" rx="4" fill="${pass ? '#001a0d' : '#1a0005'}" stroke="${col}33"/>
     <rect x="4" y="4" width="152" height="3" rx="1.5" fill="${col}" opacity=".7"/>
     <text x="12" y="23" fill="${col}" font-size="10" font-family="Orbitron" font-weight="700">${id} ${icon}</text>
-    <text x="12" y="37" fill="#c8d8f0" font-size="7.5" font-family="Share Tech Mono">${titleShort}</text>
+    <text x="12" y="37" fill="#c8d8f0" font-size="7.5" font-family="Share Tech Mono">${svgEscape(titleShort)}</text>
     <text x="12" y="51" fill="${col}" font-size="8" font-family="Share Tech Mono">${skillText}</text>
-    <text x="12" y="64" fill="#4a6080" font-size="6.5" font-family="Share Tech Mono">${t}</text>
-    <text x="12" y="78" fill="#4a6080" font-size="6" font-family="Share Tech Mono">${log.choice.slice(0,28)}</text>
+    <text x="12" y="64" fill="#4a6080" font-size="6.5" font-family="Share Tech Mono">${svgEscape(t)}</text>
+    <text x="12" y="78" fill="#4a6080" font-size="6" font-family="Share Tech Mono">${svgEscape(log.choice.slice(0,28))}</text>
   </svg>`;
 }
 
@@ -2844,6 +2901,7 @@ function jumpToMission(slot, sceneId) {
 }
 
 function demoFillLog() {
+  if (!new URLSearchParams(location.search).has('dev')) { showToast('Not available', 'info'); return; } // BUG-10 fix
   MISSIONS.forEach((m, i) => {
     if (STATE.missionLog[i] && !STATE.missionLog[i].isDemo) return;
     const pass = Math.random() > 0.4;
@@ -2961,8 +3019,8 @@ function previewScene(id) {
       <rect width="800" height="200" fill="#080d1a"/>
       <rect x="8" y="8" width="784" height="184" rx="6" fill="#0c1224" stroke="#00e5ff22"/>
       <rect x="8" y="8" width="784" height="3" rx="1.5" fill="#00e5ff" opacity=".3"/>
-      <text x="22" y="42" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">${id} — ${interviewRound.label}</text>
-      <text x="22" y="70" fill="#4a6080" font-size="12" font-family="Share Tech Mono">Categories: ${interviewRound.cats.join(', ')}</text>
+      <text x="22" y="42" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">${svgEscape(id)} — ${svgEscape(interviewRound.label)}</text>
+      <text x="22" y="70" fill="#4a6080" font-size="12" font-family="Share Tech Mono">Categories: ${svgEscape(interviewRound.cats.join(', '))}</text>
       <text x="22" y="96" fill="#c8d8f0" font-size="11" font-family="Share Tech Mono">Pending interview round. Click this card to launch in modal.</text>
       <text x="22" y="124" fill="#4a6080" font-size="10" font-family="Share Tech Mono">Output: score/100 + avg words + SR delta bridge</text>
     </svg>`;
@@ -2975,11 +3033,11 @@ function previewScene(id) {
       <rect width="800" height="200" fill="#080d1a"/>
       <rect x="8" y="8" width="784" height="184" rx="6" fill="#0c1224" stroke="#00e5ff22"/>
       <rect x="8" y="8" width="784" height="3" rx="1.5" fill="#00e5ff" opacity=".3"/>
-      <text x="22" y="42" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">${id} — ${m.title}</text>
-      <text x="22" y="66" fill="#4a6080" font-size="12" font-family="Share Tech Mono">${m.category} · Difficulty ${m.diff}/5 · Skill: ${m.skill}</text>
-      <text x="22" y="92" fill="#c8d8f0" font-size="11" font-family="Share Tech Mono">${m.desc.slice(0,90)}${m.desc.length>90?'…':''}</text>
+      <text x="22" y="42" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">${svgEscape(id)} — ${svgEscape(m.title)}</text>
+      <text x="22" y="66" fill="#4a6080" font-size="12" font-family="Share Tech Mono">${svgEscape(m.category)} · Difficulty ${svgEscape(m.diff)}/5 · Skill: ${svgEscape(m.skill)}</text>
+      <text x="22" y="92" fill="#c8d8f0" font-size="11" font-family="Share Tech Mono">${svgEscape(m.desc.slice(0,90))}${m.desc.length>90?'…':''}</text>
       <text x="22" y="120" fill="#4a6080" font-size="10" font-family="Share Tech Mono">STATUS: NOT YET PLAYED</text>
-      <text x="22" y="148" fill="#1e3050" font-size="9" font-family="Share Tech Mono">${choices.slice(0,100)}</text>
+      <text x="22" y="148" fill="#1e3050" font-size="9" font-family="Share Tech Mono">${svgEscape(choices.slice(0,100))}</text>
     </svg>`;
     return;
   }
@@ -2991,19 +3049,19 @@ function previewScene(id) {
     ? ((Math.round((log.score - 65) / 3) >= 0 ? '+' : '') + Math.round((log.score - 65) / 3))
     : (pass ? '+' + Math.round((log.score - 600)/25) : '−' + Math.round(100/25));
   const scoreTxt = log.type === 'interview' ? `${log.score}/100` : `${log.score} pts`;
-  const skillTxt = log.type === 'interview' ? `Interview · Avg words: ${log.avgWords || 0}` : `Skill XP: ${log.skill} +45`;
+  const skillTxt = log.type === 'interview' ? `Interview · Avg words: ${log.avgWords || 0}` : `Skill XP: ${svgEscape(log.skill)} +45`;
 
   prev.innerHTML = `<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
     <rect width="800" height="200" fill="#080d1a"/>
     <rect x="8" y="8" width="784" height="184" rx="6" fill="${pass?'#001a0d':'#1a0005'}" stroke="${col}33"/>
     <rect x="8" y="8" width="784" height="3" rx="1.5" fill="${col}"/>
-    <text x="22" y="42" fill="${col}" font-size="18" font-family="Orbitron" font-weight="900">${pass?'✓ PASS':'✗ FAIL'} — ${id}: ${log.title}</text>
+    <text x="22" y="42" fill="${col}" font-size="18" font-family="Orbitron" font-weight="900">${pass?'✓ PASS':'✗ FAIL'} — ${id}: ${svgEscape(log.title)}</text>
     <text x="22" y="66" fill="#c8d8f0" font-size="12" font-family="Share Tech Mono">Score: ${scoreTxt} · SR Δ: ${srDelta} · ${skillTxt}</text>
-    <text x="22" y="90" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Choice: ${log.choice.slice(0,80)}</text>
-    <text x="22" y="114" fill="#4a6080" font-size="10" font-family="Share Tech Mono">Played: ${ts}</text>
+    <text x="22" y="90" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Choice: ${svgEscape(log.choice.slice(0,80))}</text>
+    <text x="22" y="114" fill="#4a6080" font-size="10" font-family="Share Tech Mono">Played: ${svgEscape(ts)}</text>
     <rect x="22" y="134" width="${Math.min(600, ((log.type === 'interview' ? log.score*15 : log.score)/1500)*600)}" height="6" rx="3" fill="${col}" opacity=".6"/>
     <rect x="22" y="134" width="600" height="6" rx="3" fill="none" stroke="${col}22"/>
-    <text x="22" y="165" fill="${col}" font-size="10" font-family="Share Tech Mono">${pass ? (log.type === 'interview' ? 'Interview converted into SR + hex XP' : 'Hex node unlocked · ' + log.skill + ' skill advanced') : 'No XP awarded · Retry to improve your score'}</text>
+    <text x="22" y="165" fill="${col}" font-size="10" font-family="Share Tech Mono">${pass ? (log.type === 'interview' ? 'Interview converted into SR + hex XP' : 'Hex node unlocked · ' + svgEscape(log.skill) + ' skill advanced') : 'No XP awarded · Retry to improve your score'}</text>
   </svg>`;
 }
 
@@ -3076,6 +3134,9 @@ function confirmCallsign() {
   save();
   const modal = document.getElementById('callsign-modal');
   if (modal) modal.style.display = 'none';
+  updateStats(); // BUG-07 fix
+  fbWritePlayer(); // BUG-07 fix
+  showToast('Callsign set: ' + clean, 'ok'); // BUG-07 fix
 }
 
 /* ═══ SKILL MATRIX TOGGLE (tablet) ═══════════════════════════════════ */
@@ -3169,11 +3230,49 @@ function init() {
   renderMission();
   mountInterview('interview-shell', INTERVIEW_ROUNDS.V10.cats, { deepDive:true, compact:true });
   startMissionTimer();
-  setInterval(updateEvent, 1000);
-  setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50); // drift damping
+  let eventInterval = setInterval(updateEvent, 1000); // BUG-11 fix
+  let rotorDampInterval = setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50); // BUG-11 fix
+  document.addEventListener('visibilitychange', () => { // BUG-11 fix
+    if (document.hidden) {
+      clearInterval(eventInterval);
+      clearInterval(rotorDampInterval);
+    } else {
+      updateEvent();
+      eventInterval = setInterval(updateEvent, 1000);
+      rotorDampInterval = setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50);
+    }
+  }); // BUG-11 fix
 
   // decide.engine integration: signal ready
-  try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, '*'); } catch(_) {}
+  try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, PARENT_ORIGIN); } catch(_) {} // BUG-13 fix
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  } // UPG-01
+  if (new URLSearchParams(location.search).has('dev')) document.getElementById('demo-fill-btn').style.display = ''; // BUG-10 fix
+  const offlineBanner = document.getElementById('offline-banner'); // UPG-06
+  window.addEventListener('offline', () => { if (offlineBanner) offlineBanner.style.display = 'flex'; }); // UPG-06
+  window.addEventListener('online', () => { if (offlineBanner) offlineBanner.style.display = 'none'; retryConnection(); }); // UPG-06
+  if (!navigator.onLine && offlineBanner) offlineBanner.style.display = 'flex'; // UPG-06
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      document.body.style.height = window.visualViewport.height + 'px';
+    });
+  } // UPG-07
+  document.addEventListener('focusin', e => {
+    if (e.target.matches('textarea, input')) {
+      setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 320);
+    }
+  }); // UPG-07
+  history.pushState(null, ''); // UPG-02
+  window.addEventListener('popstate', () => { // UPG-02
+    const interviewModal = document.getElementById('interview-modal');
+    const callsignModal = document.getElementById('callsign-modal');
+    const tutOverlay = document.getElementById('tut-overlay');
+    if (interviewModal?.classList.contains('open')) { closeInterviewModal(); history.pushState(null, ''); return; }
+    if (callsignModal && callsignModal.style.display && callsignModal.style.display !== 'none') { callsignModal.style.display = 'none'; history.pushState(null, ''); return; }
+    if (tutOverlay && tutOverlay.style.display === 'block') { tutClose(); history.pushState(null, ''); }
+  });
 
   // Launch tutorial on first visit
   tutMaybeAutoLaunch();
@@ -3581,7 +3680,7 @@ function tutMaybeAutoLaunch() {
 </div>
 
 <!-- Persistent help / replay button -->
-<button id="tut-help-btn" onclick="tutStart()" title="Show tutorial">?</button>
+<button id="tut-help-btn" onclick="tutStart()" title="Show tutorial" aria-label="Show tutorial">?</button> <!-- UPG-12 -->
 
 </body>
   </html>
