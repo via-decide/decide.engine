@@ -53,6 +53,14 @@
  *                         _redirects entry — direct visits showed homepage  ✓
  *  v3.2 #16 routes       added skillhex-recruiter (hiring-dashboard.html)
  *                         with aliases skillhex/recruiter, hiring-dashboard ✓
+ *  v3.3 #17 index.html   duplicate SkillHex nav chip href with .html suffix
+ *                         caused hard 404 — removed duplicate               ✓
+ *  v3.3 #18 index.html   WingsOfFire card opened 1KB stub instead of 52KB
+ *                         game file wings-of-fire-quiz.html                 ✓
+ *  v3.3 #19 routes       data-orbit slugs dharam-daxini, fintrack,
+ *                         payroll-register, sales-register had no router
+ *                         entry — orb search + deep-links were broken       ✓
+ *  v3.3 #20 _redirects   4 missing alias rules added for above slugs        ✓
  */
 (function (global) {
     'use strict';
@@ -86,6 +94,7 @@
         // ── Tools ──────────────────────────────────────────────────────────
         'interview-prep':            { file: 'interview-prep.html',            url: 'interview-prep'            },
         'sales-dashboard':           { file: 'sales-dashboard.html',           url: 'sales-dashboard'           },
+        'sales-register':            { file: 'sales-dashboard.html',           url: 'sales-dashboard'           },
         'app-generator':             { file: 'app-generator.html',             url: 'app-generator'             },
         'memory':                    { file: 'memory.html',                    url: 'memory'                    },
         'prompt-alchemy':            { file: 'prompt-alchemy.html',            url: 'prompt-alchemy'            },
@@ -112,6 +121,7 @@
 
         // ── Finance ────────────────────────────────────────────────────────
         'finance-dashboard-msme':    { file: 'finance-dashboard-msme.html',    url: 'finance-dashboard-msme'    },
+        'fintrack':                  { file: 'finance-dashboard-msme.html',    url: 'finance-dashboard-msme'    },
 
         // ── EdTech ─────────────────────────────────────────────────────────
         'alchemist':                 { file: 'alchemist.html',                 url: 'alchemist'                 },
@@ -148,11 +158,13 @@
         'gift-psychology':           { file: 'printbydd-store/gift-psychology.html', url: 'gift-psychology'     },
         'dharamdaxini':              { file: 'DharamDaxini/index.html',        url: 'dharamdaxini'              },
         'dharamdaxini-legacy':       { file: 'DharamDaxini.html',              url: 'dharamdaxini-legacy'       },
+        'dharam-daxini':             { file: 'DharamDaxini/index.html',        url: 'dharamdaxini'              },
 
         // ── Licensing / Payments ───────────────────────────────────────────
         'engine-license':            { file: 'engine-license.html',            url: 'engine-license'            },
         'engine-activation-request': { file: 'Engine Activation Request.html', url: 'engine-activation-request'},
         'payment-register':          { file: 'payment-register.html',          url: 'payment-register'          },
+        'payroll-register':          { file: 'payment-register.html',          url: 'payment-register'          },
         'pricing':                   { file: 'pricing.html',                   url: 'pricing'                   },
 
         // ── Blog / Content ─────────────────────────────────────────────────

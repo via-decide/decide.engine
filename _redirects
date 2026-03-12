@@ -105,6 +105,10 @@
 /wof                              /wings-of-fire-quiz.html               200
 /numberplate                      /printbydd-store/numberplate.html      200
 /printbydd-store                  /printbydd-store/index.html            200
+/dharam-daxini                    /DharamDaxini/index.html               200
+/fintrack                         /finance-dashboard-msme.html           200
+/payroll-register                 /payment-register.html                 200
+/sales-register                   /sales-dashboard.html                  200
 
 # ── SPA fallback — MUST BE LAST ──────────────────────────────
 /*                                /index.html                            200
