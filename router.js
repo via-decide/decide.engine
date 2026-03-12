@@ -1,5 +1,5 @@
 /**
- * ViaDecide Router (VDRouter) — v3.0
+ * ViaDecide Router (VDRouter) — v3.1
  * ─────────────────────────────────────────────────────────────────────────────
  * Handles SPA routing, prefetching, Cloudflare Pages 404 redirects,
  * and history-synced modal overlays.
@@ -45,6 +45,12 @@
  *                         AND index.html — router.js is now sole owner   ✓
  *  v3 #13 resolve()       aliases (wof, wings-of-fire) had no canonical
  *                         URL — resolveURL() returns the Cloudflare slug ✓
+ *  v3.1 #14 init()       __vd_redirect__ relied on 404.html which never
+ *                         fires with /* 200 rewrite — replaced with direct
+ *                         pathname read (window.location.pathname)         ✓
+ *  v3.1 #15 _redirects   alias slugs /wings-of-fire /wof /wingsoffire
+ *                         /audio-log /numberplate /printbydd-store had no
+ *                         _redirects entry — direct visits showed homepage  ✓
  */
 (function (global) {
     'use strict';
@@ -116,7 +122,6 @@
         'skillhex-mission-control': { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
         'skillhex':                 { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
         'apps/skillhex':            { file: 'apps/skillhex/index.html',        url: 'skillhex-mission-control'   },
-        // Canonical URL: wings-of-fire-quiz. Aliases share file + canonical url.
         'wings-of-fire-quiz':        { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
         'wings-of-fire':             { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
         'wingsoffire':               { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
@@ -296,10 +301,6 @@
             return _table;
         },
 
-        /**
-         * resolve(slug) → relative .html file path
-         * Use for iframe src. Do NOT use for browser navigation.
-         */
         resolve(pathOrSlug) {
             const slug = _normalise(pathOrSlug);
             if (!slug) return '';
@@ -311,11 +312,6 @@
             return slug + '.html';
         },
 
-        /**
-         * resolveURL(slug) → /canonical-slug  [NEW v3]
-         * Always use this for full-page navigation.
-         * Ensures Cloudflare _redirects 200-rewrites fire correctly.
-         */
         resolveURL(pathOrSlug) {
             const slug = _normalise(pathOrSlug);
             if (!slug) return '/';
@@ -323,9 +319,6 @@
             return '/' + slug;
         },
 
-        /**
-         * Prefetch via clean URL (matches what _redirects will serve).
-         */
         prefetch(slug) {
             const url = this.resolveURL(slug);
             if (!url || url === '/' || _prefetched.has(url)) return;
@@ -355,13 +348,6 @@
             this.emit('routechange', { type: 'overlay', file, icon, name });
         },
 
-        /**
-         * go(slug, opts)
-         *
-         * overlay: true  → resolve to .html file, open in iframe
-         * overlay: false → resolveURL to /slug, navigate via assign()
-         *                  FIX #11: this prevents the redirect loop
-         */
         go(slug, opts = {}) {
             if (!slug) return;
             if (opts.overlay) {
@@ -393,7 +379,13 @@
                 el.setAttribute('data-back-bound', '');
                 el.addEventListener('click', e => {
                     e.preventDefault();
-                    global.parent.postMessage({ type: 'vd-nav', route: '/' }, '*');
+                    if (global.self !== global.top) {
+                        try {
+                            global.parent.postMessage({ type: 'vd:close-overlay' }, global.location.origin);
+                            return;
+                        } catch (_) {}
+                    }
+                    global.history.length > 1 ? global.history.back() : global.location.assign('/');
                 });
             });
         },
@@ -411,13 +403,12 @@
         },
 
         init() {
-            if (global.self !== global.top) return;
-
             _installCloseModalTrap();
 
             // 1. Cloudflare 404 restore — router.js is sole __vd_redirect__ owner
+            let redirect = null;
             try {
-                const redirect = sessionStorage.getItem('__vd_redirect__');
+                redirect = sessionStorage.getItem('__vd_redirect__');
                 if (redirect) {
                     sessionStorage.removeItem('__vd_redirect__');
                     if (!new URLSearchParams(global.location.search).has('m')) {
@@ -430,6 +421,25 @@
                     }
                 }
             } catch (_) {}
+
+            // 1b. Pathname-based SPA fallback (v3.1 fix #14)
+            if (!redirect && typeof global._modalSetup === 'function') {
+                const raw      = global.location.pathname;
+                const pathSlug = raw.replace(/^\/+|\/+$/g, '');
+                const normKey  = _normalise(pathSlug);
+                if (normKey && _table[normKey]) {
+                    const entry = _table[normKey];
+                    const title = normKey.replace(/-/g, ' ');
+                    global.history.replaceState(
+                        { modalOpen: false },
+                        '',
+                        '/' + entry.url
+                    );
+                    if (!new URLSearchParams(global.location.search).has('m')) {
+                        setTimeout(() => this.openOverlay(entry.file, { title }), 200);
+                    }
+                }
+            }
 
             // 2. Direct ?m=file visits
             const modalParam = new URLSearchParams(global.location.search).get('m');
