@@ -118,6 +118,6 @@ async function boot() {
   const cached = JSON.parse(localStorage.getItem(APP_KEY) || '{}');
   state.score = cached.score || 0; state.multiplier = cached.multiplier || 1;
   $('score').textContent = state.score; $('mult').textContent = state.multiplier.toFixed(2);
-  log('SkillHex Mission Control booted');
+  log('SkillHex Operations Console booted');
 }
 boot();

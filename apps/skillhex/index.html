@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkillHex — Mission Control v3</title>
+<title>SkillHex — Operations Console v3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
@@ -572,7 +572,7 @@ footer {
     <div class="logo-gem"><span>SHX</span></div>
     <div>
       <div class="logo-name">SkillHex</div>
-      <span class="logo-sub">Mission Control v3</span>
+      <span class="logo-sub">Operations Console v3</span>
     </div>
   </a>
   <div class="hud-row">
@@ -993,8 +993,8 @@ const MISSIONS = [
     ]
   },
   {
-    id:'adversarial-neg', title:'Adversarial Negotiation', category:'⬡ NEGOTIATION', diff:2, skill:'Negotiation',
-    desc:'Vendor threatening to terminate mid-project unless you accept a 40% price increase. Your move?',
+    id:'adversarial-neg', title:'High-Stakes Negotiation', category:'⬡ NEGOTIATION', diff:2, skill:'Negotiation',
+    desc:'Vendor signals a mid-project contract exit unless you accept a 40% price increase. Your move?',
     choices:[
       { v:'accept',  l:'Accept to avoid disruption',               ok:false, fb:'Capitulation invites further demands.' },
       { v:'refuse',  l:'Refuse, immediately seek alternatives',    ok:false, fb:'Abrupt refusal risks project failure.' },
@@ -1003,7 +1003,7 @@ const MISSIONS = [
     ]
   },
   {
-    id:'rogue-model', title:'The Rogue Model', category:'⬡ AI GOVERNANCE', diff:5, skill:'AI Ops',
+    id:'rogue-model', title:'Model Drift Incident', category:'⬡ AI GOVERNANCE', diff:5, skill:'AI Ops',
     desc:'Deployed ML model returns biased predictions post-update. Users complaining in real time. First move?',
     choices:[
       { v:'rollback', l:'Immediately rollback to stable version',   ok:true,  fb:'Correct — rollback stops active harm while RCA begins.' },
@@ -1045,7 +1045,7 @@ const SVG_SCENES = {
 };
 
 const EVENTS = [
-  { name:'Asteroid Rush',    desc:'Clear 5 tactical threats in sequence',    reward:'+40 tokens + Hex territory' },
+  { name:'Asteroid Rush',    desc:'Clear 5 tactical obstacles in sequence',  reward:'+40 tokens + Hex territory' },
   { name:'Signal Blackout',  desc:'Solve comms puzzle with your squad',       reward:'Rare badge + 50 XP' },
   { name:'Reactor Peak',     desc:'Score 900+ in calibration run',            reward:'Skill Upgrade Core' },
 ];
@@ -1887,18 +1887,18 @@ function renderShareCard() {
     <rect width="480" height="200" fill="#080d1a"/>
     <rect x="12" y="12" width="456" height="176" rx="10" fill="#0c1224" stroke="#152240"/>
     <rect x="12" y="12" width="456" height="3" rx="1.5" fill="url(#scg)"/>
-    <text x="28" y="46" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">SkillHex Mission Control</text>
+    <text x="28" y="46" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">SkillHex Operations Console</text>
     <text x="28" y="72" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">${STATE.playerName} · SR: ${STATE.sr} · Pass Lv: ${STATE.passLevel}</text>
     <text x="28" y="94" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">Tokens: ${STATE.tokens} · Streak: ${STATE.streak.count}d · Score: ${STATE.lastScore}</text>
     <rect x="28" y="112" width="280" height="8" rx="4" fill="#050810"/>
     <rect x="28" y="112" width="${Math.min(280,(STATE.xp/(STATE.passLevel*100))*280)}" height="8" rx="4" fill="url(#scg)"/>
     <text x="28" y="148" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Top Skills: ${Object.entries(STATE.hexSkills).sort((a,b)=>b[1].level-a[1].level).slice(0,3).map(([k,v])=>`${k} L${v.level}`).join(' · ')}</text>
-    <text x="28" y="176" fill="#f59e0b" font-size="12" font-family="Share Tech Mono">#SkillHex #MissionControl @geogebra.in</text>
+    <text x="28" y="176" fill="#f59e0b" font-size="12" font-family="Share Tech Mono">#SkillHex #OperationsConsole @geogebra.in</text>
   </svg>`;
 }
 
 function shareCard() {
-  const text = `🔷 SkillHex Mission Control\nCallsign: ${STATE.playerName}\nSR: ${STATE.sr} | Pass Lv: ${STATE.passLevel} | Streak: ${STATE.streak.count}d\n#SkillHex #MissionControl`;
+  const text = `🔷 SkillHex Operations Console\nCallsign: ${STATE.playerName}\nSR: ${STATE.sr} | Pass Lv: ${STATE.passLevel} | Streak: ${STATE.streak.count}d\n#SkillHex #OperationsConsole`;
   if (navigator.share) navigator.share({ title: 'SkillHex Result', text });
   else if (navigator.clipboard) { navigator.clipboard.writeText(text); showToast('Result copied to clipboard', 'ok'); }
 }
