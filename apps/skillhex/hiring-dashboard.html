@@ -1,53 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkillHex Recruiter Dashboard</title>
-  <style>
-    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #0b1020; color: #d6e4ff; }
-    .layout { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
-    aside { background: #121a33; padding: 1rem; border-right: 1px solid #2a355e; }
-    main { padding: 1rem; }
-    .card { background: #161f3d; border: 1px solid #2a355e; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-    .row { display: flex; gap: .75rem; flex-wrap: wrap; }
-    input, button { padding: .6rem; border-radius: 8px; border: 1px solid #38477a; background: #0f1730; color: #d6e4ff; }
-    button { cursor: pointer; background: #2d68ff; border: none; }
-    ul { list-style: none; padding: 0; margin: 0; }
-    li { padding: .65rem; border-bottom: 1px solid #2a355e; }
-    .muted { color: #95a6d8; font-size: .9rem; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SkillHex — Recruiter Dashboard</title>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap"></noscript>
+<style>
+* { -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+input, textarea, select, .allow-select { user-select: text; -webkit-user-select: text; }
+*:focus { outline: none; }
+*:focus-visible { outline: 2px solid #00e5ff; outline-offset: 2px; border-radius: 3px; }
+::selection { background: #00e5ff33; color: #e0f7ff; }
+:root {
+  --bg:#030508; --bg2:#060a14; --panel:#080d1a; --panel2:#0c1224;
+  --border:#152240; --border2:#1e3060;
+  --cyan:#00e5ff; --cyan-glow:0 0 14px #00e5ff66,0 0 40px #00e5ff22;
+  --green:#00ff88; --green-glow:0 0 14px #00ff8866,0 0 40px #00ff8822;
+  --amber:#f59e0b; --amber-glow:0 0 14px #f59e0b66,0 0 40px #f59e0b22;
+  --red:#ff3a50; --violet:#a855f7;
+  --txt:#c8d8f0; --txt-dim:#6a8aa8; --txt-mute:#1e3050;
+  --fhud:'Orbitron','Arial Black',monospace;
+  --fbody:'Rajdhani','Arial',sans-serif;
+  --fmono:'Share Tech Mono','Courier New',monospace;
+}
+body { background:var(--bg); color:var(--txt); font-family:var(--fbody); min-height:100vh; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:9999; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px); will-change:transform; transform:translateZ(0); }
+body::after  { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background:radial-gradient(circle at 1px 1px,#152240 1px,transparent 0); background-size:28px 28px; opacity:.35; will-change:transform; transform:translateZ(0); }
+
+header { position:sticky; top:0; z-index:200; background:rgba(3,5,8,.92); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); padding:.75rem 1.5rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+.logo-hex { width:32px; height:32px; flex-shrink:0; background:var(--cyan); clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); display:grid; place-items:center; box-shadow:var(--cyan-glow); animation:hexPulse 3s ease-in-out infinite; }
+.logo-hex span { font-family:var(--fhud); font-size:.42rem; font-weight:900; color:#030508; }
+@keyframes hexPulse { 0%,100%{box-shadow:0 0 10px #00e5ff66,0 0 30px #00e5ff22;} 50%{box-shadow:0 0 20px #00e5ffcc,0 0 50px #00e5ff44;} }
+.hdr-title { font-family:var(--fhud); font-size:.78rem; font-weight:900; color:#fff; letter-spacing:.08em; }
+.hdr-sub   { font-family:var(--fmono); font-size:.52rem; color:var(--txt-dim); letter-spacing:.18em; text-transform:uppercase; }
+.hdr-spacer { flex:1; }
+.fb-dot { display:inline-flex; align-items:center; gap:.4rem; font-family:var(--fmono); font-size:.5rem; color:var(--txt-dim); letter-spacing:.1em; }
+.fb-dot-led { width:6px; height:6px; border-radius:50%; background:var(--txt-mute); transition:all .4s; }
+.fb-dot-led.online { background:var(--green); box-shadow:0 0 6px #00ff8899; }
+.hdr-btn { font-family:var(--fhud); font-size:.52rem; letter-spacing:.1em; text-transform:uppercase; padding:.55rem .9rem; border-radius:5px; border:1px solid var(--border2); background:transparent; color:var(--txt-dim); cursor:pointer; transition:all .2s; min-height:44px; display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap; text-decoration:none; }
+.hdr-btn:hover { border-color:var(--cyan); color:var(--cyan); box-shadow:var(--cyan-glow); background:#00e5ff0a; }
+.hdr-btn:active { transform:scale(.96); transition-duration:.05s; }
+
+.root { position:relative; z-index:1; display:grid; grid-template-columns:300px 1fr; min-height:calc(100vh - 57px); }
+aside { border-right:1px solid var(--border); padding:1.25rem; overflow-y:auto; max-height:calc(100vh - 57px); position:sticky; top:57px; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; display:flex; flex-direction:column; gap:1rem; }
+main  { padding:1.25rem; overflow-y:auto; max-height:calc(100vh - 57px); scrollbar-width:thin; scrollbar-color:var(--border2) transparent; display:flex; flex-direction:column; gap:1rem; }
+
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
+.panel::before { content:''; position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse 70% 35% at 50% 0%,#00e5ff05,transparent); }
+.panel-hd { font-family:var(--fmono); font-size:clamp(.6rem,1.5vw,.68rem); color:var(--txt-dim); letter-spacing:.22em; text-transform:uppercase; padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.5rem; }
+.panel-hd::before { content:''; width:3px; height:1em; background:var(--cyan); box-shadow:var(--cyan-glow); border-radius:2px; flex-shrink:0; }
+.panel-hd.amber::before { background:var(--amber); box-shadow:var(--amber-glow); }
+.panel-hd.green::before { background:var(--green); box-shadow:var(--green-glow); }
+.panel-hd.violet::before { background:var(--violet); box-shadow:none; }
+.panel-body { padding:.9rem 1rem; }
+
+label { display:block; font-family:var(--fmono); font-size:.52rem; color:var(--txt-dim); letter-spacing:.14em; text-transform:uppercase; margin-bottom:.3rem; margin-top:.65rem; }
+label:first-child { margin-top:0; }
+.inp { width:100%; background:var(--panel2); border:1px solid var(--border2); color:var(--txt); border-radius:6px; padding:.55rem .75rem; font-family:var(--fbody); font-size:.95rem; transition:border-color .15s; }
+.inp:focus-visible { outline:none; border-color:var(--cyan); box-shadow:var(--cyan-glow); }
+@media(max-width:760px) { .inp { font-size:16px; } }
+
+.btn { width:100%; padding:.65rem; border-radius:6px; border:1px solid; font-family:var(--fhud); font-size:.55rem; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:all .18s; display:flex; align-items:center; justify-content:center; gap:.4rem; min-height:44px; }
+.btn:active { transform:scale(.97); opacity:.85; transition-duration:.05s; }
+.btn-cyan   { border-color:var(--cyan);  color:var(--cyan);  background:#00e5ff0a; }
+.btn-cyan:hover  { background:#00e5ff18; box-shadow:var(--cyan-glow); }
+.btn-green  { border-color:var(--green); color:var(--green); background:#00ff880a; }
+.btn-green:hover { background:#00ff8818; box-shadow:var(--green-glow); }
+.btn-amber  { border-color:var(--amber); color:var(--amber); background:#f59e0b0a; }
+.btn-amber:hover { background:#f59e0b18; box-shadow:var(--amber-glow); }
+.btn-ghost  { border-color:var(--border2); color:var(--txt-dim); background:transparent; }
+.btn-ghost:hover { border-color:var(--txt-dim); color:var(--txt); }
+.btn-sm     { padding:.35rem .7rem; font-size:.47rem; min-height:36px; width:auto; }
+
+.stats-strip { display:flex; gap:.5rem; flex-wrap:wrap; }
+.stat-pill { font-family:var(--fmono); font-size:.52rem; letter-spacing:.1em; padding:.25rem .65rem; border-radius:20px; border:1px solid var(--border2); color:var(--txt-dim); }
+.stat-pill b { color:var(--txt); font-weight:700; }
+.stat-pill.c { border-color:#00e5ff33; color:var(--cyan); }
+.stat-pill.g { border-color:#00ff8833; color:var(--green); }
+.stat-pill.a { border-color:#f59e0b33; color:var(--amber); }
+
+#candidate-list { display:flex; flex-direction:column; gap:1px; background:var(--border); border-radius:6px; overflow:hidden; }
+.cand-row { background:var(--panel); padding:.75rem 1rem; display:grid; grid-template-columns:1fr auto; align-items:center; gap:.75rem; cursor:pointer; transition:background .15s; position:relative; }
+.cand-row:hover    { background:#0a1020; }
+.cand-row.selected { background:#0c1830; border-left:2px solid var(--cyan); }
+.cand-row:active   { background:#0f1a28; transition-duration:.05s; }
+.cand-name { font-family:var(--fhud); font-size:.68rem; font-weight:700; color:#fff; letter-spacing:.06em; }
+.cand-meta { font-family:var(--fmono); font-size:.5rem; color:var(--txt-dim); margin-top:.2rem; }
+.cand-sr   { font-family:var(--fhud); font-size:.85rem; font-weight:900; color:var(--cyan); text-align:right; }
+.cand-sr-lbl { font-family:var(--fmono); font-size:.42rem; color:var(--txt-dim); letter-spacing:.12em; text-align:right; }
+.cand-rank-bar { position:absolute; left:0; top:15%; height:70%; width:2px; border-radius:2px; }
+.rank-1 .cand-rank-bar { background:#ffd700; box-shadow:0 0 8px #ffd70099; }
+.rank-2 .cand-rank-bar { background:#c0c0c0; }
+.rank-3 .cand-rank-bar { background:#cd7f32; }
+
+.cand-skeleton { display:flex; flex-direction:column; gap:1px; }
+.sk-row { height:64px; background:linear-gradient(90deg,var(--panel) 25%,var(--border) 50%,var(--panel) 75%); background-size:200% 100%; animation:skShimmer 1.4s ease infinite; }
+@keyframes skShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.empty-state { padding:2rem; text-align:center; font-family:var(--fmono); font-size:.65rem; color:var(--txt-dim); letter-spacing:.1em; }
+
+.evidence-empty { padding:2rem 1rem; text-align:center; font-family:var(--fbody); font-size:.95rem; color:var(--txt-dim); line-height:1.6; font-weight:300; }
+.evidence-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+.ev-card { background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:.75rem; }
+.ev-label { font-family:var(--fmono); font-size:.48rem; color:var(--txt-dim); letter-spacing:.18em; text-transform:uppercase; margin-bottom:.4rem; }
+.ev-val { font-family:var(--fhud); font-size:1.4rem; font-weight:900; color:var(--cyan); }
+.ev-val.green  { color:var(--green); }
+.ev-val.amber  { color:var(--amber); }
+.ev-val.violet { color:var(--violet); }
+.ev-sub { font-family:var(--fmono); font-size:.48rem; color:var(--txt-dim); margin-top:.15rem; }
+.cand-detail-hdr { display:flex; align-items:flex-start; gap:.75rem; margin-bottom:1rem; padding-bottom:.75rem; border-bottom:1px solid var(--border); }
+.cand-callsign { font-family:var(--fhud); font-size:1.1rem; font-weight:900; color:#fff; letter-spacing:.08em; }
+.cand-uid { font-family:var(--fmono); font-size:.48rem; color:var(--txt-dim); margin-top:.15rem; }
+.contact-row { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.85rem; }
+
+#job-list { display:flex; flex-direction:column; gap:.5rem; }
+.job-card { background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:.65rem .85rem; display:flex; align-items:center; gap:.75rem; }
+.job-title { font-family:var(--fbody); font-size:.95rem; font-weight:600; color:var(--txt); flex:1; min-width:0; }
+.job-skill { font-family:var(--fmono); font-size:.5rem; color:var(--amber); letter-spacing:.1em; }
+.job-ts    { font-family:var(--fmono); font-size:.44rem; color:var(--txt-mute); white-space:nowrap; }
+.job-del   { background:none; border:none; color:var(--txt-mute); cursor:pointer; font-size:.9rem; padding:.25rem; border-radius:4px; min-height:36px; min-width:36px; transition:color .15s; display:flex; align-items:center; justify-content:center; }
+.job-del:hover { color:var(--red); }
+.job-result { font-family:var(--fmono); font-size:.52rem; margin-top:.5rem; min-height:1.2em; }
+.job-result.ok  { color:var(--green); }
+.job-result.err { color:var(--red); }
+
+#toast { position:fixed; bottom:max(1.5rem,env(safe-area-inset-bottom) + .75rem); right:max(1.5rem,env(safe-area-inset-right) + .75rem); z-index:9000; padding:.65rem 1.1rem; border-radius:5px; font-family:var(--fmono); font-size:.72rem; transform:translateY(60px); opacity:0; transition:all .25s cubic-bezier(.4,0,.2,1); pointer-events:none; }
+#toast.show { transform:none; opacity:1; }
+#toast.ok   { background:var(--panel); border:1px solid var(--green); color:var(--green); box-shadow:var(--green-glow); }
+#toast.err  { background:var(--panel); border:1px solid var(--red);   color:var(--red); }
+#toast.info { background:var(--panel); border:1px solid var(--cyan);  color:var(--cyan); box-shadow:var(--cyan-glow); }
+
+@media(max-width:900px) {
+  .root { grid-template-columns:1fr; }
+  aside { position:static; max-height:none; border-right:none; border-bottom:1px solid var(--border); }
+  main  { max-height:none; }
+}
+@media(max-width:560px) {
+  .hdr-sub { display:none; }
+  .evidence-grid { grid-template-columns:1fr; }
+}
+</style>
 </head>
 <body>
-<div class="layout">
+
+<header>
+  <div class="logo-hex"><span>SHX</span></div>
+  <div>
+    <div class="hdr-title">Recruiter Dashboard</div>
+    <div class="hdr-sub">SkillHex Ops · Live Talent Feed</div>
+  </div>
+  <div class="hdr-spacer"></div>
+  <div class="fb-dot" id="fb-indicator">
+    <div class="fb-dot-led" id="fb-led"></div>
+    <span id="fb-status-txt">connecting</span>
+  </div>
+  <a href="./index.html" class="hdr-btn" aria-label="Back to SkillHex Operations Console">⬡ Ops Console</a>
+</header>
+
+<div class="root">
   <aside>
-    <h2>Recruiter Controls</h2>
-    <div class="card">
-      <label>Skill Search</label>
-      <input id="skill" placeholder="e.g. Redis" />
-      <label>Min Score</label>
-      <input id="minScore" type="number" value="70" min="0" max="100" />
-      <button id="searchBtn">Search Candidates</button>
+    <div class="panel">
+      <div class="panel-hd">🔍 Candidate Filter</div>
+      <div class="panel-body">
+        <label for="f-name">Callsign Search</label>
+        <input class="inp" id="f-name" placeholder="e.g. NOVA, GHOST…" autocomplete="off">
+        <label for="f-minsr">Min SR Score</label>
+        <input class="inp" id="f-minsr" type="number" value="0" min="0" max="999999">
+        <label for="f-sort">Sort By</label>
+        <select class="inp" id="f-sort">
+          <option value="sr">SR Score (high → low)</option>
+          <option value="xp">XP (high → low)</option>
+          <option value="streak">Streak (high → low)</option>
+          <option value="tokens">Tokens (high → low)</option>
+          <option value="recent">Most Recent</option>
+        </select>
+        <div style="margin-top:.75rem;display:flex;gap:.5rem">
+          <button class="btn btn-cyan" id="btn-filter">⚡ Apply Filter</button>
+        </div>
+        <div style="margin-top:.4rem">
+          <button class="btn btn-ghost btn-sm" id="btn-clear" style="width:100%">✕ Clear Filters</button>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <h3>Create Job</h3>
-      <input id="jobTitle" placeholder="Role title" />
-      <input id="jobSkill" placeholder="Primary skill" />
-      <button id="createJobBtn">POST /jobs</button>
-      <div id="jobResult" class="muted"></div>
+
+    <div class="panel">
+      <div class="panel-hd green">📊 Live Cohort Stats</div>
+      <div class="panel-body">
+        <div class="stats-strip" id="cohort-stats">
+          <div class="stat-pill">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd amber">📋 Post a Job</div>
+      <div class="panel-body">
+        <label for="j-title">Role Title</label>
+        <input class="inp" id="j-title" placeholder="e.g. Senior Backend Engineer" autocomplete="off">
+        <label for="j-skill">Skill Tag</label>
+        <input class="inp" id="j-skill" placeholder="e.g. Redis, Systems, Strategy" autocomplete="off">
+        <label for="j-minsr">Min SR Required</label>
+        <input class="inp" id="j-minsr" type="number" value="1000" min="0">
+        <div style="margin-top:.75rem">
+          <button class="btn btn-amber" id="btn-post-job">⊕ Post to Job Board</button>
+        </div>
+        <div class="job-result" id="job-result"></div>
+      </div>
     </div>
   </aside>
+
   <main>
-    <section class="card">
-      <h2>Candidate Results</h2>
-      <ul id="candidateList"></ul>
-    </section>
-    <section class="card">
-      <h2>Candidate Evidence</h2>
-      <div id="evidencePane" class="muted">Select a candidate to inspect projects, assessments, coding problems, and peer reviews.</div>
-    </section>
+    <div class="panel">
+      <div class="panel-hd">⬡ Live Candidate Feed <span id="cand-count" style="margin-left:auto;font-size:.5rem;color:var(--txt-mute)"></span></div>
+      <div class="panel-body" style="padding:.5rem">
+        <div id="candidate-list">
+          <div class="cand-skeleton">
+            <div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div>
+            <div class="sk-row"></div><div class="sk-row"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd violet" id="evidence-hd">⊙ Candidate Evidence</div>
+      <div class="panel-body" id="evidence-pane">
+        <div class="evidence-empty">Select a candidate above to inspect their SR score, XP, streak, tokens, and session stats.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd amber">💼 Active Job Board</div>
+      <div class="panel-body">
+        <div id="job-list">
+          <div class="empty-state">No jobs posted yet.</div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
-<script type="module" src="./js/hiring-dashboard.js"></script>
+
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+/* ── Firebase Config (same __FB_*__ build-time placeholder pattern as index.html) ── */
+const FB_CONFIG = {
+  apiKey:            "__FB_API_KEY__",
+  authDomain:        "__FB_AUTH_DOMAIN__",
+  databaseURL:       "__FB_DATABASE_URL__",
+  projectId:         "__FB_PROJECT_ID__",
+  storageBucket:     "__FB_STORAGE_BUCKET__",
+  messagingSenderId: "__FB_MESSAGING_SENDER_ID__",
+  appId:             "__FB_APP_ID__"
+};
+
+let db = null, _all = [], _filtered = [], _selected = null, _lbUnsub = null, _jobUnsub = null, _toastTimer = null;
+
+/* ── Toast ── */
+function toast(msg, type = 'info', dur = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+/* ── Firebase Init ── */
+function setFbStatus(online) {
+  document.getElementById('fb-led').className = 'fb-dot-led' + (online ? ' online' : '');
+  document.getElementById('fb-status-txt').textContent = online ? 'live' : 'offline';
+}
+
+function initFirebase() {
+  if (typeof firebase === 'undefined') { setTimeout(initFirebase, 150); return; }
+  try {
+    firebase.initializeApp(FB_CONFIG);
+    db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+    setFbStatus(true);
+    startLbListener();
+    startJobListener();
+  } catch(e) {
+    setFbStatus(false);
+    renderCandidates([]);
+    console.warn('[Firebase] Init error:', e);
+  }
+}
+
+/* ── Leaderboard listener ── */
+function startLbListener() {
+  if (!db) return;
+  _lbUnsub && _lbUnsub();
+  _lbUnsub = db.collection('skillhex_leaderboard')
+    .orderBy('sr', 'desc')
+    .onSnapshot(snap => {
+      _all = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        _all.push({
+          docId:     doc.id,
+          name:      d.name || doc.id,
+          uid:       d.uid  || null,
+          sr:        Number(d.sr)     || 0,
+          xp:        Number(d.xp)     || 0,
+          tokens:    Number(d.tokens) || 0,
+          streak:    Number(d.streak) || 0,
+          updatedAt: d.updatedAt ? d.updatedAt.toDate() : null,
+        });
+      });
+      applyFilter();
+      renderCohortStats();
+      if (_selected) {
+        const still = _all.find(c => c.docId === _selected.docId);
+        if (still) renderEvidence(still);
+      }
+      setFbStatus(true);
+    }, err => { setFbStatus(false); renderCandidates([]); });
+}
+
+/* ── Filter ── */
+function applyFilter() {
+  const nameQ = document.getElementById('f-name').value.trim().toUpperCase();
+  const minSR = Number(document.getElementById('f-minsr').value) || 0;
+  const sort  = document.getElementById('f-sort').value;
+
+  _filtered = _all.filter(c => {
+    if (nameQ && !c.name.includes(nameQ)) return false;
+    if (c.sr < minSR) return false;
+    return true;
+  });
+  _filtered.sort((a, b) => {
+    if (sort === 'xp')     return b.xp     - a.xp;
+    if (sort === 'streak') return b.streak - a.streak;
+    if (sort === 'tokens') return b.tokens - a.tokens;
+    if (sort === 'recent') return (b.updatedAt||new Date(0)).getTime() - (a.updatedAt||new Date(0)).getTime();
+    return b.sr - a.sr;
+  });
+  renderCandidates(_filtered);
+}
+
+/* ── Render Candidates ── */
+function renderCandidates(list) {
+  const el  = document.getElementById('candidate-list');
+  const cnt = document.getElementById('cand-count');
+  cnt.textContent = list.length ? list.length + ' operative' + (list.length !== 1 ? 's' : '') : '';
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">' + (_all.length ? '0 match your filter.' : 'No operatives on leaderboard yet.') + '</div>';
+    return;
+  }
+  el.innerHTML = '';
+  list.forEach((c, idx) => {
+    const globalRank = _all.indexOf(c);
+    const row = document.createElement('div');
+    row.className = 'cand-row' + (globalRank < 3 ? ' rank-' + (globalRank + 1) : '') + (_selected && _selected.docId === c.docId ? ' selected' : '');
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
+    row.setAttribute('aria-label', 'View evidence for ' + c.name + ', SR ' + c.sr);
+    row.innerHTML =
+      '<div class="cand-rank-bar"></div>' +
+      '<div><div class="cand-name">' + esc(c.name) + '</div>' +
+      '<div class="cand-meta">STREAK ' + c.streak + ' · XP ' + c.xp.toLocaleString() + ' · TOKENS ' + c.tokens + (c.updatedAt ? ' · ' + ago(c.updatedAt) : '') + '</div></div>' +
+      '<div><div class="cand-sr">' + c.sr.toLocaleString() + '</div><div class="cand-sr-lbl">SR</div></div>';
+    row.addEventListener('click', () => pick(c));
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(c); } });
+    el.appendChild(row);
+  });
+}
+
+function pick(c) {
+  _selected = c;
+  renderCandidates(_filtered);
+  renderEvidence(c);
+  if (window.innerWidth <= 900)
+    document.getElementById('evidence-pane').closest('.panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ── Evidence Pane ── */
+function renderEvidence(c) {
+  const hdr = document.getElementById('evidence-hd');
+  hdr.innerHTML = '<span style="width:3px;height:1em;background:var(--violet);border-radius:2px;flex-shrink:0"></span> ⊙ ' + esc(c.name) + ' — Evidence';
+  hdr.style.gap = '.5rem';
+  const srPct = Math.min(100, Math.round((c.sr / 9999) * 100));
+  document.getElementById('evidence-pane').innerHTML =
+    '<div class="cand-detail-hdr">' +
+    '<div><div class="cand-callsign">' + esc(c.name) + '</div>' +
+    '<div class="cand-uid">UID: ' + esc(c.uid || c.docId) + '</div></div>' +
+    '<div style="margin-left:auto;text-align:right">' +
+    '<div style="font-family:var(--fmono);font-size:.5rem;color:var(--txt-dim);letter-spacing:.12em">LAST ACTIVE</div>' +
+    '<div style="font-family:var(--fmono);font-size:.55rem;color:var(--txt)">' + (c.updatedAt ? c.updatedAt.toLocaleString() : '—') + '</div></div></div>' +
+    '<div class="evidence-grid">' +
+    ev('SR Score',    c.sr.toLocaleString(),       'Top ~' + srPct + '%',              '') +
+    ev('XP Earned',   c.xp.toLocaleString(),       'Experience points',                'green') +
+    ev('Streak',      c.streak,                    'Consecutive missions',             'amber') +
+    ev('Tokens',      c.tokens.toLocaleString(),   'In-app currency',                  'violet') +
+    '</div>' +
+    '<div class="contact-row">' +
+    '<button class="btn btn-cyan btn-sm" onclick="cpText(\'' + esc(c.name) + '\',\'Callsign copied\')" style="width:auto">📋 Copy Callsign</button>' +
+    '<button class="btn btn-green btn-sm" onclick="cpText(\'' + esc(c.uid || c.docId) + '\',\'UID copied\')" style="width:auto">🔑 Copy UID</button>' +
+    '</div>';
+}
+
+function ev(label, val, sub, cls) {
+  return '<div class="ev-card"><div class="ev-label">' + label + '</div>' +
+         '<div class="ev-val ' + cls + '">' + val + '</div>' +
+         '<div class="ev-sub">' + sub + '</div></div>';
+}
+
+/* ── Cohort Stats ── */
+function renderCohortStats() {
+  const el = document.getElementById('cohort-stats');
+  if (!_all.length) { el.innerHTML = '<div class="stat-pill">No data yet</div>'; return; }
+  const total  = _all.length;
+  const avgSR  = Math.round(_all.reduce((s, c) => s + c.sr, 0) / total);
+  const maxSR  = Math.max(..._all.map(c => c.sr));
+  const week   = Date.now() - 7 * 86400000;
+  const active = _all.filter(c => c.updatedAt && c.updatedAt.getTime() > week).length;
+  el.innerHTML =
+    '<div class="stat-pill c"><b>' + total  + '</b> ops</div>' +
+    '<div class="stat-pill"><b>' + avgSR.toLocaleString() + '</b> avg SR</div>' +
+    '<div class="stat-pill g"><b>' + maxSR.toLocaleString() + '</b> top SR</div>' +
+    '<div class="stat-pill a"><b>' + active + '</b> active 7d</div>';
+}
+
+/* ── Job Board ── */
+function startJobListener() {
+  if (!db) return;
+  _jobUnsub && _jobUnsub();
+  _jobUnsub = db.collection('skillhex_jobs')
+    .orderBy('createdAt', 'desc')
+    .limit(20)
+    .onSnapshot(snap => {
+      const jobs = [];
+      snap.forEach(doc => jobs.push({ id: doc.id, ...doc.data() }));
+      renderJobs(jobs);
+    }, err => console.warn('[Firebase] Jobs error:', err));
+}
+
+function renderJobs(jobs) {
+  const el = document.getElementById('job-list');
+  if (!jobs.length) { el.innerHTML = '<div class="empty-state">No jobs posted yet.</div>'; return; }
+  el.innerHTML = '';
+  jobs.forEach(j => {
+    const div = document.createElement('div');
+    div.className = 'job-card';
+    const ts = j.createdAt ? j.createdAt.toDate().toLocaleDateString() : '';
+    div.innerHTML =
+      '<div style="font-size:1.1rem">💼</div>' +
+      '<div style="flex:1;min-width:0">' +
+      '<div class="job-title">' + esc(j.title || 'Untitled') + '</div>' +
+      '<div class="job-skill">' + esc(j.skill || '') + (j.minSR ? ' · Min SR ' + j.minSR : '') + '</div></div>' +
+      '<div class="job-ts">' + ts + '</div>' +
+      '<button class="job-del" onclick="delJob(\'' + j.id + '\')" aria-label="Delete ' + esc(j.title||'') + '">✕</button>';
+    el.appendChild(div);
+  });
+}
+
+async function postJob() {
+  if (!db) { toast('Firebase not connected', 'err'); return; }
+  const title = document.getElementById('j-title').value.trim();
+  const skill = document.getElementById('j-skill').value.trim();
+  const minSR = Number(document.getElementById('j-minsr').value) || 0;
+  const res   = document.getElementById('job-result');
+  if (!title) { res.textContent = '⚠ Role title required.'; res.className = 'job-result err'; return; }
+  res.textContent = 'Posting…'; res.className = 'job-result';
+  try {
+    const ref = await db.collection('skillhex_jobs').add({
+      title, skill, minSR,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    res.textContent = '✓ Posted · ' + ref.id.slice(0, 8) + '…'; res.className = 'job-result ok';
+    document.getElementById('j-title').value = '';
+    document.getElementById('j-skill').value = '';
+    toast('Job posted', 'ok');
+  } catch(e) { res.textContent = 'Error: ' + e.message; res.className = 'job-result err'; }
+}
+
+async function delJob(id) {
+  if (!db) return;
+  try { await db.collection('skillhex_jobs').doc(id).delete(); toast('Job removed', 'info'); }
+  catch(e) { toast('Delete failed', 'err'); }
+}
+
+/* ── Utilities ── */
+function esc(s) { return String(s||''). replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function ago(d) { const s=Math.round((Date.now()-d.getTime())/1000); if(s<60) return s+'s ago'; if(s<3600) return Math.round(s/60)+'m ago'; if(s<86400) return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'; }
+function cpText(txt, msg) { navigator.clipboard.writeText(txt).then(()=>toast(msg,'ok')).catch(()=>toast('Copy failed','err')); }
+
+/* ── Events ── */
+document.getElementById('btn-filter').addEventListener('click', applyFilter);
+document.getElementById('btn-clear').addEventListener('click', () => {
+  document.getElementById('f-name').value  = '';
+  document.getElementById('f-minsr').value = '0';
+  document.getElementById('f-sort').value  = 'sr';
+  applyFilter();
+});
+document.getElementById('btn-post-job').addEventListener('click', postJob);
+document.getElementById('f-name').addEventListener('keyup', applyFilter);
+
+/* ── Touch polish ── */
+(function(){
+  var t=false;
+  document.addEventListener('touchstart',function(e){t=true;if(document.activeElement&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))document.activeElement.blur();},{passive:true});
+  document.addEventListener('touchend',function(){setTimeout(function(){t=false;},300);},{passive:true});
+  document.addEventListener('focusin',function(e){if(t)e.target.setAttribute('data-touch-focus','1');else e.target.removeAttribute('data-touch-focus');});
+  var s=document.createElement('style');s.textContent='[data-touch-focus]:focus-visible{outline:none!important;}';document.head.appendChild(s);
+})();
+
+window.addEventListener('DOMContentLoaded', initFirebase);
+</script>
 </body>
 </html>
