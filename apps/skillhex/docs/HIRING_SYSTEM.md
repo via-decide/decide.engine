@@ -44,17 +44,28 @@ Implemented in `functions/api/skillhex_hiring_schema.sql`.
 
 ## 3) Backend APIs
 
-Implemented as Cloudflare-style Functions:
+> ⚠️ **Architecture note (updated 2026-03-13):**
+> The REST API layer described in the original spec (`/api/candidates`, `/api/candidate/:id`, `/api/jobs`) was superseded by a direct Firebase Firestore implementation. The Cloudflare Functions files in `functions/api/` remain as a reference implementation but are **not used by the current hiring dashboard**.
+>
+> `apps/skillhex/js/hiring-dashboard.js` is now a no-op tombstone with a deprecation warning.
 
+### Current implementation (Firebase Firestore)
+
+All hiring dashboard logic runs directly in `apps/skillhex/hiring-dashboard.html` via the Firebase JS SDK (compat v9.23.0).
+
+| Operation | Old (REST) | New (Firebase) |
+|---|---|---|
+| List candidates | `GET /api/candidates` | `onSnapshot(collection('skillhex_leaderboard'))` |
+| View candidate | `GET /api/candidate/:id` | Filtered from leaderboard snapshot |
+| Create job | `POST /api/jobs` | `addDoc(collection('skillhex_jobs'), {...})` |
+| List jobs | `GET /api/jobs` | `onSnapshot(collection('skillhex_jobs'))` |
+| Delete job | `DELETE /api/jobs/:id` | `deleteDoc(doc('skillhex_jobs', id))` |
+
+### Legacy Cloudflare Functions (reference only)
 - `POST /jobs` → `functions/api/jobs.js`
-  - Creates a job with skill and scoring weights.
 - `GET /candidates` → `functions/api/candidates.js`
-  - Search by `skill` and filter by `minScore`.
 - `GET /match/{job_id}` → `functions/api/match/[job_id].js`
-  - Runs matching algorithm and returns ranked candidates.
 - `GET /candidate/{id}` → `functions/api/candidate/[id].js`
-  - Returns full talent profile + evidence + contact action.
-  - Optional `includeQuestions=1` returns generated interview questions.
 
 Shared AI/utility logic is located in `functions/api/_skillhex.js`.
 
@@ -99,3 +110,37 @@ Example for skill `Redis`:
 - Architecture: "How would you design a scalable Redis deployment for a multi-region product?"
 - Implementation: "Walk through a recent implementation where you used Redis in production."
 - Debugging: "Describe your step-by-step process to debug a failing Redis workflow."
+
+---
+
+## 6) Firebase Collections Schema
+
+### `skillhex_leaderboard/{uid}`
+Candidate profiles. Written by SkillHex game engine.
+
+| Field | Type | Description |
+|---|---|---|
+| `uid` | string | Firebase Auth UID |
+| `name` | string | Display name (callsign) |
+| `sr` | number | Skill Rating (0–100) |
+| `xp` | number | Total XP earned |
+| `tokens` | number | Token balance |
+| `streak` | number | Active streak days |
+| `updatedAt` | timestamp | Last activity timestamp |
+
+Security: `allow read: if true; allow write: if request.auth.uid == uid;`
+
+### `skillhex_jobs/{id}`
+Job postings. Written by recruiter dashboard.
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | string | Job title |
+| `skill` | string | Required skill tag |
+| `minSR` | number | Minimum SR threshold |
+| `createdAt` | timestamp | Created timestamp |
+
+Security: `allow read: if true; allow write: if request.auth != null;`
+
+> **Action required:** Add `skillhex_jobs` security rules in Firebase Console.
+> Rules for `skillhex_leaderboard` and `skillhex_rooms` already exist.
