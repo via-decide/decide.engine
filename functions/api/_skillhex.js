@@ -1,3 +1,11 @@
+export function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
