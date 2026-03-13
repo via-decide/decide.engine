@@ -529,95 +529,14 @@
             this.bindLinks();
             this.bindBackLinks();
             this.bindIframeBridge();
+            _observeDynamicLinks();
+        }
+    };
 
-(function (global) {
-  'use strict';
+    global.VDRouter = VDRouter;
+    document.addEventListener('DOMContentLoaded', () => VDRouter.init());
 
-  /* ══════════════════════════════════════════════════════════
-   * ROUTE REGISTRY
-   * Maps slug → HTML file (relative to site root, no leading /)
-   * ══════════════════════════════════════════════════════════ */
-  var routesMap = {
-    // Decision Tools
-    'alchemist':                      'alchemist.html',
-    'memory':                         'memory.html',
-    'prompt-alchemy':                 'prompt-alchemy.html',
-    'viaguide':                       'ViaGuide.html',
-    'studyos':                        'StudyOS.html',
-    'brief':                          'brief.html',
-    'student-research':               'student-research.html',
-    'app-generator':                  'app-generator.html',
-    'agent':                          'agent.html',
-    'swipeos':                        'SwipeOS.html',
-    'swipeos-gandhidham':             'SwipeOS-gandhidham.html',
-    'interview-prep':                 'interview-prep.html',
-    'sales-dashboard':                'sales-dashboard.html',
-    'finance-dashboard-msme':         'finance-dashboard-msme.html',
-    'payment-register':               'payment-register.html',
-    'laptops-under-50000':            'laptops-under-50000.html',
-    // Commerce
-    'ondc-demo':                      'ONDC-demo.html',
-    'engine-deals':                   'engine-deals.html',
-    'discounts':                      'discounts.html',
-    'cashback-rules':                 'cashback-rules.html',
-    'cashback-claim':                 'cashback-claim.html',
-    // Games & Sims
-    'hexwars':                        'HexWars.html',
-    'wings-of-fire-quiz':             'wings-of-fire-quiz.html',
-    'mars-rover-simulator-game':      'mars-rover-simulator-game.html',
-    'hivaland':                       'HivaLand.html',
-    // Services
-    'decide-service':                 'decide-service.html',
-    'decide-foodrajkot':              'decide-foodrajkot.html',
-    'engine-license':                 'engine-license.html',
-    'cohort-apply-here':              'cohort-apply-here.html',
-    'customswipeengineform':          'CustomSwipeEngineForm.html',
-    'pricing':                        'pricing.html',
-    'engine-activation-request':      'Engine Activation Request.html',
-    // Store
-    'printbydd-store':                'printbydd-store/index.html',
-    'printbydd':                      'printbydd-store/index.html',
-    'numberplate':                    'printbydd-store/numberplate.html',
-    'keychain':                       'printbydd-store/keychain.html',
-    'gifts-that-mean-more':           'printbydd-store/gifts-that-mean-more.html',
-    'smarttag-lite':                  'printbydd-store/smarttag-lite.html',
-    'products':                       'printbydd-store/products.html',
-    'gift-psychology':                'printbydd-store/gift-psychology.html',
-    // Blog & Content
-    'viadecide-blogs':                'Viadecide-blogs.html',
-    'the-decision-stack':             'The Decision Stack.html',
-    'decision-infrastructure-india':  'decision-infrastructure-india.html',
-    'ondc-for-bharat':                'ondc-for-bharat.html',
-    'indiaai-mission-2025':           'indiaai-mission-2025.html',
-    'multi-source-research-explained':'multi-source-research-explained.html',
-    'decision-brief-guide':           'decision-brief-guide.html',
-    'viadecide-public-beta':          'viadecide-public-beta.html',
-    'decision-brief':                 'decision-brief.html',
-    // Finance
-    'jalaram-food-court-rajkot':      'Jalaram-food-court-rajkot.html',
-    // Personal
-    'dharamdaxini':                   'DharamDaxini/index.html',
-    'dharamdaxini-legacy':            'DharamDaxini.html',
-    'founder':                        'founder.html',
-    // Utility
-    'contact':                        'contact.html',
-    'privacy':                        'privacy.html',
-    'terms':                          'terms.html',
-  };
-
-  /* Module metadata — icon + display name per slug */
-  var moduleMetaMap = {
-    'alchemist':                      { icon: '✨', name: 'Alchemist' },
-    'memory':                         { icon: '🧠', name: 'Memory Engine' },
-    'prompt-alchemy':                 { icon: '⚗️', name: 'Prompt Alchemy' },
-    'viaguide':                       { icon: '📚', name: 'ViaGuide' },
-    'studyos':                        { icon: '📖', name: 'StudyOS' },
-    'brief':                          { icon: '📋', name: 'Decision Brief' },
-    'student-research':               { icon: '🔬', name: 'Student Research' },
-    'app-generator':                  { icon: '🔧', name: 'App Generator' },
-    'agent':                          { icon: '✦',  name: 'ViaDecide Agent' },
-    'swipeos':                        { icon: '👆', name: 'SwipeOS' },
-    'ondc-demo':                      { icon: '🛒', name: 'ONDC Demo' },
+})(window);
     'engine-deals':                   { icon: '🤝', name: 'Engine Deals' },
     'discounts':                      { icon: '🏷️', name: 'Discounts Hub' },
     'cashback-rules':                 { icon: '💸', name: 'Cashback Rules' },
