@@ -1,0 +1,3952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- UPG-05: max-scale=1 prevents double-tap zoom on Android/iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SkillHex — Operations Console v3</title>
+<!-- UPG-01: PWA meta tags -->
+<meta name="theme-color" content="#00E5FF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SkillHex">
+<meta name="description" content="SkillHex Operations Console — scenario-based skill-building missions, interview simulator and live leaderboard.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap"
+  onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap"></noscript>
+
+<!-- Firebase 9 Compat SDK -->
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════ TOKENS */
+:root {
+  --bg:        #030508;
+  --bg2:       #060a14;
+  --panel:     #080d1a;
+  --panel2:    #0c1224;
+  --border:    #152240;
+  --border2:   #1e3060;
+
+  --cyan:      #00e5ff;
+  --cyan-d:    #007a8a;
+  --cyan-glow: 0 0 14px #00e5ff66, 0 0 40px #00e5ff22;
+
+  --green:     #00ff88;
+  --green-d:   #005533;
+  --green-glow:0 0 14px #00ff8866, 0 0 40px #00ff8822;
+
+  --amber:     #f59e0b;
+  --amber-d:   #713f12;
+  --amber-glow:0 0 14px #f59e0b66, 0 0 40px #f59e0b22;
+
+  --red:       #ff3a50;
+  --violet:    #a855f7;
+  --violet-d:  #3b0764;
+
+  --txt:       #c8d8f0;
+  --txt-dim:   #6a8aa8; /* UPG-12: was #4a6080 — increased to pass 4.5:1 contrast on dark bg */
+  --txt-mute:  #1e3050;
+
+  --fhud:  'Orbitron', 'Arial Black', monospace;
+  --fbody: 'Rajdhani', 'Arial', sans-serif;
+  --fmono: 'Share Tech Mono', 'Courier New', monospace;
+}
+
+/* ═══════════════════════════════════════════════════════ RESET */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+
+/* ═══════════════════════════════════════════════════════ VIADECIDE UX PATCH */
+/* 1. Kill iOS/Android tap highlight on every element */
+* { -webkit-tap-highlight-color: transparent; }
+/* 2. Disable text selection globally; re-enable for inputs/textareas/code */
+*, *::before, *::after { user-select: none; -webkit-user-select: none; }
+input, textarea, [contenteditable="true"], pre, code, .allow-select {
+  user-select: text; -webkit-user-select: text;
+}
+/* 3. Kill focus outline for mouse/pointer; preserve for keyboard nav */
+*:focus { outline: none; }
+*:focus-visible { outline: 2px solid #7ee8fa; outline-offset: 2px; border-radius: 3px; }
+/* KEY-02: Input-specific focus ring (replaces generic outline for .inp) */
+.inp:focus-visible { outline: none; border-color: var(--cyan); box-shadow: var(--cyan-glow); }
+/* 4. Consistent selection colour across the page */
+::selection { background: #7ee8fa33; color: #e0f7ff; }
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--fbody);
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* UPG-05: prevent bounce scroll on iOS, overscroll on Android */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* UPG-05: use dynamic viewport height when available */
+@supports (min-height: 100dvh) {
+  body { min-height: 100dvh; }
+  .grid-main { min-height: calc(100dvh - 52px); }
+}
+
+/* UPG-12: respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* scanline + grid */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.14) 2px, rgba(0,0,0,.14) 4px);
+  will-change: transform; transform: translateZ(0);
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(circle at 1px 1px, #152240 1px, transparent 0);
+  background-size: 28px 28px;
+  opacity: .45;
+  will-change: transform; transform: translateZ(0);
+}
+
+/* ═══════════════════════════════════════════════════════ SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan-d); }
+
+/* ═══════════════════════════════════════════════════════ UI REFINEMENTS */
+
+/* Smooth page transitions */
+.panel { transition: background .2s; }
+.panel:hover { background: #09102096; }
+
+/* Header — tighter, cleaner on mobile */
+header { min-height: 48px; }
+.hud-stat { cursor: default; }
+.hud-val { transition: color .3s, text-shadow .3s; }
+
+/* Animated counter flash when value changes */
+@keyframes valBump { 0%,100%{transform:scale(1);} 40%{transform:scale(1.18);} }
+.hud-val.bump { animation: valBump .35s ease; }
+
+/* Better badge pills */
+.badge { transition: box-shadow .2s; }
+.badge-c:hover { box-shadow: 0 0 8px #00e5ff44; }
+
+/* Mission card — breathing room */
+#mission-card { gap: 0; }
+.m-title { transition: color .3s; }
+
+/* Choice items — smoother feedback */
+.choice-item { transition: all .18s cubic-bezier(.4,0,.2,1); }
+.choice-item::before {
+  content: ''; position: absolute; inset: 0; border-radius: 5px;
+  background: linear-gradient(135deg, transparent 60%, #00e5ff08);
+  opacity: 0; transition: opacity .2s;
+}
+.choice-item:hover::before { opacity: 1; }
+.choice-item.correct { animation: choiceReveal .4s ease forwards; }
+.choice-item.wrong   { animation: choiceShake  .4s ease; }
+@keyframes choiceReveal { from{opacity:.6;transform:translateX(-4px);} to{opacity:1;transform:none;} }
+@keyframes choiceShake  { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+
+/* Progress bar label */
+.prog-row span:last-child { font-weight: 700; color: var(--cyan); }
+
+/* Stat cards — hover lift */
+.stat-card { transition: transform .2s, border-color .2s, box-shadow .2s; cursor: default; }
+.stat-card:hover { transform: translateY(-2px); border-color: var(--border2); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+.sc-val { transition: color .3s; }
+
+/* Leaderboard rows */
+.lb-row { transition: background .2s; border-radius: 5px; }
+/* DSK-05: Leaderboard skeleton loading state */
+.lb-skeleton { display: flex; flex-direction: column; gap: .35rem; }
+.lb-sk-row {
+  height: 32px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--panel2) 25%, var(--border) 50%, var(--panel2) 75%);
+  background-size: 200% 100%;
+  animation: lbShimmer 1.4s ease infinite;
+}
+@keyframes lbShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.lb-row:hover { background: #0c1830; }
+.lb-row.me { background: #00e5ff08; }
+
+/* Reward log items — fade in */
+@keyframes rewardIn { from{opacity:0;transform:translateX(8px);} to{opacity:1;transform:none;} }
+.reward-item:first-child { animation: rewardIn .3s ease; }
+
+/* Panel headers — stronger marker */
+.panel-hd::before { transition: box-shadow .2s; }
+
+/* Room code box — glow pulse on new code */
+@keyframes codeGlow { 0%,100%{box-shadow:none;} 50%{box-shadow:0 0 20px #00e5ff44;} }
+.room-code-box.new { animation: codeGlow .8s ease 2; }
+
+/* Firebase status dot — connecting pulse */
+@keyframes fbPulse { 0%,100%{opacity:.4;transform:scale(.85);} 50%{opacity:1;transform:scale(1);} }
+.fb-led.connecting { background: var(--amber); box-shadow: var(--amber-glow); animation: fbPulse 1s ease infinite; }
+
+/* Bottom sections — equal height rows with better gaps */
+.sections-bottom { gap: 1px; }
+
+/* Interview modal card — subtle gradient top */
+.interview-modal-card::before {
+  content: ''; display: block; height: 2px; margin: -.8rem -.8rem .6rem;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--green));
+  border-radius: 8px 8px 0 0;
+}
+
+/* Toast — slightly larger, icon spacing */
+#toast { letter-spacing: .04em; }
+
+/* Section sub-labels — replace raw inline font styles */
+.section-sublabel {
+  font-family: var(--fmono); font-size: clamp(.6rem, 1.2vw, .7rem); color: var(--txt-dim);
+  letter-spacing: .12em; margin-bottom: .4rem; text-transform: uppercase;
+}
+
+/* Pass level bar — glow on fill */
+.bar-fill { box-shadow: 0 0 6px rgba(0,229,255,.35); }
+
+/* HEX JSON block — hide by default on small screens, shown on hover */
+#hex-json {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .3s ease, opacity .2s ease;
+}
+#hex-json.open {
+  max-height: 100px; opacity: 1;
+}
+.panel:hover #hex-json {
+  max-height: 100px; opacity: 1;
+}
+
+/* Pipe nodes — click cursor */
+.pipe-node { cursor: default; min-height: 44px; display: flex; align-items: center; }
+.pipe-node.done { cursor: pointer; }
+
+/* BUG-06: use CSS touch-action instead of JS preventDefault to avoid blocking Android scroll */
+#kada-wrap  { touch-action: none; }
+@media(max-width:760px) { #kada-wrap { max-width: 300px; margin: 0 auto; } }
+#rotor      { touch-action: none; }
+#tether-node { touch-action: none; }
+#tether-wrap { touch-action: none; }
+
+/* Scene thumb grid — better mobile wrap */
+@media(max-width:500px) { .scene-grid { grid-template-columns: repeat(2,1fr); } }
+
+/* Input focus ring */
+.inp:focus { outline: none; }
+
+/* Select element styling */
+select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a6080'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .75rem center; padding-right: 2rem; }
+
+/* ═══════════════════════════════════════════════════════ LAYOUT */
+.root { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════ HEADER */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(90deg, #030508 0%, #060a14 50%, #030508 100%);
+  border-bottom: 1px solid var(--border);
+  padding: .55rem 1.25rem;
+  display: flex; align-items: center; gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.logo { display: flex; align-items: center; gap: .5rem; text-decoration: none; }
+.logo-gem {
+  width: 34px; height: 34px;
+  background: var(--cyan);
+  clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display: grid; place-items: center;
+  animation: gemPulse 3s ease-in-out infinite;
+}
+.logo-gem span { font-family: var(--fhud); font-size: .5rem; font-weight: 900; color: #030508; }
+@keyframes gemPulse { 0%,100% { box-shadow: var(--cyan-glow); } 50% { box-shadow: 0 0 30px #00e5ffcc, 0 0 60px #00e5ff44; } }
+
+.logo-name { font-family: var(--fhud); font-size: .8rem; font-weight: 700; color: var(--cyan); text-shadow: var(--cyan-glow); letter-spacing: .1em; line-height: 1; }
+.logo-sub  { font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .25em; display: block; }
+@media(max-width:480px) { .logo-sub { display: none; } }
+
+.hud-row { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin-left: auto; }
+
+.hud-stat { display: flex; flex-direction: column; align-items: flex-end; }
+.hud-lbl  { font-family: var(--fmono); font-size: clamp(.6rem, 1.2vw, .7rem); color: var(--txt-dim); letter-spacing: .2em; text-transform: uppercase; }
+.hud-val  { font-family: var(--fhud); font-size: .9rem; font-weight: 700; letter-spacing: .04em; }
+.hud-val.c { color: var(--green);  text-shadow: var(--green-glow); }
+.hud-val.a { color: var(--amber);  text-shadow: var(--amber-glow); }
+.hud-val.v { color: var(--violet); }
+
+.firebase-dot {
+  display: flex; align-items: center; gap: .35rem;
+  font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .15em;
+}
+.fb-led { width: 7px; height: 7px; border-radius: 50%; background: var(--txt-dim); }
+.fb-led.online  { background: var(--green); box-shadow: var(--green-glow); animation: blink 2.5s ease infinite; }
+.fb-led.offline { background: var(--red);   box-shadow: 0 0 10px #ff3a5088; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+.hdr-btn {
+  font-family: var(--fhud); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
+  padding: .6rem 1rem; border-radius: 5px; border: 1px solid var(--border2);
+  background: transparent; color: var(--txt-dim); cursor: pointer; transition: all .2s;
+  min-height: 44px; display: inline-flex; align-items: center; gap: .35rem;
+}
+.hdr-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--cyan-glow); background: #00e5ff0a; }
+.hdr-btn:active {
+  transform: scale(.96); background: #00e5ff18; border-color: var(--cyan);
+  transition-duration: 0.05s;
+}
+.btn:active, .room-tab:active, .tut-btn:active {
+  transform: scale(.97); opacity: .85; transition-duration: 0.05s;
+}
+.choice-item:active {
+  transform: scale(.98); opacity: .85; transition-duration: 0.04s;
+}
+
+/* ═══════════════════════════════════════════════════════ MAIN GRID */
+.grid-main {
+  display: grid;
+  grid-template-columns: 1fr 300px 280px;
+  gap: 1px;
+  background: var(--border);
+  min-height: calc(100vh - 52px);
+}
+@media(max-width:1100px){ .grid-main { grid-template-columns: 1fr 280px; } .col-right { display: none; } .col-right.visible { display: flex; flex-direction:column; gap:1px; background:var(--border); } }
+@media(max-width:760px) { .grid-main { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════════════════ PANELS */
+.panel {
+  background: var(--panel);
+  padding: 1.25rem;
+  position: relative; overflow: hidden;
+}
+.panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 70% 35% at 50% 0%, #00e5ff06, transparent);
+}
+
+.panel-hd {
+  font-family: var(--fmono); font-size: clamp(.65rem, 1.5vw, .72rem); color: var(--txt-dim); letter-spacing: .28em;
+  text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
+}
+.panel-hd::before { content: ''; width: 3px; height: 1em; background: var(--cyan); box-shadow: var(--cyan-glow); border-radius: 2px; }
+
+/* ═══════════════════════════════════════════════════════ MISSION CARD */
+#mission-card { display: flex; flex-direction: column; }
+
+.mission-meta { display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem; flex-wrap: wrap; }
+.badge {
+  font-family: var(--fmono); font-size: .52rem; letter-spacing: .15em; padding: .22rem .6rem;
+  border-radius: 20px; text-transform: uppercase;
+}
+.badge-c { background: #00e5ff0d; border: 1px solid #00e5ff22; color: var(--cyan); }
+.badge-a { background: #f59e0b0d; border: 1px solid #f59e0b22; color: var(--amber); }
+.badge-g { background: #00ff880d; border: 1px solid #00ff8822; color: var(--green); }
+
+.diff-pips { display: flex; gap: 4px; }
+/* UPG-04: 12×12 visual with ::after tap expansion */
+.pip {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--txt-mute); transition: background .3s;
+  position: relative;
+}
+.pip::after { content: ''; position: absolute; inset: -10px; }
+.pip.on { background: var(--amber); box-shadow: var(--amber-glow); }
+
+.m-title {
+  font-family: var(--fhud); font-size: 1.35rem; font-weight: 700; color: #fff; letter-spacing: .02em;
+  line-height: 1.2; margin-bottom: .6rem;
+}
+.m-desc { font-size: .95rem; line-height: 1.65; color: var(--txt); font-weight: 300; margin-bottom: .6rem; }
+.warmup-box { border:1px solid var(--border); background:var(--panel2); border-radius:6px; padding:.6rem; margin-bottom:.8rem; }
+.warmup-row { display:flex; gap:.45rem; align-items:flex-start; }
+.warmup-row textarea { flex:1; min-height:58px; background:var(--bg2); border:1px solid var(--border); color:var(--txt); border-radius:5px; padding:.45rem; font-family:var(--fmono); font-size:clamp(.75rem, 2vw, .85rem); }
+.warmup-meta { margin-top:.35rem; display:flex; justify-content:space-between; font-family:var(--fmono); font-size:.5rem; color:var(--txt-dim); }
+
+.prebrief {
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  border-radius: 6px;
+  padding: .75rem;
+  margin-bottom: 1rem;
+}
+.prebrief-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .4rem;
+}
+.prebrief-title {
+  font-family: var(--fmono);
+  font-size: .5rem;
+  letter-spacing: .16em;
+  color: var(--txt-dim);
+  text-transform: uppercase;
+}
+.prebrief-mult {
+  font-family: var(--fhud);
+  font-size: .78rem;
+  color: var(--amber);
+}
+.prebrief-q {
+  font-size: .78rem;
+  color: var(--txt);
+  line-height: 1.5;
+  margin-bottom: .45rem;
+}
+.prebrief textarea {
+  width: 100%;
+  min-height: 78px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: #080f1e;
+  color: #fff;
+  padding: .6rem;
+  resize: vertical;
+  font-family: var(--fbody);
+  margin-bottom: .5rem;
+}
+.prebrief-hint {
+  font-family: var(--fmono);
+  font-size: .54rem;
+  color: var(--txt-mute);
+  line-height: 1.5;
+  margin-top: .45rem;
+  min-height: 1.5em;
+}
+
+/* prebrief visibility toggle */
+.prebrief { transition: opacity .25s, max-height .35s cubic-bezier(.4,0,.2,1); overflow: hidden; max-height: 400px; }
+.prebrief.hidden { opacity: 0; max-height: 0; pointer-events: none; margin: 0; padding: 0; border: none; }
+
+/* live word counter */
+.prebrief-wc { font-family: var(--fmono); font-size: .48rem; color: var(--txt-dim); letter-spacing: .1em; }
+.prebrief-wc.ok   { color: var(--green); }
+.prebrief-wc.good { color: var(--amber); }
+
+/* multiplier flash */
+.prebrief-mult.boosted {
+  animation: multFlash .55s ease;
+}
+@keyframes multFlash {
+  0%,100% { color: var(--amber); }
+  40%     { color: var(--green); text-shadow: var(--green-glow); transform: scale(1.25); }
+}
+
+/* progress */
+.prog-wrap { margin-bottom: 1.1rem; }
+.prog-row { display: flex; justify-content: space-between; font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .12em; margin-bottom: .35rem; }
+.prog-bar { height: 3px; background: var(--panel2); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); border-radius: 2px; transition: width .6s cubic-bezier(.4,0,.2,1); position: relative; }
+.prog-fill::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: var(--green-glow); }
+
+/* choice feedback list */
+.choices-list { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+@media(max-width:600px){ .choices-list { grid-template-columns: 1fr; } }
+
+.choice-item {
+  font-family: var(--fbody); font-size: .88rem; font-weight: 600; letter-spacing: .02em;
+  text-align: left; padding: .75rem .9rem;
+  background: var(--bg2); color: var(--txt-dim);
+  border: 1px solid var(--border); border-radius: 5px;
+  cursor: pointer; transition: all .15s; position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; gap: .6rem; line-height: 1.4;
+}
+.choice-key-tag {
+  font-family: var(--fhud); font-size: .6rem; font-weight: 700; color: var(--cyan);
+  background: #00e5ff14; border: 1px solid #00e5ff33; border-radius: 3px;
+  width: 20px; height: 20px; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px;
+}
+.choice-item:hover { background: #0c1830; border-color: var(--cyan); color: #fff; box-shadow: var(--cyan-glow); transform: translateY(-1px); }
+.choice-item.active-sector { border-color: var(--amber); background: #f59e0b14; color: #fff; box-shadow: var(--amber-glow); }
+.choice-item.correct { border-color: var(--green); background: #00ff880f; color: #fff; pointer-events: none; }
+.choice-item.wrong   { border-color: var(--red);   background: #ff3a500f; pointer-events: none; }
+.choice-item.lock    { opacity: .35; pointer-events: none; }
+
+/* ═══════════════════════════════════════════════════════ KADA WHEEL */
+#wheel-panel { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+@media(max-width:1100px) { #wheel-panel { overflow-y: auto; max-height: 70vh; } }
+
+.kada-wrap {
+  position: relative; width: 240px; height: 240px; margin: .5rem auto;
+  touch-action: none;
+}
+.kada-rotor {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, transparent 58%, #1e3060 59%, #080d1a 70%);
+  -webkit-mask: radial-gradient(transparent 88px, black 89px);
+  mask:         radial-gradient(transparent 88px, black 89px);
+  cursor: grab; z-index: 20; touch-action: none;
+}
+.kada-rotor:active { cursor: grabbing; }
+
+.kada-stator {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 130px; height: 130px; border-radius: 50%;
+  background: #050810; border: 3px solid #0c1628;
+  box-shadow: inset 0 8px 20px rgba(0,0,0,.9), 0 0 30px rgba(0,0,0,.8);
+  z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+/* tether node */
+.tether-wrap {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; z-index: 40; pointer-events: none;
+}
+.tether-node {
+  width: 28px; height: 28px; background: #0c1628; border: 2px solid var(--cyan);
+  border-radius: 50%; box-shadow: 0 0 12px rgba(0,229,255,.4);
+  cursor: grab; display: flex; justify-content: center; align-items: center;
+  transition: transform .15s cubic-bezier(.4,0,.2,1), border-color .15s, box-shadow .15s;
+  pointer-events: auto; touch-action: none;
+}
+.tether-core { width: 9px; height: 9px; background: var(--cyan); border-radius: 50%; transition: background .15s; }
+.tether-thread { width: 3px; height: 0; background: var(--amber); transition: height .15s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 4px var(--amber); }
+.tether-node.pulled { transform: translateY(-22px); border-color: var(--amber); box-shadow: 0 0 22px rgba(245,158,11,.6); }
+.tether-node.pulled .tether-core { background: var(--amber); }
+.tether-wrap.pulled .tether-thread { height: 22px; }
+
+/* conic progress ring */
+.progress-ring {
+  position: absolute; inset: 3px; border-radius: 50%;
+  background: conic-gradient(var(--amber) var(--prog, 0%), transparent 0);
+  -webkit-mask: radial-gradient(transparent 60px, black 61px);
+  mask:         radial-gradient(transparent 60px, black 61px);
+  opacity: .8; pointer-events: none; transition: background .1s linear; z-index: 15;
+}
+
+/* sector SVG */
+#sector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; overflow: visible; }
+.sector-arc { transition: fill .15s, stroke .15s, filter .15s; }
+.sector-arc.idle    { fill: rgba(21,34,64,.4);  stroke: #1e3060; stroke-width: 1; }
+.sector-arc.hover   { fill: rgba(245,158,11,.22); stroke: var(--amber); stroke-width: 1.5; filter: drop-shadow(0 0 5px rgba(245,158,11,.6)); }
+.sector-arc.confirm { fill: rgba(0,255,136,.22);  stroke: var(--green); stroke-width: 2;   filter: drop-shadow(0 0 8px rgba(0,255,136,.8)); }
+.sector-arc.wrong   { fill: rgba(255,58,80,.18);  stroke: var(--red);   stroke-width: 1.5; }
+
+.sector-label { font-family: var(--fhud); font-size: 8px; font-weight: 700; transition: fill .15s; pointer-events: none; }
+
+/* HUD center */
+.kada-hud-mode { font-family: var(--fmono); font-size: .45rem; color: var(--txt-dim); letter-spacing: .2em; text-transform: uppercase; margin-bottom: 2px; }
+.kada-hud-val  { font-family: var(--fhud); font-size: 1.1rem; font-weight: 900; color: var(--cyan); text-shadow: var(--cyan-glow); line-height: 1; transition: color .2s; }
+.kada-hud-val.pull { color: var(--amber); text-shadow: var(--amber-glow); }
+.kada-hud-sub  { font-family: var(--fmono); font-size: .42rem; color: var(--txt-dim); letter-spacing: .08em; margin-top: 2px; }
+
+/* spark layer */
+#spark-layer { position: absolute; inset: 0; z-index: 50; pointer-events: none; }
+
+.wheel-guide {
+  font-family: var(--fmono); font-size: .52rem; color: var(--txt-dim); letter-spacing: .1em;
+  text-align: center; line-height: 1.9; margin-top: .5rem;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 5px; padding: .5rem .75rem;
+  width: 100%;
+}
+.wheel-guide strong { color: var(--cyan); }
+
+/* ═══════════════════════════════════════════════════════ HEX MAP */
+.hex-svg { width: 100%; cursor: grab; }
+.hex-svg:active { cursor: grabbing; }
+
+.hex-poly { stroke: #d7e5ff; stroke-width: 1.5; opacity: .9; transition: transform .25s ease, filter .25s ease; }
+.hex-poly:hover { filter: drop-shadow(0 0 8px rgba(255,255,255,.6)); stroke-width: 2.2; transform: scale(1.06); transform-origin: center; }
+.hex-poly.upgraded { animation: hexBounce .6s ease; }
+@keyframes hexBounce { 0%{transform:scale(.8);} 60%{transform:scale(1.18);} 100%{transform:scale(1);} }
+.hex-special { stroke: var(--amber); stroke-dasharray: 5 3; filter: drop-shadow(0 0 10px rgba(245,158,11,.5)); }
+
+.map-tip {
+  position: fixed; pointer-events: none; background: #080d1aee; border: 1px solid var(--cyan);
+  border-radius: 5px; padding: .4rem .65rem; font-family: var(--fmono); font-size: .6rem;
+  color: var(--txt); display: none; z-index: 200; white-space: nowrap; box-shadow: var(--cyan-glow);
+}
+
+/* ═══════════════════════════════════════════════════════ LEADERBOARD */
+.lb-row {
+  display: grid; grid-template-columns: 26px 1fr auto;
+  gap: .4rem; align-items: center; padding: .4rem .55rem;
+  border-radius: 4px; margin-bottom: .3rem;
+  font-family: var(--fmono); font-size: .65rem;
+  transition: background .2s; position: relative;
+}
+.lb-row.me { background: #00e5ff0a; border: 1px solid #00e5ff1a; }
+.lb-row.me::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--cyan); box-shadow: var(--cyan-glow); border-radius: 2px; }
+.lb-rank { color: var(--txt-dim); font-weight: 700; text-align: center; font-size: .7rem; }
+.lb-rank.gold   { color: #ffd700; text-shadow: 0 0 8px #ffd70066; }
+.lb-rank.silver { color: #c0c0c0; }
+.lb-rank.bronze { color: #cd7f32; }
+.lb-name { color: var(--txt); font-size: .62rem; letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-name.me-n { color: var(--cyan); }
+.lb-score { color: var(--green); font-weight: 700; text-shadow: 0 0 6px #00ff8844; }
+
+/* ═══════════════════════════════════════════════════════ BOTTOM SECTIONS */
+.sections-bottom {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+@media(max-width:1100px){ .sections-bottom { grid-template-columns: 1fr 1fr; } }
+@media(max-width:600px){ .sections-bottom { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════════════════ INTERVIEW PANEL */
+.interview-shell { display:grid; grid-template-columns: 1fr; gap:.55rem; }
+.interview-side { background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:.55rem; }
+.interview-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.4rem; }
+.interview-stream {
+  height: clamp(160px, 28vh, 400px); overflow:auto; background:#071021; border:1px solid #153154; border-radius:6px;
+  padding:.55rem; display:flex; flex-direction:column; gap:.45rem;
+}
+.bubble { border-radius:6px; padding:.45rem .55rem; font-family:var(--fmono); font-size:clamp(.8rem, 1.8vw, .92rem); line-height:1.5; }
+.bubble.ai { background:#0b1f3b; border:1px solid #1d3f70; color:#d5e8ff; }
+.bubble.user { background:#021f18; border:1px solid #0b6a5b; color:#c8ffea; align-self:flex-end; }
+.interview-composer { display:flex; gap:.45rem; }
+.interview-composer textarea {
+  flex:1; min-height:66px; max-height:100px; resize:vertical; background:var(--bg2); color:var(--txt);
+  border:1px solid var(--border); border-radius:6px; font-family:var(--fmono); font-size:.56rem; padding:.5rem;
+}
+.interview-meta { font-family:var(--fmono); font-size:.5rem; color:var(--txt-dim); display:flex; justify-content:space-between; margin-top:.35rem; }
+.cat-chip {
+  font-size:.47rem; border:1px solid var(--border); padding:.3rem .65rem; border-radius:20px;
+  cursor:pointer; color:var(--txt-dim); position:relative; min-height:32px;
+  display:inline-flex; align-items:center;
+}
+.cat-chip::after { content:''; position:absolute; inset:-8px; }
+.cat-chip.on { border-color:var(--cyan); color:var(--cyan); }
+.interview-modal {
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:350;
+  background:rgba(3,9,18,.75); backdrop-filter: blur(2px);
+}
+.interview-modal.open { display:flex; }
+.interview-modal-card { width:min(980px, 94vw); max-height:92vh; overflow:auto; background:var(--bg); border:1px solid var(--cyan); box-shadow:var(--cyan-glow); border-radius:8px; padding:.8rem; }
+
+/* ═══════════════════════════════════════════════════════ SVG PIPELINE */
+.pipeline-header {
+  display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; flex-wrap: wrap;
+}
+.scene-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: .4rem; margin-bottom: .75rem;
+}
+@media(max-width:1100px){ .scene-grid { grid-template-columns: repeat(4,1fr); } }
+@media(max-width:700px){ .scene-grid { grid-template-columns: repeat(3, 1fr); } }
+@media(max-width:480px){ .scene-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.scene-thumb {
+  aspect-ratio: 16/9; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--panel2); cursor: pointer; overflow: hidden; position: relative;
+  transition: border-color .2s, transform .15s;
+}
+.scene-thumb:hover { border-color: var(--cyan); transform: scale(1.04); box-shadow: var(--cyan-glow); }
+.scene-thumb.active-scene { border-color: var(--amber); box-shadow: var(--amber-glow); }
+.scene-thumb svg { width: 100%; height: 100%; }
+
+.scene-preview {
+  width: 100%; aspect-ratio: 16/9; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--panel2); overflow: hidden; margin-bottom: .75rem;
+}
+.scene-preview svg { width: 100%; height: 100%; }
+
+.capture-pipeline {
+  display: flex; align-items: center; gap: .3rem; overflow-x: auto; padding: .5rem 0;
+}
+.pipe-node {
+  background: var(--panel2); border: 1px solid var(--border);
+  padding: .45rem .65rem; /* UPG-04: increased for 44px min height */
+  border-radius: 5px; font-family: var(--fmono); font-size: .52rem;
+  color: var(--txt-dim); white-space: nowrap; flex-shrink: 0; transition: all .25s;
+  min-height: 36px; display: flex; align-items: center;
+}
+.pipe-node.running { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--cyan-glow); animation: pipeFlash .5s ease infinite; }
+.pipe-node.done    { border-color: var(--green); color: var(--green); }
+.pipe-node.fail    { border-color: var(--red); color: var(--red); }
+@keyframes pipeFlash { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+.pipe-arrow { color: var(--txt-mute); font-size: .8rem; flex-shrink: 0; }
+
+/* branch tree */
+.branch-tree {
+  display: flex; gap: .4rem; align-items: flex-start; overflow-x: auto; padding-bottom: .5rem;
+}
+.branch-col { display: flex; flex-direction: column; gap: .3rem; }
+.branch-chip {
+  font-family: var(--fmono); font-size: .5rem; padding: .25rem .45rem; border-radius: 3px;
+  border: 1px solid var(--border); color: var(--txt-dim); white-space: nowrap; cursor: pointer; transition: all .15s;
+  position: relative; min-height: 36px; display: inline-flex; align-items: center;
+}
+.branch-chip::after {
+  content: ''; position: absolute; inset: -8px;
+}
+.branch-chip.main { border-color: var(--cyan-d); color: var(--cyan); }
+.branch-chip.A    { border-color: #2563eb44; color: #60a5fa; }
+.branch-chip.B    { border-color: #7c3aed44; color: #a78bfa; }
+.branch-chip.C    { border-color: #0f766e44; color: #2dd4bf; }
+.branch-chip.D    { border-color: #92400e44; color: #fb923c; }
+.branch-chip:hover { filter: brightness(1.4); transform: scale(1.05); }
+
+/* ═══════════════════════════════════════════════════════ SQUAD ROOM */
+.room-tabs { display: flex; gap: .35rem; margin-bottom: .9rem; }
+.room-tab {
+  font-family: var(--fhud); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase;
+  padding: .6rem .85rem; border-radius: 4px; border: 1px solid var(--border);
+  background: transparent; color: var(--txt-dim); cursor: pointer; transition: all .2s;
+  min-height: 44px; display: inline-flex; align-items: center;
+}
+.room-tab.on { border-color: var(--cyan); color: var(--cyan); background: #00e5ff0a; }
+
+.room-pane { display: none; }
+.room-pane.on { display: block; animation: fadeUp .2s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(5px);} to{opacity:1;transform:none;} }
+
+.inp {
+  width: 100%; padding: .55rem .85rem; background: var(--panel2);
+  border: 1px solid var(--border); border-radius: 5px;
+  color: var(--txt); font-family: var(--fmono); font-size: .85rem; outline: none;
+  transition: border-color .2s, box-shadow .2s; margin-bottom: .65rem;
+}
+.inp:focus { border-color: var(--cyan); box-shadow: var(--cyan-glow); }
+.inp::placeholder { color: var(--txt-dim); }
+.inp-label { font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .2em; text-transform: uppercase; display: block; margin-bottom: .3rem; }
+
+.room-code-box {
+  font-family: var(--fhud); font-size: 1.8rem; font-weight: 900; letter-spacing: .35em;
+  color: var(--cyan); text-shadow: var(--cyan-glow); text-align: center;
+  padding: .8rem; background: var(--panel2); border: 1px solid #00e5ff1a; border-radius: 5px; margin: .7rem 0;
+}
+
+/* ═══════════════════════════════════════════════════════ SHARE CARD */
+#share-card-wrap svg { width: 100%; border-radius: 6px; }
+
+/* ═══════════════════════════════════════════════════════ BUTTONS */
+.btn {
+  font-family: var(--fhud); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase;
+  padding: .55rem 1.2rem; border-radius: 5px; border: 1px solid transparent;
+  cursor: pointer; transition: all .18s; display: inline-flex; align-items: center; gap: .4rem;
+}
+.btn-c { background: var(--cyan); color: #030508; font-weight: 700; border-color: var(--cyan); }
+.btn-c:hover { background: #fff; box-shadow: var(--cyan-glow); transform: translateY(-1px); }
+.btn-g { background: var(--green); color: #030508; font-weight: 700; border-color: var(--green); }
+.btn-g:hover { box-shadow: var(--green-glow); transform: translateY(-1px); }
+.btn-o { background: transparent; color: var(--amber); border-color: var(--amber-d); }
+.btn-o:hover { border-color: var(--amber); box-shadow: var(--amber-glow); background: #f59e0b0a; }
+.btn-ghost { background: transparent; color: var(--txt-dim); border-color: var(--border); }
+.btn-ghost:hover { color: var(--txt); border-color: var(--txt-dim); }
+.btn-row { display: flex; gap: .5rem; margin-top: .75rem; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════════════════════ STATUS BAR */
+footer {
+  background: var(--bg2); border-top: 1px solid var(--border);
+  padding: .35rem 1.25rem; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
+}
+@media(max-width:760px) { footer { display: none; } }
+.stat-item { font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .15em; display: flex; align-items: center; gap: .4rem; }
+.stat-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: var(--green-glow); animation: blink 2s ease infinite; }
+
+/* ═══════════════════════════════════════════════════════ TOASTS / OVERLAYS */
+#toast {
+  position: fixed;
+  bottom: max(1.5rem, env(safe-area-inset-bottom) + .75rem);
+  right:  max(1.5rem, env(safe-area-inset-right)  + .75rem);
+  z-index: 600;
+  padding: .65rem 1.1rem; border-radius: 5px; font-family: var(--fmono); font-size: .72rem;
+  transform: translateY(60px); opacity: 0; transition: all .3s cubic-bezier(.4,0,.2,1);
+  max-width: 280px; pointer-events: none;
+}
+#toast.show { transform: none; opacity: 1; }
+#toast.ok   { background: var(--panel); border: 1px solid var(--green); color: var(--green); box-shadow: var(--green-glow); }
+#toast.err  { background: var(--panel); border: 1px solid var(--red);   color: var(--red);   box-shadow: 0 0 14px #ff3a5066; }
+#toast.info { background: var(--panel); border: 1px solid var(--cyan);  color: var(--cyan);  box-shadow: var(--cyan-glow); }
+
+/* ═══════════════════════════════════════════════════════ REWARD LOG */
+.reward-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: .3rem; }
+.reward-item { font-family: var(--fmono); font-size: .58rem; color: var(--txt-dim); padding: .3rem .5rem; background: var(--panel2); border-radius: 3px; }
+
+/* skill pass bars */
+.bar { height: 5px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, #00e5ff, #00ff88); border-radius: 3px; transition: width .7s ease; }
+
+/* stat grid */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.stat-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 4px; padding: .6rem .75rem; }
+.sc-val { font-family: var(--fhud); font-size: 1rem; font-weight: 700; color: var(--cyan); text-shadow: var(--cyan-glow); }
+.sc-lbl { font-family: var(--fmono); font-size: .5rem; color: var(--txt-dim); letter-spacing: .15em; text-transform: uppercase; margin-top: .15rem; }
+
+/* ═══════════════════════════════════════════════════════ SPARKS */
+@keyframes sparkOut {
+  0%   { transform: translate(var(--sx,0), var(--sy,0)) scale(1); opacity: 1; }
+  100% { transform: translate(calc(var(--sx,0)*3), calc(var(--sy,0)*3)) scale(0); opacity: 0; }
+}
+.spark { position: absolute; width: 4px; height: 4px; border-radius: 50%; pointer-events: none; animation: sparkOut .5s ease forwards; }
+
+/* ═══════════════════════════════════════════════════════ STREAK */
+.streak-pips { display: flex; gap: .4rem; flex-wrap: wrap; margin: .4rem 0; }
+/* UPG-04: 14×14px visual pip with 44px tap zone for accessibility */
+.streak-pip {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--txt-mute); border: 1px solid var(--border);
+  transition: all .3s;
+  position: relative;
+}
+.streak-pip::after {
+  content: ''; position: absolute;
+  inset: -15px; /* expand tap zone to ~44px */
+}
+.streak-pip.done { background: var(--amber); box-shadow: var(--amber-glow); border-color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════════ TUTORIAL */
+
+/* Dim layer — SVG-based spotlight cutout */
+#tut-overlay {
+  position: fixed; inset: 0; z-index: 8000;
+  pointer-events: none;
+  display: none;
+}
+#tut-overlay.active { display: block; pointer-events: none; }
+/* Pointer events handled by tut-card only; overlay SVG is visual-only */
+#tut-overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Spotlight ring around the focused element */
+#tut-ring {
+  position: fixed; z-index: 8001; pointer-events: none;
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px var(--cyan), 0 0 20px rgba(0,229,255,.5), 0 0 50px rgba(0,229,255,.2);
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+  display: none;
+}
+#tut-overlay.active #tut-ring,
+#tut-overlay.active + #tut-ring { display: block; }
+
+/* Tutorial card */
+#tut-card {
+  position: fixed; z-index: 8100;
+  width: min(360px, 90vw);
+  background: #07101e;
+  border: 1px solid var(--cyan);
+  box-shadow: 0 0 30px rgba(0,229,255,.25), 0 16px 48px rgba(0,0,0,.7);
+  border-radius: 10px;
+  padding: 1.25rem 1.35rem 1rem;
+  display: none;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+#tut-card.active { display: block; }
+
+/* Top accent bar */
+#tut-card::before {
+  content: '';
+  display: block;
+  height: 2px;
+  margin: -1.25rem -1.35rem 1rem;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--green));
+}
+
+.tut-step-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .65rem;
+}
+.tut-step-label {
+  font-family: var(--fmono); font-size: .46rem; letter-spacing: .22em;
+  color: var(--cyan); text-transform: uppercase;
+}
+.tut-step-dots {
+  display: flex; gap: 4px; align-items: center;
+}
+.tut-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--txt-mute); transition: background .25s, transform .25s;
+}
+.tut-dot.done  { background: var(--green); }
+.tut-dot.cur   { background: var(--cyan); transform: scale(1.4);
+                 box-shadow: 0 0 6px rgba(0,229,255,.7); }
+
+.tut-icon {
+  font-size: 1.6rem; line-height: 1; margin-bottom: .5rem;
+  display: block;
+}
+.tut-title {
+  font-family: var(--fhud); font-size: .9rem; font-weight: 700;
+  color: #fff; letter-spacing: .04em; margin-bottom: .4rem; line-height: 1.2;
+}
+.tut-body {
+  font-family: var(--fbody); font-size: .88rem; color: var(--txt);
+  line-height: 1.6; font-weight: 300; margin-bottom: .9rem;
+}
+.tut-body strong { color: var(--cyan); font-weight: 600; }
+.tut-body code {
+  font-family: var(--fmono); font-size: .78rem;
+  background: var(--panel2); border: 1px solid var(--border);
+  padding: .1rem .35rem; border-radius: 3px; color: var(--amber);
+}
+
+/* Tip chip */
+.tut-tip {
+  font-family: var(--fmono); font-size: .5rem; color: var(--amber);
+  background: #f59e0b0d; border: 1px solid #f59e0b22;
+  border-radius: 4px; padding: .3rem .6rem;
+  margin-bottom: .85rem; line-height: 1.5;
+  display: none;
+}
+.tut-tip.show { display: block; }
+
+.tut-btn-row {
+  display: flex; gap: .5rem; align-items: center;
+  border-top: 1px solid var(--border); padding-top: .75rem;
+}
+.tut-btn {
+  font-family: var(--fhud); font-size: .55rem; letter-spacing: .1em;
+  text-transform: uppercase; padding: .45rem .9rem; border-radius: 5px;
+  cursor: pointer; transition: all .18s; border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.tut-btn-next {
+  background: var(--cyan); color: #030508; font-weight: 700;
+  border-color: var(--cyan);
+}
+.tut-btn-next:hover { background: #fff; box-shadow: var(--cyan-glow); transform: translateY(-1px); }
+.tut-btn-prev {
+  background: transparent; color: var(--txt-dim); border-color: var(--border);
+}
+.tut-btn-prev:hover { color: var(--txt); border-color: var(--txt-dim); }
+.tut-btn-skip {
+  background: transparent; color: var(--txt-mute); border: none;
+  font-size: .5rem; margin-left: auto; padding: .3rem .5rem;
+  cursor: pointer; font-family: var(--fmono);
+}
+.tut-btn-skip:hover { color: var(--txt-dim); }
+
+/* Arrow pointer on the card */
+.tut-arrow {
+  position: absolute; width: 10px; height: 10px;
+  background: #07101e; border: 1px solid var(--cyan);
+  transform: rotate(45deg);
+}
+
+/* Help button (persistent) */
+#tut-help-btn {
+  position: fixed;
+  bottom: max(1.5rem, env(safe-area-inset-bottom) + .5rem);
+  left:   max(1.5rem, env(safe-area-inset-left)   + .5rem);
+  z-index: 7000;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--panel2); border: 1px solid var(--border2);
+  color: var(--txt-dim); font-family: var(--fhud); font-size: .75rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+#tut-help-btn:hover {
+  border-color: var(--cyan); color: var(--cyan);
+  box-shadow: var(--cyan-glow); transform: scale(1.1);
+}
+
+/* Pulse on first load to draw attention */
+@keyframes helpPulse { 0%,100%{box-shadow:0 2px 8px rgba(0,0,0,.4);} 50%{box-shadow:0 0 0 6px rgba(0,229,255,.15),var(--cyan-glow);} }
+#tut-help-btn.pulse { animation: helpPulse 2s ease 3; }
+
+</style>
+</head>
+<body>
+<div class="root">
+
+<!-- ═══════════════════ HEADER ═══════════════════════════════════ -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-gem"><span>SHX</span></div>
+    <div>
+      <div class="logo-name">SkillHex</div>
+      <span class="logo-sub">Operations Console v3</span>
+    </div>
+  </a>
+  <div class="hud-row">
+    <div class="hud-stat"><span class="hud-lbl">SR</span><span class="hud-val c" id="hdr-sr">1000</span></div>
+    <div class="hud-stat"><span class="hud-lbl">XP</span><span class="hud-val a" id="hdr-xp">0</span></div>
+    <div class="hud-stat"><span class="hud-lbl">Tokens</span><span class="hud-val v" id="hdr-tok">0</span></div>
+    <div class="hud-stat"><span class="hud-lbl">Streak</span><span class="hud-val" style="color:var(--amber)" id="hdr-streak">0d</span></div>
+    <div class="firebase-dot">
+      <div class="fb-led connecting" id="fb-led"></div>
+      <span id="fb-status">CONNECTING</span>
+    </div>
+    <button class="hdr-btn" id="matrix-toggle-btn" onclick="toggleSkillMatrix()" aria-label="Toggle Skill Matrix panel">⬡ Matrix</button>
+    <button class="hdr-btn" onclick="showRoom()" aria-label="Open Squad Room">⊕ Room</button>
+    <a href="./hiring-dashboard.html" class="hdr-btn" aria-label="Open Recruiter Dashboard" target="_blank" rel="noopener" style="text-decoration:none">⬡ Recruit</a>
+    <button class="hdr-btn" id="hdr-login-btn" onclick="triggerLogin()" aria-label="Sign in to SkillHex">⬡ Login</button>
+  </div>
+</header>
+
+<!-- ═══════════════════ MAIN 3-COL GRID ═══════════════════════════ -->
+<div class="grid-main">
+
+  <!-- COL 1: MISSION CARD -->
+  <div class="panel" id="mission-card" style="min-height:400px">
+    <div class="panel-hd">Active Mission</div>
+    <div class="mission-meta">
+      <span class="badge badge-c" id="m-num">MISSION 01</span>
+      <span class="badge badge-a" id="m-cat">⬡ LOADING</span>
+      <div class="diff-pips" id="m-diff">
+        <div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div>
+      </div>
+    </div>
+    <h2 class="m-title" id="m-title">Initialising…</h2>
+    <p class="m-desc" id="m-desc">Awaiting mission briefing from command.</p>
+
+    <div class="prebrief" id="mission-prebrief">
+      <div class="prebrief-hd">
+        <span class="prebrief-title">Pre-Brief Warm-up</span>
+        <span style="display:flex;align-items:center;gap:.45rem">
+          <span class="prebrief-wc" id="warmup-wc">0w</span>
+          <span class="prebrief-mult" id="warmup-mult">×1.00</span>
+        </span>
+      </div>
+      <div class="prebrief-q" id="warmup-question">Warm-up unavailable for this mission.</div>
+      <textarea id="warmup-answer" placeholder="Draft a short warm-up response to tune your approach…" oninput="onWarmupInput(this.value)"></textarea>
+      <div class="btn-row" style="margin-bottom:0">
+        <button class="btn btn-c" onclick="applyWarmup()">Apply</button>
+        <button class="btn btn-ghost" onclick="skipWarmup()">Skip</button>
+      </div>
+      <div class="prebrief-hint" id="warmup-hint">Answering is optional — multiplier resets each mission.</div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span>Mission Progress</span><span id="prog-txt">1/6</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:10%"></div></div>
+    </div>
+
+    </div><!-- /mission-prebrief -->
+    <div class="choices-list" id="choices-list"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="wheel-hint-btn" onclick="toggleWheelGuide()">⬡ Wheel Mode</button>
+    </div>
+  </div>
+
+  <!-- COL 2: KADA WHEEL -->
+  <div class="panel" id="wheel-panel">
+    <div class="panel-hd">KADA Input Wheel</div>
+
+    <div class="kada-wrap" id="kada-wrap">
+      <!-- Sector SVG -->
+      <svg id="sector-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <!-- Rotor -->
+      <div class="kada-rotor" id="rotor">
+        <div class="tether-wrap" id="tether-wrap">
+          <div class="tether-node" id="tether-node">
+            <div class="tether-core" id="tether-core"></div>
+          </div>
+          <div class="tether-thread" id="tether-thread"></div>
+        </div>
+      </div>
+
+      <!-- Stator HUD -->
+      <div class="kada-stator">
+        <div class="progress-ring" id="progress-ring"></div>
+        <div class="kada-hud-mode" id="kad-mode">Rotate</div>
+        <div class="kada-hud-val" id="kad-val">—</div>
+        <div class="kada-hud-sub" id="kad-sub">No mission</div>
+      </div>
+
+      <div id="spark-layer"></div>
+    </div>
+
+    <div class="wheel-guide" id="wheel-guide">
+      <strong>Rotate ring</strong> to browse choices<br>
+      <strong>Pull node</strong> outward to aim<br>
+      <strong>Release</strong> to confirm selection
+    </div>
+
+    <!-- Streak / Pass mini-display -->
+    <div style="margin-top:.75rem">
+      <div class="panel-hd" style="margin-bottom:.5rem">Pass Level</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+        <span style="font-family:var(--fhud);font-size:.8rem;color:var(--cyan)">LVL <span id="pass-lv">1</span></span>
+        <span style="font-family:var(--fmono);font-size:.55rem;color:var(--txt-dim)"><span id="pass-xp">0</span>/<span id="pass-next">100</span> XP</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="pass-bar" style="width:0%"></div></div>
+
+      <div class="panel-hd" style="margin-top:.9rem;margin-bottom:.4rem">Streak</div>
+      <div class="streak-pips" id="streak-pips"></div>
+      <button class="btn btn-o" style="width:100%;margin-top:.4rem;justify-content:center" onclick="triggerLogin()">⬆ Register Login</button>
+    </div>
+  </div>
+
+  <!-- COL 3: HEX MAP + LEADERBOARD -->
+  <div class="col-right" style="display:flex;flex-direction:column;gap:1px;background:var(--border)">
+
+    <div class="panel" style="flex:1">
+      <div class="panel-hd">Skill Matrix</div>
+      <div style="position:relative">
+        <div id="map-tip" class="map-tip"></div>
+        <svg id="hex-svg" class="hex-svg" viewBox="0 0 260 200" style="height:200px"></svg>
+      </div>
+      <pre id="hex-json" style="font-family:var(--fmono);font-size:.48rem;color:var(--txt-dim);background:var(--panel2);padding:.5rem;border-radius:4px;border:1px solid var(--border);margin-top:.6rem;overflow:auto;max-height:70px"></pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">Live Leaderboard <span id="fb-sync-badge" style="font-size:.45rem;color:var(--txt-dim);margin-left:.3rem">(local)</span></div>
+      <div id="lb-list">
+  <!-- Skeleton rows — replaced by renderLeaderboard() -->
+  <div class="lb-skeleton"><div class="lb-sk-row"></div><div class="lb-sk-row"></div><div class="lb-sk-row"></div><div class="lb-sk-row"></div><div class="lb-sk-row"></div></div>
+</div>
+    </div>
+
+  </div><!-- /col-right -->
+
+</div><!-- /grid-main -->
+
+<!-- ═══════════════════ BOTTOM SECTIONS ════════════════════════════ -->
+<div class="sections-bottom">
+
+  <!-- MISSION LOGBOOK -->
+  <div class="panel">
+    <div class="panel-hd">Mission Logbook</div>
+
+    <!-- Summary bar -->
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;flex-wrap:wrap">
+      <div style="font-family:var(--fmono);font-size:.55rem;background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:.3rem .6rem;color:var(--txt-dim)">
+        <span id="log-pass-count" style="color:var(--green);font-weight:700">0</span> passed &nbsp;·&nbsp;
+        <span id="log-fail-count" style="color:var(--red);font-weight:700">0</span> failed &nbsp;·&nbsp;
+        <span id="log-pend-count" style="color:var(--txt-dim)">10</span> pending
+      </div>
+      <div style="margin-left:auto;display:flex;gap:.4rem">
+        <button class="btn btn-o" id="demo-fill-btn" onclick="demoFillLog()" style="font-size:.52rem;padding:.3rem .6rem;display:none" title="Populate with sample data to preview cards">⬡ Demo Fill</button>
+        <button class="btn btn-ghost" onclick="clearMissionLog()" style="font-size:.52rem;padding:.3rem .6rem">↺ Clear</button>
+      </div>
+    </div>
+
+    <div class="section-sublabel">MISSIONS — click card to inspect · click pending card to jump/launch</div>
+    <div class="scene-grid" id="scene-grid-main"></div>
+
+    <div class="section-sublabel" style="margin-top:.65rem">CHOICE PATHS — ✓ correct · ✗ wrong · faded = unchosen</div>
+    <div class="branch-tree" id="branch-tree"></div>
+
+    <div style="margin-top:.75rem">
+      <div class="section-sublabel">MISSION DETAIL</div>
+      <div class="scene-preview" id="scene-preview">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fmono);font-size:.6rem;color:var(--txt-dim);flex-direction:column;gap:.5rem;text-align:center;padding:1rem">
+          <span style="font-size:1.8rem;opacity:.3">⬡</span>
+          <span>Click any mission card above to inspect result</span>
+          <span style="color:var(--txt-mute)">Cards populate as you complete missions</span>
+        </div>
+      </div>
+      <!-- pipeline = mission flow stages -->
+      <div class="capture-pipeline" id="cap-pipeline">
+        <div class="pipe-node" id="pn-read">Mission</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node" id="pn-page">Choice</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node" id="pn-shot">Result</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node" id="pn-enc">Skill XP</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node" id="pn-out">SR Δ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQUAD ROOM -->
+  <div class="panel">
+    <div class="panel-hd">Squad Room</div>
+    <div class="room-tabs">
+      <button class="room-tab on" onclick="switchRoomTab('create')">Create</button>
+      <button class="room-tab" onclick="switchRoomTab('join')">Join</button>
+      <button class="room-tab" onclick="switchRoomTab('lobby')">Lobby</button>
+    </div>
+
+    <div class="room-pane on" id="rt-create">
+      <label class="inp-label">Room Name</label>
+      <input class="inp" id="room-name" placeholder="Alpha Squadron…" maxlength="20">
+      <label class="inp-label">Max Players</label>
+      <select class="inp" id="room-max">
+        <option value="2">2 Players</option>
+        <option value="4" selected>4 Players</option>
+        <option value="8">8 Players</option>
+      </select>
+      <div class="btn-row"><button class="btn btn-g" onclick="createRoom()">⊕ Create Room</button></div>
+    </div>
+
+    <div class="room-pane" id="rt-join">
+      <label class="inp-label">Room Code</label>
+      <input class="inp" id="room-code-in" placeholder="HX-XXXX" maxlength="8" style="text-transform:uppercase;letter-spacing:.3em;font-size:1.1rem">
+      <div class="btn-row"><button class="btn btn-c" onclick="joinRoom()">→ Join</button></div>
+    </div>
+
+    <div class="room-pane" id="rt-lobby">
+      <div class="panel-hd" style="margin-bottom:.4rem">Room Code</div>
+      <div class="room-code-box" id="room-code-display">—</div>
+      <div style="font-family:var(--fmono);font-size:.55rem;color:var(--txt-dim);text-align:center;margin-bottom:.75rem">Share with teammates</div>
+      <div id="lobby-members" style="display:flex;flex-direction:column;gap:.3rem"></div>
+      <div class="btn-row">
+        <button class="btn btn-g" onclick="launchRoom()">▶ Start Game</button>
+        <button class="btn btn-ghost" onclick="leaveRoom()">Leave</button>
+      </div>
+    </div>
+
+    <div style="margin-top:.9rem">
+      <div class="panel-hd" style="margin-bottom:.5rem">Reward Log</div>
+      <div class="reward-list" id="reward-log"></div>
+    </div>
+  </div>
+
+  <!-- PROGRESSION + SHARE -->
+  <div class="panel">
+    <div class="panel-hd">Mission Stats</div>
+    <div class="stat-grid" style="margin-bottom:.9rem">
+      <div class="stat-card"><div class="sc-val" id="st-sr">1000</div><div class="sc-lbl">Skill Rating</div></div>
+      <div class="stat-card"><div class="sc-val" id="st-score">0</div><div class="sc-lbl">Last Score</div></div>
+      <div class="stat-card"><div class="sc-val" id="st-tokens">0</div><div class="sc-lbl">Tokens</div></div>
+      <div class="stat-card"><div class="sc-val" id="st-streak">0</div><div class="sc-lbl">Day Streak</div></div>
+    </div>
+
+    <div class="panel-hd" style="margin-bottom:.6rem">Result Share Card</div>
+    <div id="share-card-wrap"></div>
+    <div class="btn-row">
+      <button class="btn btn-c" onclick="shareCard()">⤴ Share</button>
+      <button class="btn btn-ghost" onclick="renderShareCard()">↺ Refresh</button>
+    </div>
+
+    <div class="panel-hd" style="margin-top:.9rem;margin-bottom:.6rem">Event Mission</div>
+    <div style="background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:.65rem">
+      <div style="font-family:var(--fhud);font-size:.75rem;color:#fff" id="evt-name">Loading…</div>
+      <div style="font-family:var(--fmono);font-size:.58rem;color:var(--txt-dim);margin:.25rem 0" id="evt-desc"></div>
+      <div style="font-family:var(--fmono);font-size:.6rem;color:var(--amber)" id="evt-timer"></div>
+    </div>
+  </div>
+
+  <!-- INTERVIEW SIMULATOR -->
+  <div class="panel" id="interview-panel">
+    <div class="panel-hd">Interview Simulator</div>
+    <div class="interview-shell" id="interview-shell"></div>
+  </div>
+
+</div><!-- /sections-bottom -->
+
+<div class="interview-modal" id="interview-modal">
+  <div class="interview-modal-card">
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">
+      <div class="panel-hd" id="interview-modal-title">Interview Round</div>
+      <button class="btn btn-ghost" style="margin-left:auto" onclick="closeInterviewModal()">✕ Close</button>
+    </div>
+    <div id="interview-modal-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═════════════════════════════════════ -->
+<footer>
+  <div class="stat-item"><div class="stat-dot"></div>LIVE</div>
+  <div class="stat-item">ROOM: <span id="ft-room" style="color:var(--txt);margin-left:.3rem">—</span></div>
+  <div class="stat-item">PLAYERS: <span id="ft-players" style="color:var(--txt);margin-left:.3rem">1</span></div>
+  <div class="stat-item">SEASON <span style="color:var(--txt);margin-left:.3rem" id="ft-season"></span></div>
+  <div class="stat-item" style="margin-left:auto">SkillHex v3.0 · @geogebra.in</div>
+  <!-- UPG-08: Privacy policy link required for Play Store -->
+  <div class="stat-item"><a href="/privacy" target="_blank" style="color:var(--txt-dim);text-decoration:none;font-family:var(--fmono);font-size:.5rem;letter-spacing:.1em">Privacy</a></div>
+</footer>
+
+</div><!-- /root -->
+
+<!-- ═══════════════════ CALLSIGN MODAL ═══════════════════════════════ -->
+<div id="callsign-modal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(3,9,18,.85);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+  <div style="background:var(--panel);border:1px solid var(--cyan);box-shadow:var(--cyan-glow);border-radius:8px;padding:1.5rem;width:min(380px,92vw);display:flex;flex-direction:column;gap:.75rem">
+    <div style="font-family:var(--fhud);font-size:.85rem;color:var(--cyan);letter-spacing:.1em">ENTER CALLSIGN</div>
+    <div style="font-family:var(--fmono);font-size:.58rem;color:var(--txt-dim)">1–16 chars · letters, numbers, spaces, hyphens only</div>
+    <input id="callsign-input" class="inp" placeholder="OPERATIVE" maxlength="16" style="font-size:1.1rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:0">
+    <div id="callsign-error" style="font-family:var(--fmono);font-size:.52rem;color:var(--red);display:none">Invalid callsign. Use A-Z, 0-9, spaces or hyphens only.</div>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn btn-c" onclick="confirmCallsign()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast -->
+<!-- UPG-06: Offline banner -->
+<div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9000;
+  background:#1a0a00;border-bottom:1px solid var(--amber);padding:.45rem 1.25rem;
+  font-family:var(--fmono);font-size:.56rem;color:var(--amber);letter-spacing:.1em;
+  display:none;align-items:center;gap:.75rem;">
+  <span>⚠ OFFLINE — playing in local mode. Progress saved, will sync on reconnect.</span>
+  <button onclick="retryConnection()" style="margin-left:auto;font-family:var(--fhud);font-size:.52rem;
+    letter-spacing:.1em;background:transparent;border:1px solid var(--amber);color:var(--amber);
+    padding:.2rem .6rem;border-radius:4px;cursor:pointer;">↺ Retry</button>
+</div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════
+     VIADECIDE TOUCH POLISH — iOS/Android tap highlight fix
+     Passive listeners only — never blocks scroll or click.
+═══════════════════════════════════════════════════ -->
+<script>
+(function(){
+  var touchActive = false;
+  document.addEventListener('touchstart', function(e){
+    touchActive = true;
+    if(document.activeElement && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+      document.activeElement.blur();
+    }
+  }, {passive: true});
+  document.addEventListener('touchend', function(){
+    setTimeout(function(){ touchActive = false; }, 300);
+  }, {passive: true});
+  document.addEventListener('focusin', function(e){
+    if(touchActive) e.target.setAttribute('data-touch-focus','1');
+    else e.target.removeAttribute('data-touch-focus');
+  });
+  var s = document.createElement('style');
+  s.textContent = '[data-touch-focus]:focus-visible{outline:none!important;}';
+  document.head.appendChild(s);
+})();
+</script>
+
+<script>
+"use strict";
+
+/* ═══ XSS SANITIZATION ══════════════════════════════════════════════ */
+function sanitizeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* SVG text node escaping (BUG-03 fix) */
+function svgEscape(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
+/* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
+   TO ENABLE:
+   1. Go to console.firebase.google.com → your project → Project Settings → Your Apps
+   2. Copy your web app config and paste it below, replacing every field.
+   3. In Firebase Console → Authentication → Sign-in method, enable:
+        • Anonymous  (for auto-login on first visit)
+        • Google     (for "Login" button upgrade)
+   4. In Firestore → Rules, paste the rules from the runbook comment below.
+ ═════════════════════════════════════════════════════════════════════ */
+/* ═══ FIREBASE CONFIG ═══════════════════════════════════════════════
+   BUG-04 FIX: Keys replaced with build-time placeholders.
+   ─────────────────────────────────────────────────────────────────
+   CLOUDFLARE PAGES (recommended):
+     1. Dashboard → Settings → Environment Variables → add all 7 vars
+     2. Add build command:
+        sed -i \
+          -e "s|__FB_API_KEY__|$FB_API_KEY|g" \
+          -e "s|__FB_AUTH_DOMAIN__|$FB_AUTH_DOMAIN|g" \
+          -e "s|__FB_DATABASE_URL__|$FB_DATABASE_URL|g" \
+          -e "s|__FB_PROJECT_ID__|$FB_PROJECT_ID|g" \
+          -e "s|__FB_STORAGE_BUCKET__|$FB_STORAGE_BUCKET|g" \
+          -e "s|__FB_MESSAGING_SENDER_ID__|$FB_MESSAGING_SENDER_ID|g" \
+          -e "s|__FB_APP_ID__|$FB_APP_ID|g" \
+          index.html
+   CAPACITOR (Play Store build):
+     Inject via capacitor.config.ts → server.env at build time.
+     Never commit filled values to git.
+   ─────────────────────────────────────────────────────────────────
+   LOCAL DEV: copy .env.example → .env.local and run: npm run dev:inject
+ ═════════════════════════════════════════════════════════════════════ */
+const FB_CONFIG = {
+  apiKey:            "__FB_API_KEY__",
+  authDomain:        "__FB_AUTH_DOMAIN__",
+  databaseURL:       "__FB_DATABASE_URL__",
+  projectId:         "__FB_PROJECT_ID__",
+  storageBucket:     "__FB_STORAGE_BUCKET__",
+  messagingSenderId: "__FB_MESSAGING_SENDER_ID__",
+  appId:             "__FB_APP_ID__"
+};
+
+/* FIRESTORE SECURITY RULES — paste into Firebase Console → Firestore → Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Leaderboard: anyone can read; only authenticated owner can write their own entry
+    match /skillhex_leaderboard/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+    // Squad rooms: authenticated users can read/create; only room creator can update root doc
+    // BUG-04 fix: tightened update rule to require uid match on member sub-doc
+    match /skillhex_rooms/{roomId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.creatorUid;
+      match /members/{uid} {
+        allow read:  if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
+*/
+
+/* BUG-13: specific targetOrigin for postMessage — never use '*' with game state data */
+const PARENT_ORIGIN = (function() {
+  try {
+    if (window.parent !== window) return document.referrer ? new URL(document.referrer).origin : 'https://www.viadecide.com';
+  } catch(_) {}
+  return 'https://www.viadecide.com';
+})();
+let auth    = null;
+let fbUser  = null;   // current Firebase Auth user (anon or Google)
+let fbOnline = false;
+let _roomUnsub = null; // squad room Firestore listener unsubscribe handle
+
+(function initFirebase() {
+  try {
+    firebase.initializeApp(FB_CONFIG);
+    db   = firebase.firestore();
+    auth = firebase.auth();
+
+    // Offline persistence so the app still works without network
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
+    // Handle redirect result from mobile Google sign-in
+    auth.getRedirectResult().then(result => {
+      if (result && result.user) {
+        fbUser = result.user;
+        // BUG-08: clear previous user's interview session on fresh Google sign-in
+        try { localStorage.removeItem('retroInterviewSession_v1'); } catch(_) {}
+        loadInterviewState();
+        if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
+          const clean = sanitizeName(fbUser.displayName);
+          if (clean && CALLSIGN_RE.test(clean)) STATE.playerName = clean;
+        }
+        setFbStatus(true, fbUser.displayName?.toUpperCase().slice(0,10) || 'GOOGLE');
+        const claimed = claimDailyLogin();
+        updateStats(); renderStreak(); save(); fbWritePlayer();
+        showToast(claimed ? 'Signed in · Streak: ' + STATE.streak.count : 'Welcome back, ' + (fbUser.displayName || STATE.playerName), 'ok');
+      }
+    }).catch(e => {
+      if (e.code !== 'auth/popup-closed-by-user') {
+        console.warn('[Firebase Auth] Redirect result error:', e.message);
+      }
+    });
+
+    // Sign in anonymously on first visit so Firestore rules can gate writes
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        fbUser   = user;
+        fbOnline = true;
+        setFbStatus(true, user.isAnonymous ? 'ANON' : user.displayName || 'SIGNED IN');
+        startLeaderboardListener();
+      } else {
+        auth.signInAnonymously().catch(e => {
+          console.warn('[Firebase Auth] Anonymous sign-in failed:', e.message);
+          setFbStatus(false);
+        });
+      }
+    });
+
+  } catch (e) {
+    setFbStatus(false);
+    console.warn('[Firebase] Using local-only mode:', e.message);
+  }
+})();
+
+function setFbStatus(online, label) {
+  fbOnline = online;
+  const led = document.getElementById('fb-led');
+  const st  = document.getElementById('fb-status');
+  const loginBtn = document.getElementById('hdr-login-btn');
+  if (led) led.className = 'fb-led ' + (online ? 'online' : 'offline');
+  if (st)  st.textContent = label || (online ? 'FIREBASE' : 'LOCAL');
+  const badge = document.getElementById('fb-sync-badge');
+  if (badge) badge.textContent = online ? '(live)' : '(local)';
+  // Update login button text based on auth state
+  if (loginBtn) {
+    const isGoogle = fbUser && !fbUser.isAnonymous;
+    loginBtn.textContent = isGoogle
+      ? '⬡ ' + (fbUser.displayName || 'SIGNED IN').toUpperCase().slice(0, 12)
+      : '⬡ Login';
+    loginBtn.style.borderColor = isGoogle ? 'var(--green)' : '';
+    loginBtn.style.color       = isGoogle ? 'var(--green)' : '';
+  }
+}
+
+/* ═══ FIREBASE LEADERBOARD ══════════════════════════════════════════ */
+function startLeaderboardListener() {
+  if (!db) return;
+  try {
+    db.collection('skillhex_leaderboard')
+      .orderBy('sr', 'desc')
+      .limit(12)
+      .onSnapshot(snap => {
+        const entries = [];
+        snap.forEach(doc => { const d = doc.data(); entries.push({ name: d.name || doc.id, ...d }); });
+        LIVE_LEADERBOARD = entries;
+        renderLeaderboard();
+      }, err => {
+        console.warn('[Firebase] Leaderboard listener error:', err);
+        setFbStatus(false);
+      });
+  } catch(e) { setFbStatus(false); }
+}
+
+let _fbWriteTimer = null;
+function fbWritePlayer() {
+  clearTimeout(_fbWriteTimer);
+  _fbWriteTimer = setTimeout(_doFbWrite, 3000);
+}
+async function _doFbWrite() {
+  const name = sanitizeName(STATE.playerName);
+  if (!db || !name || name === 'OPERATIVE' || !CALLSIGN_RE.test(name)) return;
+  try {
+    const docId = fbUser?.uid || name;
+    await db.collection('skillhex_leaderboard').doc(docId).set({
+      name:    name,
+      uid:     fbUser?.uid || null, // BUG-09: store UID for reliable 'me' matching
+      sr:      Math.max(0, Math.min(999999, Number(STATE.sr) || 0)),
+      xp:      Math.max(0, Math.min(999999, Number(STATE.xp) || 0)),
+      tokens:  Math.max(0, Math.min(999999, Number(STATE.tokens) || 0)),
+      streak:  Math.max(0, Math.min(9999, Number(STATE.streak.count) || 0)),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch(e) { console.warn('[Firebase] Write error:', e); }
+  // decide.engine integration: notify parent of updated stats
+  try {
+    window.parent.postMessage({
+      type: 'skillhex:result',
+      sr: STATE.sr, xp: STATE.xp, tokens: STATE.tokens,
+      playerName: STATE.playerName, passLevel: STATE.passLevel
+    }, PARENT_ORIGIN); // BUG-13: specific origin
+  } catch(_) {}
+}
+
+/* ═══ CONSTANTS ════════════════════════════════════════════════════ */
+const MAX_LEVEL    = 5;
+const XP_PER_LEVEL = 100;
+const KEY          = 'skillhex-v3';
+
+const SKILL_META = [
+  { key:'Systems',     color:'#00e5ff', q:0,  r:0  },
+  { key:'Analytics',  color:'#00ff88', q:1,  r:0  },
+  { key:'Security',   color:'#ff3a50', q:-1, r:1  },
+  { key:'Execution',  color:'#a855f7', q:0,  r:1  },
+  { key:'Negotiation',color:'#f59e0b', q:1,  r:1  },
+  { key:'AI Ops',     color:'#22d3ee', q:0,  r:2  },
+  { key:'Strategy',   color:'#fde047', q:-1, r:2  },
+  { key:'Leadership', color:'#f472b6', q:2,  r:0  },
+];
+
+const PALETTE = { Systems:'var(--cyan)', Analytics:'var(--green)', Security:'var(--red)', Execution:'var(--violet)', Negotiation:'var(--amber)', 'AI Ops':'#22d3ee', Strategy:'#fde047', Leadership:'#f472b6' };
+
+const MISSIONS = [
+  {
+    id:'cold-boot', title:'Cold Boot Protocol', category:'⬡ SYSTEMS THINKING', diff:2, skill:'Systems',
+    desc:'A critical cluster failed during peak traffic. 60 seconds to triage. First action?',
+    choices:[
+      { v:'restart', l:'Force-restart all nodes simultaneously', ok:false, fb:'Simultaneous restart risks cascading failure.' },
+      { v:'isolate', l:'Isolate failing nodes, reroute traffic',  ok:true,  fb:'Correct! Isolation prevents cascade while traffic reroutes.' },
+      { v:'wait',    l:'Wait for auto-recovery to respond',       ok:false, fb:'Auto-recovery is too slow for peak-load outages.' },
+      { v:'escalate',l:'Escalate immediately to senior engineering',ok:false,fb:'Triage before escalating.' },
+    ]
+  },
+  {
+    id:'signal-noise', title:'Signal / Noise Ratio', category:'⬡ ANALYTICS', diff:3, skill:'Analytics',
+    desc:'400 alerts flooding your dashboard. 3 are critical. Fastest path to root cause?',
+    choices:[
+      { v:'severity', l:'Filter severity + service dependency tree', ok:true,  fb:'Correct — severity + dependency eliminates noise in <90s.' },
+      { v:'oldest',   l:'Sort oldest-first to trace root cause',     ok:false, fb:'Timestamps mislead in cascading failures.' },
+      { v:'volume',   l:'Prioritise highest-volume services',        ok:false, fb:'Volume inflates in downstream services, not origins.' },
+      { v:'manual',   l:'Read all 400 alerts sequentially',          ok:false, fb:'Sequential review under pressure misses critical signals.' },
+    ]
+  },
+  {
+    id:'adversarial-neg', title:'High-Stakes Negotiation', category:'⬡ NEGOTIATION', diff:2, skill:'Negotiation',
+    desc:'Vendor signals a mid-project contract exit unless you accept a 40% price increase. Your move?',
+    choices:[
+      { v:'accept',  l:'Accept to avoid disruption',               ok:false, fb:'Capitulation invites further demands.' },
+      { v:'refuse',  l:'Refuse, immediately seek alternatives',    ok:false, fb:'Abrupt refusal risks project failure.' },
+      { v:'leverage',l:'Document breach risk, engage legal, counter-offer',ok:true,fb:'Correct — documented leverage forces real negotiation.' },
+      { v:'ceo',     l:'Escalate to your CEO for political pressure',ok:false,fb:'Executive escalation too early removes tactical options.' },
+    ]
+  },
+  {
+    id:'rogue-model', title:'Model Drift Incident', category:'⬡ AI GOVERNANCE', diff:5, skill:'AI Ops',
+    desc:'Deployed ML model returns biased predictions post-update. Users complaining in real time. First move?',
+    choices:[
+      { v:'rollback', l:'Immediately rollback to stable version',   ok:true,  fb:'Correct — rollback stops active harm while RCA begins.' },
+      { v:'patch',    l:'Push rapid patch without staging',         ok:false, fb:'Unvalidated patches compound the incident.' },
+      { v:'monitor',  l:'Increase monitoring, observe 24 hours',   ok:false, fb:'Passive observation during active bias causes ongoing harm.' },
+      { v:'pr',       l:'Issue public apology statement immediately',ok:false,fb:'Public comms without technical resolution is theatre.' },
+    ]
+  },
+  {
+    id:'phantom-bottleneck', title:'Phantom Bottleneck', category:'⬡ SYSTEMS THINKING', diff:4, skill:'Systems',
+    desc:'Throughput dropped 30% but all service metrics look normal. Pattern indicates what?',
+    choices:[
+      { v:'network', l:'Network layer issue between services',               ok:false, fb:'Network issues typically show in error rates differently.' },
+      { v:'hidden',  l:'Hidden lock contention or queue saturation',         ok:true,  fb:'Correct — silent bottlenecks between healthy services = lock saturation.' },
+      { v:'corrupt', l:'Data corruption in upstream feed',                   ok:false, fb:'Corruption would show in error rates, not pure throughput.' },
+      { v:'false',   l:'False alarm — ignore the 30% drop',                  ok:false, fb:'Never dismiss a 30% throughput drop without verification.' },
+    ]
+  },
+  {
+    id:'last-hex', title:'The Last Hex', category:'⬡ STRATEGIC SYNTHESIS', diff:5, skill:'Strategy',
+    desc:'Final mission. One skill remains locked. The right answer completes your grid and sets your rank.',
+    choices:[
+      { v:'short',    l:'Optimise for short-term wins to build morale', ok:false, fb:'Short-term focus without vision creates brittle orgs.' },
+      { v:'balance',  l:'Balance capability building with immediate delivery',ok:true,fb:'Correct — sustained capability enables compound delivery.' },
+      { v:'delegate', l:'Delegate all strategic decisions to reduce cognitive load',ok:false,fb:'Delegation without direction is abdication.' },
+      { v:'consult',  l:'Hire consultants to define long-term strategy', ok:false, fb:'External strategy without internal ownership fails execution.' },
+    ]
+  },
+];
+
+const SVG_SCENES = {
+  linear: Array.from({length:10}, (_,i)=>`V${String(i+1).padStart(2,'0')}`),
+  branches: {
+    A: ['A01','A01a','A01b','A01c','A01d'],
+    B: ['B01','B01a','B01b','B01c','B01d'],
+    C: ['C01','C01a','C01b','C01c','C01d'],
+    D: ['D01','D01a','D01b','D01c','D01d'],
+  }
+};
+
+const EVENTS = [
+  { name:'Asteroid Rush',    desc:'Clear 5 tactical obstacles in sequence',  reward:'+40 tokens + Hex territory' },
+  { name:'Signal Blackout',  desc:'Solve comms puzzle with your squad',       reward:'Rare badge + 50 XP' },
+  { name:'Reactor Peak',     desc:'Score 900+ in calibration run',            reward:'Skill Upgrade Core' },
+];
+
+const INTERVIEW_BANK = [
+  { q:'Apna quick intro do — background aur strengths kya hain?', cat:'Intro' },
+  { q:'College/project journey mein sabse bada learning kya raha?', cat:'Intro' },
+  { q:'Is role ke liye apply karne ki motivation kya hai?', cat:'Motivation' },
+  { q:'Aapko hamari company mein kya attract karta hai?', cat:'Motivation' },
+  { q:'Kisi project mein aapka exact contribution STAR format mein batao.', cat:'Projects' },
+  { q:'Hard deadline wale project ko kaise deliver kiya?', cat:'Projects' },
+  { q:'Team conflict solve ka real example do.', cat:'Teamwork' },
+  { q:'Communication breakdown hua toh recover kaise kiya?', cat:'Communication' },
+  { q:'Time complexity aur space complexity tradeoff simple words mein samjhao.', cat:'CS Basics' },
+  { q:'HashMap vs TreeMap kab choose karoge?', cat:'CS Basics' },
+  { q:'Normalization kya hota hai aur kab denormalize karna chahiye?', cat:'Databases' },
+  { q:'SQL indexing strategy ka koi practical example do.', cat:'Databases' },
+  { q:'Scale hone par URL shortener/service ko kaise design karoge?', cat:'System Design' },
+  { q:'Caching layer add karte waqt kya pitfalls hote hain?', cat:'System Design' },
+  { q:'Backend API ka auth + rate limit plan kaise banaoge?', cat:'Backend' },
+  { q:'Incident aane par debugging sequence kya hota hai?', cat:'Backend' },
+  { q:'Network timeout aur retry storms ko kaise handle karte ho?', cat:'Networking' },
+  { q:'Difficult stakeholder ko align karne ka example do.', cat:'Behavioral' },
+  { q:'Agar mistake ho jaye toh ownership kaise lete ho?', cat:'Behavioral' },
+  { q:'Aap leadership bina title ke kaise dikhate ho?', cat:'Leadership' },
+  { q:'HR expectation: salary + growth priorities kaise balance karte ho?', cat:'HR' },
+  { q:'Final wrap-up: agar join karo toh first 90 days ka focus kya hoga?', cat:'Wrap-up' },
+];
+
+const INTERVIEW_ROUNDS = {
+  V07: { label:'Round 1 · Story', cats:['Intro','Motivation','Projects'] },
+  V08: { label:'Round 2 · Technical', cats:['CS Basics','Databases','System Design','Backend','Networking'] },
+  V09: { label:'Round 3 · Soft Skills', cats:['Teamwork','Communication','Behavioral','HR','Leadership'] },
+  V10: { label:'Full Mock', cats:['Intro','Motivation','Projects','Teamwork','Communication','CS Basics','Databases','System Design','Backend','Networking','Behavioral','HR','Leadership','Wrap-up'], deepDive:true },
+};
+
+/* ═══ STATE ════════════════════════════════════════════════════════ */
+const DEFAULT = {
+  playerName: 'OPERATIVE',
+  company: '', role: '', level: 'L1',
+  sr: 1000, xp: 0, tokens: 0, passLevel: 1, lastScore: 0,
+  missionLog: {},   // keyed by missionIdx: { title, result:'pass'|'fail', score, skill, choice, ts }
+  daily: { stamp:'', missions:[] },
+  streak: { count:0, lastLogin:'' },
+  squad: { room:'', members:[] },
+  rewardLog: [],
+  leaderboardBots: [
+    { name:'CIPHER',   sr:9800 },
+    { name:'SPECTER',  sr:8750 },
+    { name:'NOVA',     sr:7900 },
+    { name:'AXIOM',    sr:7200 },
+  ],
+  hexSkills: Object.fromEntries(SKILL_META.map(s=>[s.key,{xp:0,level:1}])),
+  specialHexes: { TechLeader: false },
+  mapViewport: { x:0, y:0, w:260, h:200 },
+};
+
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY)||'{}'); } catch(e){}
+const S = {
+  ...DEFAULT, ...saved,
+  missionLog:  { ...(saved.missionLog||{}) },
+  daily:       { ...DEFAULT.daily,       ...(saved.daily||{}) },
+  streak:      { ...DEFAULT.streak,      ...(saved.streak||{}) },
+  squad:       { ...DEFAULT.squad,       ...(saved.squad||{}) },
+  specialHexes:{ ...DEFAULT.specialHexes,...(saved.specialHexes||{}) },
+  mapViewport: { ...DEFAULT.mapViewport, ...(saved.mapViewport||{}) },
+  hexSkills:   { ...DEFAULT.hexSkills,   ...(saved.hexSkills||{}) },
+  leaderboardBots: DEFAULT.leaderboardBots,
+};
+// Clamp numeric fields to prevent localStorage manipulation
+S.sr      = Math.max(300,  Math.min(999999, Number(S.sr)      || 1000));
+S.xp      = Math.max(0,    Math.min(999999, Number(S.xp)      || 0));
+S.tokens  = Math.max(0,    Math.min(999999, Number(S.tokens)  || 0));
+S.passLevel = Math.max(1,  Math.min(20,     Number(S.passLevel)|| 1));
+S.lastScore = Math.max(0,  Math.min(999999, Number(S.lastScore)|| 0));
+if (S.streak && typeof S.streak === 'object') {
+  S.streak.count = Math.max(0, Math.min(9999, Number(S.streak.count) || 0));
+}
+// Sanitize playerName loaded from storage
+if (S.playerName) S.playerName = sanitizeName(S.playerName) || 'OPERATIVE';
+
+// treat S as STATE alias
+const STATE = S;
+
+let LIVE_LEADERBOARD = [];
+let missionIdx = 0;
+let choiceMade  = false;
+let missionWarmup = null;
+
+function warmupKeyForMission(mission, idx = missionIdx) {
+  if (!mission) return '';
+  return `${mission.skill || 'Unknown'}::${mission.title || ''}::${idx}`;
+}
+
+function upsertInterviewAnswer(entry = {}) {
+  const key = entry.warmupKey;
+  const q = entry.q;
+  const idx = INTERVIEW.answers.findIndex(a => (key && a.warmupKey === key) || (!key && q && a.q === q));
+  if (idx >= 0) {
+    INTERVIEW.answers[idx] = { ...INTERVIEW.answers[idx], ...entry };
+    return INTERVIEW.answers[idx];
+  }
+  INTERVIEW.answers.push(entry);
+  return entry;
+}
+
+const INTERVIEW = {
+  qIndex: 0,
+  asked: [],
+  transcript: [],
+  answers: [],
+  pendingFollowUp: null,
+  categories: [],
+  deepDive: false,
+  activeScene: null,
+};
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(STATE)); } catch(e){}
+  try {
+    localStorage.setItem('retroInterviewSession_v1', JSON.stringify({
+      qIndex: INTERVIEW.qIndex,
+      asked: INTERVIEW.asked,
+      transcript: INTERVIEW.transcript,
+      answers: INTERVIEW.answers,
+      pendingFollowUp: INTERVIEW.pendingFollowUp,
+    }));
+  } catch(e){}
+}
+
+function loadInterviewState() {
+  try {
+    const data = JSON.parse(localStorage.getItem('retroInterviewSession_v1') || '{}');
+    INTERVIEW.qIndex = data.qIndex || 0;
+    INTERVIEW.asked = Array.isArray(data.asked) ? data.asked : [];
+    INTERVIEW.transcript = Array.isArray(data.transcript) ? data.transcript : [];
+    INTERVIEW.answers = Array.isArray(data.answers) ? data.answers : [];
+    INTERVIEW.pendingFollowUp = data.pendingFollowUp || null;
+  } catch(e){}
+}
+
+function wordsOf(t='') { return (t.trim().match(/\S+/g) || []).length; }
+
+function pickQuestions(cats) {
+  const wanted = new Set(cats);
+  return INTERVIEW_BANK.filter(x => wanted.has(x.cat));
+}
+
+function chooseFollowUp(answer, cat) {
+  const wc = wordsOf(answer);
+  if (wc < 12) return `Nice start. ${cat} mein thoda depth do — situation, action, outcome cover karo.`;
+  if (wc < 25) return `Good. Ek concrete metric ya measurable impact add kar sakte ho?`;
+  return null;
+}
+
+function interviewAnalytics() {
+  const totalQ = Math.max(1, INTERVIEW.asked.length);
+  const answered = INTERVIEW.answers.filter(a => (a.answer||'').trim()).length;
+  const avgWords = answered ? Math.round(INTERVIEW.answers.reduce((s,a)=>s+wordsOf(a.answer),0) / answered) : 0;
+  const completion = answered / totalQ;
+  const score = Math.max(0, Math.min(100, Math.round((completion*60 + Math.min(avgWords,40)/40*40))));
+  return { score, avgWords, answered, totalQ };
+}
+
+function interviewAnswersByCategory() {
+  return INTERVIEW.answers.reduce((acc, a) => {
+    const wc = wordsOf(a.answer||'');
+    if (!wc) return acc;
+    acc[a.cat] = (acc[a.cat] || 0) + wc;
+    return acc;
+  }, {});
+}
+
+function mapCategoryToSkills(cat) {
+  const m = {
+    'Projects':['Systems','Analytics'], 'CS Basics':['Systems','Analytics'], 'System Design':['Systems','Analytics'], 'Backend':['Systems','Analytics'], 'Networking':['Systems','Analytics'],
+    'Motivation':['Strategy','Leadership'], 'Wrap-up':['Strategy','Leadership'],
+    'Teamwork':['Negotiation','Execution'], 'Communication':['Negotiation','Execution'],
+    'Behavioral':['Leadership'], 'Databases':['Analytics'], 'HR':['Negotiation'],
+    'Intro':['Leadership']
+  };
+  return m[cat] || ['Leadership'];
+}
+
+function handleInterviewResult(sessionData) {
+  const score = Math.max(0, Math.min(100, Number(sessionData.score || 0)));
+  const profile = sessionData.profile || {};
+  if ((profile.name || '').trim()) STATE.playerName = profile.name.trim().toUpperCase().slice(0, 16);
+  if ((profile.company || '').trim()) STATE.company = profile.company.trim();
+  if ((profile.role || '').trim()) STATE.role = profile.role.trim();
+  if ((profile.level || '').trim()) STATE.level = profile.level.trim();
+
+  const srDelta = Math.round((score - 65) / 3);
+  STATE.sr = Math.max(300, STATE.sr + srDelta);
+  STATE.lastScore = score;
+
+  const byCat = sessionData.answersByCategory || {};
+  Object.entries(byCat).forEach(([cat, words]) => {
+    const amt = Math.max(8, Math.round(Number(words || 0) / 3));
+    mapCategoryToSkills(cat).forEach(skill => addSkillXp(skill, amt));
+  });
+
+  const scene = sessionData.scene || 'V10';
+  const slotMap = { V07:6, V08:7, V09:8, V10:9 };
+  const idx = slotMap[scene] ?? 9;
+  const a = sessionData.analytics || interviewAnalytics();
+  STATE.missionLog[idx] = {
+    type:'interview',
+    title: `${scene} ${INTERVIEW_ROUNDS[scene]?.label || 'Interview Round'}`,
+    result: score >= 65 ? 'pass' : 'fail',
+    score,
+    avgWords: a.avgWords || 0,
+    skill:'Interview',
+    choice:`${a.answered||0}/${a.totalQ||0} answered`,
+    ts: Date.now(),
+  };
+
+  pushReward(`Interview ${scene} complete: ${score}/100 · SR ${srDelta >= 0 ? '+' : ''}${srDelta}`);
+  advancePassLevel();
+  updateStats();
+  save();
+  fbWritePlayer();
+  buildSceneGrids();
+}
+
+function calcWarmupMultiplier(answer = '') {
+  const wc = wordsOf(answer || '');
+  if (wc >= 30) return 1.3;
+  if (wc >= 15) return 1.15;
+  return 1.0;
+}
+
+function setWarmupMultiplier(mult = 1.0) {
+  const el = document.getElementById('warmup-mult');
+  if (el) el.textContent = `×${Number(mult).toFixed(2)}`;
+}
+
+/* Live word-count + multiplier preview as user types */
+function onWarmupInput(val) {
+  const wc   = wordsOf(val || '');
+  const mult = calcWarmupMultiplier(val);
+  const wcEl   = document.getElementById('warmup-wc');
+  const multEl = document.getElementById('warmup-mult');
+  const hintEl = document.getElementById('warmup-hint');
+  if (wcEl) {
+    wcEl.textContent = `${wc}w`;
+    wcEl.className = 'prebrief-wc' + (wc >= 30 ? ' ok' : wc >= 15 ? ' good' : '');
+  }
+  if (multEl) multEl.textContent = `×${mult.toFixed(2)}`;
+  if (hintEl) {
+    if (!val.trim())   hintEl.textContent = 'Add 15+ words for ×1.15 or 30+ words for ×1.30 boost.';
+    else if (wc >= 30) hintEl.textContent = `✓ Max boost ready — hit Apply to lock ×1.30.`;
+    else if (wc >= 15) hintEl.textContent = `Good (${wc} words) — at 30+ words you'll unlock ×1.30.`;
+    else               hintEl.textContent = `${wc} words typed. Reach 15 for ×1.15, 30 for ×1.30.`;
+  }
+}
+
+function getWarmupForMission(mission) {
+  const warmMap = {
+    Systems:     ['CS Basics', 'System Design'],
+    Analytics:   ['Databases', 'Projects'],
+    Negotiation: ['Teamwork', 'Behavioral', 'HR'],
+    Strategy:    ['Motivation', 'Wrap-up'],
+    Leadership:  ['Behavioral', 'Motivation'],
+    Execution:   ['Communication', 'Teamwork'],
+    'AI Ops':    ['Backend', 'System Design'],
+  };
+  const cats = warmMap[mission.skill] || ['Projects'];
+  const pool = INTERVIEW_BANK.filter(q => cats.includes(q.cat));
+  if (!pool.length) return null;
+  const picked = pool[(missionIdx + mission.title.length) % pool.length];
+
+  // stable key = skill::title::missionIdx so same q in different missions stays separate
+  const warmupKey = warmupKeyForMission(mission, missionIdx);
+  const prior = INTERVIEW.answers.find(a => a.warmupKey === warmupKey)
+    || INTERVIEW.answers.find(a => a.fromWarmup === true && a.q === picked.q);
+  const wc  = prior ? wordsOf(prior.answer || '') : 0;
+  const mult = prior ? (wc >= 30 ? 1.3 : wc >= 15 ? 1.15 : 1.0) : 1.0;
+  return { ...picked, warmupKey, mult, prior: prior?.answer || '', words: wc, done: !!prior, skipped: !!prior?.skipped };
+}
+
+// renderWarmupBox / submitWarmup consolidated into applyWarmup below
+function renderWarmupBox() { /* no-op: warmup UI now handled by renderMission + applyWarmup */ }
+
+function applyWarmup() {
+  if (!missionWarmup) return;
+  const answerEl = document.getElementById('warmup-answer');
+  const hintEl   = document.getElementById('warmup-hint');
+  const multEl   = document.getElementById('warmup-mult');
+  const txt  = (answerEl?.value || '').trim();
+  const mult = calcWarmupMultiplier(txt);
+  const wc   = wordsOf(txt);
+
+  missionWarmup.prior   = txt;
+  missionWarmup.mult    = mult;
+  missionWarmup.skipped = false;
+
+  // Upsert using stable warmupKey — never collide with unrelated mission warm-ups
+  const warmupKey = missionWarmup.warmupKey;
+  upsertInterviewAnswer({
+    q:         missionWarmup.q,
+    cat:       missionWarmup.cat,
+    answer:    txt,
+    warmupKey,
+    fromWarmup: true,
+    skipped:   false,
+    ts:        Date.now(),
+  });
+  // Also push to transcript so interview analytics see it passively
+  if (txt) {
+    INTERVIEW.transcript.push({ role:'user', text: txt, cat: missionWarmup.cat, ts: Date.now(), fromWarmup: true });
+  }
+
+  setWarmupMultiplier(mult);
+  // Live hint update
+  if (hintEl) {
+    if (!txt)        hintEl.textContent = 'Add 15+ words for ×1.15 or 30+ words for ×1.30 boost.';
+    else if (mult >= 1.3)  hintEl.textContent = '✓ Strong pre-brief — ×1.30 boost locked.';
+    else if (mult >= 1.15) hintEl.textContent = `Good start (${wc} words). Add more depth to hit ×1.30.`;
+    else                   hintEl.textContent = `Warm-up saved (${wc} words). Reach 15+ for ×1.15, 30+ for ×1.30.`;
+  }
+  // Flash multiplier badge
+  if (multEl) { multEl.classList.add('boosted'); setTimeout(() => multEl.classList.remove('boosted'), 600); }
+  showToast(`Pre-brief applied · ×${mult.toFixed(2)}`, mult > 1 ? 'ok' : 'info');
+  save();
+}
+
+function skipWarmup() {
+  if (!missionWarmup) return;
+  const answerEl = document.getElementById('warmup-answer');
+  const hintEl   = document.getElementById('warmup-hint');
+
+  missionWarmup.prior   = '';
+  missionWarmup.mult    = 1.0;
+  missionWarmup.skipped = true;
+
+  upsertInterviewAnswer({
+    q:         missionWarmup.q,
+    cat:       missionWarmup.cat,
+    answer:    '',
+    warmupKey: missionWarmup.warmupKey,
+    fromWarmup: true,
+    skipped:   true,
+    ts:        Date.now(),
+  });
+
+  if (answerEl) answerEl.value = '';
+  setWarmupMultiplier(1.0);
+  if (hintEl) hintEl.textContent = 'Pre-brief skipped. Mission choices still active — multiplier is ×1.00.';
+  showToast('Pre-brief skipped · ×1.00', 'info');
+  save();
+}
+
+
+function interviewTemplate(containerId, compact = false) {
+  return `<div class="interview-shell" data-compact="${compact ? 1 : 0}">
+    <div class="interview-side">
+      <div style="font-family:var(--fhud);font-size:.62rem;color:var(--cyan);margin-bottom:.4rem">INTERVIEWER // ORBIT</div>
+      <div class="interview-grid" style="margin-bottom:.45rem">
+        <input class="inp" id="${containerId}-name" placeholder="Name" value="${STATE.playerName || ''}">
+        <input class="inp" id="${containerId}-company" placeholder="Company" value="${STATE.company || ''}">
+        <input class="inp" id="${containerId}-role" placeholder="Role" value="${STATE.role || ''}">
+        <input class="inp" id="${containerId}-level" placeholder="Level" value="${STATE.level || 'L1'}">
+      </div>
+      <div id="${containerId}-cats" style="display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.5rem"></div>
+      <div class="interview-stream" id="${containerId}-stream"></div>
+      <div class="interview-meta">
+        <span id="${containerId}-progress">Q0/0</span>
+        <span id="${containerId}-analytics">Score 0/100 · Avg 0w</span>
+      </div>
+      <div class="interview-composer" style="margin-top:.45rem">
+        <textarea id="${containerId}-answer" placeholder="Hinglish mein answer type karo… STAR method use kar sakte ho."></textarea>
+        <div style="display:flex;flex-direction:column;gap:.35rem">
+          <button class="btn btn-c" onclick="submitInterviewAnswer('${containerId}')">Send</button>
+          <button class="btn btn-o" onclick="skipInterviewQuestion('${containerId}')">Skip</button>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:.5rem">
+        <button class="btn btn-g" onclick="convertInterviewToSkillHex('${containerId}')">Convert to SkillHex XP</button>
+        <button class="btn btn-ghost" onclick="downloadInterviewTranscript()">Transcript .txt</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function mountInterview(containerId, categories, opts = {}) {
+  INTERVIEW.categories = categories.slice();
+  INTERVIEW.deepDive = !!opts.deepDive;
+  const bank = pickQuestions(categories);
+  INTERVIEW.asked = INTERVIEW.asked.filter(a => bank.some(b => b.q === a.q));
+  if (!INTERVIEW.asked.length) INTERVIEW.asked = bank;
+  INTERVIEW.qIndex = Math.min(INTERVIEW.qIndex, Math.max(0, INTERVIEW.asked.length - 1));
+
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = interviewTemplate(containerId, opts.compact);
+
+  const cats = document.getElementById(`${containerId}-cats`);
+  if (cats) {
+    cats.innerHTML = categories.map((c, i) => `<button class="cat-chip ${i===0?'on':''}" onclick="focusInterviewCategory('${containerId}','${c}',this)">${c}</button>`).join('');
+  }
+  renderInterviewStream(containerId);
+}
+
+function focusInterviewCategory(containerId, cat, el) {
+  document.querySelectorAll(`#${containerId}-cats .cat-chip`).forEach(x => x.classList.remove('on'));
+  if (el) el.classList.add('on');
+  const idx = INTERVIEW.asked.findIndex(q => q.cat === cat);
+  if (idx >= 0) INTERVIEW.qIndex = idx;
+  renderInterviewStream(containerId);
+}
+
+function renderInterviewStream(containerId) {
+  const stream = document.getElementById(`${containerId}-stream`);
+  const prog = document.getElementById(`${containerId}-progress`);
+  const ana = document.getElementById(`${containerId}-analytics`);
+  if (!stream) return;
+  const current = INTERVIEW.asked[INTERVIEW.qIndex];
+  const curAns = INTERVIEW.answers.find(a => a.q === current?.q)?.answer || '';
+  const pending = INTERVIEW.pendingFollowUp;
+  stream.innerHTML = `
+    <div class="bubble ai"><strong>${sanitizeHTML(current?.cat || 'Round')}</strong><br>${sanitizeHTML(current?.q || 'No question available')}</div>
+    ${curAns ? `<div class="bubble user">${sanitizeHTML(curAns)}</div>` : ''}
+    ${pending ? `<div class="bubble ai">${sanitizeHTML(pending)}</div>` : ''}
+  `;
+  const ta = document.getElementById(`${containerId}-answer`);
+  if (ta) ta.value = curAns;
+  const a = interviewAnalytics();
+  if (prog) prog.textContent = `Q${INTERVIEW.qIndex+1}/${INTERVIEW.asked.length}`;
+  if (ana) ana.textContent = `Score ${a.score}/100 · Avg ${a.avgWords}w`;
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function submitInterviewAnswer(containerId) {
+  const ta = document.getElementById(`${containerId}-answer`);
+  const current = INTERVIEW.asked[INTERVIEW.qIndex];
+  if (!ta || !current) return;
+  const txt = ta.value.trim();
+  if (!txt) return;
+  upsertInterviewAnswer({ q:current.q, cat:current.cat, answer:txt, ts:Date.now() });
+  INTERVIEW.transcript.push({ role:'user', text:txt, cat:current.cat, ts:Date.now() });
+  INTERVIEW.pendingFollowUp = chooseFollowUp(txt, current.cat);
+  if (!INTERVIEW.pendingFollowUp || INTERVIEW.deepDive === false) {
+    INTERVIEW.qIndex = Math.min(INTERVIEW.qIndex + 1, INTERVIEW.asked.length - 1);
+    INTERVIEW.pendingFollowUp = null;
+  }
+  save();
+  renderInterviewStream(containerId);
+}
+
+function skipInterviewQuestion(containerId) {
+  INTERVIEW.pendingFollowUp = null;
+  INTERVIEW.qIndex = (INTERVIEW.qIndex + 1) % Math.max(1, INTERVIEW.asked.length);
+  renderInterviewStream(containerId);
+}
+
+function convertInterviewToSkillHex(containerId) {
+  const scene = INTERVIEW.activeScene || 'V10';
+  const profile = {
+    name: document.getElementById(`${containerId}-name`)?.value || STATE.playerName,
+    company: document.getElementById(`${containerId}-company`)?.value || STATE.company,
+    role: document.getElementById(`${containerId}-role`)?.value || STATE.role,
+    level: document.getElementById(`${containerId}-level`)?.value || STATE.level,
+  };
+  handleInterviewResult({
+    scene,
+    score: interviewAnalytics().score,
+    answersByCategory: interviewAnswersByCategory(),
+    profile,
+    analytics: interviewAnalytics(),
+  });
+  if (containerId === 'interview-modal-body') closeInterviewModal();
+}
+
+function downloadInterviewTranscript() {
+  const lines = INTERVIEW.answers.map(a => `[${a.cat}] Q: ${a.q}\nA: ${a.answer}\n`).join('\n');
+  const blob = new Blob([lines || 'No interview transcript yet.'], { type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'interview-transcript.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ═══ MISSION ENGINE ═══════════════════════════════════════════════ */
+
+
+function renderMission() {
+  const m = MISSIONS[missionIdx];
+  if (!m) return;
+  choiceMade = false;
+
+  missionWarmup = getWarmupForMission(m);
+
+  document.getElementById('m-num').textContent  = `MISSION ${String(missionIdx+1).padStart(2,'0')}`;
+  document.getElementById('m-cat').textContent  = m.category;
+  document.getElementById('m-title').textContent = m.title;
+  document.getElementById('m-desc').textContent  = m.desc;
+  document.getElementById('prog-txt').textContent = `${missionIdx+1}/${MISSIONS.length}`;
+  document.getElementById('prog-fill').style.width = Math.max(4, (missionIdx/MISSIONS.length)*100) + '%';
+
+  const warmQEl = document.getElementById('warmup-question');
+  const warmAnsEl = document.getElementById('warmup-answer');
+  const warmHintEl = document.getElementById('warmup-hint');
+
+  const prebriefEl = document.getElementById('mission-prebrief');
+  if (missionWarmup) {
+    // Show the prebrief panel
+    if (prebriefEl) prebriefEl.classList.remove('hidden');
+    if (warmQEl)   warmQEl.textContent   = missionWarmup.q;
+    if (warmAnsEl) warmAnsEl.value       = missionWarmup.prior || '';
+    setWarmupMultiplier(missionWarmup.mult || 1.0);
+    // Sync live word counter with any loaded prior answer
+    const wcEl = document.getElementById('warmup-wc');
+    const priorWc = wordsOf(missionWarmup.prior || '');
+    if (wcEl) {
+      wcEl.textContent = `${priorWc}w`;
+      wcEl.className = 'prebrief-wc' + (priorWc >= 30 ? ' ok' : priorWc >= 15 ? ' good' : '');
+    }
+    if (warmHintEl) {
+      if (missionWarmup.skipped)
+        warmHintEl.textContent = 'Pre-brief skipped — multiplier is ×1.00. Edit and Apply to change.';
+      else if ((missionWarmup.prior || '').trim())
+        warmHintEl.textContent = `Previous response loaded (${priorWc} words). Edit and Apply to update boost.`;
+      else
+        warmHintEl.textContent = 'Answering is optional — Apply to lock your multiplier before making your choice.';
+    }
+  } else {
+    // Hide prebrief entirely when no warmup available for this mission
+    if (prebriefEl) prebriefEl.classList.add('hidden');
+    if (warmAnsEl)  warmAnsEl.value = '';
+    setWarmupMultiplier(1.0);
+  }
+
+  const pips = document.querySelectorAll('#m-diff .pip');
+  pips.forEach((p,i) => p.classList.toggle('on', i < m.diff));
+
+  buildChoiceList(m);
+  renderWarmupBox();
+  buildSectors(m);
+  updateKadaHUD(`M-${String(missionIdx+1).padStart(2,'0')}`, m.title.slice(0,9));
+}
+
+
+function buildChoiceList(m) {
+  const keys = ['A','B','C','D'];
+  const g = document.getElementById('choices-list');
+  g.innerHTML = '';
+  m.choices.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'choice-item';
+    div.dataset.v = c.v;
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('aria-label', `Choice ${keys[i]}: ${c.l}`); // UPG-12
+    div.innerHTML = `<span class="choice-key-tag">${keys[i]}</span>${c.l}`;
+    div.addEventListener('click', () => handleChoice(c));
+    div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleChoice(c); } }); // UPG-12: keyboard activation
+    g.appendChild(div);
+  });
+}
+
+function handleChoice(choice) {
+  if (choiceMade) return;
+  choiceMade = true;
+
+  document.querySelectorAll('.choice-item').forEach(el => {
+    const m = MISSIONS[missionIdx];
+    const mc = m.choices.find(c => c.v === el.dataset.v);
+    if (!mc) return;
+    el.classList.add(mc.ok ? 'correct' : (mc.v === choice.v ? 'wrong' : 'lock'));
+  });
+
+  if (choice.ok) {
+    const warmBoost = missionWarmup?.mult || 1;
+    const pts = Math.round((500 + (30 - kadaTimer) * 20 + MISSIONS[missionIdx].diff * 100) * warmBoost);
+    const srDelta = Math.round((pts - 600) / 25);
+    STATE.sr = Math.max(300, STATE.sr + srDelta);
+    STATE.xp += 40 + Math.max(0, Math.round((pts-600)/20));
+    STATE.lastScore = pts;
+    addSkillXp(MISSIONS[missionIdx].skill, 45);
+    addSkillXp(SKILL_META[Math.floor(Math.random()*SKILL_META.length)].key, 20);
+    pushReward(`Mission ${missionIdx+1} complete: +${srDelta} SR, +${pts} pts`);
+    spawnSparks();
+    showToast('✓ ' + choice.fb, 'ok');
+    flashKadaCorrect();
+    STATE.missionLog[missionIdx] = { title: MISSIONS[missionIdx].title, result:'pass', score: pts, skill: MISSIONS[missionIdx].skill, choice: choice.l, ts: Date.now() };
+  } else {
+    showToast('✗ ' + choice.fb, 'err');
+    flashKadaWrong();
+    STATE.missionLog[missionIdx] = { title: MISSIONS[missionIdx].title, result:'fail', score: 0, skill: MISSIONS[missionIdx].skill, choice: choice.l, ts: Date.now() };
+  }
+
+  advancePassLevel();
+  updateStats();
+  save();
+  fbWritePlayer();
+  buildSceneGrids(); // refresh the mission log view
+
+  setTimeout(() => {
+    missionIdx = (missionIdx + 1) % MISSIONS.length;
+    renderMission();
+    startMissionTimer(); // BUG-01 fix: restart timer for each new mission
+  }, 2400);
+}
+
+/* ═══ SKILL XP ════════════════════════════════════════════════════ */
+function addSkillXp(skill, amount) {
+  if (!STATE.hexSkills[skill]) return;
+  const s = STATE.hexSkills[skill];
+  const prev = s.level;
+  s.xp = Math.min((MAX_LEVEL-1)*XP_PER_LEVEL + XP_PER_LEVEL - 1, s.xp + amount);
+  s.level = Math.min(MAX_LEVEL, Math.floor(s.xp / XP_PER_LEVEL) + 1);
+  if (s.level > prev) pushReward(`${skill} hex upgraded → Level ${s.level}`);
+  checkSpecialHexes();
+  renderHexMap();
+}
+
+function checkSpecialHexes() {
+  if (STATE.hexSkills.Systems?.level >= 3 && STATE.hexSkills.Strategy?.level >= 3 && !STATE.specialHexes.TechLeader) {
+    STATE.specialHexes.TechLeader = true;
+    pushReward('SPECIAL HEX UNLOCKED: Tech Leader (Systems + Strategy)');
+  }
+}
+
+/* ═══ PASS LEVEL ══════════════════════════════════════════════════ */
+function advancePassLevel() {
+  while (STATE.xp >= STATE.passLevel * XP_PER_LEVEL && STATE.passLevel < 20) {
+    STATE.xp -= STATE.passLevel * XP_PER_LEVEL;
+    STATE.passLevel++;
+    pushReward(`Pass Level ${STATE.passLevel} unlocked!`);
+  }
+  const lv  = document.getElementById('pass-lv');
+  const xpE = document.getElementById('pass-xp');
+  const nx  = document.getElementById('pass-next');
+  const bar = document.getElementById('pass-bar');
+  if (lv)  lv.textContent  = STATE.passLevel;
+  if (xpE) xpE.textContent = STATE.xp;
+  if (nx)  nx.textContent  = STATE.passLevel * XP_PER_LEVEL;
+  if (bar) bar.style.width = Math.min(100, (STATE.xp / (STATE.passLevel * XP_PER_LEVEL)) * 100).toFixed(1) + '%';
+}
+
+/* ═══ REWARD LOG ═══════════════════════════════════════════════════ */
+function pushReward(text) {
+  STATE.rewardLog.unshift(`${new Date().toLocaleTimeString()} · ${text}`);
+  STATE.rewardLog = STATE.rewardLog.slice(0, 20);
+  renderRewardLog();
+}
+
+function renderRewardLog() {
+  const el = document.getElementById('reward-log');
+  if (!el) return;
+  el.innerHTML = STATE.rewardLog.map(r => `<div class="reward-item">${sanitizeHTML(r)}</div>`).join('') || '<div class="reward-item" style="color:var(--txt-dim)">No rewards yet.</div>';
+}
+
+/* ═══ DAILY LOGIN / STREAK ═════════════════════════════════════════ */
+const dayOf = (ts = Date.now()) => new Date(ts).toISOString().slice(0,10);
+
+function claimDailyLogin() {
+  const today = dayOf();
+  if (STATE.streak.lastLogin === today) return false; // already claimed
+  const yesterday = dayOf(Date.now() - 86400000);
+  STATE.streak.count = STATE.streak.lastLogin === yesterday ? STATE.streak.count + 1 : 1;
+  STATE.streak.lastLogin = today;
+  STATE.tokens += 5;
+  pushReward(`Daily login! Streak: ${STATE.streak.count} days · +5 tokens`);
+  if (STATE.streak.count === 3)  { STATE.tokens += 30; pushReward('3-day streak bonus: +30 tokens!'); }
+  if (STATE.streak.count === 7)  { pushReward('7-day streak: Rare Mission Voucher unlocked!'); }
+  if (STATE.streak.count === 30) { pushReward('30-day streak: Elite Consistency Badge!'); }
+  return true;
+}
+
+async function triggerLogin() {
+  // If already Google-authenticated just claim daily streak
+  if (fbUser && !fbUser.isAnonymous) {
+    const claimed = claimDailyLogin();
+    if (!claimed) { showToast('Already logged in today', 'info'); return; }
+    updateStats(); renderStreak(); save(); fbWritePlayer();
+    showToast('Login registered · Streak: ' + STATE.streak.count, 'ok');
+    return;
+  }
+  // Upgrade anonymous → Google
+  if (!auth) {
+    // No Firebase: just claim daily streak locally
+    const claimed = claimDailyLogin();
+    if (!claimed) { showToast('Already logged in today', 'info'); return; }
+    updateStats(); renderStreak(); save();
+    showToast('Login registered · Streak: ' + STATE.streak.count, 'ok');
+    return;
+  }
+  try {
+    setFbStatus(fbOnline, 'SIGNING IN…');
+    const provider = new firebase.auth.GoogleAuthProvider();
+    // Mobile browsers block signInWithPopup — use redirect flow instead
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if (isMobile) {
+      await auth.signInWithRedirect(provider);
+      // Page will reload; result handled in getRedirectResult() above
+      return;
+    }
+    const result   = await auth.signInWithPopup(provider);
+    fbUser = result.user;
+    // BUG-08: clear previous user's interview session on fresh Google sign-in
+    try { localStorage.removeItem('retroInterviewSession_v1'); } catch(_) {}
+    loadInterviewState();
+    // Persist the Google display name as callsign if player is still default
+    if (fbUser.displayName && (STATE.playerName === 'OPERATIVE' || !STATE.playerName)) {
+      const clean = sanitizeName(fbUser.displayName);
+      if (clean && CALLSIGN_RE.test(clean)) STATE.playerName = clean;
+    }
+    setFbStatus(true, fbUser.displayName?.toUpperCase().slice(0,10) || 'GOOGLE');
+    const claimed = claimDailyLogin();
+    updateStats(); renderStreak(); save(); fbWritePlayer();
+    showToast(claimed ? 'Signed in · Streak: ' + STATE.streak.count : 'Welcome back, ' + (fbUser.displayName || STATE.playerName), 'ok');
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      console.warn('[Firebase Auth] Google sign-in failed:', e.message);
+      showToast('Sign-in failed — check console', 'err');
+    }
+    setFbStatus(fbOnline);
+  }
+}
+
+function renderStreak() {
+  const el = document.getElementById('streak-pips');
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = document.createElement('div');
+    d.className = 'streak-pip' + (i < STATE.streak.count ? ' done' : '');
+    el.appendChild(d);
+  }
+}
+
+/* ═══ LEADERBOARD ══════════════════════════════════════════════════ */
+function renderLeaderboard() {
+  let combined = [...(LIVE_LEADERBOARD.length ? LIVE_LEADERBOARD : STATE.leaderboardBots)];
+  // BUG-09: prefer UID match over name to handle callsign changes + name collisions
+  const myUid = fbUser?.uid;
+  const meIdx = combined.findIndex(p => (myUid && p.uid === myUid) || p.name === STATE.playerName);
+  if (meIdx === -1) combined.push({ name: STATE.playerName, sr: STATE.sr, uid: myUid, isMe: true });
+  else combined[meIdx].isMe = true;
+  combined.sort((a,b) => b.sr - a.sr);
+
+  const myRank = combined.findIndex(p => p.isMe);
+  const start  = Math.max(0, myRank - 2);
+  const slice  = combined.slice(start, start + 5);
+  const el = document.getElementById('lb-list');
+  if (!el) return;
+  el.innerHTML = '';
+  slice.forEach((p, i) => {
+    const rank = start + i + 1;
+    const mc   = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+    const row  = document.createElement('div');
+    row.className = 'lb-row' + (p.isMe ? ' me' : '');
+    row.innerHTML = `<span class="lb-rank ${mc}">${rank}</span><span class="lb-name ${p.isMe?'me-n':''}">${p.isMe?'▶ ':''} ${sanitizeHTML(p.name)}</span><span class="lb-score">${String(p.sr).padStart(4,'0')}</span>`;
+    el.appendChild(row);
+  });
+}
+
+/* ═══ STATS UPDATE ═════════════════════════════════════════════════ */
+function bumpEl(id, val) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  const prev = e.textContent;
+  e.textContent = val;
+  if (String(prev) !== String(val)) {
+    e.classList.remove('bump');
+    void e.offsetWidth; // force reflow
+    e.classList.add('bump');
+    setTimeout(() => e.classList.remove('bump'), 400);
+  }
+}
+
+function updateStats() {
+  bumpEl('hdr-sr',     STATE.sr);
+  bumpEl('st-sr',      STATE.sr);
+  bumpEl('hdr-xp',     STATE.xp);
+  bumpEl('hdr-tok',    STATE.tokens);
+  bumpEl('st-tokens',  STATE.tokens);
+  bumpEl('st-streak',  STATE.streak.count);
+  bumpEl('hdr-streak', STATE.streak.count + 'd');
+  bumpEl('st-score',   STATE.lastScore);
+  renderLeaderboard();
+  renderShareCard();
+}
+
+/* ═══ HEX MAP ══════════════════════════════════════════════════════ */
+function hexPoints(cx, cy, size) {
+  const pts = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI/180) * (60*i - 30);
+    pts.push(`${(cx + size*Math.cos(a)).toFixed(1)},${(cy + size*Math.sin(a)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+function axialToPixel(q, r, size) {
+  return { x: size*Math.sqrt(3)*(q + r/2), y: size*1.5*r };
+}
+
+function renderHexMap() {
+  const svg  = document.getElementById('hex-svg');
+  const tip  = document.getElementById('map-tip');
+  if (!svg) return;
+  const bx = 120, by = 60, size = 28;
+
+  let out = '<g id="hexLayer">';
+  SKILL_META.forEach(meta => {
+    const pos  = axialToPixel(meta.q, meta.r, size);
+    const s    = STATE.hexSkills[meta.key];
+    const col  = meta.color;
+    const alpha = (.3 + (s.level/MAX_LEVEL) * .7).toFixed(2);
+    const cx   = bx + pos.x, cy = by + pos.y;
+    out += `<g class="hex-group" data-skill="${meta.key}" data-level="${s.level}">
+      <polygon class="hex-poly" id="hx-${meta.key}" fill="${col}" fill-opacity="${alpha}" points="${hexPoints(cx,cy,size)}"/>
+      <text x="${cx}" y="${cy-3}" text-anchor="middle" font-size="8" fill="#030508" font-weight="700" font-family="Orbitron">${meta.key.slice(0,3).toUpperCase()}</text>
+      <text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="9" fill="#030508" font-weight="900" font-family="Orbitron">L${s.level}</text>
+    </g>`;
+  });
+  if (STATE.specialHexes.TechLeader) {
+    const sp = axialToPixel(2,1,size);
+    const cx = bx+sp.x, cy = by+sp.y;
+    out += `<g><polygon class="hex-poly hex-special" fill="#fde047" fill-opacity=".9" points="${hexPoints(cx,cy,size)}"/>
+      <text x="${cx}" y="${cy-3}" text-anchor="middle" font-size="7" fill="#030508" font-weight="700">TECH</text>
+      <text x="${cx}" y="${cy+9}" text-anchor="middle" font-size="7" fill="#030508" font-weight="900">LEAD</text></g>`;
+  }
+  out += '</g>';
+  svg.innerHTML = out;
+
+  document.querySelectorAll('.hex-group').forEach(g => {
+    g.style.cursor = 'pointer';
+    g.setAttribute('role', 'img');
+    g.setAttribute('aria-label', (g.dataset.skill || 'Skill') + ' hex, Level ' + (g.dataset.level || '1'));
+    g.addEventListener('mousemove', e => {
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top  = (e.clientY - 32) + 'px';
+      tip.textContent = `${g.dataset.skill} — Level ${g.dataset.level} / ${MAX_LEVEL}`;
+    });
+    g.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  });
+
+  document.getElementById('hex-json').textContent = JSON.stringify(
+    Object.fromEntries(SKILL_META.map(s=>[s.key, STATE.hexSkills[s.key].level])), null, 2
+  );
+}
+
+function animateHex(skill) {
+  const el = document.getElementById('hx-' + skill);
+  if (!el) return;
+  el.classList.remove('upgraded');
+  void el.offsetWidth;
+  el.classList.add('upgraded');
+}
+
+/* ═══ SHARE CARD ═══════════════════════════════════════════════════ */
+function renderShareCard() {
+  const el = document.getElementById('share-card-wrap');
+  if (!el) return;
+  el.innerHTML = `<svg viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="scg" x1="0" x2="1"><stop stop-color="#00e5ff"/><stop offset="1" stop-color="#00ff88"/></linearGradient></defs>
+    <rect width="480" height="200" fill="#080d1a"/>
+    <rect x="12" y="12" width="456" height="176" rx="10" fill="#0c1224" stroke="#152240"/>
+    <rect x="12" y="12" width="456" height="3" rx="1.5" fill="url(#scg)"/>
+    <text x="28" y="46" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">SkillHex Operations Console</text>
+    <text x="28" y="72" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">${sanitizeHTML(STATE.playerName)} · SR: ${Number(STATE.sr)} · Pass Lv: ${Number(STATE.passLevel)}</text>
+    <text x="28" y="94" fill="#c8d8f0" font-size="13" font-family="Share Tech Mono">Tokens: ${Number(STATE.tokens)} · Streak: ${Number(STATE.streak.count)}d · Score: ${Number(STATE.lastScore)}</text>
+    <rect x="28" y="112" width="280" height="8" rx="4" fill="#050810"/>
+    <rect x="28" y="112" width="${Math.min(280,(STATE.xp/(STATE.passLevel*100))*280)}" height="8" rx="4" fill="url(#scg)"/>
+    <text x="28" y="148" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Top Skills: ${Object.entries(STATE.hexSkills).sort((a,b)=>b[1].level-a[1].level).slice(0,3).map(([k,v])=>`${k} L${v.level}`).join(' · ')}</text>
+    <text x="28" y="176" fill="#f59e0b" font-size="12" font-family="Share Tech Mono">#SkillHex #OperationsConsole @geogebra.in</text>
+  </svg>`;
+}
+
+function shareCard() {
+  const text = `🔷 SkillHex Operations Console\nCallsign: ${STATE.playerName}\nSR: ${STATE.sr} | Pass Lv: ${STATE.passLevel} | Streak: ${STATE.streak.count}d\n#SkillHex #OperationsConsole`;
+  if (navigator.share) navigator.share({ title: 'SkillHex Result', text });
+  else if (navigator.clipboard) { navigator.clipboard.writeText(text); showToast('Result copied to clipboard', 'ok'); }
+}
+
+/* ═══ EVENT MISSION ════════════════════════════════════════════════ */
+function updateEvent() {
+  const cycle = 12 * 3600 * 1000;
+  const idx   = Math.floor(Date.now() / cycle) % EVENTS.length;
+  const end   = (Math.floor(Date.now()/cycle)+1) * cycle;
+  const ev    = EVENTS[idx];
+  const sec   = Math.max(0, Math.floor((end - Date.now()) / 1000));
+  const hh    = String(Math.floor(sec/3600)).padStart(2,'0');
+  const mm    = String(Math.floor((sec%3600)/60)).padStart(2,'0');
+  const ss    = String(sec%60).padStart(2,'0');
+  const en = document.getElementById('evt-name');
+  const ed = document.getElementById('evt-desc');
+  const et = document.getElementById('evt-timer');
+  if (en) en.textContent = ev.name;
+  if (ed) ed.textContent = ev.desc + ' · Reward: ' + ev.reward;
+  if (et) et.textContent = `Ends in ${hh}:${mm}:${ss}`;
+}
+
+/* ═══ TOAST ════════════════════════════════════════════════════════ */
+let _toastT;
+function showToast(msg, type='info') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  clearTimeout(_toastT);
+  const icons = { ok: '✓ ', err: '✗ ', info: '· ' };
+  el.textContent = (icons[type] || '') + msg;
+  el.className = 'show ' + type;
+  _toastT = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+/* ═══ SQUAD ROOM ═══════════════════════════════════════════════════ */
+function switchRoomTab(tab) {
+  document.querySelectorAll('.room-tab').forEach((t,i)=>t.classList.toggle('on',['create','join','lobby'][i]===tab));
+  document.querySelectorAll('.room-pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('rt-'+tab).classList.add('on');
+}
+
+function genCode() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return 'HX-' + Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+
+async function createRoom() {
+  const name = document.getElementById('room-name').value.trim() || 'Alpha Squadron';
+  const max  = parseInt(document.getElementById('room-max').value) || 4;
+  const code = genCode();
+  STATE.squad.room = code;
+  STATE.squad.members = [STATE.playerName];
+
+  if (db && fbUser) {
+    try {
+      await db.collection('skillhex_rooms').doc(code).set({
+        name, max, host: fbUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('skillhex_rooms').doc(code).collection('members').doc(fbUser.uid).set({
+        name: STATE.playerName, sr: STATE.sr, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      subscribeRoom(code);
+    } catch(e) { console.warn('[Room] Create error:', e); }
+  }
+
+  const rcDisplay = document.getElementById('room-code-display');
+  if (rcDisplay) { rcDisplay.textContent = code; rcDisplay.classList.remove('new'); void rcDisplay.offsetWidth; rcDisplay.classList.add('new'); }
+  document.getElementById('ft-room').textContent = code;
+  document.getElementById('ft-players').textContent = '1';
+  renderLobby();
+  switchRoomTab('lobby');
+  save();
+  showToast('Room created: ' + code, 'ok');
+}
+
+async function joinRoom() {
+  const code = document.getElementById('room-code-in').value.trim().toUpperCase();
+  if (!code || code.length < 4) { showToast('Enter a valid room code', 'err'); return; }
+  STATE.squad.room = code;
+
+  if (db && fbUser) {
+    try {
+      const roomDoc = await db.collection('skillhex_rooms').doc(code).get();
+      if (!roomDoc.exists) { showToast('Room not found: ' + code, 'err'); return; }
+      await db.collection('skillhex_rooms').doc(code).collection('members').doc(fbUser.uid).set({
+        name: STATE.playerName, sr: STATE.sr, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      subscribeRoom(code);
+    } catch(e) { console.warn('[Room] Join error:', e); }
+  }
+
+  document.getElementById('room-code-display').textContent = code;
+  document.getElementById('ft-room').textContent = code;
+  switchRoomTab('lobby');
+  save();
+  showToast('Joined room ' + code, 'ok');
+}
+
+function subscribeRoom(code) {
+  if (_roomUnsub) _roomUnsub(); // detach previous listener
+  if (!db) return;
+  _roomUnsub = db.collection('skillhex_rooms').doc(code).collection('members')
+    .onSnapshot(snap => {
+      const members = [];
+      snap.forEach(doc => members.push(doc.data().name || '?'));
+      STATE.squad.members = members;
+      document.getElementById('ft-players').textContent = members.length;
+      renderLobby();
+    }, err => console.warn('[Room] Listener error:', err));
+}
+
+function renderLobby() {
+  const el = document.getElementById('lobby-members');
+  if (!el) return;
+  const members = STATE.squad.members.length ? STATE.squad.members : [STATE.playerName];
+  el.innerHTML = '';
+  members.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (i === 0 ? ' me' : '');
+    row.style.marginBottom = '.3rem';
+    row.innerHTML = `<span class="lb-rank">${i+1}</span><span class="lb-name">${sanitizeHTML(m)}</span><span style="font-family:var(--fmono);font-size:.55rem;color:var(--amber)">${i===0?'HOST':''}</span>`;
+    el.appendChild(row);
+  });
+}
+
+function leaveRoom() {
+  if (db && fbUser && STATE.squad.room) {
+    db.collection('skillhex_rooms').doc(STATE.squad.room).collection('members').doc(fbUser.uid).delete().catch(() => {});
+  }
+  if (_roomUnsub) { _roomUnsub(); _roomUnsub = null; }
+  STATE.squad.room = '';
+  STATE.squad.members = [];
+  document.getElementById('ft-room').textContent = '—';
+  document.getElementById('ft-players').textContent = '1';
+  switchRoomTab('create');
+  save();
+}
+function launchRoom() { if (!STATE.squad.room) return; switchRoomTab('create'); renderMission(); showToast('Game launched for room ' + STATE.squad.room, 'ok'); }
+function showRoom() { switchRoomTab('create'); document.getElementById('rt-create').scrollIntoView({behavior:'smooth'}); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   KADA WHEEL SYSTEM
+═══════════════════════════════════════════════════════════════════ */
+let rotorAngle  = 0;
+let isDragging  = false;
+let isPulled    = false;
+let startAngle  = 0;
+let lastAngle   = 0;
+let pullHoldStart = 0;
+let activeSector  = -1;
+let kadaTimer     = 30;
+let kadaInterval  = null;
+let _pullRafId    = null; // BUG-05: track RAF id to cancel orphaned frames
+
+const SECTORS = [
+  { label:'A', angle: 270 },  // top
+  { label:'B', angle: 0   },  // right
+  { label:'C', angle: 90  },  // bottom
+  { label:'D', angle: 180 },  // left
+];
+
+const INTERVIEW_WHEEL_SCENES = ['V07', 'V08', 'V09', 'V10'];
+
+function getWheelSectorLabels(mission) {
+  const modalOpen = document.getElementById('interview-modal')?.classList.contains('open');
+  if (modalOpen) return INTERVIEW_WHEEL_SCENES;
+
+  const choices = mission ? mission.choices : [];
+  return SECTORS.map((sec, i) => {
+    const label = choices[i]?.l || sec.label;
+    return label.length > 14 ? `${label.slice(0, 14)}…` : label;
+  });
+}
+
+function refreshWheelSectorLabels(mission = MISSIONS[missionIdx]) {
+  const labels = getWheelSectorLabels(mission);
+  for (let i = 0; i < 4; i++) {
+    const lbl = document.getElementById('sec-lbl-' + i);
+    if (lbl) lbl.textContent = labels[i] || SECTORS[i].label;
+  }
+}
+
+function buildSectors(mission) {
+  const svg = document.getElementById('sector-svg');
+  if (!svg) return;
+  const cx = 120, cy = 120, ri = 105, ro = 118;
+  const sectorLabels = getWheelSectorLabels(mission);
+
+  let html = '';
+  SECTORS.forEach((sec, i) => {
+    const aStart = (sec.angle - 45) * Math.PI / 180;
+    const aEnd   = (sec.angle + 45) * Math.PI / 180;
+    const cos1 = Math.cos(aStart), sin1 = Math.sin(aStart);
+    const cos2 = Math.cos(aEnd),   sin2 = Math.sin(aEnd);
+    const xI1 = cx + ri*cos1, yI1 = cy + ri*sin1;
+    const xO1 = cx + ro*cos1, yO1 = cy + ro*sin1;
+    const xI2 = cx + ri*cos2, yI2 = cy + ri*sin2;
+    const xO2 = cx + ro*cos2, yO2 = cy + ro*sin2;
+
+    const d = `M ${xI1} ${yI1} L ${xO1} ${yO1} A ${ro} ${ro} 0 0 1 ${xO2} ${yO2} L ${xI2} ${yI2} A ${ri} ${ri} 0 0 0 ${xI1} ${yI1} Z`;
+
+    const lAngle = sec.angle * Math.PI / 180;
+    const lr = ri - 16;
+    const lx = cx + lr * Math.cos(lAngle);
+    const ly = cy + lr * Math.sin(lAngle);
+
+    html += `<path id="sec-${i}" class="sector-arc idle" d="${d}" data-idx="${i}"/>`;
+    html += `<text x="${lx}" y="${ly}" class="sector-label" id="sec-lbl-${i}" text-anchor="middle" dominant-baseline="middle" fill="#4a6080">${sectorLabels[i] || sec.label}</text>`;
+  });
+
+  // Zero marker line
+  html += `<line x1="120" y1="4" x2="120" y2="17" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+           <circle cx="120" cy="3" r="3" fill="var(--amber)" opacity=".7"/>`;
+
+  svg.innerHTML = html;
+
+  // Sector click
+  for (let i = 0; i < 4; i++) {
+    const p = document.getElementById('sec-' + i);
+    if (p) p.addEventListener('click', () => {
+      if (!choiceMade) confirmSector(i);
+    });
+  }
+}
+
+function getAngle(ex, ey) {
+  const wrap = document.getElementById('kada-wrap');
+  if (!wrap) return 0;
+  const rect = wrap.getBoundingClientRect();
+  return Math.atan2(ey - (rect.top + rect.height/2), ex - (rect.left + rect.width/2)) * (180/Math.PI);
+}
+
+function sectorFromAngle(deg) {
+  // normalise deg to 0-360
+  let a = ((deg % 360) + 360) % 360;
+  // sectors: A=270°, B=0°, C=90°, D=180° each ±45°
+  const sectors_a = [270, 0, 90, 180];
+  let best = 0, bestDist = Infinity;
+  sectors_a.forEach((sa, i) => {
+    let diff = Math.abs(a - sa);
+    if (diff > 180) diff = 360 - diff;
+    if (diff < bestDist) { bestDist = diff; best = i; }
+  });
+  return bestDist <= 45 ? best : -1;
+}
+
+function highlightSector(idx) {
+  for (let i = 0; i < 4; i++) {
+    const p  = document.getElementById('sec-' + i);
+    const lbl= document.getElementById('sec-lbl-' + i);
+    const isActive = i === idx;
+    if (p)   p.className.baseVal   = 'sector-arc ' + (isActive ? 'hover' : 'idle');
+    if (lbl) lbl.setAttribute('fill', isActive ? 'var(--amber)' : '#4a6080');
+    // also highlight choice item
+    const items = document.querySelectorAll('.choice-item');
+    if (items[i]) items[i].classList.toggle('active-sector', isActive && isPulled);
+  }
+  activeSector = idx;
+  updateKadaHUD(
+    isPulled ? SECTORS[idx >= 0 ? idx : 0].label : `M-${String(missionIdx+1).padStart(2,'0')}`,
+    isPulled ? 'PULL TO AIM' : MISSIONS[missionIdx]?.title?.slice(0,9) || '—'
+  );
+  const val = document.getElementById('kad-val');
+  if (val) val.className = 'kada-hud-val' + (isPulled ? ' pull' : '');
+}
+
+/* ── KADA sector confirm ──────────────────────────────────────────────
+   Interview mode (modal open):
+     Rotate → sector 0=V07 · 1=V08 · 2=V09 · 3=V10  (switch active round)
+     Pull   → skip current interview question
+   Mission mode (normal):
+     Rotate → highlight choice A/B/C/D
+     Pull   → confirm highlighted choice
+─────────────────────────────────────────────────────────────────── */
+function confirmSector(idx) {
+  const modalOpen = document.getElementById('interview-modal')?.classList.contains('open');
+
+  if (modalOpen) {
+    // Pull = skip question; rotate = switch to that interview round
+    if (isPulled) {
+      skipInterviewQuestion('interview-modal-body');
+      showToast('Interview: question skipped', 'info');
+      updateKadaHUD('INTV', 'SKIP ▶');
+    } else {
+      const scene = INTERVIEW_WHEEL_SCENES[idx % 4] || 'V10';
+      const round = INTERVIEW_ROUNDS[scene] || INTERVIEW_ROUNDS.V10;
+      // Only remount if the round is actually changing
+      if (INTERVIEW.activeScene !== scene) {
+        INTERVIEW.activeScene = scene;
+        const titleEl = document.getElementById('interview-modal-title');
+        if (titleEl) titleEl.textContent = `${scene} · ${round.label}`;
+        mountInterview('interview-modal-body', round.cats, { deepDive: !!round.deepDive, compact: false });
+      }
+      showToast(`Round → ${scene}: ${round.label}`, 'info');
+      updateKadaHUD(scene, round.label.slice(0, 12));
+    }
+    refreshWheelSectorLabels();
+    return;
+  }
+
+  // ── Mission mode ───────────────────────────────────────────────────
+  const m = MISSIONS[missionIdx];
+  if (!m || choiceMade || idx < 0) return;
+  const choice = m.choices[idx];
+  if (!choice) return;
+
+  // flash the arc green briefly, then confirm
+  const p = document.getElementById('sec-' + idx);
+  if (p) {
+    p.className.baseVal = 'sector-arc confirm';
+    setTimeout(() => { if (p) p.className.baseVal = 'sector-arc idle'; }, 600);
+  }
+
+  handleChoice(choice);
+}
+
+function updateKadaHUD(val, sub) {
+  const v = document.getElementById('kad-val');
+  const s = document.getElementById('kad-sub');
+  if (v) v.textContent = val;
+  if (s) s.textContent = sub;
+}
+
+function updateTetherVisuals() {
+  const node = document.getElementById('tether-node');
+  const wrap = document.getElementById('tether-wrap');
+  if (node) node.classList.toggle('pulled', isPulled);
+  if (wrap) wrap.classList.toggle('pulled', isPulled);
+}
+
+function flashKadaCorrect() {
+  const stator = document.querySelector('.kada-stator');
+  if (stator) { stator.style.boxShadow = '0 0 30px #00ff8899, inset 0 0 20px #00ff8844'; setTimeout(()=>{stator.style.boxShadow='';},700); }
+}
+function flashKadaWrong() {
+  const stator = document.querySelector('.kada-stator');
+  if (stator) { stator.style.boxShadow = '0 0 30px #ff3a5099, inset 0 0 20px #ff3a5044'; setTimeout(()=>{stator.style.boxShadow='';},700); }
+}
+
+// Pointer handlers
+(function bindKada() {
+  window.addEventListener('pointerdown', e => {
+    const rotor = document.getElementById('rotor');
+    const node  = document.getElementById('tether-node');
+    if (!e.target.closest('#kada-wrap')) return;
+    if (e.target.closest('#rotor') || e.target.closest('#tether-node') || e.target.closest('#tether-wrap')) {
+      isDragging = true;
+      startAngle = getAngle(e.clientX, e.clientY);
+      lastAngle  = startAngle;
+      document.body.style.cursor = 'grabbing';
+      // BUG-06: removed e.preventDefault() — touch-action:none CSS handles this without blocking scroll
+    }
+  });
+
+  window.addEventListener('pointermove', e => {
+    if (!isDragging) return;
+    const wrap = document.getElementById('kada-wrap');
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+    const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+    const wasPulled = isPulled;
+    isPulled = dist > 130;
+
+    if (isPulled !== wasPulled) {
+      updateTetherVisuals();
+      if (isPulled) { pullHoldStart = Date.now(); updatePullProgress(); }
+      else {
+        pullHoldStart = 0;
+        // BUG-05: cancel any orphaned RAF frame
+        if (_pullRafId) { cancelAnimationFrame(_pullRafId); _pullRafId = null; }
+        const ring = document.getElementById('progress-ring');
+        if (ring) ring.style.setProperty('--prog', '0%');
+        document.querySelectorAll('.choice-item').forEach(el => el.classList.remove('active-sector'));
+      }
+    }
+
+    const newAngle = getAngle(e.clientX, e.clientY);
+    let delta = newAngle - lastAngle;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    rotorAngle += delta;
+    lastAngle = newAngle;
+
+    const rotor = document.getElementById('rotor');
+    if (rotor) rotor.style.transform = `rotate(${rotorAngle}deg)`;
+
+    if (isPulled) {
+      const sec = sectorFromAngle(rotorAngle);
+      highlightSector(sec);
+    }
+  });
+
+  window.addEventListener('pointerup', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    document.body.style.cursor = '';
+    const wasPulled = isPulled;
+    const sec = activeSector;
+    isPulled = false;
+    pullHoldStart = 0;
+    // BUG-05: cancel orphaned RAF on release
+    if (_pullRafId) { cancelAnimationFrame(_pullRafId); _pullRafId = null; }
+    updateTetherVisuals();
+    const ring = document.getElementById('progress-ring');
+    if (ring) ring.style.setProperty('--prog', '0%');
+
+    if (wasPulled && sec >= 0 && !choiceMade) {
+      confirmSector(sec);
+    }
+    highlightSector(-1);
+    document.querySelectorAll('.choice-item').forEach(el => el.classList.remove('active-sector'));
+  });
+})();
+
+function updatePullProgress() {
+  if (!pullHoldStart || !isPulled) return;
+  const pct = Math.min(100, ((Date.now() - pullHoldStart) / 3000) * 100);
+  const ring = document.getElementById('progress-ring');
+  if (ring) ring.style.setProperty('--prog', pct.toFixed(1) + '%');
+  if (pct < 100 && isPulled) _pullRafId = requestAnimationFrame(updatePullProgress); // BUG-05 fix
+  else _pullRafId = null;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input,textarea,select')) return;
+  const idx = {'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
+  if (idx !== undefined && !choiceMade) {
+    const m = MISSIONS[missionIdx];
+    if (m) handleChoice(m.choices[idx]);
+  }
+});
+
+function spawnSparks() {
+  const layer = document.getElementById('spark-layer');
+  if (!layer) return;
+  for (let i = 0; i < 14; i++) {
+    const sp = document.createElement('div');
+    sp.className = 'spark';
+    const angle = Math.random() * 2 * Math.PI;
+    const r = 30 + Math.random() * 40;
+    sp.style.left = '50%'; sp.style.top = '50%';
+    sp.style.setProperty('--sx', Math.cos(angle)*r + 'px');
+    sp.style.setProperty('--sy', Math.sin(angle)*r + 'px');
+    sp.style.background = Math.random() > .5 ? 'var(--cyan)' : 'var(--green)';
+    sp.style.animationDelay = (Math.random() * 0.2) + 's';
+    layer.appendChild(sp);
+    setTimeout(() => sp.remove(), 700);
+  }
+}
+
+function toggleWheelGuide() {
+  const g = document.getElementById('wheel-guide');
+  if (g) g.style.display = g.style.display === 'none' ? '' : 'none';
+}
+
+/* ═══ TIMER ════════════════════════════════════════════════════════ */
+function startMissionTimer() {
+  clearInterval(kadaInterval);
+  kadaTimer = 30;
+  kadaInterval = setInterval(() => {
+    kadaTimer--;
+    const mode = document.getElementById('kad-mode');
+    if (mode) {
+      mode.textContent = kadaTimer + 's';
+      if (kadaTimer <= 8) mode.style.color = 'var(--red)';
+      else if (kadaTimer <= 15) mode.style.color = 'var(--amber)';
+      else mode.style.color = 'var(--txt-dim)';
+    }
+    if (kadaTimer <= 0 && !choiceMade) {
+      clearInterval(kadaInterval);
+      choiceMade = true;
+      document.querySelectorAll('.choice-item').forEach(el => el.classList.add('lock'));
+      showToast('Time expired — no points awarded', 'err');
+      setTimeout(() => { missionIdx = (missionIdx+1)%MISSIONS.length; renderMission(); startMissionTimer(); }, 2200);
+    }
+  }, 1000);
+}
+
+/* ═══ MISSION LOGBOOK (scene pipeline replaced) ══════════════════════ */
+
+// Map V01–V10 slots → mission indices (first 6 real missions, rest are future placeholders)
+const SCENE_MISSION_MAP = {
+  'V01': 0, 'V02': 1, 'V03': 2, 'V04': 3, 'V05': 4, 'V06': 5,
+  'V07': 6, 'V08': 7, 'V09': 8, 'V10': 9,
+};
+
+// Branch chips per mission → which answer letter was chosen
+const BRANCH_LETTERS = ['A','B','C','D'];
+
+function buildSceneCardSVG(id, log, missionDef) {
+  const slot = SCENE_MISSION_MAP[id];
+  const hasLog = log !== undefined && log !== null;
+  const isPending = slot !== null && !hasLog;
+  const isInterviewScene = !!INTERVIEW_ROUNDS[id];
+  const isFuture  = slot === null;
+
+  if (isFuture) {
+    return `<svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="160" height="90" fill="#060a14"/>
+      <rect x="4" y="4" width="152" height="82" rx="4" fill="#0c1224" stroke="#152240"/>
+      <text x="12" y="26" fill="#1e3050" font-size="11" font-family="Orbitron" font-weight="700">${id}</text>
+      <text x="12" y="44" fill="#1e3050" font-size="7.5" font-family="Share Tech Mono">FUTURE MISSION</text>
+      <text x="12" y="60" fill="#1e3050" font-size="7" font-family="Share Tech Mono">not yet released</text>
+      <text x="140" y="82" fill="#1e3050" font-size="16" font-family="Orbitron" opacity=".4">⬡</text>
+    </svg>`;
+  }
+
+  if (isPending) {
+    const pendingTitle = isInterviewScene ? INTERVIEW_ROUNDS[id].label : (missionDef ? missionDef.title.slice(0,20) : '—');
+    return `<svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="160" height="90" fill="#060a14"/>
+      <rect x="4" y="4" width="152" height="82" rx="4" fill="#0c1224" stroke="#152240"/>
+      <text x="12" y="26" fill="#00e5ff" font-size="11" font-family="Orbitron" font-weight="700">${id}</text>
+      <text x="12" y="44" fill="#4a6080" font-size="7.5" font-family="Share Tech Mono">${pendingTitle}</text>
+      <text x="12" y="58" fill="#4a6080" font-size="7" font-family="Share Tech Mono">${isInterviewScene ? 'INTERVIEW READY' : 'NOT YET PLAYED'}</text>
+      <rect x="12" y="68" width="60" height="4" rx="2" fill="#152240"/>
+    </svg>`;
+  }
+
+  // Has log entry
+  const pass  = log.result === 'pass';
+  const col   = pass ? '#00ff88' : '#ff3a50';
+  const icon  = pass ? '✓' : '✗';
+  const titleShort = svgEscape(log.title.slice(0, 18) + (log.title.length > 18 ? '…' : ''));
+  const scoreStr = log.type === 'interview' ? `${log.score}/100` : (pass ? '+' + log.score : '—');
+  const t = svgEscape(new Date(log.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+  const skillText = svgEscape(log.type === 'interview' ? `avg ${log.avgWords || 0}w · interview` : `${scoreStr} pts · ${log.skill}`);
+  return `<svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg">
+    <rect width="160" height="90" fill="#060a14"/>
+    <rect x="4" y="4" width="152" height="82" rx="4" fill="${pass ? '#001a0d' : '#1a0005'}" stroke="${col}33"/>
+    <rect x="4" y="4" width="152" height="3" rx="1.5" fill="${col}" opacity=".7"/>
+    <text x="12" y="23" fill="${col}" font-size="10" font-family="Orbitron" font-weight="700">${id} ${icon}</text>
+    <text x="12" y="37" fill="#c8d8f0" font-size="7.5" font-family="Share Tech Mono">${titleShort}</text>
+    <text x="12" y="51" fill="${col}" font-size="8" font-family="Share Tech Mono">${skillText}</text>
+    <text x="12" y="64" fill="#4a6080" font-size="6.5" font-family="Share Tech Mono">${t}</text>
+    <text x="12" y="78" fill="#4a6080" font-size="6" font-family="Share Tech Mono">${svgEscape(log.choice.slice(0,28))}</text>
+  </svg>`;
+}
+
+/* ═══ LOGBOOK HELPERS ════════════════════════════════════════════ */
+function updateLogSummary() {
+  const entries = Object.values(STATE.missionLog);
+  const passes  = entries.filter(e => e.result === 'pass').length;
+  const fails   = entries.filter(e => e.result === 'fail').length;
+  const pending = Object.keys(SCENE_MISSION_MAP).filter(k => SCENE_MISSION_MAP[k] !== null && !STATE.missionLog[SCENE_MISSION_MAP[k]]).length;
+  const ep = document.getElementById('log-pass-count');
+  const ef = document.getElementById('log-fail-count');
+  const en = document.getElementById('log-pend-count');
+  if (ep) ep.textContent = passes;
+  if (ef) ef.textContent = fails;
+  if (en) en.textContent = pending;
+}
+
+function jumpToMission(slot, sceneId) {
+  if (INTERVIEW_ROUNDS[sceneId]) {
+    openInterviewModal(sceneId);
+    return;
+  }
+  // Navigate the active mission to a specific slot
+  if (slot === null || slot === undefined || !MISSIONS[slot]) return;
+  missionIdx = slot;
+  choiceMade = false;
+  clearInterval(kadaInterval);
+  renderMission();
+  startMissionTimer();
+  document.getElementById('mission-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showToast(`Jumped to ${sceneId}: ${MISSIONS[slot].title}`, 'info');
+}
+
+function demoFillLog() {
+  // BUG-10: only available in dev mode (?dev=1 in URL)
+  if (!new URLSearchParams(location.search).has('dev')) {
+    showToast('Demo mode not available in production', 'info');
+    return;
+  }
+  MISSIONS.forEach((m, i) => {
+    if (STATE.missionLog[i] && !STATE.missionLog[i].isDemo) return;
+    const pass = Math.random() > 0.4;
+    const correctIdx = m.choices.findIndex(c => c.ok);
+    const wrongOptions = [0,1,2,3].filter(ci => ci !== correctIdx);
+    const choiceIdx = pass ? correctIdx : wrongOptions[Math.floor(Math.random()*wrongOptions.length)];
+    const choice = m.choices[choiceIdx] || m.choices[0];
+    STATE.missionLog[i] = {
+      title: m.title,
+      result: pass ? 'pass' : 'fail',
+      score: pass ? (500 + Math.floor(Math.random()*350)) : 0,
+      skill: m.skill,
+      choice: choice.l,
+      ts: Date.now() - Math.floor(Math.random() * 7200000),
+      isDemo: true,
+    };
+  });
+  save();
+  buildSceneGrids();
+  showToast('Demo data loaded — real missions will overwrite these', 'info');
+}
+
+function buildSceneGrids() {
+  const SCENE_IDS = ['V01','V02','V03','V04','V05','V06','V07','V08','V09','V10'];
+  updateLogSummary();
+  const mg = document.getElementById('scene-grid-main');
+  if (mg) {
+    mg.innerHTML = SCENE_IDS.map(id => {
+      const slot = SCENE_MISSION_MAP[id];
+      const log  = slot !== null ? STATE.missionLog[slot] : undefined;
+      const def  = slot !== null ? MISSIONS[slot] : null;
+      const hasLog = log !== undefined;
+      const isFuture = slot === null;
+      const isInterviewScene = !!INTERVIEW_ROUNDS[id];
+      const borderCol = isFuture ? '#152240' : hasLog
+        ? (log.result === 'pass' ? '#00ff8833' : '#ff3a5033')
+        : '#00e5ff22';
+      const clickFn = isFuture ? '' : hasLog
+        ? `previewScene('${id}')`
+        : `jumpToMission(${slot},'${id}')`;
+      const extra = isFuture ? 'opacity:.32;cursor:not-allowed' : '';
+            const sceneA11y = isFuture ? '' : `role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${clickFn};}"`;
+      return `<div class="scene-thumb" data-id="${id}" style="border-color:${borderCol};${extra}" onclick="${clickFn}" ${sceneA11y} title="${isFuture ? 'Future mission' : hasLog ? 'Click to inspect result' : isInterviewScene ? 'Launch interview round' : 'Click to jump to this mission'}">
+        ${buildSceneCardSVG(id, log, def)}
+      </div>`;
+    }).join('');
+  }
+
+  // Branch chips — show which answer paths were taken per mission
+  const bt = document.getElementById('branch-tree');
+  if (bt) {
+    const branchCols = MISSIONS.map((m, idx) => {
+      const log = STATE.missionLog[idx];
+      const id  = `V${String(idx+1).padStart(2,'0')}`;
+      if (!log) {
+        return `<div class="branch-col">
+          <div class="branch-chip main" style="opacity:.4;cursor:pointer" role="button" tabindex="0" onclick="jumpToMission(${idx},'${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToMission(${idx},'${id}');}" title="Jump to this mission">${id}</div>
+          <div class="branch-chip" style="color:var(--txt-mute);font-size:.44rem;cursor:pointer" role="button" tabindex="0" onclick="jumpToMission(${idx},'${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToMission(${idx},'${id}');}">→ play</div>
+        </div>`;
+      }
+      const choiceIdx = m.choices.findIndex(c => c.l === log.choice);
+      const pass = log.result === 'pass';
+      const demoTag = log.isDemo ? ' style="opacity:.65"' : '';
+      return `<div class="branch-col"${demoTag}>
+        <div class="branch-chip main" onclick="previewScene('${id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();previewScene('${id}');}" style="cursor:pointer">${id}${log.isDemo?' ·demo':''}</div>
+        ${m.choices.map((c, ci) => {
+          const taken = ci === choiceIdx;
+          const correct = c.ok;
+          const col = taken ? (correct ? 'var(--green)' : 'var(--red)') : 'var(--txt-mute)';
+          const bg  = taken ? (correct ? '#00ff880a' : '#ff3a500a') : 'transparent';
+          const prefix = taken ? (correct ? '✓ ' : '✗ ') : '';
+          const weight = taken ? 'font-weight:700' : '';
+          return `<div class="branch-chip" onclick="previewScene('${id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();previewScene('${id}');}" style="border-color:${taken ? col : 'var(--border)'};color:${col};background:${bg};font-size:.44rem;${weight};cursor:pointer">
+            ${prefix}${BRANCH_LETTERS[ci]}: ${c.l.slice(0,14)}${c.l.length>14?'…':''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    });
+    bt.innerHTML = branchCols.join('');
+  }
+}
+
+function previewScene(id) {
+  const slot = SCENE_MISSION_MAP[id];
+  const log  = slot !== null ? STATE.missionLog[slot] : undefined;
+  const m    = slot !== null ? MISSIONS[slot] : null;
+  const interviewRound = INTERVIEW_ROUNDS[id];
+
+  document.querySelectorAll('.scene-thumb').forEach(el => el.classList.toggle('active-scene', el.dataset.id === id));
+
+  const prev = document.getElementById('scene-preview');
+  if (!prev) return;
+
+  // Light up pipeline nodes
+  const pipe_states = log
+    ? ['done','done','done','done','done']
+    : slot !== null
+    ? ['running','idle','idle','idle','idle']
+    : ['idle','idle','idle','idle','idle'];
+  PIPE_NODES.forEach((pid, i) => {
+    const el = document.getElementById(pid);
+    if (el) el.className = 'pipe-node ' + (pipe_states[i] === 'done' ? 'done' : pipe_states[i] === 'running' ? 'running' : '');
+  });
+
+  if (slot === null) {
+    prev.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fmono);font-size:.65rem;color:var(--txt-dim);flex-direction:column;gap:.4rem">
+      <span style="font-size:1.5rem">⬡</span>
+      <span>${id} — Future mission slot</span>
+      <span style="color:var(--txt-mute)">Check back next season</span>
+    </div>`;
+    return;
+  }
+
+  if (!log && interviewRound) {
+    prev.innerHTML = `<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="800" height="200" fill="#080d1a"/>
+      <rect x="8" y="8" width="784" height="184" rx="6" fill="#0c1224" stroke="#00e5ff22"/>
+      <rect x="8" y="8" width="784" height="3" rx="1.5" fill="#00e5ff" opacity=".3"/>
+      <text x="22" y="42" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">${id} — ${interviewRound.label}</text>
+      <text x="22" y="70" fill="#4a6080" font-size="12" font-family="Share Tech Mono">Categories: ${interviewRound.cats.join(', ')}</text>
+      <text x="22" y="96" fill="#c8d8f0" font-size="11" font-family="Share Tech Mono">Pending interview round. Click this card to launch in modal.</text>
+      <text x="22" y="124" fill="#4a6080" font-size="10" font-family="Share Tech Mono">Output: score/100 + avg words + SR delta bridge</text>
+    </svg>`;
+    return;
+  }
+
+  if (!log) {
+    const choices = m.choices.map((c,i) => `${BRANCH_LETTERS[i]}) ${c.l}`).join(' · ');
+    prev.innerHTML = `<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="800" height="200" fill="#080d1a"/>
+      <rect x="8" y="8" width="784" height="184" rx="6" fill="#0c1224" stroke="#00e5ff22"/>
+      <rect x="8" y="8" width="784" height="3" rx="1.5" fill="#00e5ff" opacity=".3"/>
+      <text x="22" y="42" fill="#00e5ff" font-size="18" font-family="Orbitron" font-weight="700">${id} — ${m.title}</text>
+      <text x="22" y="66" fill="#4a6080" font-size="12" font-family="Share Tech Mono">${m.category} · Difficulty ${m.diff}/5 · Skill: ${m.skill}</text>
+      <text x="22" y="92" fill="#c8d8f0" font-size="11" font-family="Share Tech Mono">${m.desc.slice(0,90)}${m.desc.length>90?'…':''}</text>
+      <text x="22" y="120" fill="#4a6080" font-size="10" font-family="Share Tech Mono">STATUS: NOT YET PLAYED</text>
+      <text x="22" y="148" fill="#1e3050" font-size="9" font-family="Share Tech Mono">${choices.slice(0,100)}</text>
+    </svg>`;
+    return;
+  }
+
+  const pass = log.result === 'pass';
+  const col  = pass ? '#00ff88' : '#ff3a50';
+  const ts   = svgEscape(new Date(log.ts).toLocaleString());
+  const srDelta = log.type === 'interview'
+    ? ((Math.round((log.score - 65) / 3) >= 0 ? '+' : '') + Math.round((log.score - 65) / 3))
+    : (pass ? '+' + Math.round((log.score - 600)/25) : '−' + Math.round(100/25));
+  const scoreTxt = log.type === 'interview' ? `${log.score}/100` : `${log.score} pts`;
+  const skillTxt = svgEscape(log.type === 'interview' ? `Interview · Avg words: ${log.avgWords || 0}` : `Skill XP: ${log.skill} +45`);
+  const choiceTxt = svgEscape(log.choice.slice(0,80));
+  const resultTxt = svgEscape(pass ? (log.type === 'interview' ? 'Interview converted into SR + hex XP' : 'Hex node unlocked · ' + log.skill + ' skill advanced') : 'No XP awarded · Retry to improve your score');
+  const logTitle = svgEscape(log.title);
+
+  prev.innerHTML = `<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="800" height="200" fill="#080d1a"/>
+    <rect x="8" y="8" width="784" height="184" rx="6" fill="${pass?'#001a0d':'#1a0005'}" stroke="${col}33"/>
+    <rect x="8" y="8" width="784" height="3" rx="1.5" fill="${col}"/>
+    <text x="22" y="42" fill="${col}" font-size="18" font-family="Orbitron" font-weight="900">${pass?'✓ PASS':'✗ FAIL'} — ${id}: ${logTitle}</text>
+    <text x="22" y="66" fill="#c8d8f0" font-size="12" font-family="Share Tech Mono">Score: ${scoreTxt} · SR Δ: ${srDelta} · ${skillTxt}</text>
+    <text x="22" y="90" fill="#4a6080" font-size="11" font-family="Share Tech Mono">Choice: ${choiceTxt}</text>
+    <text x="22" y="114" fill="#4a6080" font-size="10" font-family="Share Tech Mono">Played: ${ts}</text>
+    <rect x="22" y="134" width="${Math.min(600, ((log.type === 'interview' ? log.score*15 : log.score)/1500)*600)}" height="6" rx="3" fill="${col}" opacity=".6"/>
+    <rect x="22" y="134" width="600" height="6" rx="3" fill="none" stroke="${col}22"/>
+    <text x="22" y="165" fill="${col}" font-size="10" font-family="Share Tech Mono">${resultTxt}</text>
+  </svg>`;
+}
+
+function openInterviewModal(sceneId) {
+  const meta = INTERVIEW_ROUNDS[sceneId];
+  if (!meta) return;
+  INTERVIEW.activeScene = sceneId;
+  const modal = document.getElementById('interview-modal');
+  const title = document.getElementById('interview-modal-title');
+  const body = document.getElementById('interview-modal-body');
+  if (title) title.textContent = `${sceneId} · ${meta.label}`;
+  if (modal && body) {
+    modal.classList.add('open');
+    mountInterview('interview-modal-body', meta.cats, { deepDive: !!meta.deepDive, compact:false });
+    refreshWheelSectorLabels();
+    updateKadaHUD(sceneId, meta.label);
+  }
+}
+
+function closeInterviewModal() {
+  const modal = document.getElementById('interview-modal');
+  if (modal) modal.classList.remove('open');
+  refreshWheelSectorLabels();
+}
+
+const PIPE_NODES = ['pn-read','pn-page','pn-shot','pn-enc','pn-out'];
+
+function clearMissionLog() {
+  STATE.missionLog = {};
+  save();
+  buildSceneGrids();
+  const prev = document.getElementById('scene-preview');
+  if (prev) prev.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fmono);font-size:.6rem;color:var(--txt-dim);flex-direction:column;gap:.5rem;text-align:center;padding:1rem">
+    <span style="font-size:1.8rem;opacity:.3">&#x2B21;</span>
+    <span>Log cleared</span>
+    <span style="color:var(--txt-mute)">Play missions or hit Demo Fill to preview</span>
+  </div>`;
+  PIPE_NODES.forEach(pid => { const e=document.getElementById(pid); if(e) e.className='pipe-node'; });
+  showToast('Mission log cleared', 'info');
+}
+
+// Legacy stubs (kept so nothing breaks)
+function runCaptureSim() { showToast('Run missions to generate log entries', 'info'); }
+function resetCapture() { clearMissionLog(); }
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+function retryConnection() {
+  if (db) { startLeaderboardListener(); }
+  fbWritePlayer();
+  showToast('Reconnecting…', 'info');
+}
+
+/* ═══ CALLSIGN MODAL ═══════════════════════════════════════════════ */
+const CALLSIGN_RE = /^[A-Z0-9 \-]{1,16}$/;
+
+function sanitizeName(raw) {
+  return (raw || '').trim().toUpperCase().replace(/[^A-Z0-9 \-]/g, '').slice(0, 16);
+}
+
+function showCallsignModal() {
+  const modal = document.getElementById('callsign-modal');
+  if (modal) { modal.style.display = 'flex'; }
+  setTimeout(() => { const inp = document.getElementById('callsign-input'); if (inp) inp.focus(); }, 100);
+}
+
+function confirmCallsign() {
+  const inp   = document.getElementById('callsign-input');
+  const errEl = document.getElementById('callsign-error');
+  const raw   = (inp?.value || '').trim().toUpperCase();
+  const clean = sanitizeName(raw);
+  if (!clean || !CALLSIGN_RE.test(clean)) {
+    if (errEl) errEl.style.display = 'block';
+    return;
+  }
+  STATE.playerName = clean;
+  save();
+  const modal = document.getElementById('callsign-modal');
+  if (modal) modal.style.display = 'none';
+  // BUG-07: sync header, leaderboard and Firebase after name change
+  updateStats();
+  fbWritePlayer();
+  showToast('Callsign set: ' + clean, 'ok');
+}
+
+/* ═══ SKILL MATRIX TOGGLE (tablet) ═══════════════════════════════════ */
+function toggleSkillMatrix() {
+  const col = document.querySelector('.col-right');
+  const btn = document.getElementById('matrix-toggle-btn');
+  if (!col) return;
+  const on = col.classList.toggle('visible');
+  if (btn) { btn.style.borderColor = on ? 'var(--cyan)' : ''; btn.style.color = on ? 'var(--cyan)' : ''; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DECIDE.ENGINE INTEGRATION RUNBOOK  (PR #14 → upstream sync)
+   ═══════════════════════════════════════════════════════════════════
+
+   REPO TOPOLOGY
+   ─────────────
+   upstream:  github.com/decide-engine/skillhex-mc   (this file lives here)
+   downstream: decide.engine main website repo        (embeds via <iframe> or copy)
+
+   REPRODUCIBLE MERGE PLAYBOOK
+   ───────────────────────────
+   1. In upstream repo, tag the release commit:
+        git tag -a vX.Y.Z -m "SkillHex vX.Y.Z — <summary>"
+        git push origin vX.Y.Z
+
+   2. In decide.engine repo, update the embedded version ref:
+        # Edit embed config or copy the single-file build:
+        cp dist/index.html ../decide.engine/public/skillhex/index.html
+        git add public/skillhex/index.html
+        git commit -m "chore: sync SkillHex vX.Y.Z from upstream"
+
+   3. Verify these integration contracts are still intact after merge:
+        a. window.postMessage('skillhex:ready') fires on init()
+        b. window.postMessage({ type:'skillhex:result', sr, xp, playerName }) fires on each fbWritePlayer()
+        c. Firebase project ID must match decide.engine's env var: SKILLHEX_FB_PROJECT_ID
+        d. CSP in decide.engine nginx config must allow:
+              connect-src https://*.googleapis.com https://*.firebaseio.com;
+              font-src    https://fonts.gstatic.com;
+
+   STATE CONTRACT (localStorage key: 'skillhex-v3')
+   ─────────────────────────────────────────────────
+   Fields consumed by decide.engine dashboard:
+     sr          — Skill Rating (number, 300–999999)
+     xp          — Total XP earned this session
+     tokens      — Token balance
+     passLevel   — Battle pass level (1–20)
+     streak      — { count, lastLogin }
+     playerName  — Sanitised callsign (A-Z 0-9 spaces hyphens, max 16)
+     hexSkills   — { [skillKey]: { xp, level } }
+
+   INTERVIEW SESSION KEY: 'retroInterviewSession_v1'
+   ──────────────────────────────────────────────────
+   Fields: qIndex, asked[], transcript[], answers[], pendingFollowUp
+   The answers[] array uses warmupKey (skill::title::idx) as the stable
+   de-dup key for warm-up entries (fromWarmup: true).
+
+   BREAKING CHANGE POLICY
+   ──────────────────────
+   - Increment localStorage key suffix (e.g. skillhex-v4) on any breaking
+     state schema change to avoid silent data corruption on existing users.
+   - Always provide a migration shim in loadInterviewState() and the S merge block.
+
+ ════════════════════════════════════════════════════════════════════ */
+
+/* ═══ FOOTER SEASON ════════════════════════════════════════════════ */
+function updateFooter() {
+  const d = new Date();
+  const el = document.getElementById('ft-season');
+  if (el) el.textContent = `${d.getFullYear()}.${d.getMonth()+1}`;
+}
+
+/* ═══ MAIN INIT ════════════════════════════════════════════════════ */
+function init() {
+  loadInterviewState();
+  // Ensure player has a name
+  if (!STATE.playerName || STATE.playerName === 'OPERATIVE') {
+    showCallsignModal();
+  }
+
+  buildSceneGrids();
+  renderHexMap();
+  renderLeaderboard();
+  renderRewardLog();
+  renderShareCard();
+  renderStreak();
+  advancePassLevel();
+  updateStats();
+  updateFooter();
+  updateEvent();
+  renderMission();
+  mountInterview('interview-shell', INTERVIEW_ROUNDS.V10.cats, { deepDive:true, compact:true });
+  startMissionTimer();
+  // BUG-10: show demo fill only in dev mode
+  const DEV = new URLSearchParams(location.search).has('dev');
+  const demoBtn = document.getElementById('demo-fill-btn');
+  if (demoBtn && DEV) demoBtn.style.display = '';
+  let eventInterval = setInterval(updateEvent, 1000);
+  let rotorDampInterval = setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50);
+
+  // BUG-11: pause background intervals to prevent Android battery drain
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(eventInterval);
+      clearInterval(rotorDampInterval);
+    } else {
+      updateEvent();
+      eventInterval = setInterval(updateEvent, 1000);
+      rotorDampInterval = setInterval(() => { if (!isDragging) rotorAngle *= .98; }, 50);
+    }
+  });
+
+  // UPG-07: handle Android virtual keyboard inset via visualViewport API
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      document.body.style.height = window.visualViewport.height + 'px';
+    });
+  }
+  // Auto-scroll focused textareas into view above keyboard
+  document.addEventListener('focusin', e => {
+    if (e.target.matches('textarea, input')) {
+      setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 320);
+    }
+  });
+
+  // UPG-02: Android hardware/gesture back button — close topmost open modal
+  window.addEventListener('popstate', () => {
+    const interviewOpen = document.getElementById('interview-modal')?.classList.contains('open');
+    const callsignOpen  = document.getElementById('callsign-modal')?.style.display === 'flex';
+    const tutOpen       = tutActive;
+    if (interviewOpen)   { closeInterviewModal(); history.pushState(null, ''); return; }
+    if (callsignOpen)    { document.getElementById('callsign-modal').style.display = 'none'; history.pushState(null, ''); return; }
+    if (tutOpen)         { tutClose(); history.pushState(null, ''); return; }
+    // No modal open — allow normal back navigation
+  });
+  // Push an initial state so the first back press hits popstate instead of exiting
+  history.pushState(null, '');
+
+  // UPG-06: offline/online detection
+  function setOfflineBanner(offline) {
+    const b = document.getElementById('offline-banner');
+    if (b) b.style.display = offline ? 'flex' : 'none';
+  }
+  window.addEventListener('offline', () => setOfflineBanner(true));
+  window.addEventListener('online',  () => { setOfflineBanner(false); retryConnection(); });
+  if (!navigator.onLine) setOfflineBanner(true);
+
+  // UPG-01: register service worker for PWA/TWA offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // decide.engine integration: signal ready
+  try { window.parent.postMessage({ type: 'skillhex:ready', version: '3.0' }, PARENT_ORIGIN); } catch(_) {}
+
+  // Launch tutorial on first visit
+  tutMaybeAutoLaunch();
+}
+
+// Wait for DOM + Firebase SDK load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+/* =================================================================
+   TUTORIAL ENGINE
+   Each step: target (CSS selector|null), icon, title, body (HTML),
+   tip (optional), position ('bottom'|'top'|'left'|'right'|'center'),
+   scroll (bool)
+================================================================= */
+const TUT_STEPS = [
+  {
+    target:   null,
+    icon:     '⬡',
+    title:    'Welcome to SkillHex Operations Console',
+    body:     '<strong>SkillHex</strong> is an interactive skill-building platform disguised as a mission briefing console.<br><br>You play <strong>scenario-based missions</strong>, practice with an <strong>interview simulator</strong>, build your <strong>Skill Matrix</strong>, and track your rank on a live leaderboard.<br><br>This tutorial walks you through every major feature — takes about 2 minutes.',
+    position: 'center',
+  },
+  {
+    target:   '#hdr-login-btn',
+    icon:     '⬡',
+    title:    'Step 1 — Set Your Callsign & Login',
+    body:     'Click <strong>Login</strong> to sign in with Google.<br><br>This does two things:<br>• Saves your callsign to the <strong>live leaderboard</strong><br>• Starts your <strong>daily streak</strong> counter (+5 tokens per day)<br><br>If you skip login, the game still works fully in <strong>local mode</strong> — your progress is saved to this browser only.',
+    tip:      'Logging in daily without breaking the chain builds your streak. 3-day streak = +30 bonus tokens!',
+    position: 'bottom',
+  },
+  {
+    target:   '#mission-card',
+    icon:     '🎯',
+    title:    'Step 2 — The Mission Card',
+    body:     'The left panel is your <strong>Active Mission</strong>. Each mission is a real-world scenario from ops, analytics, negotiation, AI, strategy, or leadership.<br><br>Look at:<br>• <strong>Category badge</strong> — the skill domain<br>• <strong>Difficulty pips</strong> — 1–5 amber dots<br>• <strong>Mission description</strong> — read it carefully before choosing',
+    tip:      'Higher difficulty missions give more SR (Skill Rating) on a correct answer.',
+    position: 'right',
+    scroll:   true,
+  },
+  {
+    target:   '#mission-prebrief',
+    icon:     '📋',
+    title:    'Step 3 — Pre-Brief Warm-up',
+    body:     'Before choosing, answer a <strong>warm-up question</strong> related to the mission skill. Type your answer in the textarea.<br><br>• <strong>15+ words</strong> unlocks a <code>x1.15</code> score multiplier<br>• <strong>30+ words</strong> unlocks a <code>x1.30</code> score multiplier<br><br>Click <code>Apply</code> to lock the boost, or <code>Skip</code> to proceed.',
+    tip:      'Your warm-up answers also count toward Interview Simulator progress passively — nothing is wasted.',
+    position: 'right',
+    scroll:   true,
+  },
+  {
+    target:   '#choices-list',
+    icon:     '🔘',
+    title:    'Step 4 — Make Your Choice',
+    body:     'Click any of the <strong>A / B / C / D</strong> cards to submit your answer.<br><br>After selecting:<br>• <strong>Green</strong> = correct answer revealed<br>• <strong>Red</strong> = wrong choice<br>• <strong>Faded</strong> = unchosen alternatives<br><br>A correct answer awards <strong>SR, XP, and Skill XP</strong> scaled by difficulty and your remaining timer.',
+    tip:      'Faster answers score higher — the KADA timer counts down from 30 seconds.',
+    position: 'right',
+    scroll:   true,
+  },
+  {
+    target:   '#wheel-panel',
+    icon:     '🌀',
+    title:    'Step 5 — KADA Input Wheel',
+    body:     'The centre wheel is an alternative way to make choices.<br><br><strong>How to use it:</strong><br>• <strong>Rotate</strong> the outer ring to browse choices A→B→C→D<br>• <strong>Pull</strong> the tether node outward to aim<br>• <strong>Release</strong> to confirm your selection<br><br>In <strong>Interview mode</strong> the four sectors switch rounds V07 / V08 / V09 / V10. Pull to skip a question.',
+    tip:      'Works on touchscreen too — drag the ring with your finger.',
+    position: 'left',
+    scroll:   true,
+  },
+  {
+    target:   '.col-right',
+    icon:     '⬡',
+    title:    'Step 6 — Skill Matrix & Leaderboard',
+    body:     'The right column shows your <strong>Skill Matrix</strong> — a hex grid where each node represents a skill domain.<br><br>Nodes <strong>brighten and grow</strong> as you earn XP from missions. Reach <strong>Level 3 in Systems + Strategy</strong> to unlock the special <strong>Tech Leader</strong> hex.<br><br>Below it, the <strong>Live Leaderboard</strong> shows your SR rank against real players.',
+    tip:      'On tablet or mobile, tap the Matrix button in the header to toggle this column.',
+    position: 'left',
+    scroll:   false,
+  },
+  {
+    target:   '#scene-grid-main',
+    icon:     '📓',
+    title:    'Step 7 — Mission Logbook',
+    body:     'Every completed mission appears as a card in the <strong>Mission Logbook</strong> below.<br><br>• <strong>Click a completed card</strong> to inspect your result, score, and choice path<br>• <strong>Click a pending card</strong> to jump directly to that mission<br>• The <strong>Choice Paths tree</strong> shows every branch taken across all missions',
+    tip:      'Use Demo Fill to preview the logbook with sample data before you have real results.',
+    position: 'top',
+    scroll:   true,
+  },
+  {
+    target:   '#rt-create',
+    icon:     '⊕',
+    title:    'Step 8 — Squad Room (Multiplayer)',
+    body:     'Create or join a <strong>Squad Room</strong> to play missions alongside teammates in real time.<br><br><strong>To create:</strong> name your room → click <code>Create Room</code> → share the generated code<br><strong>To join:</strong> switch to the Join tab → paste the code → click <code>Join</code><br><br>Members appear in the lobby live as they join via <strong>Firebase sync</strong>.',
+    tip:      'Login with Google first so squad rooms sync reliably across devices and sessions.',
+    position: 'top',
+    scroll:   true,
+  },
+  {
+    target:   '#interview-panel',
+    icon:     '🎙',
+    title:    'Step 9 — Interview Simulator',
+    body:     'The <strong>Interview Simulator</strong> lets you practice with ORBIT, an AI interviewer covering 14 categories: Intro, Motivation, Projects, CS Basics, System Design, Behavioral, HR, and more.<br><br>Type answers in Hinglish or English. When done, click <code>Convert to SkillHex XP</code> to turn your session score into SR and Skill XP.<br><br>Use the <strong>KADA wheel sectors</strong> to switch between interview rounds V07 / V08 / V09 / V10.',
+    tip:      'V10 is the Full Mock — all 14 categories with deep follow-up questions enabled.',
+    position: 'top',
+    scroll:   true,
+  },
+  {
+    target:   null,
+    icon:     '🏆',
+    title:    "You're Ready to Operate",
+    body:     'Quick cheatsheet:<br><br><strong>SR</strong> — Skill Rating, rises on correct answers<br><strong>XP</strong> — levels up your Battle Pass<br><strong>Tokens</strong> — earned from daily streaks and events<br><strong>Streak</strong> — log in daily, don\'t break the chain<br><br>Click <strong>Login</strong> to register your first day, then dive into <strong>Mission 01</strong>. Good luck, Operative.',
+    position: 'center',
+  },
+];
+
+let tutIdx    = 0;
+let tutActive = false;
+
+function tutStart(fromStep) {
+  fromStep  = fromStep || 0;
+  tutIdx    = fromStep;
+  tutActive = true;
+  document.getElementById('tut-overlay').classList.add('active');
+  document.getElementById('tut-card').classList.add('active');
+  tutBuildDots();
+  tutShow(tutIdx);
+  document.getElementById('tut-help-btn').style.display = 'none';
+}
+
+function tutClose() {
+  tutActive = false;
+  document.getElementById('tut-overlay').classList.remove('active');
+  document.getElementById('tut-card').classList.remove('active');
+  var ring = document.getElementById('tut-ring');
+  if (ring) ring.style.display = 'none';
+  tutClearHole();
+  document.getElementById('tut-help-btn').style.display = '';
+  // Clean up any elements force-shown during tutorial
+  document.querySelectorAll('[data-tut-forced]').forEach(function(n){ n.style.removeProperty('display'); delete n._tutForced; });
+  // Restore col-right to its natural responsive state (remove tutorial-added .visible)
+  var cr = document.querySelector('.col-right');
+  if (cr && window.innerWidth < 1100) cr.classList.remove('visible');
+  try { localStorage.setItem('shx-tut-done', '1'); } catch(e) {}
+}
+
+function tutNext() {
+  if (tutIdx >= TUT_STEPS.length - 1) { tutClose(); return; }
+  tutIdx++;
+  tutShow(tutIdx);
+}
+
+function tutPrev() {
+  if (tutIdx <= 0) return;
+  tutIdx--;
+  tutShow(tutIdx);
+}
+
+function tutBuildDots() {
+  var c = document.getElementById('tut-dots');
+  if (!c) return;
+  c.innerHTML = '';
+  TUT_STEPS.forEach(function(_, i) {
+    var d = document.createElement('div');
+    d.className   = 'tut-dot';
+    d.id          = 'tut-dot-' + i;
+    d.style.cursor = 'pointer';
+    d.onclick = (function(n){ return function(){ tutIdx = n; tutShow(n); }; })(i);
+    d.setAttribute('tabindex','0');
+    d.setAttribute('aria-label', 'Go to tutorial step ' + (i+1));
+    d.addEventListener('keydown', (function(n){ return function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tutIdx=n; tutShow(n); } }; })(i));
+    c.appendChild(d);
+  });
+}
+
+function tutUpdateDots(idx) {
+  TUT_STEPS.forEach(function(_, i) {
+    var d = document.getElementById('tut-dot-' + i);
+    if (!d) return;
+    d.className = 'tut-dot' + (i < idx ? ' done' : i === idx ? ' cur' : '');
+  });
+}
+
+function tutEnsureVisible(el) {
+  // Walk up and unhide any hidden ancestor that can be safely revealed
+  var node = el.parentElement;
+  while (node && node !== document.body) {
+    var cs = window.getComputedStyle(node);
+    if (cs.display === 'none') {
+      // col-right: toggled via .visible class
+      if (node.classList.contains('col-right')) {
+        node.classList.add('visible');
+      } else if (node.classList.contains('room-pane')) {
+        // make the right room tab active
+        document.querySelectorAll('.room-pane').forEach(function(p){ p.classList.remove('on'); });
+        node.classList.add('on');
+      } else {
+        // generic: temporarily force-show (scroll step will scroll it into view)
+        node.style.setProperty('display', 'block', 'important');
+        node._tutForced = true;
+      }
+    }
+    node = node.parentElement;
+  }
+}
+
+function tutCheckRect(el) {
+  var r = el.getBoundingClientRect();
+  return (r.width > 0 && r.height > 0);
+}
+
+function tutShow(idx) {
+  var step = TUT_STEPS[idx];
+  if (!step) return;
+
+  document.getElementById('tut-step-lbl').textContent = 'Step ' + (idx + 1) + ' / ' + TUT_STEPS.length;
+  document.getElementById('tut-icon').textContent  = step.icon  || '\u2B21';
+  document.getElementById('tut-title').textContent = step.title || '';
+  document.getElementById('tut-body').innerHTML    = step.body  || '';
+
+  var tipEl = document.getElementById('tut-tip');
+  if (step.tip) { tipEl.textContent = step.tip; tipEl.classList.add('show'); }
+  else          { tipEl.textContent = '';        tipEl.classList.remove('show'); }
+
+  var prevBtn = document.getElementById('tut-prev');
+  var nextBtn = document.getElementById('tut-next');
+  if (prevBtn) prevBtn.style.visibility = idx === 0 ? 'hidden' : 'visible';
+  if (nextBtn) nextBtn.textContent = idx === TUT_STEPS.length - 1 ? '\u2713 Start Playing' : 'Next \u2192';
+
+  tutUpdateDots(idx);
+
+  if (step.target) {
+    var el = document.querySelector(step.target);
+    if (el) {
+      // Ensure all ancestors are visible before measuring
+      tutEnsureVisible(el);
+
+      if (step.scroll) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Wait for scroll + layout — use two rAF cycles after timeout for accuracy
+        setTimeout(function() {
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              if (tutCheckRect(el)) {
+                tutSpotlight(el, step.position || 'bottom');
+              } else {
+                tutClearHole();
+                tutPositionCard(null, 'center');
+              }
+            });
+          });
+        }, 400);
+      } else {
+        requestAnimationFrame(function() {
+          if (tutCheckRect(el)) {
+            tutSpotlight(el, step.position || 'bottom');
+          } else {
+            tutClearHole();
+            tutPositionCard(null, 'center');
+          }
+        });
+      }
+    } else {
+      tutClearHole();
+      tutPositionCard(null, step.position || 'center');
+    }
+  } else {
+    tutClearHole();
+    tutPositionCard(null, step.position || 'center');
+  }
+}
+
+function tutSpotlight(el, position) {
+  var PAD  = 10;
+  var rect = el.getBoundingClientRect();
+  var x = rect.left   - PAD;
+  var y = rect.top    - PAD;
+  var w = rect.width  + PAD * 2;
+  var h = rect.height + PAD * 2;
+
+  var hole = document.getElementById('tut-hole');
+  if (hole) {
+    hole.setAttribute('x',      x);
+    hole.setAttribute('y',      y);
+    hole.setAttribute('width',  w);
+    hole.setAttribute('height', h);
+    hole.setAttribute('rx',     10);
+  }
+
+  var ring = document.getElementById('tut-ring');
+  if (ring) {
+    ring.style.display      = 'block';
+    ring.style.left         = x + 'px';
+    ring.style.top          = y + 'px';
+    ring.style.width        = w + 'px';
+    ring.style.height       = h + 'px';
+    ring.style.borderRadius = '10px';
+  }
+
+  tutPositionCard({ x:x, y:y, w:w, h:h }, position);
+}
+
+function tutClearHole() {
+  var hole = document.getElementById('tut-hole');
+  if (hole) { hole.setAttribute('width',0); hole.setAttribute('height',0); }
+  var ring = document.getElementById('tut-ring');
+  if (ring) ring.style.display = 'none';
+}
+
+function tutClamp(val, min, max) { return Math.min(max, Math.max(min, val)); }
+
+function tutPositionCard(spotlight, prefer) {
+  var vw = (window.visualViewport ? window.visualViewport.width  : vw);
+  var vh = (window.visualViewport ? window.visualViewport.height : vh);
+  var card  = document.getElementById('tut-card');
+  var arrow = document.getElementById('tut-arrow');
+  if (!card) return;
+
+  card.style.left = '-9999px';
+  card.style.top  = '-9999px';
+  var cw = card.offsetWidth  || 360;
+  var ch = card.offsetHeight || 280;
+  var vw = vw;
+  var vh = vh;
+  var GAP = 18;
+  var arrowSide = null;
+  var left, top;
+
+  if (!spotlight || prefer === 'center') {
+    left = Math.max(12, (vw - cw) / 2);
+    top  = Math.max(12, (vh - ch) / 2);
+    if (arrow) arrow.style.display = 'none';
+  } else {
+    var sx = spotlight.x, sy = spotlight.y, sw = spotlight.w, sh = spotlight.h;
+    var sides = [];
+    if ([prefer,'bottom','top','right','left'].indexOf(prefer) >= 0) sides.push(prefer);
+    ['bottom','top','right','left'].forEach(function(s){ if (sides.indexOf(s) < 0) sides.push(s); });
+
+    var placed = false;
+    for (var si = 0; si < sides.length; si++) {
+      var side = sides[si];
+      if (side === 'bottom' && sy + sh + GAP + ch < vh) {
+        left = tutClamp(sx + sw/2 - cw/2, 12, vw - cw - 12);
+        top  = sy + sh + GAP;
+        arrowSide = 'top'; placed = true; break;
+      }
+      if (side === 'top' && sy - GAP - ch > 0) {
+        left = tutClamp(sx + sw/2 - cw/2, 12, vw - cw - 12);
+        top  = sy - GAP - ch;
+        arrowSide = 'bottom'; placed = true; break;
+      }
+      if (side === 'right' && sx + sw + GAP + cw < vw) {
+        left = sx + sw + GAP;
+        top  = tutClamp(sy + sh/2 - ch/2, 12, vh - ch - 12);
+        arrowSide = 'left'; placed = true; break;
+      }
+      if (side === 'left' && sx - GAP - cw > 0) {
+        left = sx - GAP - cw;
+        top  = tutClamp(sy + sh/2 - ch/2, 12, vh - ch - 12);
+        arrowSide = 'right'; placed = true; break;
+      }
+    }
+    if (!placed) {
+      left = Math.max(12, (vw - cw) / 2);
+      top  = Math.max(12, (vh - ch) / 2);
+    }
+
+    if (arrow && arrowSide) {
+      arrow.style.cssText = 'display:block;position:absolute;width:10px;height:10px;background:#07101e;border:1px solid var(--cyan);transform:rotate(45deg);';
+      if (arrowSide === 'top') {
+        arrow.style.top    = '-6px';
+        arrow.style.left   = tutClamp(sx + sw/2 - left, 16, cw - 16) + 'px';
+        arrow.style.borderBottom = 'none';
+        arrow.style.borderRight  = 'none';
+      } else if (arrowSide === 'bottom') {
+        arrow.style.bottom = '-6px';
+        arrow.style.left   = tutClamp(sx + sw/2 - left, 16, cw - 16) + 'px';
+        arrow.style.borderTop  = 'none';
+        arrow.style.borderLeft = 'none';
+      } else if (arrowSide === 'left') {
+        arrow.style.left = '-6px';
+        arrow.style.top  = tutClamp(sy + sh/2 - top, 16, ch - 16) + 'px';
+        arrow.style.borderRight  = 'none';
+        arrow.style.borderBottom = 'none';
+      } else {
+        arrow.style.right = '-6px';
+        arrow.style.top   = tutClamp(sy + sh/2 - top, 16, ch - 16) + 'px';
+        arrow.style.borderLeft = 'none';
+        arrow.style.borderTop  = 'none';
+      }
+    } else if (arrow) {
+      arrow.style.display = 'none';
+    }
+  }
+
+  card.style.left = Math.round(left) + 'px';
+  card.style.top  = Math.round(top)  + 'px';
+}
+
+/* Keyboard nav */
+document.addEventListener('keydown', function(e) {
+  if (!tutActive) return;
+  if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); tutNext(); }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); tutPrev(); }
+  if (e.key === 'Escape')     { e.preventDefault(); tutClose(); }
+});
+
+/* Reposition on resize */
+var _tutResizeT;
+window.addEventListener('resize', function() {
+  if (!tutActive) return;
+  clearTimeout(_tutResizeT);
+  _tutResizeT = setTimeout(function(){ tutShow(tutIdx); }, 150);
+});
+
+/* Auto-launch on first visit */
+function tutMaybeAutoLaunch() {
+  try {
+    if (!localStorage.getItem('shx-tut-done')) {
+      setTimeout(function(){ tutStart(0); }, 900);
+    } else {
+      setTimeout(function(){
+        var btn = document.getElementById('tut-help-btn');
+        if (btn) { btn.classList.add('pulse'); setTimeout(function(){ btn.classList.remove('pulse'); }, 7000); }
+      }, 1400);
+    }
+  } catch(e) {}
+}
+
+</script>
+
+<!-- ═══════════════════ TUTORIAL SYSTEM ════════════════════════════ -->
+
+<!-- Dim overlay with SVG cutout hole -->
+<div id="tut-overlay">
+  <svg id="tut-svg" preserveAspectRatio="none">
+    <defs>
+      <mask id="tut-mask">
+        <rect width="100%" height="100%" fill="white"/>
+        <rect id="tut-hole" x="0" y="0" width="0" height="0" rx="8" fill="black"/>
+      </mask>
+    </defs>
+    <rect width="100%" height="100%" fill="rgba(3,5,8,0.82)" mask="url(#tut-mask)"/>
+  </svg>
+</div>
+
+<!-- Spotlight glow ring (outside overlay so it layers above dim) -->
+<div id="tut-ring"></div>
+
+<!-- Tutorial card -->
+<div id="tut-card">
+  <div class="tut-step-row">
+    <span class="tut-step-label" id="tut-step-lbl">Step 1 / 10</span>
+    <div class="tut-step-dots" id="tut-dots"></div>
+  </div>
+  <span class="tut-icon" id="tut-icon">⬡</span>
+  <div class="tut-title" id="tut-title">Welcome</div>
+  <div class="tut-body"  id="tut-body"></div>
+  <div class="tut-tip"   id="tut-tip"></div>
+  <div class="tut-btn-row">
+    <button class="tut-btn tut-btn-prev" id="tut-prev" onclick="tutPrev()">← Back</button>
+    <button class="tut-btn tut-btn-next" id="tut-next" onclick="tutNext()">Next →</button>
+    <button class="tut-btn-skip" onclick="tutClose()">Skip tutorial</button>
+  </div>
+  <div class="tut-arrow" id="tut-arrow" style="display:none"></div>
+</div>
+
+<!-- Persistent help / replay button -->
+<button id="tut-help-btn" onclick="tutStart()" title="Show tutorial" aria-label="Show tutorial">?</button>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9db68c647e51eae0',t:'MTc3MzM1NzgyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </html>

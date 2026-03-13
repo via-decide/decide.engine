@@ -148,6 +148,14 @@
       aliases:  ['hiva'],
     },
     {
+      slug:     'skillhex-mission-control',
+      icon:     '🧩',
+      name:     'SkillHex Mission Control',
+      keywords: ['skillhex', 'mission control', 'mission', 'kada', 'interview mode', 'interview conversion', 'leaderboard'],
+      verbs:    ['open', 'play', 'launch', 'start', 'run'],
+      aliases:  ['skillhex mission control', 'skillhex', 'kada wheel'],
+    },
+    {
       slug:     'decide-service',
       icon:     '🎯',
       name:     'Decide.Service',
@@ -274,6 +282,87 @@
       keywords: ['contact', 'reach', 'email', 'message', 'support', 'help'],
       verbs:    ['open', 'contact', 'reach', 'view'],
       aliases:  ['contactus'],
+    },
+    // ── Audit-fix additions (BUG-19 aliases + new tools) ───────
+    {
+      slug:     'wings-of-fire',
+      icon:     '🔥',
+      name:     'Wings of Fire',
+      keywords: ['wings of fire', 'wings', 'fire', 'aerial', 'strategy', 'skirmish', 'energy management'],
+      verbs:    ['play', 'launch', 'open', 'start'],
+      aliases:  ['wof-game', 'wingsfire'],
+    },
+    {
+      slug:     'skillhex-recruiter',
+      icon:     '🧩',
+      name:     'SkillHex Recruiter Dashboard',
+      keywords: ['recruit', 'hire', 'talent', 'recruiter', 'hiring dashboard', 'candidates', 'talent search'],
+      verbs:    ['open', 'launch', 'access', 'use'],
+      aliases:  ['hiring-dashboard', 'recruiter', 'hire talent'],
+    },
+    {
+      slug:     'brief',
+      icon:     '📋',
+      name:     'Quick Decision Brief',
+      keywords: ['brief', 'quick brief', 'fast decision', 'decision brief', 'summarise', 'summarize'],
+      verbs:    ['open', 'start', 'use', 'launch'],
+      aliases:  ['quickbrief', 'fastbrief'],
+    },
+    {
+      slug:     'decision-brief',
+      icon:     '📋',
+      name:     'Decision Brief',
+      keywords: ['decision brief', 'decision document', 'structure decision', 'brief template', 'frame decision'],
+      verbs:    ['open', 'create', 'use', 'launch'],
+      aliases:  ['decisionbrief', 'decbrief'],
+    },
+    {
+      slug:     'decision-brief-guide',
+      icon:     '📖',
+      name:     'Decision Brief Guide',
+      keywords: ['decision brief guide', 'how to brief', 'brief guide', 'briefing guide'],
+      verbs:    ['open', 'read', 'view'],
+      aliases:  ['briefguide'],
+    },
+    {
+      slug:     'audio-log',
+      icon:     '🎙',
+      name:     'Audio.Log',
+      keywords: ['audio', 'log', 'podcast', 'audio log', 'audiolog', 'listen', 'recording'],
+      verbs:    ['open', 'play', 'listen', 'launch'],
+      aliases:  ['audiolog', 'podcast'],
+    },
+    {
+      slug:     'dharamdaxini',
+      icon:     '🧭',
+      name:     'Dharam Daxini',
+      keywords: ['dharam', 'daxini', 'dharam daxini', 'consult', 'session', '1:1', 'book session', 'mentor'],
+      verbs:    ['book', 'open', 'launch', 'access'],
+      aliases:  ['dharam-daxini', 'dharamdaxini', 'daxini'],
+    },
+    {
+      slug:     'finance-dashboard-msme',
+      icon:     '📊',
+      name:     'FinTrack Dashboard',
+      keywords: ['fintrack', 'finance', 'profit', 'loss', 'pnl', 'expense', 'cashflow', 'budget', 'msme', 'gst', 'income'],
+      verbs:    ['open', 'launch', 'track', 'use'],
+      aliases:  ['fintrack', 'fin-track', 'fintracker'],
+    },
+    {
+      slug:     'payment-register',
+      icon:     '🧾',
+      name:     'Payment Register',
+      keywords: ['payroll', 'payroll register', 'payment register', 'salary', 'payments', 'register'],
+      verbs:    ['open', 'use', 'launch'],
+      aliases:  ['payroll-register', 'payroll', 'payreg'],
+    },
+    {
+      slug:     'sales-dashboard',
+      icon:     '📈',
+      name:     'MSME Sales Dashboard',
+      keywords: ['sales register', 'sales', 'register', 'revenue', 'units sold', 'msme sales'],
+      verbs:    ['open', 'use', 'launch', 'track'],
+      aliases:  ['sales-register', 'salesreg', 'salesregister'],
     },
   ];
 
@@ -507,7 +596,7 @@
     limit = limit || 6;
     if (!partial || partial.length < 1) {
       // Default: most popular modules
-      var defaults = ['alchemist', 'ondc-demo', 'hexwars', 'student-research', 'finance-dashboard-msme', 'mars-rover-simulator-game'];
+      var defaults = ['alchemist', 'ondc-demo', 'skillhex-mission-control', 'hexwars', 'student-research', 'finance-dashboard-msme'];
       return defaults.slice(0, limit).map(function (slug) {
         var intent = _findIntent(slug);
         return intent ? { slug: intent.slug, icon: intent.icon, name: intent.name, hint: 'open ' + intent.name.toLowerCase() } : null;
@@ -575,6 +664,9 @@
   function _enhanceOrbInput() {
     var orbInput = document.getElementById('orb-input');
     if (!orbInput || orbInput._commandRouterBound) return;
+
+    // Only attach on pages that explicitly opt-in.
+    if (!orbInput.hasAttribute('data-command-router')) return;
     orbInput._commandRouterBound = true;
 
     // We intercept the Enter key only when the input looks like a command

@@ -364,7 +364,7 @@
   <div class="bg-glow"></div>
 
   <div class="top">
-    <a class="back" href="index.html" id="btnBack">← Back</a>
+    <a class="back" href="/" id="btnBack">← Back</a>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="btn-icon" id="btnTranslate" title="Translate">A/अ</button>
       <div class="pill"><b id="secLabel">SEC 1/7</b> • <span id="secName">INTRO</span></div>
@@ -409,7 +409,7 @@
       document.getElementById("btnBack").addEventListener("click", function(e){
         e.preventDefault();
         if (history.length > 1) history.back();
-        else location.href = "index.html";
+        else location.assign("/printbydd");
       });
 
       const WA_NUMBER = "916351537770";

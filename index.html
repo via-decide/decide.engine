@@ -84,6 +84,7 @@ code,
   --cs:#4a90d9;--cst:#f07040;--cb:#9b6dff;
   --cfi:#10b981;--cfi2:#34d399;--cfi3:rgba(16,185,129,0.12);
   --cpb:#c86898;--cpb2:#e888bb;--cpb3:rgba(200,104,152,0.12);
+  --ca:#1db954;--ca2:#4ade80;--ca3:rgba(29,185,84,0.12);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
@@ -137,6 +138,7 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 .nav-chip.nc-b:hover{color:var(--cb);background:rgba(155,109,255,.08);border-color:rgba(155,109,255,.2)}
 .nav-chip.nc-fi:hover{color:var(--cfi);background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2)}
 .nav-chip.nc-pb:hover{color:var(--cpb);background:rgba(200,104,152,.08);border-color:rgba(200,104,152,.2)}
+.nav-chip.nc-a:hover{color:var(--ca);background:rgba(29,185,84,.08);border-color:rgba(29,185,84,.2)}
 .nav-right{display:flex;align-items:center;gap:.5rem}
 .nav-cta{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.3rem;background:var(--gold);color:#fff;border-radius:99px;cursor:none;transition:all .22s;display:inline-flex;align-items:center;gap:.4rem}
 .nav-cta:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,147,42,.35)}
@@ -220,6 +222,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"]::before{background:linear-gradient(180deg,var(--cb) 0%,transparent 100%)}
 .cat-section[data-cat="finance"]::before{background:linear-gradient(180deg,var(--cfi) 0%,transparent 100%)}
 .cat-section[data-cat="personal"]::before{background:linear-gradient(180deg,var(--cpb) 0%,transparent 100%)}
+.cat-section[data-cat="audio"]::before{background:linear-gradient(180deg,var(--ca) 0%,transparent 100%)}
 .cat-inner{max-width:1280px;margin:0 auto;padding:0 2.5rem}
 .cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
 .cat-header-l{display:flex;align-items:center;gap:2rem}
@@ -234,6 +237,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"] .cat-dot{background:var(--cb)}
 .cat-section[data-cat="finance"] .cat-dot{background:var(--cfi)}
 .cat-section[data-cat="personal"] .cat-dot{background:var(--cpb)}
+.cat-section[data-cat="audio"] .cat-dot{background:var(--ca)}
 .cat-name{font-size:1.4rem;font-weight:700;color:var(--tx);letter-spacing:-.01em}
 .cat-desc{font-size:.88rem;color:var(--tx3);line-height:1.6;max-width:380px}
 .cat-section[data-cat="tools"] .cat-cta{background:rgba(34,180,160,.12);color:var(--ct);border:1px solid rgba(34,180,160,.25)}
@@ -244,6 +248,7 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="blog"] .cat-cta{background:rgba(155,109,255,.12);color:var(--cb);border:1px solid rgba(155,109,255,.25)}
 .cat-section[data-cat="finance"] .cat-cta{background:rgba(16,185,129,.12);color:var(--cfi);border:1px solid rgba(16,185,129,.25)}
 .cat-section[data-cat="personal"] .cat-cta{background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25)}
+.cat-section[data-cat="audio"] .cat-cta{background:rgba(29,185,84,.12);color:var(--ca);border:1px solid rgba(29,185,84,.25)}
 .cat-cta{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:8px;cursor:none;transition:all .2s}
 .cat-cta:hover{filter:brightness(1.15);transform:translateY(-1px)}
 
@@ -271,6 +276,8 @@ section{position:relative;z-index:10}
 .cat-section[data-cat="finance"] .tc:hover{border-color:rgba(16,185,129,.25)}
 .cat-section[data-cat="personal"] .tc::before{background:linear-gradient(90deg,var(--cpb),rgba(200,104,152,.4))}
 .cat-section[data-cat="personal"] .tc:hover{border-color:rgba(200,104,152,.25)}
+.cat-section[data-cat="audio"] .tc::before{background:linear-gradient(90deg,var(--ca),rgba(29,185,84,.4))}
+.cat-section[data-cat="audio"] .tc:hover{border-color:rgba(29,185,84,.25)}
 .tc-feat{background:linear-gradient(145deg,rgba(26,140,125,.12),rgba(200,147,42,.05));border-color:rgba(26,140,125,.18)}
 .tc-s4{grid-column:span 4}.tc-s3{grid-column:span 3}.tc-s6{grid-column:span 6}
 .tc-s8{grid-column:span 8}.tc-s12{grid-column:span 12}.tc-s5{grid-column:span 5}
@@ -337,6 +344,41 @@ section{position:relative;z-index:10}
 .m-price{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;color:var(--gold2)}
 .m-badge{font-size:.56rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .5rem;border-radius:99px;background:var(--teal3);color:var(--teal2)}
 @media(max-width:1024px){.ondc-strip{grid-template-columns:1fr}}
+
+
+.hero-sub{max-width:760px;font-size:1rem;color:var(--tx2);line-height:1.75;margin:-1.2rem auto 1.2rem;opacity:0;animation:riseUp .8s .3s forwards}
+.hero-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin:0 0 1rem;opacity:0;animation:riseUp .8s .5s forwards}
+.hero-proof{font-size:.74rem;color:var(--tx3);letter-spacing:.04em;margin:.2rem 0 1.6rem;opacity:0;animation:riseUp .8s .65s forwards}
+
+#why-matters{max-width:1120px;margin:0 auto;padding:4.2rem 2.5rem;border-top:1px solid var(--bd)}
+.why-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:1.4rem}
+.why-card{background:var(--sf);border:1px solid var(--bd2);border-radius:16px;padding:1.15rem}
+.why-card h3{font-size:1rem;margin-bottom:.35rem}
+.why-card p{font-size:.82rem;color:var(--tx2);line-height:1.65}
+
+#audience-routing{max-width:1280px;margin:0 auto;padding:4.5rem 2.5rem;border-top:1px solid var(--bd)}
+.ar-head{max-width:780px;margin:0 auto 1.4rem;text-align:center}
+.ar-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.8rem}
+.ar-card{background:var(--sf);border:1px solid var(--bd2);border-radius:14px;padding:1rem;cursor:pointer;transition:.2s}
+.ar-card:hover{transform:translateY(-2px);border-color:rgba(200,147,42,.35)}
+.ar-k{font-size:.65rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em}
+.ar-t{font-size:.92rem;font-weight:700;margin:.35rem 0;color:var(--tx)}
+.ar-d{font-size:.74rem;color:var(--tx3);line-height:1.5}
+
+#ecosystem-intro{max-width:1280px;margin:0 auto;padding:4rem 2.5rem 1.5rem;border-top:1px solid var(--bd)}
+.eco-head{max-width:860px}
+.eco-head h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.6rem);font-weight:400;line-height:1.02;margin-bottom:.7rem}
+.eco-head p{color:var(--tx2);font-size:.92rem;line-height:1.75}
+.eco-pills{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1rem}
+.eco-pill{font-size:.66rem;color:var(--tx3);border:1px solid var(--bd2);padding:.24rem .6rem;border-radius:99px;background:var(--sf)}
+
+#final-cta{padding:5rem 2.5rem;border-top:1px solid var(--bd);text-align:center}
+.final-card{max-width:760px;margin:0 auto;background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(34,180,160,.06));border:1px solid var(--bd2);border-radius:18px;padding:2rem}
+.final-card h3{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.2rem);font-weight:400;line-height:1.05;margin-bottom:.65rem}
+.final-card p{font-size:.9rem;color:var(--tx2);line-height:1.7;margin-bottom:1.1rem}
+
+@media(max-width:980px){.why-grid{grid-template-columns:1fr}.ar-grid{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:700px){.hero-sub{font-size:.9rem}.ar-grid{grid-template-columns:1fr 1fr}#why-matters,#audience-routing,#ecosystem-intro,#final-cta{padding-left:1rem;padding-right:1rem}}
 
 /* ABOUT */
 #about{max-width:1280px;margin:0 auto;padding:5rem 2.5rem;border-top:1px solid var(--bd)}
@@ -557,10 +599,12 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-b" href="#cat-blog">✍️ Blog</a>
     <a class="nav-chip nc-fi" href="#cat-finance">📊 Finance</a>
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
+    <a class="nav-chip nc-a" href="#cat-audio">🎙 Audio.Log</a>
+    <a class="nav-chip nc-g" href="/skillhex-mission-control">🧩 Products · SkillHex</a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
-    <button class="nav-cta" onclick="window.VDRouter?VDRouter.go('ondc-demo',{overlay:true}):openModal('/ONDC-demo/index.html','🛒','ONDC Live Demo')">Try ONDC ↗</button>
+    <button class="nav-cta" onclick="window.VDRouter?VDRouter.go('ondc-demo',{overlay:true}):openModal('/ONDC-demo.html','🛒','ONDC Live Demo')">Try ONDC ↗</button>
   </div>
 </nav>
 <main id="app">
@@ -573,27 +617,33 @@ section{position:relative;z-index:10}
 
 
 <section id="hero">
-  <div class="hero-kicker"><div class="live-dot"></div>🇮🇳 India's Decision Engine · Built for Bharat</div>
+  <div class="hero-kicker"><div class="live-dot"></div>🇮🇳 Built for Bharat · Multi-Module Decision Engine</div>
   <h1 class="hero-h1">
-    <div class="line"><span>Signal over</span></div>
-    <div class="line"><span><em>noise.</em></span></div>
-    <div class="line"><span>Decide better.</span></div>
+    <div class="line"><span>Choose faster.</span></div>
+    <div class="line"><span>Choose <em>better.</em></span></div>
   </h1>
+  <p class="hero-sub">ViaDecide helps founders, buyers, students, and MSMEs make high-impact decisions with structured tools, live dashboards, and practical execution modules.</p>
+  <div class="hero-actions">
+    <button class="btn-p" onclick="window.VDRouter?VDRouter.go('alchemist'):location.assign('/alchemist')">Start with Alchemist</button>
+    <button class="btn-g" onclick="document.getElementById('audience-routing').scrollIntoView({behavior:'smooth'})">Find My Path</button>
+    <button class="btn-t" onclick="document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'})">Explore All Modules</button>
+  </div>
+  <div class="hero-proof">30+ live modules · 8 categories · ONDC, finance, research, and execution tools in one platform</div>
   <div class="orb-wrap" id="orb-wrap">
     <div class="orb-bar">
       <div class="orb-pulse-dot"></div>
-      <input type="text" id="orb-input" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
+      <input type="text" id="orb-input" data-command-router="true" placeholder="What do you need to decide?" autocomplete="off" spellcheck="false"/>
       <button class="orb-go" id="orb-go" title="Find the right tool">→</button>
     </div>
-    <div id="orb-suggest" aria-label="Search suggestions"></div>
+    <div id="orb-suggest" aria-label="Search suggestions" aria-live="polite" role="listbox"></div>
     <div class="orb-chips">
       <button class="orb-chip" data-cat="tools" onclick="document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'})">🛠 Tools</button>
-      <button class="orb-chip" data-cat="commerce" onclick="document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'})">🛒 Commerce</button>
-      <button class="orb-chip" data-cat="services" onclick="document.getElementById('cat-services').scrollIntoView({behavior:'smooth'})">🎯 Services</button>
-      <button class="orb-chip" data-cat="store" onclick="document.getElementById('cat-store').scrollIntoView({behavior:'smooth'})">🛍 Store</button>
-      <button class="orb-chip" data-cat="games" onclick="document.getElementById('cat-games').scrollIntoView({behavior:'smooth'})">🎮 Sims</button>
-      <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
       <button class="orb-chip" data-cat="finance" onclick="document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'})">📊 Finance</button>
+      <button class="orb-chip" data-cat="commerce" onclick="window.VDRouter?VDRouter.go('ondc-demo',{overlay:true}):openModal('/ONDC-demo.html','🛒','ONDC Demo')">🛒 Commerce</button>
+      <button class="orb-chip" data-cat="games" onclick="document.getElementById('cat-games').scrollIntoView({behavior:'smooth'})">🎮 Games</button>
+      <button class="orb-chip" data-cat="store" onclick="document.getElementById('cat-store').scrollIntoView({behavior:'smooth'})">🛍 Store</button>
+      <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
+      <button class="orb-chip" data-cat="services" onclick="document.getElementById('cat-services').scrollIntoView({behavior:'smooth'})">🎯 Services</button>
       <button class="orb-chip" data-cat="personal" onclick="document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'})">🙋 Personal</button>
     </div>
   </div>
@@ -721,11 +771,24 @@ section{position:relative;z-index:10}
 @media(max-width:380px){.build-grid{grid-template-columns:1fr}.build-card{padding:1.1rem}}
 </style>
 
+<section id="why-matters">
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>Why this matters</h3>
+      <p>Most people don’t fail from lack of effort — they fail from unclear choices. ViaDecide turns noisy options into structured decisions so action starts faster and risk stays visible.</p>
+    </div>
+    <div class="why-card">
+      <h3>What changes with ViaDecide</h3>
+      <p>Instead of browsing scattered tools, you get one connected home: compare, validate, simulate, and execute with decision context carried across modules.</p>
+    </div>
+  </div>
+</section>
+
 <section id="build-section">
   <div class="build-inner">
-    <div class="build-eyebrow">Platform Capabilities</div>
-    <h2 class="build-h2">What can you build<br>with <em>ViaDecide?</em></h2>
-    <p class="build-sub">From dashboards to full web apps — ready-made tools and an AI generation engine that turns any idea into a working product.</p>
+    <div class="build-eyebrow">Flagship Proof</div>
+    <h2 class="build-h2">Start with one strong outcome.<br><em>Then expand.</em></h2>
+    <p class="build-sub">This section shows the fastest proof of value: open one module, complete one decision, then branch into the full engine.</p>
     <div class="build-search-wrap">
       <div class="build-search-bar">
         <span class="build-search-glyph">🔍</span>
@@ -735,43 +798,58 @@ section{position:relative;z-index:10}
       <div class="build-search-hint"><strong>e.g.</strong> interview simulator, restaurant site, sales dashboard</div>
     </div>
     <div class="build-grid" id="build-grid">
-      <div class="build-card" data-a="teal" onclick="openModal('/interview-prep/index.html','🎤','Interview Simulator')" role="button" tabindex="0">
+      <div class="build-card" data-a="teal" onclick="openModal('/interview-prep.html','🎤','Interview Simulator')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">🎤</div>
         <div class="build-card-title">Interview Simulator</div>
         <div class="build-card-desc">Practice job interviews in a chat simulator. Get real-time feedback and build confidence before the real thing.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/interview-prep/index.html','🎤','Interview Simulator')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/interview-prep.html','🎤','Interview Simulator')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="gold" onclick="openModal('/sales-dashboard/index.html','📊','Sales Dashboard')" role="button" tabindex="0">
+      <div class="build-card" data-a="gold" onclick="openModal('/sales-dashboard.html','📊','Sales Dashboard')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">📊</div>
         <div class="build-card-title">Sales Dashboard</div>
         <div class="build-card-desc">Track sales and visualize performance. Upload a CSV for instant KPIs, pivot tables, and charts.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/sales-dashboard/index.html','📊','Sales Dashboard')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/sales-dashboard.html','📊','Sales Dashboard')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="orange" onclick="openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website')" role="button" tabindex="0">
+      <div class="build-card" data-a="orange" onclick="openModal('/Jalaram-food-court-rajkot.html','🍽️','Restaurant Website')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">🍽️</div>
         <div class="build-card-title">Restaurant Website</div>
         <div class="build-card-desc">Create a simple restaurant website with menu and contact. See a live example — Jalaram Food Court, Rajkot.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/Jalaram-food-court-rajkot.html','🍽️','Restaurant Website')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="green" onclick="openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')" role="button" tabindex="0">
+      <div class="build-card" data-a="green" onclick="openModal('/finance-dashboard-msme.html','💰','Finance Dashboard')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">💰</div>
         <div class="build-card-title">Finance Dashboard</div>
         <div class="build-card-desc">Visualize revenue, expenses and profit with interactive P&amp;L charts, budget vs actual, and FY filters.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/finance-dashboard-msme.html','💰','Finance Dashboard')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="purple" onclick="openModal('/alchemist/index.html','⚖️','Decision Tools')" role="button" tabindex="0">
+      <div class="build-card" data-a="purple" onclick="openModal('/alchemist.html','⚖️','Decision Tools')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">⚖️</div>
         <div class="build-card-title">Decision Tools</div>
         <div class="build-card-desc">Compare products and research choices with AI-powered structured frameworks for clear, confident decisions.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/alchemist/index.html','⚖️','Decision Tools')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/alchemist.html','⚖️','Decision Tools')">Open Tool →</button>
       </div>
-      <div class="build-card" data-a="blue" onclick="openModal('/app-generator/index.html','🔧','Custom Web Apps')" role="button" tabindex="0">
+      <div class="build-card" data-a="blue" onclick="openModal('/app-generator.html','🔧','Custom Web Apps')" role="button" tabindex="0">
         <div class="build-card-arr">↗</div><div class="build-card-icon">🔧</div>
         <div class="build-card-title">Custom Web Apps</div>
         <div class="build-card-desc">Turn simple ideas into working web tools. Describe what you need and the generator builds it on the spot.</div>
-        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/app-generator/index.html','🔧','Custom Web Apps')">Open Tool →</button>
+        <button class="build-card-cta" onclick="event.stopPropagation();openModal('/app-generator.html','🔧','Custom Web Apps')">Open Tool →</button>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="audience-routing">
+  <div class="ar-head">
+    <div class="build-eyebrow">Audience Routing</div>
+    <h2 class="build-h2">Choose your <em>starting room</em></h2>
+    <p class="build-sub">New here? Start with the path closest to your goal. You can always return to the full ecosystem after first success.</p>
+  </div>
+  <div class="ar-grid">
+    <div class="ar-card" onclick="document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'})" role="button" tabindex="0"><div class="ar-k">Founder</div><div class="ar-t">Strategy & 1:1</div><div class="ar-d">Go to founder workflows, decision briefing, and session routes.</div></div>
+    <div class="ar-card" onclick="document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'})" role="button" tabindex="0"><div class="ar-k">Buyer</div><div class="ar-t">Commerce Decisions</div><div class="ar-d">Start with ONDC demo, deals, and cashback decision modules.</div></div>
+    <div class="ar-card" onclick="document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'})" role="button" tabindex="0"><div class="ar-k">Student</div><div class="ar-t">Research & Study</div><div class="ar-d">Use StudyOS, Student Research, and structured prompt tools.</div></div>
+    <div class="ar-card" onclick="document.getElementById('cat-finance').scrollIntoView({behavior:'smooth'})" role="button" tabindex="0"><div class="ar-k">MSME</div><div class="ar-t">Finance & Sales</div><div class="ar-d">Open FinTrack and sales dashboard for immediate business visibility.</div></div>
+    <div class="ar-card" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})" role="button" tabindex="0"><div class="ar-k">Research User</div><div class="ar-t">Framework Library</div><div class="ar-d">Browse explainers, policy pieces, and decision frameworks.</div></div>
   </div>
 </section>
 
@@ -783,12 +861,13 @@ section{position:relative;z-index:10}
   var bInput=document.getElementById('build-search-input'),bGo=document.getElementById('build-search-go');
   if(!bInput||!bGo)return;
   var routes=[
-    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('/interview-prep/index.html','🎤','Interview Simulator');}},
-    {kw:['sales','revenue','units','product','register','csv','excel','chart','kpi'],fn:function(){openModal('/sales-dashboard/index.html','📊','Sales Dashboard');}},
-    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website');}},
-    {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard');}},
-    {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('/alchemist/index.html','⚖️','Decision Tools');}},
-    {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('/app-generator/index.html','🔧','Custom Web Apps');}},
+    {kw:['interview','job','practice','chat','hr','career','mock'],fn:function(){openModal('/interview-prep.html','🎤','Interview Simulator');}},
+    {kw:['sales','revenue','units','product','register','csv','excel','chart','kpi'],fn:function(){openModal('/sales-dashboard.html','📊','Sales Dashboard');}},
+    {kw:['restaurant','food','menu','cafe','dining','hotel','contact'],fn:function(){openModal('/Jalaram-food-court-rajkot.html','🍽️','Restaurant Website');}},
+    {kw:['finance','fintrack','profit','loss','pnl','expense','cashflow','budget','msme','gst','income'],fn:function(){openModal('/finance-dashboard-msme.html','💰','Finance Dashboard');}},
+    {kw:['decide','decision','compare','alchemist','choice','product','research'],fn:function(){openModal('/alchemist.html','⚖️','Decision Tools');}},
+    {kw:['app','build','generate','custom','web','tool','create','make','idea'],fn:function(){openModal('/app-generator.html','🔧','Custom Web Apps');}},
+    {kw:['skillhex','mission','control','kada','interview','hex'],fn:function(){openModal('/apps/skillhex/index.html','🧩','SkillHex Mission Control');}},
   ];
   function runBuildSearch(q){if(!q)return;var lq=q.toLowerCase();var best=null,top=0;routes.forEach(function(r){var sc=r.kw.reduce(function(acc,k){return acc+(lq.includes(k)?1:0);},0);if(sc>top){top=sc;best=r;}});if(best&&top>0)best.fn();else{var el=document.getElementById('cat-tools');if(el)el.scrollIntoView({behavior:'smooth'});}}
   bGo.addEventListener('click',function(){runBuildSearch(bInput.value.trim());});
@@ -847,24 +926,44 @@ section{position:relative;z-index:10}
   </div>
 </section>
 
+<section id="gpt-beta" style="padding:4.5rem 0;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:linear-gradient(180deg,rgba(15,21,36,.6),rgba(15,21,36,.92));position:relative;z-index:10">
+  <div class="cat-inner" style="max-width:960px">
+    <div style="display:flex;justify-content:space-between;gap:1.25rem;flex-wrap:wrap;align-items:flex-end">
+      <div>
+        <div style="font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tx3);display:flex;align-items:center;gap:.5rem;margin-bottom:.9rem"><span style="display:block;width:26px;height:1px;background:var(--gold2)"></span>GPT Private Beta</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.2rem);line-height:.96;font-weight:500;letter-spacing:-.02em;margin:0 0 .8rem">Option A Access: <em style="color:var(--gold)">Email Verified</em></h2>
+        <p style="max-width:680px;color:var(--tx2);font-size:.95rem;line-height:1.7;margin:0">We are rolling out a secure API-wrapped GPT experience where access is unlocked only after email verification. Request beta access by emailing <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8befe3eaf9eae6cbfde2eaefeee8e2efeea5e8e4e6">[email&#160;protected]</a></strong>.</p>
+      </div>
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+        <a class="btn-p" href="/cdn-cgi/l/email-protection#b8dcd0d9cad9d5f8ced1d9dcdddbd1dcdd96dbd7d587cbcddad2dddbcc85eed1d9fcdddbd1dcdd9d8a88ffe8ec9d8a88faddccd99d8a88f9dbdbddcbcb9edad7dcc185f0d19d8a88fcd0d9cad9d5949d88f99d88f9e8d4ddd9cbdd9d8a88d9dcdc9d8a88d5dd9d8a88ccd79d8a88ccd0dd9d8a88eed1d9fcdddbd1dcdd9d8a88ffe8ec9d8a88c8cad1ced9ccdd9d8a88daddccd9969d88f99d88f9f5c19d8a88dcddccd9d1d4cb829d88f9959d8a88f6d9d5dd829d88f9959d8a88edcbdd9d8a88dbd9cbdd829d88f9959d8a88fdc0c8dddbccdddc9d8a88cdcbd9dfdd829d88f9" style="font-size:.9rem;padding:.82rem 1.45rem;text-decoration:none">Request Beta Access ✉️</a>
+        <a class="btn-g" href="/contact" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0" style="font-size:.9rem;padding:.82rem 1.2rem;text-decoration:none">Contact Team</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="footer-cta">
   <div class="footer-inner">
     <div class="footer-eye">Ready to decide smarter?</div>
     <h2 class="footer-h2">Start with clarity.<em>Not confusion.</em></h2>
     <p class="footer-sub">Every ViaDecide tool is free to try. No signup required for most modules.</p>
     <div class="footer-acts">
-      <button class="btn-p" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
-      <button class="btn-g" onclick="openModal('/alchemist/index.html','✨','Alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
-      <button class="btn-fi" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
-      <button class="btn-g" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
+      <button class="btn-p" onclick="openModal('/ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
+      <button class="btn-g" onclick="window.VDRouter?VDRouter.go('alchemist'):location.assign('/alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
+      <button class="btn-fi" onclick="openModal('/finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
+      <button class="btn-g" onclick="openModal('/sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
+      <button class="btn-p" onclick="openModal('/ONDC-demo.html','🛒','ONDC Demo')" style="font-size:.95rem;padding:.95rem 2rem">Try ONDC Demo ↗</button>
+      <button class="btn-g" onclick="window.VDRouter?VDRouter.go('alchemist'):location.assign('/alchemist')" style="font-size:.95rem;padding:.95rem 2rem">Open Alchemist</button>
+      <button class="btn-fi" onclick="openModal('/finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" style="font-size:.95rem;padding:.95rem 2rem">💰 FinTrack Dashboard</button>
+      <button class="btn-g" onclick="openModal('/sales-dashboard.html','📊','MSME Sales Register')" style="font-size:.95rem;padding:.95rem 2rem">📊 Sales Register</button>
     </div>
     <div class="footer-links">
-      <a href="/contact.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
-      <a href="/privacy.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
-      <a href="/terms.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
+      <a href="/contact" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('contact',{overlay:true})}" role="button" tabindex="0">Contact</a>
+      <a href="/privacy" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('privacy',{overlay:true})}" role="button" tabindex="0">Privacy</a>
+      <a href="/terms" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('terms',{overlay:true})}" role="button" tabindex="0">Terms</a>
       <a href="https://www.youtube.com/@decide.engine" target="_blank">YouTube</a>
       <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
-      <a href="/founder.html" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
+      <a href="/founder" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
       <span>· © 2025–2026 ViaDecide · Amazon Associates IN (decideengine-21)</span>
     </div>
   </div>
@@ -906,7 +1005,7 @@ section{position:relative;z-index:10}
     <div id="modal-top">
       <div class="m-title-wrap"><span class="m-t-icon" id="m-icon">🔬</span><span class="m-t-name" id="m-name">Tool</span></div>
       <div class="m-acts">
-        <a id="m-tab" href="#" target="_blank" class="m-act">↗ Open in Tab</a>
+        <a id="m-tab" href="#" class="m-act">↗ Open Page</a>
         <button id="modal-close" onclick="closeModal()">✕</button>
       </div>
     </div>
@@ -915,14 +1014,14 @@ section{position:relative;z-index:10}
       <div class="err-icon">🔒</div>
       <h3>Can't load in iframe</h3>
       <p>This page has security restrictions that prevent embedding. Open it in a new tab instead.</p>
-      <a id="err-open-link" href="#" target="_blank" class="err-btn">Open in New Tab ↗</a>
+      <a id="err-open-link" href="#" class="err-btn">Open Page ↗</a>
     </div>
     <iframe id="modal-frame" src="about:blank" allowfullscreen
       sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ============================================================
    TAP HIGHLIGHT SAFETY PATCH
    Passive touchstart listener — prevents iOS Safari from
@@ -1069,14 +1168,38 @@ function normalizeInternalPath(file) {
   return file.replace(/^\/+/, '');
 }
 
-function deriveSlug(file) {
-  if (!file) return '';
-  return file
-    .replace(/\.html?$/i, '')   // strip .html / .htm
-    .replace(/\/index$/i, '')   // strip trailing /index
-    .replace(/^\/+/, '')        // strip leading slashes
-    .split('/')[0]              // take only first path segment (the slug)
-    .toLowerCase();             // normalise case
+function getRouteCandidates(file) {
+  const normalizedPath = normalizeInternalPath(file);
+  const clean = normalizedPath.replace(/^\/+/, '');
+  const noHtml = clean.replace(/\.html?$/i, '');
+  const noIndexHtml = clean.replace(/\/index\.html?$/i, '');
+  const noIndex = clean.replace(/\/index$/i, '');
+  const firstSeg = noHtml.split('/')[0] || '';
+  const leaf = noHtml.split('/').pop() || '';
+
+  return [
+    clean.toLowerCase(),
+    noHtml.toLowerCase(),
+    noIndexHtml.toLowerCase(),
+    noIndex.toLowerCase(),
+    firstSeg.toLowerCase(),
+    leaf.toLowerCase()
+  ].filter(Boolean);
+}
+
+function resolveModalFile(file) {
+  const normalizedPath = normalizeInternalPath(file);
+  if (!window.VDRouter || typeof window.VDRouter.resolve !== 'function' || typeof window.VDRouter.routes !== 'function') {
+    return normalizedPath;
+  }
+
+  const table = window.VDRouter.routes() || {};
+  const candidates = getRouteCandidates(file);
+  for (const key of candidates) {
+    if (table[key]) return window.VDRouter.resolve(key);
+  }
+
+  return normalizedPath;
 }
 
 function openModal(file, icon, name) {
@@ -1086,20 +1209,15 @@ function openModal(file, icon, name) {
     return;
   }
 
-  const normalizedPath = normalizeInternalPath(file);
-  const slug = deriveSlug(file);
+  const resolvedFile = resolveModalFile(file);
 
   // ── VDRouter path (preferred — router v2 always has openOverlay) ──
   if (window.VDRouter && typeof window.VDRouter.openOverlay === 'function') {
-    const resolvedFile = (window.VDRouter.resolve ? window.VDRouter.resolve(slug) : null) || normalizedPath;
-    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + '\u2009' : '') + (name || '') });
+    window.VDRouter.openOverlay(resolvedFile, { title: (icon ? icon + ' ' : '') + (name || '') });
     return;
   }
 
   // ── Iframe fallback ──
-  const resolvedFile = (window.VDRouter && window.VDRouter.resolve)
-    ? (window.VDRouter.resolve(slug) || normalizedPath)
-    : normalizedPath;
   _modalSetup(resolvedFile, icon, name);
 }
 
@@ -1128,7 +1246,7 @@ function _modalSetup(file, icon, name) {
 
   if (frame) {
     frame.style.display = 'block';
-    frame.src = '';
+    frame.src = 'about:blank'; // FIXED: '' resolves to parent URL → SW caches bad redirect → iframe broken-doc icon
     setTimeout(() => { frame.src = normalizedPath; }, 80); // 80ms — prevents blank/flicker
   }
   document.getElementById('modal').classList.add('open');
@@ -1205,21 +1323,43 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
   function txt(el){return(el&&el.textContent||'').trim();}
   function parseOpenModal(oc){const m=(oc||'').match(/openModal\('([^']+)','([^']*)','([^']*)'\)/);if(!m)return null;return{type:'modal',file:m[1],icon:m[2],name:m[3]};}
   function parseLocHref(oc){const m=(oc||'').match(/location\.href='([^']+)'/);if(!m)return null;return{type:'nav',file:m[1],icon:'↗',name:m[1]};}
-  const INDEX=Array.from(document.querySelectorAll('.tc')).map(card=>{
-    const oc=card.getAttribute('onclick')||'';
-    const tgt=parseOpenModal(oc)||parseLocHref(oc);
-    if(!tgt)return null;
-    const title=txt(card.querySelector('.tc-name-lg'))||txt(card.querySelector('.tc-name'))||tgt.name;
-    const desc=txt(card.querySelector('.tc-desc-lg'))||txt(card.querySelector('.tc-desc'))||'';
-    return{title,desc,cat:norm(card.dataset.cat),orbit:norm(card.dataset.orbit),intent:norm(card.dataset.intent),...tgt};
-  }).filter(Boolean);
+  function parseGoSlug(oc){const m=(oc||'').match(/VDRouter\.go\('([^']+)'/);if(!m)return null;const slug=m[1];return{type:'route',slug,icon:'↗',name:slug};}
+  function buildIndex(){
+    const selectors = '.tc, .pt-card[onclick], .build-card[onclick]';
+    return Array.from(document.querySelectorAll(selectors)).map(card=>{
+      const oc=card.getAttribute('onclick')||'';
+      const tgt=parseOpenModal(oc)||parseGoSlug(oc)||parseLocHref(oc);
+      if(!tgt)return null;
+      // For pt-card / build-card, title comes from .pt-name / .build-card-title or falls back to tgt.name
+      const title=
+        txt(card.querySelector('.tc-name-lg'))||
+        txt(card.querySelector('.tc-name'))||
+        txt(card.querySelector('.pt-name'))||
+        txt(card.querySelector('.build-card-title'))||
+        tgt.name;
+      const desc=
+        txt(card.querySelector('.tc-desc-lg'))||
+        txt(card.querySelector('.tc-desc'))||
+        txt(card.querySelector('.pt-desc'))||
+        txt(card.querySelector('.build-card-sub'))||'';
+      const cat=norm(card.dataset.cat||card.closest('[data-cat]')?.dataset.cat||'');
+      const orbit=norm(card.dataset.orbit||'');
+      const intent=norm(card.dataset.intent||'');
+      return{title,desc,cat,orbit,intent,...tgt};
+    }).filter(Boolean).reduce((acc,it)=>{
+      const k=`${it.type}|${it.slug||it.file}|${norm(it.title)}`;
+      if(!acc.seen.has(k)){acc.seen.add(k);acc.items.push(it);} 
+      return acc;
+    },{seen:new Set(),items:[]}).items;
+  }
+  let INDEX=[];
   function tokenScore(q,str){if(!str)return 0;let s=0;if(str===q)s+=80;if(str.includes(q))s+=40;q.split(/\s+/).filter(Boolean).forEach(p=>{if(str.includes(p))s+=10;});return s;}
   function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,norm(item.intent))*.7;s+=tokenScore(qq,norm(item.orbit))*.8;s+=tokenScore(qq,norm(item.cat))*.3;return s;}
   let results=[],active=-1;
   function hideSuggest(){suggest.style.display='none';suggest.innerHTML='';results=[];active=-1;}
   function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row${i===active?' active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
-  function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
-  function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal')openModal(item.file,item.icon,item.title);else location.href=item.file;}
+  function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}if(!INDEX.length)INDEX=buildIndex();results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
+  function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal'){openModal(item.file,item.icon,item.name||item.title);return;}if(item.type==='route'&&window.VDRouter){window.VDRouter.go(item.slug);return;}location.href=item.file;}
   function fallbackScroll(q){
     const lv=(q||'').toLowerCase();
     if(/finance|fintrack|cashflow|profit|loss|pnl|income|expense|gst|transaction|ledger|accounting|msme|dashboard|kpi|revenue|budget|invoice|payroll|inventory|stock/i.test(lv))
@@ -1228,10 +1368,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
     else if(/deal|price|buy|ondc|cashback|discount/i.test(lv))document.getElementById('cat-commerce').scrollIntoView({behavior:'smooth'});
     else if(/print|plate|keychain|gift|store/i.test(lv))document.getElementById('cat-store').scrollIntoView({behavior:'smooth'});
     else if(/blog|article|read|guide|learn/i.test(lv))document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'});
+    else if(/audio|podcast|spotify|episode|track/i.test(lv))document.getElementById('cat-audio').scrollIntoView({behavior:'smooth'});
     else if(/service|hire|license|cohort/i.test(lv))document.getElementById('cat-services').scrollIntoView({behavior:'smooth'});
     else if(/personal|ashok|founder|1:1|session|coaching|brand/i.test(lv))document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'});
     else document.getElementById('cat-tools').scrollIntoView({behavior:'smooth'});
   }
+  window.addEventListener('load',()=>{INDEX=buildIndex();});
   input.addEventListener('input',doSearch);
   input.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'&&results.length){e.preventDefault();active=Math.min(results.length-1,active+1);render();}
@@ -1242,7 +1384,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
   go.addEventListener('click',()=>{if(results.length)openItem(results[0]);else fallbackScroll(input.value);});
   suggest.addEventListener('click',e=>{const row=e.target.closest('.orb-row');if(!row)return;openItem(results[Number(row.dataset.i)]);});
   document.addEventListener('mousedown',e=>{const wrap=document.getElementById('orb-wrap');if(!wrap)return;if(!wrap.contains(e.target))hideSuggest();});
-  input.addEventListener('blur',()=>setTimeout(hideSuggest,120));
+  input.addEventListener('blur',()=>{const delay=window.matchMedia('(pointer:coarse)').matches?300:120;setTimeout(hideSuggest,delay);});
 })();
 
 /* PWA */
@@ -1298,7 +1440,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   });
 
   // 2. Prefetch on hover — for all clickable cards and nav chips
-  //    Extracts the file from onclick="openModal('/file.html',...)" or VDRouter.go('slug')
+  //    Extracts the file from onclick="openModal('/index.html',...)" or VDRouter.go('slug')
   function prefetchFromEl(el){
     var oc = el.getAttribute('onclick') || '';
     var m  = oc.match(/openModal\('([^']+)'/);
@@ -1412,63 +1554,73 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
     <div class="pt-rule"></div>
     <div class="pt-grid" id="pt-grid">
-      <div class="pt-card pt-card--wip" data-c="teal" onclick="openModal('/interview-prep/index.html','🎤','Interview Simulator')" role="button" tabindex="0">
+      <div class="pt-card" data-c="teal" onclick="openModal('/interview-prep.html','🎤','Interview Simulator')" role="button" tabindex="0">
         <div class="pt-num">01</div>
         <div class="pt-icon-row"><div class="pt-icon">🎤</div><span class="pt-pill">Simulator</span></div>
         <div class="pt-name">Interview Simulator</div>
         <div class="pt-desc">Practice job interviews with a chat-style simulator. Get realistic questions, instant feedback, and build confidence before the real thing.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/interview-prep/index.html','🎤','Interview Simulator')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/interview-prep.html','🎤','Interview Simulator')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="gold" onclick="openModal('/sales-dashboard/index.html','📊','Sales Dashboard')" role="button" tabindex="0">
+      <div class="pt-card" data-c="gold" onclick="openModal('/sales-dashboard.html','📊','Sales Dashboard')" role="button" tabindex="0">
         <div class="pt-num">02</div>
         <div class="pt-icon-row"><div class="pt-icon">📊</div><span class="pt-pill">Dashboard</span></div>
         <div class="pt-name">Sales Dashboard</div>
         <div class="pt-desc">Track revenue and visualize business performance. Upload a CSV or enter data manually for instant KPIs, pivot tables, and trend charts.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/sales-dashboard/index.html','📊','Sales Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/sales-dashboard.html','📊','Sales Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="orange" onclick="openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website Builder')" role="button" tabindex="0">
+      <div class="pt-card" data-c="orange" onclick="openModal('/Jalaram-food-court-rajkot.html','🍽️','Restaurant Website Builder')" role="button" tabindex="0">
         <div class="pt-num">03</div>
         <div class="pt-icon-row"><div class="pt-icon">🍽️</div><span class="pt-pill">Builder</span></div>
         <div class="pt-name">Restaurant Website Builder</div>
         <div class="pt-desc">Create a restaurant website with menu, gallery and WhatsApp ordering. Live example: Jalaram Food Court, Rajkot.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/Jalaram-food-court-rajkot/index.html','🍽️','Restaurant Website Builder')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/Jalaram-food-court-rajkot.html','🍽️','Restaurant Website Builder')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="green" onclick="openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')" role="button" tabindex="0">
+      <div class="pt-card" data-c="green" onclick="openModal('/finance-dashboard-msme.html','💰','Finance Dashboard')" role="button" tabindex="0">
         <div class="pt-num">04</div>
         <div class="pt-icon-row"><div class="pt-icon">💰</div><span class="pt-pill">Finance</span></div>
         <div class="pt-name">Finance Dashboard</div>
         <div class="pt-desc">Visualize expenses, profit and cash flow with interactive P&amp;L charts, budget vs actual breakdowns, and Indian FY filters.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/finance-dashboard-msme/index.html','💰','Finance Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/finance-dashboard-msme.html','💰','Finance Dashboard')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="purple" onclick="openModal('/alchemist/index.html','⚖️','Decision Tool')" role="button" tabindex="0">
+      <div class="pt-card" data-c="purple" onclick="openModal('/alchemist.html','⚖️','Decision Tool')" role="button" tabindex="0">
         <div class="pt-num">05</div>
         <div class="pt-icon-row"><div class="pt-icon">⚖️</div><span class="pt-pill">Decision</span></div>
         <div class="pt-name">Decision Tool</div>
         <div class="pt-desc">Compare products and evaluate buying decisions. AI-powered structured frameworks surface clarity from complex, high-stakes choices.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/alchemist/index.html','⚖️','Decision Tool')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/alchemist.html','⚖️','Decision Tool')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
-      <div class="pt-card" data-c="blue" onclick="openModal('/app-generator/index.html','🔧','Custom Web App Generator')" role="button" tabindex="0">
+      <div class="pt-card" data-c="blue" onclick="openModal('/app-generator.html','🔧','Custom Web App Generator')" role="button" tabindex="0">
         <div class="pt-num">06</div>
         <div class="pt-icon-row"><div class="pt-icon">🔧</div><span class="pt-pill">Generator</span></div>
         <div class="pt-name">Custom Web App Generator</div>
         <div class="pt-desc">Turn simple ideas into working web tools. Describe what you need and the engine generates a fully functional app on the spot.</div>
         <div class="pt-footer-row">
-          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/app-generator/index.html','🔧','Custom Web App Generator')">Open Tool <span class="cta-arrow">→</span></button>
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/app-generator.html','🔧','Custom Web App Generator')">Open Tool <span class="cta-arrow">→</span></button>
+          <span class="pt-badge pt-badge--live">● Live</span>
+        </div>
+      </div>
+      <div class="pt-card" data-c="gold" onclick="openModal('/agent.html','🤖','ViaDecide Agent')" role="button" tabindex="0">
+        <div class="pt-num">07</div>
+        <div class="pt-icon-row"><div class="pt-icon">🤖</div><span class="pt-pill">Agent</span></div>
+        <div class="pt-name">ViaDecide Agent</div>
+        <div class="pt-desc">AI-powered site assistant. Chat, plan tasks, and navigate ViaDecide tools — all from one widget. Ask it anything.</div>
+        <div class="pt-footer-row">
+          <button class="pt-card-cta" onclick="event.stopPropagation();openModal('/agent.html','🤖','ViaDecide Agent')">Open Tool <span class="cta-arrow">→</span></button>
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
@@ -1489,27 +1641,36 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 })();
 </script>
 
+<section id="ecosystem-intro">
+  <div class="eco-head">
+    <h2>Explore the full ViaDecide ecosystem</h2>
+    <p>Once you’ve picked a starting path, use the full category catalog below. Every section is a different room in the same decision home.</p>
+    <div class="eco-pills">
+      <span class="eco-pill">Decision Tools</span><span class="eco-pill">Commerce</span><span class="eco-pill">Simulations</span><span class="eco-pill">Services</span><span class="eco-pill">Store</span><span class="eco-pill">Blog</span><span class="eco-pill">Finance</span><span class="eco-pill">Personal</span><span class="eco-pill">Audio</span>
+    </div>
+  </div>
+</section>
+
 <section id="cat-tools" data-cat="tools" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">01</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Decision Tools</span></div><p class="cat-desc">AI-powered instruments to structure your thinking, build prompts, and decide with clarity.</p></div></div>
-      <button class="cat-cta" onclick="openModal('/alchemist/index.html','✨','Alchemist')">Try Alchemist ✨</button>
+      <button class="cat-cta" onclick="window.VDRouter?VDRouter.go('alchemist'):location.assign('/alchemist')">Try Alchemist ✨</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="openModal('/alchemist/index.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/memory/index.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/prompt-alchemy/index.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s5" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
-      <div class="tc tc-s4" onclick="openModal('/app-generator/index.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/ViaGuide/index.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/StudyOS/index.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
-      <div class="tc tc-s3" onclick="openModal('/brief/index.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/student-research/index.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('agent'):location.href='/agent.html'" data-cat="tools" data-orbit="agent" data-intent="agent,ai,chat,assistant,decision,guide" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✦</span><div class="tc-name">ViaDecide Agent</div><div class="tc-desc">AI-powered site assistant. Chat, plan tasks, and navigate ViaDecide tools in one widget.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="window.VDRouter?VDRouter.go('swipeos'):location.href='/SwipeOS.html'" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,product,decision" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st beta">◆ Beta</div></div>
+      <div class="tc tc-feat tc-s8" onclick="openModal('/alchemist.html','✨','Alchemist')" data-cat="tools" data-orbit="alchemist" data-intent="decide,compare,choose" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis">✨</div><div class="tc-name-lg">Alchemist</div><div class="tc-desc-lg">Transform fuzzy requirements into structured decisions. AI-powered clarity for complex, high-stakes choices.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/memory.html','🧠','Memory Engine')" data-cat="tools" data-orbit="memory" data-intent="history,remember,past" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Memory Engine</div><div class="tc-desc">Persistent decision history. Past choices inform your next ones.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/prompt-alchemy.html','⚗️','Prompt Alchemy')" data-cat="tools" data-orbit="prompt-alchemy" data-intent="prompt,ai,write,craft" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚗️</span><div class="tc-name">Prompt Alchemy</div><div class="tc-desc">Craft perfect AI prompts with structured frameworks and live preview.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s5" onclick="openModal('/sales-dashboard.html','📊','MSME Sales Dashboard')" data-cat="tools" data-orbit="sales-dashboard" data-intent="sales,msme,register,dashboard,csv,excel,pivot,chart,revenue,india" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(79,127,255,.05));border-color:rgba(200,147,42,.18);"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.14),rgba(34,180,160,.1))">📊<svg width="100" height="36" viewBox="0 0 100 36" fill="none" style="position:absolute;bottom:8px;right:10px;opacity:.45"><rect x="0" y="20" width="12" height="16" rx="2" fill="#4f7fff"/><rect x="15" y="10" width="12" height="26" rx="2" fill="#22d3a5"/><rect x="30" y="14" width="12" height="22" rx="2" fill="#c8932a"/><rect x="45" y="6" width="12" height="30" rx="2" fill="#4f7fff"/><rect x="60" y="16" width="12" height="20" rx="2" fill="#22d3a5"/><rect x="75" y="4" width="12" height="32" rx="2" fill="#c8932a"/></svg></div><div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Dashboard</div><div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload CSV/XLSX for instant KPIs, pivot tables, and charts.</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem"><div class="tc-st msme">📈 CSV / XLSX Upload</div><div class="tc-st live">● Live</div></div></div>
+      <div class="tc tc-s4" onclick="openModal('/app-generator.html','🔧','App Generator')" data-cat="tools" data-orbit="app-generator" data-intent="build,generate,app,custom" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔧</span><div class="tc-name">App Generator</div><div class="tc-desc">Generate custom decision apps from requirements on the fly.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/ViaGuide.html','📚','ViaGuide')" data-cat="tools" data-orbit="viaguide" data-intent="guide,buy,buying,recommend" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📚</span><div class="tc-name">ViaGuide</div><div class="tc-desc">Structured buying guides with transparent affiliate disclosures.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/StudyOS.html','📖','StudyOS')" data-cat="tools" data-orbit="studyos" data-intent="study,research,student,learn" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📖</span><div class="tc-name">StudyOS</div><div class="tc-desc">Smart student research OS with structured learning pathways.</div><div class="tc-st beta">◆ Beta</div></div>
+      <div class="tc tc-s3" onclick="openModal('/brief.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/student-research.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/agent.html','🤖','ViaDecide Agent')" data-cat="tools" data-orbit="agent" data-intent="agent,ai,chat,assistant,decision,guide" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✦</span><div class="tc-name">ViaDecide Agent</div><div class="tc-desc">AI-powered site assistant. Chat, plan tasks, and navigate ViaDecide tools in one widget.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/SwipeOS.html','👆','SwipeOS')" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,product,decision" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st beta">◆ Beta</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st wip">◌ Coming</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📡</span><div class="tc-name">Opportunity Radar</div><div class="tc-desc">Scan and surface high-signal opportunities in your market or niche.</div><div class="tc-st wip">◌ Coming</div></div>
-      <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">🔎</span><div class="tc-name">Reality Check</div><div class="tc-desc">Pressure-test your assumptions before committing to a decision.</div><div class="tc-st wip">◌ Coming</div></div>
     </div>
   </div>
 </section>
@@ -1518,7 +1679,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">02</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Commerce & Deals</span></div><p class="cat-desc">India's open commerce layer — real prices, real sellers, real cashback.</p></div></div>
-      <button class="cat-cta" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
+      <button class="cat-cta" onclick="openModal('/ONDC-demo.html','🛒','ONDC Live Demo')">Launch ONDC ↗</button>
     </div>
     <div class="ondc-strip">
       <div class="ondc-l">
@@ -1526,7 +1687,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         <h3>The future of commerce<br>is <em>open.</em></h3>
         <p>A live, working ONDC integration — discover real products from real sellers on the open network.</p>
         <div class="feat-tags"><span class="feat-tag">Live Seller Data</span><span class="feat-tag">Real-time Discovery</span><span class="feat-tag">ONDC Protocol</span><span class="feat-tag">Made in India 🇮🇳</span></div>
-        <button class="btn-t" onclick="openModal('/ONDC-demo/index.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
+        <button class="btn-t" onclick="openModal('/ONDC-demo.html','🛒','ONDC Demo')">Launch ONDC Demo ↗</button>
       </div>
       <div class="mockup">
         <div class="mockup-hd"><div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div><div class="m-title">ONDC · Live Feed</div></div>
@@ -1536,10 +1697,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       </div>
     </div>
     <div class="bento" style="margin-top:1.2rem">
-      <div class="tc tc-s4" onclick="openModal('/engine-deals/index.html','🤝','Engine Deals')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🤝</span><div class="tc-name">Engine Deals</div><div class="tc-desc">AI-scored product comparisons with live Amazon pricing.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/discounts/index.html','🏷️','Discounts Hub')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏷️</span><div class="tc-name">Discounts Hub</div><div class="tc-desc">Verified cashback offers and deals curated for Indian buyers.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/cashback-rules/index.html','💸','Cashback Rules')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💸</span><div class="tc-name">Cashback Rules</div><div class="tc-desc">Understand exactly how to maximize bank cashback.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/cashback-claim/index.html','🧾','Cashback Claim')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧾</span><div class="tc-name">Cashback Claim</div><div class="tc-desc">Track and file your cashback claims with step-by-step guidance.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/engine-deals.html','🤝','Engine Deals')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🤝</span><div class="tc-name">Engine Deals</div><div class="tc-desc">AI-scored product comparisons with live Amazon pricing.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/discounts.html','🏷️','Discounts Hub')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏷️</span><div class="tc-name">Discounts Hub</div><div class="tc-desc">Verified cashback offers and deals curated for Indian buyers.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/cashback-rules.html','💸','Cashback Rules')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💸</span><div class="tc-name">Cashback Rules</div><div class="tc-desc">Understand exactly how to maximize bank cashback.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/cashback-claim.html','🧾','Cashback Claim')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧾</span><div class="tc-name">Cashback Claim</div><div class="tc-desc">Track and file your cashback claims with step-by-step guidance.</div><div class="tc-st live">● Live</div></div>
     </div>
   </div>
 </section>
@@ -1550,10 +1711,12 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="cat-header-l"><div class="cat-num">03</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Simulations & Games</span></div><p class="cat-desc">Decision-making at play. Strategy games and immersive sims.</p></div></div>
     </div>
     <div class="bento">
-      <div class="tc tc-s4" onclick="openModal('/HexWars/index.html','⬡','HexWars')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
-      <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game/index.html','🚀','Mars Rover Simulator')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="openModal('/HivaLand/index.html','🌍','HivaLand')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/HexWars.html','⬡','HexWars')" data-cat="games" data-orbit="hexwars" data-intent="hex,strategy,conquest,territory,war,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⬡</span><div class="tc-name">HexWars</div><div class="tc-desc">Strategic hex-grid conquest. Tactical thinking meets territory control.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/apps/skillhex/index.html','🧩','SkillHex Mission Control')" data-cat="games" data-orbit="skillhex" data-intent="skillhex,mission,control,kada,interview,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧩</span><div class="tc-name">SkillHex Mission Control</div><div class="tc-desc">Mission timers, KADA wheel interactions, and interview conversion logbook.</div><div class="tc-st live">● Integrated</div></div>
+      <div class="tc tc-s4" onclick="openModal('/mars-rover-simulator-game.html','🚀','Mars Rover Simulator')" data-cat="games" data-orbit="mars-rover-simulator-game" data-intent="mars,rover,simulator,physics,engineering,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Mars Rover</div><div class="tc-desc">Navigate the Martian surface. Real physics simulation meets engineering decisions.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/HivaLand.html','🌍','HivaLand')" data-cat="games" data-orbit="hivaland" data-intent="hivaland,world,building,simulation,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🌍</span><div class="tc-name">HivaLand</div><div class="tc-desc">Immersive world-building decision simulation.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/wings-of-fire-quiz.html','🔥','Wings of Fire')" data-cat="games" data-orbit="wings-of-fire" data-intent="wings,fire,aerial,strategy,skirmish,game" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire</div><div class="tc-desc">Fast-paced aerial strategy skirmish with risk and energy management.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/wings-of-fire-quiz.html','🔥','Wings of Fire Quiz')" data-cat="games" data-orbit="wings-of-fire-quiz" data-intent="wings,fire,quiz,kalam,multiplayer,knowledge,battle" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔥</span><div class="tc-name">Wings of Fire Quiz</div><div class="tc-desc">Multiplayer knowledge battle. Race friends on APJ Abdul Kalam's epic life.</div><div class="tc-st live">● Multiplayer</div></div>
     </div>
   </div>
 </section>
@@ -1562,16 +1725,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">04</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Services</span></div><p class="cat-desc">Real-world offerings — human-assisted decision research, local services, and platform access for builders.</p></div></div>
-      <button class="cat-cta" onclick="openModal('/decide-service/index.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
+      <button class="cat-cta" onclick="openModal('/decide-service.html','🎯','Decide.Service')">Hire Decide.Service ↗</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s6" onclick="openModal('/decide-service/index.html','🎯','Decide.Service')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name-lg">Decide.Service</div><div class="tc-desc-lg">White-glove decision research for complex, high-value purchases.</div><div class="tc-st svc">⊕ Paid Service</div></div>
-      <div class="tc tc-s6" onclick="openModal('/decide-foodrajkot/index.html','🍽️','Decide Food · Rajkot')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🍽️</span><div class="tc-name-lg">Decide Food · Rajkot</div><div class="tc-desc-lg">Zero-commission local food delivery in Rajkot.</div><div class="tc-st svc">⊕ Local Service</div></div>
-      <div class="tc tc-s3" onclick="openModal('/engine-license/index.html','⚙️','Engine License')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚙️</span><div class="tc-name">Engine License</div><div class="tc-desc">White-label the ViaDecide engine for your product.</div><div class="tc-st svc">⊕ License</div></div>
-      <div class="tc tc-s3" onclick="openModal('/cohort-apply-here/index.html','🧪','Cohort Program')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧪</span><div class="tc-name">Cohort Program</div><div class="tc-desc">Join the decide.cohort — structured program for builders.</div><div class="tc-st beta">◆ Apply Now</div></div>
-      <div class="tc tc-s3" onclick="openModal('/CustomSwipeEngineForm/index.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine.</div><div class="tc-st svc">⊕ Custom Build</div></div>
-      <div class="tc tc-s3" onclick="openModal('/pricing/index.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s3" onclick="openModal('/engine-activation-request/index.html','⚡','Engine Activation Request')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚡</span><div class="tc-name">Engine Activation</div><div class="tc-desc">Request access to the ViaDecide decision engine for your platform or product.</div><div class="tc-st svc">⊕ Request</div></div>
+      <div class="tc tc-feat tc-s6" onclick="openModal('/decide-service.html','🎯','Decide.Service')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎯</span><div class="tc-name-lg">Decide.Service</div><div class="tc-desc-lg">White-glove decision research for complex, high-value purchases.</div><div class="tc-st svc">⊕ Paid Service</div></div>
+      <div class="tc tc-s6" onclick="openModal('/decide-foodrajkot.html','🍽️','Decide Food · Rajkot')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🍽️</span><div class="tc-name-lg">Decide Food · Rajkot</div><div class="tc-desc-lg">Zero-commission local food delivery in Rajkot.</div><div class="tc-st svc">⊕ Local Service</div></div>
+      <div class="tc tc-s3" onclick="openModal('/engine-license.html','⚙️','Engine License')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚙️</span><div class="tc-name">Engine License</div><div class="tc-desc">White-label the ViaDecide engine for your product.</div><div class="tc-st svc">⊕ License</div></div>
+      <div class="tc tc-s3" onclick="openModal('/cohort-apply-here.html','🧪','Cohort Program')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧪</span><div class="tc-name">Cohort Program</div><div class="tc-desc">Join the decide.cohort — structured program for builders.</div><div class="tc-st beta">◆ Apply Now</div></div>
+      <div class="tc tc-s3" onclick="openModal('/CustomSwipeEngineForm.html','👆','Custom Swipe Engine')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">Custom Swipe Engine</div><div class="tc-desc">Request a custom swipe-based comparison engine.</div><div class="tc-st svc">⊕ Custom Build</div></div>
+      <div class="tc tc-s3" onclick="openModal('/pricing.html','💰','Pricing')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">💰</span><div class="tc-name">Pricing</div><div class="tc-desc">Transparent tiers for ViaDecide engine access.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3" onclick="openModal('/engine-license.html','⚡','Engine Activation Request')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">⚡</span><div class="tc-name">Engine Activation</div><div class="tc-desc">Request access to the ViaDecide decision engine for your platform or product.</div><div class="tc-st svc">⊕ Request</div></div>
     </div>
   </div>
 </section>
@@ -1580,15 +1743,15 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">05</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Store · PrintByDD</span></div><p class="cat-desc">Custom 3D-printed products. Personalised numberplates, keychains, and gifts.</p></div></div>
-      <a class="cat-cta" href="/printbydd-store/index.html">Open Store ↗</a>
+      <a class="cat-cta" href="/printbydd">Open Store ↗</a>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s4" onclick="window.VDRouter?VDRouter.go('numberplate'):location.href='printbydd-store/numberplate.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('keychain'):location.href='printbydd-store/keychain.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔑</span><div class="tc-name">NFC Keychains</div><div class="tc-desc">Personalised NFC-enabled keychains with custom engraving.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('gifts-that-mean-more'):location.href='printbydd-store/gifts-that-mean-more.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('smarttag-lite'):location.href='printbydd-store/smarttag-lite.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📲</span><div class="tc-name">SmartTag Lite</div><div class="tc-desc">NFC-powered smart tags for instant info sharing — tap to open, no app needed.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('products'):location.href='printbydd-store/products.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🛍️</span><div class="tc-name">All Products</div><div class="tc-desc">Browse the full PrintByDD catalogue — numberplates, keychains, SmartTag Lite and more.</div><div class="tc-st live">● Live</div></div>
-      <div class="tc tc-s4" onclick="window.VDRouter?VDRouter.go('gift-psychology'):location.href='printbydd-store/gift-psychology.html'" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Gift Psychology</div><div class="tc-desc">Why personalised gifts create stronger emotional bonds — the psychology behind meaningful giving.</div><div class="tc-st live">● Article</div></div>
+      <div class="tc tc-feat tc-s4" onclick="openModal('/printbydd-store/numberplate.html','🚗','Numberplates')" data-cat="store" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚗</span><div class="tc-name">Numberplates</div><div class="tc-desc">Custom 2D & 3D-printed vehicle numberplates with real-time 3D preview.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/printbydd-store/keychain.html','🔑','NFC Keychains')" data-cat="store" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔑</span><div class="tc-name">NFC Keychains</div><div class="tc-desc">Personalised NFC-enabled keychains with custom engraving.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/printbydd-store/gifts-that-mean-more.html','🎁','Gifts That Mean More')" data-cat="store" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🎁</span><div class="tc-name">Gifts That Mean More</div><div class="tc-desc">Curated personalised gift experiences.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/printbydd-store/smarttag-lite.html','📲','SmartTag Lite')" data-cat="store" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📲</span><div class="tc-name">SmartTag Lite</div><div class="tc-desc">NFC-powered smart tags for instant info sharing — tap to open, no app needed.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/printbydd-store/products.html','🛍️','All Products')" data-cat="store" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🛍️</span><div class="tc-name">All Products</div><div class="tc-desc">Browse the full PrintByDD catalogue — numberplates, keychains, SmartTag Lite and more.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/printbydd-store/gift-psychology.html','🧠','Gift Psychology')" data-cat="store" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🧠</span><div class="tc-name">Gift Psychology</div><div class="tc-desc">Why personalised gifts create stronger emotional bonds — the psychology behind meaningful giving.</div><div class="tc-st live">● Article</div></div>
     </div>
   </div>
 </section>
@@ -1597,7 +1760,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l"><div class="cat-num">06</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Blog & Content</span></div><p class="cat-desc">Long-form thinking on decisions, commerce, AI, and India's digital future. 9 posts · 2 formats.</p></div></div>
-      <button class="cat-cta" onclick="openModal('/Viadecide-blogs/index.html','✍️','ViaDecide Blogs')">All 9 Posts ↗</button>
+      <button class="cat-cta" onclick="openModal('/Viadecide-blogs.html','✍️','ViaDecide Blogs')">All 9 Posts ↗</button>
     </div>
 
     <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
@@ -1606,7 +1769,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
 
     <div class="bento" style="margin-bottom:1.4rem">
-      <div class="tc tc-feat tc-s8" onclick="openModal('/Viadecide-blogs/index.html','✍️','ViaDecide Research Hub')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(155,109,255,.1),rgba(34,180,160,.05));border-color:rgba(155,109,255,.2)">
+      <div class="tc tc-feat tc-s8" onclick="openModal('/Viadecide-blogs.html','✍️','ViaDecide Research Hub')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(155,109,255,.1),rgba(34,180,160,.05));border-color:rgba(155,109,255,.2)">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(155,109,255,.18),rgba(34,180,160,.1))">✦
           <svg width="110" height="36" viewBox="0 0 110 36" fill="none" style="position:absolute;bottom:6px;right:8px;opacity:.4">
@@ -1625,7 +1788,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <div class="tc tc-s4" onclick="openModal('/the-decision-stack/index.html','📚','The Decision Stack')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(240,112,64,.04));border-color:rgba(200,147,42,.18)">
+      <div class="tc tc-s4" onclick="openModal('/The Decision Stack.html','📚','The Decision Stack')" data-cat="blog" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.08),rgba(240,112,64,.04));border-color:rgba(200,147,42,.18)">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">📚</span>
         <div class="tc-name">The Decision Stack</div>
@@ -1633,7 +1796,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         <div class="tc-st" style="background:rgba(200,147,42,.1);color:var(--gold2)">✦ App-style</div>
       </div>
 
-      <div class="tc tc-s4" onclick="openModal('/why-small-businesses-dont-need-saas/index.html','🏗️','Why Small Businesses Don\'t Need SaaS')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.08),rgba(155,109,255,.04));border-color:rgba(74,144,217,.18)">
+      <div class="tc tc-s4" onclick="openModal('/not-a-saas/index.html','🏗️','Why SMBs Don\'t Need SaaS')" data-cat="blog" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.08),rgba(155,109,255,.04));border-color:rgba(74,144,217,.18)">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🏗️</span>
         <div class="tc-name">Why SMBs Don't Need SaaS</div>
@@ -1656,7 +1819,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     </div>
 
     <div class="bento">
-      <div class="tc tc-feat tc-s6" onclick="openModal('/decision-infrastructure-india/index.html','🏛️','Why India Needs Decision Infrastructure')" role="button" tabindex="0">
+      <div class="tc tc-feat tc-s6" onclick="openModal('/decision-infrastructure-india.html','🏛️','Why India Needs Decision Infrastructure')" role="button" tabindex="0">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🏛️</span>
         <div class="tc-name-lg">Why India Needs Decision Infrastructure</div>
@@ -1668,7 +1831,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <div class="tc tc-s6" onclick="openModal('/ondc-for-bharat/index.html','🇮🇳','ONDC for Bharat')" role="button" tabindex="0">
+      <div class="tc tc-s6" onclick="openModal('/ondc-for-bharat.html','🇮🇳','ONDC for Bharat')" role="button" tabindex="0">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🇮🇳</span>
         <div class="tc-name">ONDC: Open Commerce for Every Indian</div>
@@ -1679,7 +1842,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <div class="tc tc-s4" onclick="openModal('/indiaai-mission-2025/index.html','🤖','IndiaAI Mission 2025')" role="button" tabindex="0">
+      <div class="tc tc-s4" onclick="openModal('/indiaai-mission-2025.html','🤖','IndiaAI Mission 2025')" role="button" tabindex="0">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🤖</span>
         <div class="tc-name">IndiaAI Mission: What It Means for Builders</div>
@@ -1690,7 +1853,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <div class="tc tc-s4" onclick="openModal('/multi-source-research-explained/index.html','🔍','Multi-Source Research')" role="button" tabindex="0">
+      <div class="tc tc-s4" onclick="openModal('/multi-source-research-explained.html','🔍','Multi-Source Research')" role="button" tabindex="0">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">🔍</span>
         <div class="tc-name">Multi-Source Research: 4 Wikis, One Brief</div>
@@ -1701,7 +1864,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <div class="tc tc-s4" onclick="openModal('/decision-brief-guide/index.html','📋','Build a Policy Brief')" role="button" tabindex="0">
+      <div class="tc tc-s4" onclick="openModal('/decision-brief-guide.html','📋','Build a Policy Brief')" role="button" tabindex="0">
         <div class="tc-arr">↗</div>
         <span class="tc-icon">📋</span>
         <div class="tc-name">Build a Policy Brief in 5 Minutes</div>
@@ -1712,10 +1875,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </div>
       </div>
 
-      <div class="tc tc-s4" onclick="openModal('/viadecide-public-beta/index.html','🚀','ViaDecide Public Beta Is Live')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Public Beta Is Live</div><div class="tc-desc">ViaDecide public beta launch — what's shipped, what's next for India's decision engine.</div><div class="tc-st live">● Post</div></div>
-      <div class="tc tc-s4" onclick="openModal('/decision-brief/index.html','🏗️','Decision Architecture')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Architecture</div><div class="tc-desc">The structural framework and principles behind every ViaDecide decision module.</div><div class="tc-st live">● Article</div></div>
+      <div class="tc tc-s4" onclick="openModal('/viadecide-public-beta.html','🚀','ViaDecide Public Beta Is Live')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🚀</span><div class="tc-name">Public Beta Is Live</div><div class="tc-desc">ViaDecide public beta launch — what's shipped, what's next for India's decision engine.</div><div class="tc-st live">● Post</div></div>
+      <div class="tc tc-s4" onclick="openModal('/decision-brief.html','🏗️','Decision Architecture')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🏗️</span><div class="tc-name">Decision Architecture</div><div class="tc-desc">The structural framework and principles behind every ViaDecide decision module.</div><div class="tc-st live">● Article</div></div>
+      <div class="tc tc-s4" onclick="openModal('/audio.log.html','🎙','Audio.Log')" role="button" tabindex="0" style="border-color:rgba(29,185,84,.35);background:linear-gradient(145deg,rgba(29,185,84,.08),rgba(224,255,0,.05));"><div class="tc-arr">↗</div><span class="tc-icon">🎙</span><div class="tc-name">Audio.Log</div><div class="tc-desc">Podcast episodes on Bharat commerce & decision UX.</div><div class="tc-st live" style="color:#1DB954">● Live</div></div>
     </div>
 
+  </div>
+</section>
+
+<section id="cat-audio" data-cat="audio" class="cat-section">
+  <div class="cat-inner">
+    <div class="cat-header">
+      <div class="cat-header-l"><div class="cat-num">07</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Audio.Log</span></div><p class="cat-desc">Podcast episodes on Bharat commerce, decision UX, and builder systems.</p></div></div>
+      <button class="cat-cta" onclick="window.VDRouter?VDRouter.go('audio.log'):location.assign('/audio.log')">Open Audio.Log ↗</button>
+    </div>
+    <div class="bento">
+      <div class="tc tc-feat tc-s8" onclick="openModal('/audio.log.html','🎙','Audio.Log Episodes')" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(29,185,84,.08),rgba(224,255,0,.05));border-color:rgba(29,185,84,.28)"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(29,185,84,.18),rgba(224,255,0,.08))">🎙</div><div class="tc-name-lg">Audio.Log Episodes</div><div class="tc-desc-lg">Watch Spotify-linked episode cards, explore conversion analytics, and compare chaos vs structure UX interactions.</div><div class="tc-st live" style="color:#1DB954">● Live</div></div>
+      <div class="tc tc-s4" onclick="openModal('/audio.log.html','▶','Audio.Log')" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">▶</span><div class="tc-name">Open Subpage</div><div class="tc-desc">Loads media from <code class="allow-select">assets/audio-log/</code> automatically once files are uploaded.</div><div class="tc-st" style="background:rgba(29,185,84,.12);color:#1DB954;border:1px solid rgba(29,185,84,.25)">✓ Media-ready</div></div>
+    </div>
   </div>
 </section>
 
@@ -1723,13 +1900,13 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="cat-inner">
     <div class="cat-header">
       <div class="cat-header-l">
-        <div class="cat-num">07</div>
+        <div class="cat-num">08</div>
         <div class="cat-info">
           <div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Finance & Analytics</span></div>
           <p class="cat-desc">Interactive Excel-style dashboards for Indian MSME businesses. Upload data, get instant insights.</p>
         </div>
       </div>
-      <button class="cat-cta" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
+      <button class="cat-cta" onclick="openModal('/finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Open FinTrack ↗</button>
     </div>
     <div class="finance-strip">
       <div class="fin-l">
@@ -1740,7 +1917,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <span class="fin-tag">₹ INR Native</span><span class="fin-tag">KPI Cards</span><span class="fin-tag">Pivot Tables</span>
           <span class="fin-tag">Budget vs Actual</span><span class="fin-tag">CSV Upload</span><span class="fin-tag">FY Filters 🇮🇳</span>
         </div>
-        <button class="btn-fi" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')">Launch FinTrack Dashboard ↗</button>
+        <button class="btn-fi" onclick="openModal('/finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')">Launch FinTrack Dashboard ↗</button>
       </div>
       <div class="fin-mockup">
         <div class="fin-mockup-hd"><div class="m-dot"></div><div class="m-dot"></div><div class="m-dot"></div><div class="m-title" style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--tx3);margin-left:auto">FinTrack · India MSME</div></div>
@@ -1772,7 +1949,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       </div>
     </div>
     <div class="bento" style="margin-top:1.2rem">
-      <div class="tc tc-feat tc-s8" onclick="openModal('/finance-dashboard-msme/index.html','💰','FinTrack — Finance Dashboard')" data-cat="finance" data-orbit="fintrack" data-intent="finance,fintrack,cashflow,profit,loss,pnl,income,expense,gst,transaction,ledger,accounting,msme,india,dashboard" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(16,185,129,.1),rgba(52,211,153,.04));border-color:rgba(16,185,129,.2);">
+      <div class="tc tc-feat tc-s8" onclick="openModal('/finance-dashboard-msme.html','💰','FinTrack — Finance Dashboard')" data-cat="finance" data-orbit="fintrack" data-intent="finance,fintrack,cashflow,profit,loss,pnl,income,expense,gst,transaction,ledger,accounting,msme,india,dashboard" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(16,185,129,.1),rgba(52,211,153,.04));border-color:rgba(16,185,129,.2);">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(200,147,42,.08))">💰
           <svg width="120" height="38" viewBox="0 0 120 38" fill="none" style="position:absolute;bottom:6px;right:8px;opacity:.5">
@@ -1787,14 +1964,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <div class="tc-st fin">💰 P&L Tracker</div><div class="tc-st fin">📊 Pivot Tables</div><div class="tc-st fin">📈 Charts</div><div class="tc-st live">● Live</div>
         </div>
       </div>
-      <div class="tc tc-s4" onclick="openModal('/sales-dashboard/index.html','📊','MSME Sales Register')" data-cat="finance" data-orbit="sales-register" data-intent="sales,register,msme,csv,excel,pivot,chart,revenue,units,region,product,india,upload" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.09),rgba(16,185,129,.05));border-color:rgba(200,147,42,.2);">
+      <div class="tc tc-s4" onclick="openModal('/sales-dashboard.html','📊','MSME Sales Register')" data-cat="finance" data-orbit="sales-register" data-intent="sales,register,msme,csv,excel,pivot,chart,revenue,units,region,product,india,upload" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(200,147,42,.09),rgba(16,185,129,.05));border-color:rgba(200,147,42,.2);">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,147,42,.16),rgba(16,185,129,.08))">📊</div>
         <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">MSME Sales Register</div>
         <div class="tc-desc" style="font-size:.79rem;color:var(--tx2)">Upload sales CSV or enter manually. Instant KPIs, pivot tables, and charts.</div>
         <div style="display:flex;gap:.4rem;margin-top:.75rem"><div class="tc-st msme">📈 CSV Upload</div><div class="tc-st live">● Live</div></div>
       </div>
-      <div class="tc tc-s4" onclick="openModal('/payment-register/index.html','👥','Payroll Register')" data-cat="finance" data-orbit="payroll-register" data-intent="payroll,salary,register,employee,pf,esi,pt,tds,deductions,payslip,india,msme" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.09),rgba(34,180,160,.05));border-color:rgba(74,144,217,.2);">
+      <div class="tc tc-s4" onclick="openModal('/payment-register.html','👥','Payroll Register')" data-cat="finance" data-orbit="payroll-register" data-intent="payroll,salary,register,employee,pf,esi,pt,tds,deductions,payslip,india,msme" role="button" tabindex="0" style="background:linear-gradient(145deg,rgba(74,144,217,.09),rgba(34,180,160,.05));border-color:rgba(74,144,217,.2);">
         <div class="tc-arr">↗</div>
         <div class="tc-vis" style="background:linear-gradient(135deg,rgba(74,144,217,.16),rgba(34,180,160,.08))">👥</div>
         <div class="tc-name" style="font-size:1rem;font-family:'Cormorant Garamond',serif;font-weight:600">Payroll Register</div>
@@ -1820,17 +1997,16 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 <section id="cat-personal" data-cat="personal" class="cat-section">
   <div class="cat-inner">
     <div class="cat-header">
-      <div class="cat-header-l"><div class="cat-num">08</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Personal Brand</span></div><p class="cat-desc">1:1 sessions, founder story, and direct access to the mind behind ViaDecide.</p></div></div>
-      <button class="cat-cta" onclick="openModal('/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions')">Book a Session ↗</button>
+      <div class="cat-header-l"><div class="cat-num">09</div><div class="cat-info"><div class="cat-label"><div class="cat-dot"></div><span class="cat-name">Personal Brand</span></div><p class="cat-desc">1:1 sessions, founder story, and direct access to the mind behind ViaDecide.</p></div></div>
+      <button class="cat-cta" onclick="openModal('/DharamDaxini.html','🧭','Dharam Daxini · 1:1 Sessions')">Book a Session ↗</button>
     </div>
     <div class="bento">
-      <div class="tc tc-feat tc-s8" onclick="openModal('/DharamDaxini/index.html','🧭','Dharam Daxini · 1:1 Sessions')" data-cat="personal" data-orbit="dharam-daxini" data-intent="book,session,founder,1:1,coaching,strategy,consult,decision,research" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,104,152,.18),rgba(200,147,42,.08))">🧭</div><div class="tc-name-lg">Dharam Daxini · 1:1 Sessions</div><div class="tc-desc-lg">Book a focused 1:1 with the founder. Decision research, strategy coaching, and product clarity for builders and buyers.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">● Discovery Call · Free</span><span style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">⊕ Decision Research · ₹999</span><span style="background:rgba(232,160,48,.12);color:#e8a030;border:1px solid rgba(232,160,48,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">↗ Product Clarity · ₹999</span></div><div class="tc-st" style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25);margin-top:12px">⊕ Book Now</div></div>
-      <div class="tc tc-s4" onclick="openModal('/founder/index.html','👤','Founder')" data-cat="personal" data-orbit="founder" data-intent="founder,story,about,mission" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● About</div></div>
+      <div class="tc tc-feat tc-s8" onclick="openModal('/DharamDaxini.html','🧭','Dharam Daxini · 1:1 Sessions')" data-cat="personal" data-orbit="dharam-daxini" data-intent="book,session,founder,1:1,coaching,strategy,consult,decision,research" role="button" tabindex="0"><div class="tc-arr">↗</div><div class="tc-vis" style="background:linear-gradient(135deg,rgba(200,104,152,.18),rgba(200,147,42,.08))">🧭</div><div class="tc-name-lg">Dharam Daxini · 1:1 Sessions</div><div class="tc-desc-lg">Book a focused 1:1 with the founder. Decision research, strategy coaching, and product clarity for builders and buyers.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">● Discovery Call · Free</span><span style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">⊕ Decision Research · ₹999</span><span style="background:rgba(232,160,48,.12);color:#e8a030;border:1px solid rgba(232,160,48,.25);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em">↗ Product Clarity · ₹999</span></div><div class="tc-st" style="background:rgba(200,104,152,.12);color:var(--cpb);border:1px solid rgba(200,104,152,.25);margin-top:12px">⊕ Book Now</div></div>
+      <div class="tc tc-s4" onclick="openModal('/founder.html','👤','Founder')" data-cat="personal" data-orbit="founder" data-intent="founder,story,about,mission" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👤</span><div class="tc-name">Founder</div><div class="tc-desc">The story and mission behind India's decision engine.</div><div class="tc-st live">● About</div></div>
     </div>
   </div>
 </section>
-</main>
-
-<script src="js/viadecide-agent.js"></script>
-</body>
-</html>
+<section id="final-cta">
+  <div class="final-card">
+    <h3>Start one decision today.</h3>
+    <p>Pick one module, complete one outcome, and th

@@ -26,4 +26,4 @@ Disallow: /
 # Crawl-delay for others
 Crawl-delay: 10
 
-Sitemap: https://decide.example.com/sitemap.xml
+Sitemap: https://www.viadecide.com/sitemap.xml

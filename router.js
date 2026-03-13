@@ -1,217 +1,421 @@
 /**
- * ViaDecide Router — VDRouter v3.0
- * ════════════════════════════════════════════════════════════
- * SPA router for the ViaDecide modular platform.
+ * ViaDecide Router (VDRouter) — v3.1
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Handles SPA routing, prefetching, Cloudflare Pages 404 redirects,
+ * and history-synced modal overlays.
  *
- * Features:
- *  · pushState routing  — URL updates on every navigation
- *  · popstate handler   — browser back/forward works correctly
- *  · Modal overlay nav  — tools open in iframe modal, URL synced
- *  · Dynamic module load — fetches /modules/*.html into #app
- *  · GitHub Pages 404   — sessionStorage redirect restore
- *  · Prefetch on hover  — <link rel="prefetch"> for speed
- *  · Event bus          — VDRouter.on() / VDRouter.emit()
- *  · Full routesMap     — all ViaDecide slugs registered
+ * KEY ARCHITECTURAL FIX (v2 → v3):
+ *   Full-page navigation now uses clean /slug URLs, NOT resolved .html file
+ *   paths. Cloudflare's _redirects rules are keyed on /slug (200 rewrites).
+ *   Navigating to slug.html directly bypasses those rules, falls through to
+ *   the /* catch-all, and when combined with a stale Service Worker cache
+ *   produces ERR_TOO_MANY_REDIRECTS.
  *
- * Backward-compatible API surface (same as v2):
- *  VDRouter.go(slug, options)
- *  VDRouter.openOverlay(file, options)
- *  VDRouter.resolve(slugOrPath)
- *  VDRouter.prefetch(slug)
- *  VDRouter.routes()
- *  VDRouter.on(event, cb)
- *  VDRouter.emit(event, data)
- *  VDRouter.bindLinks()
- *  VDRouter.init()
+ *   Overlays still receive the resolved .html path (used as iframe src).
  *
- * New in v3:
- *  VDRouter.navigate(path, push)   — raw SPA navigate
- *  VDRouter.back()                 — history.back() w/ fallback
- *  VDRouter.current()              — current route string
- * ════════════════════════════════════════════════════════════
+ * Public API (unchanged):
+ *   VDRouter.on(event, cb)           subscribe to a router event
+ *   VDRouter.off(event, cb)          unsubscribe                      [v2]
+ *   VDRouter.emit(event, data)       fire a router event
+ *   VDRouter.routes()                return the full routes table
+ *   VDRouter.resolve(slug)           → relative .html path  (iframe use)
+ *   VDRouter.resolveURL(slug)        → /clean-url           (navigation) [NEW v3]
+ *   VDRouter.prefetch(slug)          hint browser to prefetch a page
+ *   VDRouter.openOverlay(file, opts) open a file in the modal overlay
+ *   VDRouter.go(slug, opts)          navigate (overlay or full-page)
+ *   VDRouter.bindLinks()             wire [data-router] anchors
+ *   VDRouter.bindBackLinks()         wire [data-back] elements
+ *   VDRouter.bindIframeBridge()      listen for vd:close-overlay postMessage
+ *   VDRouter.init()                  called automatically on DOMContentLoaded
+ *
+ * FIX LOG:
+ *  v2 #1  resolve()       double-.html on nested paths                   ✓
+ *  v2 #2  routesMap       '#audio.log' hash-key unreachable              ✓
+ *  v2 #3  openOverlay()   thin-space + surrogate-only emoji parsing      ✓
+ *  v2 #4  init() 404      only first path segment used for redirect      ✓
+ *  v2 #5  closeModal      one-shot DOMContentLoaded patch race           ✓
+ *  v2 #6  go()            .href setter → .assign()                       ✓
+ *  v2 #7  events          no off() → listener leaks                      ✓
+ *  v2 #8  prefetch()      no guard on empty resolve() output             ✓
+ *  v2 #9  bindLinks()     no MutationObserver for dynamic links          ✓
+ *  v2 #10 popstate        no null guards on DOM element lookups          ✓
+ *  v3 #11 go() full-page  navigated to slug.html → bypassed _redirects,
+ *                         caused redirect loop with SW cache              ✓
+ *  v3 #12 sessionStorage  dual __vd_redirect__ handlers in router.js
+ *                         AND index.html — router.js is now sole owner   ✓
+ *  v3 #13 resolve()       aliases (wof, wings-of-fire) had no canonical
+ *                         URL — resolveURL() returns the Cloudflare slug ✓
+ *  v3.1 #14 init()       __vd_redirect__ relied on 404.html which never
+ *                         fires with /* 200 rewrite — replaced with direct
+ *                         pathname read (window.location.pathname)         ✓
+ *  v3.1 #15 _redirects   alias slugs /wings-of-fire /wof /wingsoffire
+ *                         /audio-log /numberplate /printbydd-store had no
+ *                         _redirects entry — direct visits showed homepage  ✓
+ *  v3.2 #16 routes       added skillhex-recruiter (hiring-dashboard.html)
+ *                         with aliases skillhex/recruiter, hiring-dashboard ✓
+ *  v3.3 #17 index.html   duplicate SkillHex nav chip href with .html suffix
+ *                         caused hard 404 — removed duplicate               ✓
+ *  v3.3 #18 index.html   WingsOfFire card opened 1KB stub instead of 52KB
+ *                         game file wings-of-fire-quiz.html                 ✓
+ *  v3.3 #19 routes       data-orbit slugs dharam-daxini, fintrack,
+ *                         payroll-register, sales-register had no router
+ *                         entry — orb search + deep-links were broken       ✓
+ *  v3.3 #20 _redirects   4 missing alias rules added for above slugs        ✓
  */
-(function(global) {
-    const events = {};
-    const prefetched = new Set();
-    let originalCloseModal = null;
+(function (global) {
+    'use strict';
 
-    // Comprehensive map of all ViaDecide tools and pages
-    const routesMap = {
-        'interview-prep': 'interview-prep.html',
-        'sales-dashboard': 'sales-dashboard.html',
-        'jalaram-food-court-rajkot': 'Jalaram-food-court-rajkot.html',
-        'finance-dashboard-msme': 'finance-dashboard-msme.html',
-        'alchemist': 'alchemist.html',
-        'app-generator': 'app-generator.html',
-        'memory': 'memory.html',
-        'prompt-alchemy': 'prompt-alchemy.html',
-        'viaguide': 'ViaGuide.html',
-        'studyos': 'StudyOS.html',
-        'brief': 'brief.html',
-        'student-research': 'student-research.html',
-        'ondc-demo': 'ONDC-demo.html',
-        'engine-deals': 'engine-deals.html',
-        'discounts': 'discounts.html',
-        'cashback-rules': 'cashback-rules.html',
-        'cashback-claim': 'cashback-claim.html',
-        'hexwars': 'HexWars.html',
-        'mars-rover-simulator-game': 'mars-rover-simulator-game.html',
-        'hivaland': 'HivaLand.html',
-        'decide-service': 'decide-service.html',
-        'decide-foodrajkot': 'decide-foodrajkot.html',
-        'engine-license': 'engine-license.html',
-        'cohort-apply-here': 'cohort-apply-here.html',
-        'customswipeengineform': 'CustomSwipeEngineForm.html',
-        'pricing': 'pricing.html',
-        'engine-activation-request': 'Engine Activation Request.html',
-        'payment-register': 'payment-register.html',
-        'printbydd-store': 'printbydd-store/index.html',
-        'numberplate': 'printbydd-store/numberplate.html',
-        'keychain': 'printbydd-store/keychain.html',
-        'gifts-that-mean-more': 'printbydd-store/gifts-that-mean-more.html',
-        'viadecide-blogs': 'Viadecide-blogs.html',
-        'the-decision-stack': 'The Decision Stack.html',
-        'why-small-businesses-dont-need-saas': '“Why Most Small Businesses Don’t Need SaaS — They Need Structure".html',
-        'decision-infrastructure-india': 'decision-infrastructure-india.html',
-        'ondc-for-bharat': 'ondc-for-bharat.html',
-        'indiaai-mission-2025': 'indiaai-mission-2025.html',
-        'multi-source-research-explained': 'multi-source-research-explained.html',
-        'decision-brief-guide': 'decision-brief-guide.html',
-        'viadecide-public-beta': 'viadecide-public-beta.html',
-        'decision-brief': 'decision-brief.html',
-        'dharamdaxini': 'DharamDaxini/index.html',
-        'dharamdaxini-legacy': 'DharamDaxini.html',
-        'swipeos': 'SwipeOS.html',
-        'swipeos-gandhidham': 'SwipeOS-gandhidham.html',
-        'agent': 'agent.html',
-        'laptops-under-50000': 'laptops-under-50000.html',
-        'founder': 'founder.html',
-        'contact': 'contact.html',
-        'privacy': 'privacy.html',
-        'terms': 'terms.html'
+    // ─── Event Bus ────────────────────────────────────────────────────────────
+
+    /** @type {Record<string, Function[]>} */
+    const _events = {};
+
+    // ─── State ────────────────────────────────────────────────────────────────
+
+    const _prefetched = new Set();
+    let _originalCloseModal  = null;
+    let _closeModalTrapped   = false;
+
+    // ─── Routes Table ─────────────────────────────────────────────────────────
+    //
+    //  Each entry: slug → { file, url }
+    //
+    //    file  — relative path to the actual .html file on disk.
+    //            Used as iframe src in openOverlay().
+    //
+    //    url   — the canonical Cloudflare _redirects slug (no leading slash).
+    //            Used for full-page navigation so _redirects 200-rewrites fire.
+    //            Aliases share the file but point to the canonical url.
+    //
+    //  RULE: every `url` value MUST have a matching entry in _redirects.
+    //        If you add a new page, add it to BOTH _redirects AND here.
+
+    const _table = {
+        // ── Tools ──────────────────────────────────────────────────────────
+        'interview-prep':            { file: 'interview-prep.html',            url: 'interview-prep'            },
+        'sales-dashboard':           { file: 'sales-dashboard.html',           url: 'sales-dashboard'           },
+        'sales-register':            { file: 'sales-dashboard.html',           url: 'sales-dashboard'           },
+        'app-generator':             { file: 'app-generator.html',             url: 'app-generator'             },
+        'memory':                    { file: 'memory.html',                    url: 'memory'                    },
+        'prompt-alchemy':            { file: 'prompt-alchemy.html',            url: 'prompt-alchemy'            },
+        'viaguide':                  { file: 'ViaGuide.html',                  url: 'viaguide'                  },
+        'studyos':                   { file: 'StudyOS.html',                   url: 'studyos'                   },
+        'brief':                     { file: 'brief.html',                     url: 'brief'                     },
+        'student-research':          { file: 'student-research.html',          url: 'student-research'          },
+        'agent':                     { file: 'agent.html',                     url: 'agent'                     },
+        'laptops-under-50000':       { file: 'laptops-under-50000.html',       url: 'laptops-under-50000'       },
+        'decision-brief':            { file: 'decision-brief.html',            url: 'decision-brief'            },
+
+        // ── Commerce ───────────────────────────────────────────────────────
+        'jalaram-food-court-rajkot': { file: 'Jalaram-food-court-rajkot.html', url: 'jalaram-food-court-rajkot' },
+        'ondc-demo':                 { file: 'ONDC-demo.html',                 url: 'ondc-demo'                 },
+        'engine-deals':              { file: 'engine-deals.html',              url: 'engine-deals'              },
+        'discounts':                 { file: 'discounts.html',                 url: 'discounts'                 },
+        'cashback-rules':            { file: 'cashback-rules.html',            url: 'cashback-rules'            },
+        'cashback-claim':            { file: 'cashback-claim.html',            url: 'cashback-claim'            },
+        'decide-service':            { file: 'decide-service.html',            url: 'decide-service'            },
+        'decide-foodrajkot':         { file: 'decide-foodrajkot.html',         url: 'decide-foodrajkot'         },
+        'swipeos':                   { file: 'SwipeOS.html',                   url: 'swipeos'                   },
+        'swipeos-gandhidham':        { file: 'SwipeOS-gandhidham.html',        url: 'swipeos-gandhidham'        },
+        'customswipeengineform':     { file: 'CustomSwipeEngineForm.html',     url: 'customswipeengineform'     },
+
+        // ── Finance ────────────────────────────────────────────────────────
+        'finance-dashboard-msme':    { file: 'finance-dashboard-msme.html',    url: 'finance-dashboard-msme'    },
+        'fintrack':                  { file: 'finance-dashboard-msme.html',    url: 'finance-dashboard-msme'    },
+
+        // ── EdTech ─────────────────────────────────────────────────────────
+        'alchemist':                 { file: 'alchemist.html',                 url: 'alchemist'                 },
+        'cohort-apply-here':         { file: 'cohort-apply-here.html',         url: 'cohort-apply-here'         },
+
+        // ── Games ──────────────────────────────────────────────────────────
+        'hexwars':                   { file: 'HexWars.html',                   url: 'hexwars'                   },
+        'mars-rover-simulator-game': { file: 'mars-rover-simulator-game.html', url: 'mars-rover-simulator-game' },
+        'hivaland':                  { file: 'HivaLand.html',                  url: 'hivaland'                  },
+        'skillhex-mission-control': { file: 'apps/skillhex/index.html',              url: 'skillhex-mission-control'   },
+        'skillhex':                 { file: 'apps/skillhex/index.html',              url: 'skillhex-mission-control'   },
+        'apps/skillhex':            { file: 'apps/skillhex/index.html',              url: 'skillhex-mission-control'   },
+        'skillhex-recruiter':       { file: 'apps/skillhex/hiring-dashboard.html',   url: 'skillhex-recruiter'         },
+        'skillhex/recruiter':       { file: 'apps/skillhex/hiring-dashboard.html',   url: 'skillhex-recruiter'         },
+        'hiring-dashboard':         { file: 'apps/skillhex/hiring-dashboard.html',   url: 'skillhex-recruiter'         },
+        'wings-of-fire-quiz':        { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+        'wings-of-fire':             { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+        'wingsoffire':               { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+        'wof':                       { file: 'wings-of-fire-quiz.html',        url: 'wings-of-fire-quiz'        },
+
+        // ── Store / 3D Print ───────────────────────────────────────────────
+        'printbydd-store':           { file: 'printbydd-store/index.html',     url: 'printbydd'                 },
+        'printbydd':                 { file: 'printbydd-store/index.html',     url: 'printbydd'                 },
+        'numberplate':               { file: 'printbydd-store/numberplate.html',url: 'printbydd/numberplate'    },
+        'keychain':                  { file: 'printbydd-store/keychain.html',  url: 'keychain'                  },
+        'printbydd/':                { file: 'printbydd-store/index.html',     url: 'printbydd/'                },
+        'printbydd/keychain':        { file: 'printbydd-store/keychain.html',  url: 'printbydd/keychain'        },
+        'printbydd/numberplate':     { file: 'printbydd-store/numberplate.html',url: 'printbydd/numberplate'    },
+        'printbydd/products':        { file: 'printbydd-store/products.html',  url: 'printbydd/products'        },
+        'printbydd/gifts':           { file: 'printbydd-store/gifts-that-mean-more.html', url: 'printbydd/gifts' },
+        'gifts-that-mean-more':      { file: 'printbydd-store/gifts-that-mean-more.html', url: 'gifts-that-mean-more' },
+        'smarttag-lite':             { file: 'printbydd-store/smarttag-lite.html', url: 'smarttag-lite'         },
+        'products':                  { file: 'printbydd-store/products.html',  url: 'products'                  },
+        'gift-psychology':           { file: 'printbydd-store/gift-psychology.html', url: 'gift-psychology'     },
+        'dharamdaxini':              { file: 'DharamDaxini/index.html',        url: 'dharamdaxini'              },
+        'dharamdaxini-legacy':       { file: 'DharamDaxini.html',              url: 'dharamdaxini-legacy'       },
+        'dharam-daxini':             { file: 'DharamDaxini/index.html',        url: 'dharamdaxini'              },
+
+        // ── Licensing / Payments ───────────────────────────────────────────
+        'engine-license':            { file: 'engine-license.html',            url: 'engine-license'            },
+        'engine-activation-request': { file: 'Engine Activation Request.html', url: 'engine-activation-request'},
+        'payment-register':          { file: 'payment-register.html',          url: 'payment-register'          },
+        'payroll-register':          { file: 'payment-register.html',          url: 'payment-register'          },
+        'pricing':                   { file: 'pricing.html',                   url: 'pricing'                   },
+
+        // ── Blog / Content ─────────────────────────────────────────────────
+        'viadecide-blogs':           { file: 'Viadecide-blogs.html',           url: 'viadecide-blogs'           },
+        'the-decision-stack':        { file: 'The Decision Stack.html',        url: 'the-decision-stack'        },
+        'the-decision-stack.html':   { file: 'The Decision Stack.html',             url: 'the-decision-stack.html'   },
+        'not-a-saas':                { file: 'not-a-saas/index.html',          url: 'not-a-saas'                },
+        'why-small-businesses-dont-need-saas': { file: 'not-a-saas/index.html', url: 'why-small-businesses-dont-need-saas' },
+        'why-smbs-dont-need-saas':   { file: 'not-a-saas/index.html',          url: 'why-smbs-dont-need-saas'   },
+        'why-smbs-dont-need-saas.html': { file: 'not-a-saas/index.html',         url: 'why-smbs-dont-need-saas.html' },
+        'decision-infrastructure-india': { file: 'decision-infrastructure-india.html', url: 'decision-infrastructure-india' },
+        'ondc-for-bharat':           { file: 'ondc-for-bharat.html',           url: 'ondc-for-bharat'           },
+        'indiaai-mission-2025':      { file: 'indiaai-mission-2025.html',      url: 'indiaai-mission-2025'      },
+        'multi-source-research-explained': { file: 'multi-source-research-explained.html', url: 'multi-source-research-explained' },
+        'decision-brief-guide':      { file: 'decision-brief-guide.html',      url: 'decision-brief-guide'      },
+        'viadecide-public-beta':     { file: 'viadecide-public-beta.html',     url: 'viadecide-public-beta'     },
+
+        // ── Meta ───────────────────────────────────────────────────────────
+        'founder':                   { file: 'founder.html',                   url: 'founder'                   },
+        'contact':                   { file: 'contact.html',                   url: 'contact'                   },
+        'privacy':                   { file: 'privacy.html',                   url: 'privacy'                   },
+        'terms':                     { file: 'terms.html',                     url: 'terms'                     },
+
+        // ── Audio / Media ──────────────────────────────────────────────────
+        'audio.log':                 { file: 'audio.log.html',                 url: 'audio.log'                 },
+        'audiolog':                  { file: 'audio.log.html',                 url: 'audiolog'                  },
+        'audio-log':                 { file: 'audio.log.html',                 url: 'audio.log'                 },
     };
 
+    // ─── Normalise input slug ─────────────────────────────────────────────────
+
+    function _normalise(raw) {
+        if (!raw || typeof raw !== 'string') return '';
+        return raw
+            .replace(/^[/#\s]+|[\s/]+$/g, '')
+            .toLowerCase()
+            .replace(/\.html$/i, '')
+            .replace(/\/index$/i, '');
+    }
+
+    // ─── Emoji Parsing ────────────────────────────────────────────────────────
+
+    const _EMOJI_RE = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/u;
+
+    function _parseTitle(title) {
+        if (!title) return { icon: '🔬', name: 'Tool' };
+        const THIN = '\u2009';
+        if (title.includes(THIN)) {
+            const parts = title.split(THIN);
+            return { icon: parts[0] || '🔬', name: parts.slice(1).join(THIN) || 'Tool' };
+        }
+        const m = title.match(_EMOJI_RE);
+        if (m) {
+            const icon = m[0];
+            return { icon, name: title.slice(icon.length).trimStart() || 'Tool' };
+        }
+        return { icon: '🔬', name: title };
+    }
+
+    // ─── closeModal Trap ──────────────────────────────────────────────────────
+
+    function _installCloseModalTrap() {
+        if (_closeModalTrapped) return;
+        _closeModalTrapped = true;
+
+        let _stored = global.closeModal;
+
+        Object.defineProperty(global, 'closeModal', {
+            configurable: true,
+            enumerable: true,
+            get() { return _stored; },
+            set(fn) {
+                if (typeof fn !== 'function') { _stored = fn; return; }
+                if (fn._vdWrapped) { _stored = fn; return; }
+
+                _originalCloseModal = fn;
+
+                const wrapped = function vdCloseModal() {
+                    if (global.history.state && global.history.state.modalOpen) {
+                        global.history.back();
+                    } else {
+                        _originalCloseModal();
+                        const url = new URL(global.location.href);
+                        if (url.searchParams.has('m')) {
+                            url.searchParams.delete('m');
+                            global.history.replaceState(
+                                { modalOpen: false }, '',
+                                url.pathname + (url.search === '?' ? '' : url.search)
+                            );
+                        }
+                    }
+                };
+                wrapped._vdWrapped = true;
+                _stored = wrapped;
+            }
+        });
+
+        if (typeof _stored === 'function' && !_stored._vdWrapped) {
+            global.closeModal = _stored;
+        }
+    }
+
+    // ─── Modal DOM fallback ───────────────────────────────────────────────────
+
+    function _closeModalDOM() {
+        const modal = document.getElementById('modal');
+        if (modal) modal.classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            const frame = document.getElementById('modal-frame');
+            if (frame) { frame.src = 'about:blank'; frame.style.display = 'block'; }
+            const err = document.getElementById('modal-err');
+            if (err) err.classList.remove('show');
+        }, 400);
+    }
+
+    // ─── MutationObserver ─────────────────────────────────────────────────────
+
+    function _observeDynamicLinks() {
+        if (!('MutationObserver' in global)) return;
+        const obs = new MutationObserver(() => {
+            VDRouter.bindLinks();
+            VDRouter.bindBackLinks();
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  VDRouter
+    // ═════════════════════════════════════════════════════════════════════════
+
     const VDRouter = {
+
         on(event, cb) {
-            if (!events[event]) events[event] = [];
-            events[event].push(cb);
+            if (!_events[event]) _events[event] = [];
+            if (!_events[event].includes(cb)) _events[event].push(cb);
+        },
+
+        off(event, cb) {
+            if (!_events[event]) return;
+            _events[event] = _events[event].filter(fn => fn !== cb);
         },
 
         emit(event, data) {
-            if (events[event]) {
-                events[event].forEach(cb => cb(data));
-            }
+            (_events[event] || []).slice().forEach(cb => {
+                try { cb(data); } catch (e) { console.error('[VDRouter] emit error:', e); }
+            });
         },
 
         routes() {
-            return routesMap;
+            return _table;
         },
 
         resolve(pathOrSlug) {
-            if (!pathOrSlug) return '';
-            
-            // 1. Clean input: remove leading/trailing slashes to ensure paths are strictly relative
-            let cleanPath = pathOrSlug.replace(/^\/+|\/+$/g, '');
-            
-            // 2. Normalize for dictionary lookup: strip .html and /index to match raw slug names
-            const lowerSlug = cleanPath.toLowerCase().replace(/\.html$/i, '').replace(/\/index$/i, '');
-            
-            // 3. Look up in our known routes dictionary
-            if (routesMap[lowerSlug]) {
-                return routesMap[lowerSlug];
-            }
-            
-            // 4. If it already has an HTML extension, trust it and return the relative path
-            if (cleanPath.endsWith('.html')) {
-                return cleanPath;
-            }
-            
-            // 5. If it ends in /index but is missing the extension, correct it
-            if (cleanPath.endsWith('/index')) {
-                return cleanPath + '.html';
-            }
-            
-            // 6. Default fallback:
-            //    - single segment slugs are usually flat *.html pages
-            //    - nested paths keep folder/index.html behavior
-            if (!cleanPath.includes('/')) {
-                return `${cleanPath}.html`;
-            }
-            return `${cleanPath}/index.html`;
+            const slug = _normalise(pathOrSlug);
+            if (!slug) return '';
+            if (_table[slug]) return _table[slug].file;
+
+            const clean = (pathOrSlug || '').replace(/^[/#\s]+|[\s/]+$/g, '');
+            if (/\.html$/i.test(clean)) return clean;
+            if (clean.endsWith('/index')) return clean + '.html';
+            return slug + '.html';
+        },
+
+        resolveURL(pathOrSlug) {
+            const slug = _normalise(pathOrSlug);
+            if (!slug) return '/';
+            if (_table[slug]) return '/' + _table[slug].url;
+            return '/' + slug;
         },
 
         prefetch(slug) {
-            const file = this.resolve(slug);
-            if (!file || prefetched.has(file)) return;
-            
+            const url = this.resolveURL(slug);
+            if (!url || url === '/' || _prefetched.has(url)) return;
             const link = document.createElement('link');
-            link.rel = 'prefetch';
-            link.href = file;
-            link.as = 'document';
+            link.rel  = 'prefetch';
+            link.href = url;
+            link.as   = 'document';
             document.head.appendChild(link);
-            prefetched.add(file);
+            _prefetched.add(url);
         },
 
-        openOverlay(file, options = {}) {
-            let icon = '🔬';
-            let name = 'Tool';
-            
-            if (options.title) {
-                if (options.title.includes('\u2009')) {
-                    const parts = options.title.split('\u2009');
-                    icon = parts[0];
-                    name = parts.slice(1).join('\u2009');
-                } else {
-                    // Safe regex fallback to extract emoji if present
-                    const match = options.title.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|\S)\s*(.*)/);
-                    if (match) {
-                        icon = match[1];
-                        name = match[2];
-                    } else {
-                        name = options.title;
-                    }
-                }
-            }
+        openOverlay(file, opts = {}) {
+            const { icon, name } = _parseTitle(opts.title || '');
 
-            // Sync with browser history without breaking GitHub Pages paths
-            const url = new URL(window.location);
-            url.searchParams.delete('m');
+            const url = new URL(global.location.href);
             url.searchParams.set('m', encodeURIComponent(file));
-            
-            // Avoid duplicate state pushes if clicking the same tool twice
-            const currentState = window.history.state;
-            if (!currentState || currentState.file !== file) {
-                window.history.pushState({ modalOpen: true, file, icon, name }, '', url);
+
+            const cur = global.history.state;
+            if (!cur || cur.file !== file) {
+                global.history.pushState({ modalOpen: true, file, icon, name }, '', url);
             }
 
-            if (typeof window._modalSetup === 'function') {
-                window._modalSetup(file, icon, name);
+            if (typeof global._modalSetup === 'function') {
+                global._modalSetup(file, icon, name);
             }
-            
-            this.emit('routechange', { type: 'overlay', file });
+
+            this.emit('routechange', { type: 'overlay', file, icon, name });
         },
 
-        go(slug, options = {}) {
-            const file = this.resolve(slug);
-            if (options.overlay) {
-                this.openOverlay(file, options);
+        go(slug, opts = {}) {
+            if (!slug) return;
+            if (opts.overlay) {
+                const file = this.resolve(slug);
+                if (!file) { console.warn('[VDRouter] cannot resolve file for:', slug); return; }
+                this.openOverlay(file, opts);
             } else {
-                window.location.href = file;
+                const navURL = this.resolveURL(slug);
+                this.emit('routechange', { type: 'navigate', slug, url: navURL });
+                global.location.assign(navURL);
             }
         },
 
         bindLinks() {
-            // Secondary catch-all for programmatic anchor links
-            document.querySelectorAll('a[data-router]').forEach(el => {
-                if (!el._routerBound) {
-                    el.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const slug = el.getAttribute('href').replace(/^\/+/, '');
-                        const isOverlay = el.hasAttribute('data-overlay');
-                        this.go(slug, { overlay: isOverlay });
-                    });
-                    el._routerBound = true;
-                }
+            document.querySelectorAll('a[data-router]:not([data-router-bound])').forEach(el => {
+                el.setAttribute('data-router-bound', '');
+                el.addEventListener('click', e => {
+                    e.preventDefault();
+                    const slug    = (el.getAttribute('href') || '').replace(/^\/+/, '');
+                    const overlay = el.hasAttribute('data-overlay');
+                    const title   = el.getAttribute('data-title') || '';
+                    this.go(slug, { overlay, title });
+                });
+            });
+        },
+
+        bindBackLinks() {
+            document.querySelectorAll('[data-back]:not([data-back-bound])').forEach(el => {
+                el.setAttribute('data-back-bound', '');
+                el.addEventListener('click', e => {
+                    e.preventDefault();
+                    if (global.self !== global.top) {
+                        try {
+                            global.parent.postMessage({ type: 'vd:close-overlay' }, global.location.origin);
+                            return;
+                        } catch (_) {}
+                    }
+                    global.history.length > 1 ? global.history.back() : global.location.assign('/');
+                });
+            });
+        },
+
+        bindIframeBridge() {
+            if (global._vdIframeBridgeBound) return;
+            global._vdIframeBridgeBound = true;
+            global.addEventListener('message', event => {
+                if (event.origin !== global.location.origin) return;
+                if ((event.data || {}).type !== 'vd:close-overlay') return;
+                typeof global.closeModal === 'function'
+                    ? global.closeModal()
+                    : global.history.state?.modalOpen && global.history.back();
             });
         },
 
@@ -257,66 +461,68 @@
         },
 
         init() {
-            // 1. Intercept GitHub Pages 404 Redirects
+            _installCloseModalTrap();
+
+            // 1. Cloudflare 404 restore — router.js is sole __vd_redirect__ owner
+            let redirect = null;
             try {
-                const redirect = sessionStorage.getItem('__vd_redirect__');
+                redirect = sessionStorage.getItem('__vd_redirect__');
                 if (redirect) {
                     sessionStorage.removeItem('__vd_redirect__');
-                    const params = new URLSearchParams(window.location.search);
-                    
-                    if (!params.has('m')) {
-                        const slug = redirect.replace(/^\/+|\/+$/g, '').split('/')[0];
+                    if (!new URLSearchParams(global.location.search).has('m')) {
+                        const slug = redirect.replace(/^\/+|\/+$/g, '');
                         if (slug) {
-                            setTimeout(() => {
-                                this.go(slug, { overlay: true, title: slug.replace(/-/g, ' ') });
-                            }, 200);
+                            const file  = this.resolve(slug);
+                            const title = slug.replace(/-/g, ' ');
+                            setTimeout(() => this.openOverlay(file, { title }), 200);
                         }
                     }
                 }
-            } catch (e) {}
+            } catch (_) {}
 
-            // 2. Handle direct URL visits with `?m=file` parameter
-            const url = new URL(window.location);
-            const modalParam = url.searchParams.get('m');
-            if (modalParam) {
-                const decodedFile = decodeURIComponent(modalParam);
-                setTimeout(() => {
-                    if (typeof window._modalSetup === 'function') {
-                        window._modalSetup(decodedFile, '🔬', 'ViaDecide Tool');
+            // 1b. Pathname-based SPA fallback (v3.1 fix #14)
+            if (!redirect && typeof global._modalSetup === 'function') {
+                const raw      = global.location.pathname;
+                const pathSlug = raw.replace(/^\/+|\/+$/g, '');
+                const normKey  = _normalise(pathSlug);
+                if (normKey && _table[normKey]) {
+                    const entry = _table[normKey];
+                    const title = normKey.replace(/-/g, ' ');
+                    global.history.replaceState(
+                        { modalOpen: false },
+                        '',
+                        '/' + entry.url
+                    );
+                    if (!new URLSearchParams(global.location.search).has('m')) {
+                        setTimeout(() => this.openOverlay(entry.file, { title }), 200);
                     }
-                    window.history.replaceState({ modalOpen: true, file: decodedFile, icon: '🔬', name: 'ViaDecide Tool' }, '', window.location.href);
-                }, 300);
-            } else {
-                window.history.replaceState({ modalOpen: false }, '', window.location.href);
+                }
             }
 
-            // 3. Handle Back/Forward Browser Navigation (Popstate)
-            window.addEventListener('popstate', (e) => {
-                if (e.state && e.state.modalOpen) {
-                    // Forward navigation into an overlay
-                    if (typeof window._modalSetup === 'function') {
-                        window._modalSetup(e.state.file, e.state.icon || '🔬', e.state.name || '');
+            // 2. Direct ?m=file visits
+            const modalParam = new URLSearchParams(global.location.search).get('m');
+            if (modalParam) {
+                const file = decodeURIComponent(modalParam);
+                setTimeout(() => {
+                    if (typeof global._modalSetup === 'function') {
+                        global._modalSetup(file, '🔬', 'ViaDecide Tool');
                     }
+                    global.history.replaceState(
+                        { modalOpen: true, file, icon: '🔬', name: 'ViaDecide Tool' },
+                        '', global.location.href
+                    );
+                }, 300);
+            } else {
+                global.history.replaceState({ modalOpen: false }, '', global.location.href);
+            }
+
+            // 3. Back / Forward
+            global.addEventListener('popstate', e => {
+                if (e.state?.modalOpen) {
+                    typeof global._modalSetup === 'function' &&
+                        global._modalSetup(e.state.file, e.state.icon || '🔬', e.state.name || '');
                 } else {
-                    // Backward navigation out of an overlay
-                    if (typeof global.closeModal === 'function') {
-                        global.closeModal();
-                    } else if (originalCloseModal) {
-                        originalCloseModal();
-                    } else {
-                        const modal = document.getElementById('modal');
-                        if(modal) modal.classList.remove('open');
-                        document.body.style.overflow = '';
-                        setTimeout(() => {
-                            const frame = document.getElementById('modal-frame');
-                            if (frame) {
-                                frame.src = 'about:blank';
-                                frame.style.display = 'block';
-                            }
-                            const err = document.getElementById('modal-err');
-                            if (err) err.classList.remove('show');
-                        }, 400);
-                    }
+                    typeof _originalCloseModal === 'function' ? _originalCloseModal() : _closeModalDOM();
                 }
             });
             
@@ -539,382 +745,14 @@
       window.history.pushState({ modalOpen: true, file: file, icon: icon, name: name }, '', url.toString());
     }
 
-    _currentRoute = file;
-
-    if (typeof window._modalSetup === 'function') {
-      window._modalSetup(file, icon, name);
-    }
-
-    emit('routechange', { type: 'overlay', file: file, icon: icon, name: name });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * go() — primary public navigation function
-   * ══════════════════════════════════════════════════════════ */
-  function go(slug, options) {
-    options = options || {};
-    var file = resolve(slug);
-
-    if (options.overlay) {
-      if (!options.title) {
-        var meta = moduleMetaMap[slug.toLowerCase()];
-        if (meta) options.title = meta.icon + '\u2009' + meta.name;
-        else       options.title = slug.replace(/-/g, ' ');
-      }
-      openOverlay(file, options);
-    } else {
-      window.location.href = file;
-    }
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * navigate() — SPA pushState navigation (v3 new)
-   * Loads /modules/<slug>.html into #app if available,
-   * otherwise opens as overlay modal.
-   * ══════════════════════════════════════════════════════════ */
-  function navigate(path, push) {
-    if (push === undefined) push = true;
-    if (_isNavigating) return;
-
-    var slug = (path || '').replace(/^\/+/, '').toLowerCase();
-    if (!slug) return;
-
-    _isNavigating = true;
-    _currentRoute = '/' + slug;
-
-    if (push) {
-      window.history.pushState({ route: slug }, '', '/' + slug);
-    }
-
-    var moduleFile = 'modules/' + slug + '.html';
-
-    _fetchModule(moduleFile, function (html) {
-      if (html !== null) {
-        var mount = document.getElementById('app');
-        if (mount) _mountHTML(mount, html);
-      } else {
-        // No static module file — fall back to overlay modal
-        var meta = moduleMetaMap[slug] || {};
-        var file = resolve(slug);
-        openOverlay(file, {
-          title: (meta.icon || '🔬') + '\u2009' + (meta.name || slug.replace(/-/g, ' '))
-        });
-      }
-      emit('routechange', { type: 'navigate', path: '/' + slug, slug: slug });
-      _isNavigating = false;
-    });
-  }
-
-  function _fetchModule(url, cb) {
-    if (typeof fetch === 'undefined') { cb(null); return; }
-    fetch(url)
-      .then(function (r) { return r.ok ? r.text() : null; })
-      .then(function (html) { cb(html); })
-      .catch(function () { cb(null); });
-  }
-
-  function _mountHTML(el, html) {
-    el.style.transition = 'opacity 100ms ease, transform 100ms ease';
-    el.style.opacity    = '0';
-    el.style.transform  = 'translateY(6px)';
-    setTimeout(function () {
-      el.innerHTML = html;
-      _executeScripts(el);
-      el.style.opacity   = '1';
-      el.style.transform = 'translateY(0)';
-    }, 110);
-  }
-
-  function _executeScripts(container) {
-    var scripts = Array.prototype.slice.call(container.querySelectorAll('script'));
-    scripts.forEach(function (old) {
-      var n = document.createElement('script');
-      var attrs = Array.prototype.slice.call(old.attributes);
-      attrs.forEach(function (a) { n.setAttribute(a.name, a.value); });
-      n.textContent = old.textContent;
-      old.parentNode.replaceChild(n, old);
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * back() / current() / routes()
-   * ══════════════════════════════════════════════════════════ */
-  function back() {
-    if (window.history.length > 1) window.history.back();
-    else window.location.href = 'index.html';
-  }
-
-  function current() { return _currentRoute; }
-  function routes()  { return routesMap; }
-
-  /* ══════════════════════════════════════════════════════════
-   * bindLinks() — wire <a data-router> elements
-   * ══════════════════════════════════════════════════════════ */
-  function bindLinks() {
-    document.querySelectorAll('a[data-router]').forEach(function (el) {
-      if (el._routerBound) return;
-      el._routerBound = true;
-      el.addEventListener('click', function (e) {
-        e.preventDefault();
-        var slug = el.getAttribute('href').replace(/^\/+/, '');
-        var isOverlay = el.hasAttribute('data-overlay');
-        go(slug, { overlay: isOverlay });
-      });
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * POPSTATE — back/forward button handler
-   * ══════════════════════════════════════════════════════════ */
-  function _handlePopState() {
-    window.addEventListener('popstate', function (e) {
-      var state = e.state || {};
-
-      if (state.modalOpen) {
-        // Forward nav: re-open the modal
-        if (typeof window._modalSetup === 'function') {
-          window._modalSetup(state.file, state.icon || '🔬', state.name || '');
+            this.bindLinks();
+            this.bindBackLinks();
+            this.bindIframeBridge();
+            _observeDynamicLinks();
         }
-      } else if (state.route) {
-        // SPA navigate forward
-        navigate(state.route, false);
-      } else {
-        // Back out of modal: debounce so VD_CLOSE_MODAL + popstate don't both fire
-        if (global._vdIsClosingModal) return;
-        global._vdIsClosingModal = true;
-        setTimeout(function () { global._vdIsClosingModal = false; }, 600);
-
-        var closeFn = _originalCloseModal || global.closeModal;
-        if (typeof closeFn === 'function') {
-          closeFn();
-        } else {
-          var modal = document.getElementById('modal');
-          if (modal) {
-            modal.classList.remove('open');
-            document.body.style.overflow = '';
-            setTimeout(function () {
-              var frame = document.getElementById('modal-frame');
-              if (frame) { frame.src = 'about:blank'; frame.style.display = 'block'; }
-              var err = document.getElementById('modal-err');
-              if (err) err.classList.remove('show');
-            }, 400);
-          }
-        }
-        // Clean ?m= from URL
-        var url = new URL(window.location.href);
-        if (url.searchParams.has('m')) {
-          url.searchParams.delete('m');
-          var search = url.search && url.search !== '?' ? url.search : '';
-          window.history.replaceState({ modalOpen: false }, '', url.pathname + search);
-        }
-      }
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * postMessage listener — receives VD_CLOSE_MODAL from iframe
-   * subpages (sent by vd-nav-fix.js when user clicks Back/Close)
-   * ══════════════════════════════════════════════════════════ */
-  function _handleIframeMessages() {
-    window.addEventListener('message', function (e) {
-      if (!e.data || typeof e.data !== 'object') return;
-
-      if (e.data.type === 'VD_CLOSE_MODAL') {
-        // Debounce: ignore if already closing
-        if (global._vdIsClosingModal) return;
-        global._vdIsClosingModal = true;
-        setTimeout(function () { global._vdIsClosingModal = false; }, 600);
-
-        // Ensure closeModal is patched before invoking
-        _patchCloseModal();
-        var closeFn = global.closeModal || _originalCloseModal;
-        if (typeof closeFn === 'function') {
-          closeFn();
-        } else {
-          var modal = document.getElementById('modal');
-          if (modal) {
-            modal.classList.remove('open');
-            document.body.style.overflow = '';
-          }
-          if (window.history.state && window.history.state.modalOpen) {
-            window.history.back();
-          }
-        }
-      }
-
-      if (e.data.type === 'VD_HOME') {
-        var closeFn2 = global.closeModal || _originalCloseModal;
-        if (typeof closeFn2 === 'function') closeFn2();
-        window.location.href = 'index.html';
-      }
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * GitHub Pages 404 redirect restore
-   * ══════════════════════════════════════════════════════════ */
-  function _handle404Redirect() {
-    // Never run inside an iframe — prevents sessionStorage feedback loops
-    try { if (window.self !== window.top) return; } catch (e) { return; }
-    try {
-      var rp = sessionStorage.getItem('__vd_redirect__');
-      if (!rp) return;
-      sessionStorage.removeItem('__vd_redirect__');
-
-      var params = new URLSearchParams(window.location.search);
-      if (params.has('m')) return;
-
-      var slug = rp.replace(/^\/+|\/+$/g, '').split('/')[0];
-      if (!slug) return;
-
-      var meta  = moduleMetaMap[slug] || {};
-      var title = (meta.icon || '🔬') + '\u2009' + (meta.name || slug.replace(/-/g, ' '));
-
-      setTimeout(function () { go(slug, { overlay: true, title: title }); }, 200);
-    } catch (e) {}
-  }
-
-  /* Handle ?m= direct URL visits (bookmarks, shared links) */
-  function _handleModalParam() {
-    // Never run inside an iframe — the modal lives only on the top frame
-    try { if (window.self !== window.top) return; } catch (e) { return; }
-    var url    = new URL(window.location.href);
-    var mParam = url.searchParams.get('m');
-
-    if (!mParam) {
-      window.history.replaceState({ modalOpen: false }, '', window.location.href);
-      return;
-    }
-
-    var decodedFile = decodeURIComponent(mParam);
-    var slug  = decodedFile.replace(/\.html?$/i, '').replace(/^\/+/, '').replace(/\/index$/i, '').split('/')[0].toLowerCase();
-    var meta  = moduleMetaMap[slug] || {};
-
-    // Ensure closeModal is hooked before the modal opens
-    _patchCloseModal();
-
-    setTimeout(function () {
-      if (typeof window._modalSetup === 'function') {
-        window._modalSetup(decodedFile, meta.icon || '🔬', meta.name || 'ViaDecide Tool');
-      }
-      window.history.replaceState(
-        { modalOpen: true, file: decodedFile, icon: meta.icon || '🔬', name: meta.name || 'ViaDecide Tool' },
-        '',
-        window.location.href
-      );
-    }, 300);
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * Prefetch wiring — hover over cards
-   * ══════════════════════════════════════════════════════════ */
-  function _wirePrefetch() {
-    function _prefetchFromEl(el) {
-      var oc   = el.getAttribute('onclick') || '';
-      var href = el.getAttribute('href')    || '';
-
-      var m1 = oc.match(/openModal\('([^']+)'/);
-      if (m1) prefetch(m1[1].replace(/\.html?$/i, '').replace(/^\.?\//,''));
-
-      var m2 = oc.match(/VDRouter\.go\('([^']+)'/);
-      if (m2) prefetch(m2[1]);
-
-      if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('mailto:')) {
-        prefetch(href.replace(/^\/+/, '').replace(/\.html?$/i, ''));
-      }
-    }
-
-    var sel = '.tc[onclick],.pt-card[onclick],.build-card[onclick],.nav-chip,.orb-chip[onclick]';
-    document.querySelectorAll(sel).forEach(function (el) {
-      el.addEventListener('mouseenter', function () { _prefetchFromEl(el); }, { once: true, passive: true });
-      el.addEventListener('touchstart', function () { _prefetchFromEl(el); }, { once: true, passive: true });
-    });
-  }
-
-  /* ══════════════════════════════════════════════════════════
-   * Monkey-patch closeModal from index.html so ✕ / Escape
-   * also pushes a history.back() to keep URL in sync.
-   * ══════════════════════════════════════════════════════════ */
-  function _patchCloseModal() {
-    // Already hooked — nothing to do.
-    if (global._vdRouterHooked) return;
-
-    // closeModal not yet defined — retry every 50ms (up to 3s).
-    if (typeof global.closeModal !== 'function') {
-      var _retries = 0;
-      var _retry = setInterval(function () {
-        _retries++;
-        if (typeof global.closeModal === 'function') {
-          clearInterval(_retry);
-          _patchCloseModal();
-        } else if (_retries > 60) {
-          clearInterval(_retry); // give up after 3s
-        }
-      }, 50);
-      return;
-    }
-
-    _originalCloseModal = global.closeModal;
-    global.closeModal = function () {
-      if (global._vdIsClosingModal) return; // debounce double-close
-      global._vdIsClosingModal = true;
-      setTimeout(function () { global._vdIsClosingModal = false; }, 600);
-
-      if (window.history.state && window.history.state.modalOpen) {
-        window.history.back();
-      } else {
-        _originalCloseModal();
-        var url = new URL(window.location.href);
-        if (url.searchParams.has('m')) {
-          url.searchParams.delete('m');
-          var search = url.search && url.search !== '?' ? url.search : '';
-          window.history.replaceState({ modalOpen: false }, '', url.pathname + search);
-        }
-      }
     };
-    global._vdRouterHooked = true;
-  }
 
-  /* ══════════════════════════════════════════════════════════
-   * INIT
-   * ══════════════════════════════════════════════════════════ */
-  function init() {
-    _handle404Redirect();
-    _handleModalParam();
-    _handlePopState();
-    _handleIframeMessages();
-    bindLinks();
-    on('routechange', bindLinks);
-    _wirePrefetch();
-    _patchCloseModal(); // starts polling retry loop internally if closeModal not ready yet
-
-    try {
-      console.info('[VDRouter v3] Ready — ' + Object.keys(routesMap).length + ' routes registered.');
-    } catch (e) {}
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    init();
-  });
-
-  /* ══════════════════════════════════════════════════════════
-   * EXPOSE
-   * ══════════════════════════════════════════════════════════ */
-  global.VDRouter = {
-    // v2 API (backward-compatible — index.html calls all of these)
-    on:          on,
-    emit:        emit,
-    routes:      routes,
-    resolve:     resolve,
-    prefetch:    prefetch,
-    openOverlay: openOverlay,
-    go:          go,
-    bindLinks:   bindLinks,
-    init:        init,
-    // v3 additions
-    navigate:    navigate,
-    back:        back,
-    current:     current,
-  };
+    global.VDRouter = VDRouter;
+    document.addEventListener('DOMContentLoaded', () => VDRouter.init());
 
 })(window);

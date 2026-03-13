@@ -1,63 +1,101 @@
-const CACHE = "viadecide-pwa-v3";
-const CORE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
-  // router.js intentionally excluded — always fetched fresh from network
+/* ═══ SkillHex Service Worker — UPG-01 ═══════════════════════════
+   Cache strategy: Cache-first for static shell, network-first for
+   Firebase API calls. TWA (Play Store) requires SW for reliable
+   offline splash and pass-through behaviour.
+ ════════════════════════════════════════════════════════════════ */
+
+const CACHE_NAME   = 'skillhex-v3';
+const OFFLINE_URL  = 'index.html';
+
+/* Assets to pre-cache on install */
+const PRECACHE = [
+  'index.html',
+  'manifest.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  /* Google Fonts — cached on first fetch via runtime strategy below */
 ];
 
-// Install: cache core
-self.addEventListener("install", (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
-    await cache.addAll(CORE);
-    self.skipWaiting();
-  })());
+/* ── Install: pre-cache shell ── */
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE))
+      .then(() => self.skipWaiting())   /* activate immediately */
+  );
 });
 
-// Activate: clean old caches
-self.addEventListener("activate", (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => (k !== CACHE ? caches.delete(k) : Promise.resolve())));
-    self.clients.claim();
-  })());
+/* ── Activate: delete stale caches ── */
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE_NAME)
+          .map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())  /* take control without reload */
+  );
 });
 
-// Fetch: network-first for HTML, cache-first for assets
-self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
+/* ── Fetch: routing strategy ── */
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // only same-origin
-  if (url.origin !== location.origin) return;
-
-  const isHTML = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
-
-  if (isHTML) {
-    event.respondWith((async () => {
-      try {
-        const fresh = await fetch(req);
-        const cache = await caches.open(CACHE);
-        cache.put(req, fresh.clone());
-        return fresh;
-      } catch {
-        const cached = await caches.match(req);
-        return cached || caches.match("/index.html");
-      }
-    })());
+  /* 1. Firebase / Firestore / Auth — always network, never cache */
+  if (
+    url.hostname.includes('firebaseio.com') ||
+    url.hostname.includes('firestore.googleapis.com') ||
+    url.hostname.includes('identitytoolkit.googleapis.com') ||
+    url.hostname.includes('googleapis.com')
+  ) {
+    event.respondWith(fetch(request));
     return;
   }
 
-  // assets: cache-first
-  event.respondWith((async () => {
-    const cached = await caches.match(req);
-    if (cached) return cached;
-    const fresh = await fetch(req);
-    const cache = await caches.open(CACHE);
-    cache.put(req, fresh.clone());
-    return fresh;
-  })());
+  /* 2. Google Fonts — stale-while-revalidate (fast load + fresh copy) */
+  if (
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com')
+  ) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(cache =>
+        cache.match(request).then(cached => {
+          const fetchPromise = fetch(request).then(response => {
+            cache.put(request, response.clone());
+            return response;
+          });
+          return cached || fetchPromise;
+        })
+      )
+    );
+    return;
+  }
+
+  /* 3. Same-origin GET — cache-first, fall back to network, then offline page */
+  if (request.method === 'GET' && url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request)
+          .then(response => {
+            /* Cache successful same-origin responses */
+            if (response && response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+            }
+            return response;
+          })
+          .catch(() =>
+            /* Offline fallback — serve the app shell */
+            caches.match(OFFLINE_URL)
+          );
+      })
+    );
+    return;
+  }
+
+  /* 4. Everything else — network only */
+  event.respondWith(fetch(request));
 });

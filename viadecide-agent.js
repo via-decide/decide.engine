@@ -69,6 +69,13 @@
     '/payment-register'            : 'Payroll Register',
     '/laptops-under-50000'         : 'Laptops Under \u20B950k',
     '/finance-dashboard-msme'      : 'FinTrack \u2014 Finance Dashboard',
+    // ── Audit-fix additions ──────────────────────────────────────
+    '/skillhex-mission-control'    : 'SkillHex Mission Control',
+    '/skillhex-recruiter'          : 'SkillHex Recruiter Dashboard',
+    '/hiring-dashboard'            : 'SkillHex Recruiter Dashboard',
+    '/audio-log'                   : 'Audio.Log',
+    '/dharam-daxini'               : 'Dharam Daxini',
+    '/fintrack'                    : 'FinTrack Dashboard',
   };
 
   /* ── State ──────────────────────────────────────────────────── */
