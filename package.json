@@ -1,0 +1,18 @@
+{
+  "name": "decide-engine-telegram-bot",
+  "version": "1.0.0",
+  "description": "Serverless Telegram bot that generates code and commits it to GitHub",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "check": "node --check index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.0",
+    "express": "^4.21.2"
+  }
+}
