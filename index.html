@@ -2012,6 +2012,184 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     <p>Pick one module, complete one outcome, and th
 
 
+<div id="glen-bot-fab" aria-live="polite"></div>
+<style>
+  #glen-bot-fab {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 1890;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #glen-bot-fab .glen-wrap {
+    position: relative;
+    width: 52px;
+    height: 74px;
+    pointer-events: none;
+  }
+  #glen-bot-fab .glen-btn {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.25), 0 6px 22px rgba(0, 0, 0, 0.45);
+  }
+  #glen-bot-fab .glen-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+    display: block;
+  }
+  #glen-bot-fab .glen-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 212, 255, 0.55);
+    animation: glenPulse 2.1s ease-out infinite;
+    pointer-events: none;
+  }
+  #glen-bot-fab .glen-ring.ring2 {
+    animation-delay: 0.7s;
+  }
+  #glen-bot-fab .glen-label {
+    position: absolute;
+    top: 12px;
+    left: calc(100% + 10px);
+    white-space: nowrap;
+    color: #00D4FF;
+    background: #111827;
+    border: 1px solid #00D4FF;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    padding: 6px 10px;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 180ms ease, transform 180ms ease;
+    pointer-events: none;
+  }
+  #glen-bot-fab .glen-badge {
+    position: absolute;
+    top: 58px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    line-height: 1;
+    color: #00D4FF;
+    border: 1px solid rgba(0, 212, 255, 0.7);
+    background: #111827;
+    border-radius: 999px;
+    padding: 4px 8px;
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.24);
+    pointer-events: none;
+  }
+  #glen-bot-fab .glen-btn:hover + .glen-label,
+  #glen-bot-fab .glen-btn:focus-visible + .glen-label,
+  #glen-bot-fab .glen-wrap:hover .glen-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  #glen-bot-fab.glen-hidden {
+    display: none;
+  }
+  @keyframes glenPulse {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+  }
+</style>
+<script>
+(() => {
+  if (window.VDGlenBotLoaded) return;
+  window.VDGlenBotLoaded = true;
+
+  const DEBUG = false;
+  const mount = document.getElementById('glen-bot-fab');
+  if (!mount) return;
+
+  mount.innerHTML = `
+    <div class="glen-wrap">
+      <span class="glen-ring ring1" aria-hidden="true"></span>
+      <span class="glen-ring ring2" aria-hidden="true"></span>
+      <button class="glen-btn" type="button" aria-label="Open @DecideEngineBot Telegram">
+        <svg class="glen-avatar" viewBox="0 0 52 52" role="img" aria-label="Goku Super Saiyan Blue avatar" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="glenAura" cx="50%" cy="50%" r="60%">
+              <stop offset="70%" stop-color="#00D4FF" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#00D4FF" stop-opacity="0.35"/>
+            </radialGradient>
+            <clipPath id="glenClip">
+              <circle cx="26" cy="26" r="26"/>
+            </clipPath>
+          </defs>
+          <circle cx="26" cy="26" r="26" fill="#0A0F1E"/>
+          <circle cx="26" cy="26" r="25" fill="none" stroke="url(#glenAura)" stroke-width="2"/>
+          <g clip-path="url(#glenClip)">
+            <path d="M7 25l4-11 5 6 3-13 5 7 7-9 2 10 8-8-1 11 5-3-2 10 3 7H7z" fill="#00D4FF"/>
+            <path d="M12 23l5-7 2 6 4-9 4 7 4-8 2 7 5-6v11H12z" fill="#7FEAFF" opacity="0.55"/>
+            <ellipse cx="26" cy="32" rx="11" ry="10" fill="#F6D1A8"/>
+            <path d="M16 29c2-2 4-3 10-3s8 1 10 3" stroke="#C98963" stroke-width="1.4" fill="none"/>
+            <path d="M20 30h5" stroke="#111827" stroke-width="2" stroke-linecap="round"/>
+            <path d="M27 30h5" stroke="#111827" stroke-width="2" stroke-linecap="round"/>
+            <path d="M20 27l4-2" stroke="#111827" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M32 27l-4-2" stroke="#111827" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M24 36c1 1 3 1 4 0" stroke="#A35243" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+            <path d="M14 26c0 0 2-6 8-9" stroke="#00D4FF" stroke-opacity="0.55" stroke-width="1.2" fill="none"/>
+            <path d="M38 26c0 0-2-6-8-9" stroke="#00D4FF" stroke-opacity="0.55" stroke-width="1.2" fill="none"/>
+          </g>
+        </svg>
+      </button>
+      <span class="glen-label" aria-hidden="true">@DecideEngineBot</span>
+      <span class="glen-badge" aria-hidden="true">✈ Bot</span>
+    </div>
+  `;
+
+  const btn = mount.querySelector('.glen-btn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      window.open('https://t.me/DecideEngineBot', '_blank');
+    }, { passive: true });
+  }
+
+  const installBanner = document.getElementById('install-banner');
+  const updateVisibility = () => {
+    const bannerShowing = !!(installBanner && installBanner.classList.contains('show'));
+    const mobile = window.matchMedia('(max-width: 768px)').matches;
+    mount.classList.toggle('glen-hidden', bannerShowing && mobile);
+    if (DEBUG) {
+      void bannerShowing;
+      void mobile;
+    }
+  };
+
+  if (installBanner) {
+    if (typeof MutationObserver === 'function') {
+      const obs = new MutationObserver(updateVisibility);
+      obs.observe(installBanner, { attributes: true, attributeFilter: ['class'] });
+    }
+    installBanner.addEventListener('transitionend', updateVisibility, { passive: true });
+  }
+
+  window.addEventListener('resize', updateVisibility, { passive: true });
+  updateVisibility();
+})();
+</script>
+
 <!-- ── Floating Agent Widget ─────────────────────────────────
      Self-mounting FAB. Duplicate-guard: window.VDAgentLoaded.
      Deferred so it never blocks homepage paint.
