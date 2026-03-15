@@ -16,6 +16,22 @@
 <script src="router.js" onerror="console.warn('[ViaDecide] router.js not found — routing disabled')"></script>
 <script src="commandRouter.js" defer onerror="console.warn('[ViaDecide] commandRouter.js not found — command routing disabled')"></script>
 <style>
+/* FIX: Add global tap-highlight, box model, and keyboard-safe focus ring baseline — UPGRADE-01 */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+/* FIX: Remove default focus outline and re-introduce accessible focus-visible styles — UPGRADE-01 */
+:focus { outline: none; }
+
+/* FIX: Ensure visible keyboard focus indicator across components — UPGRADE-01 */
+:focus-visible {
+  outline: 2px solid var(--accent, #2f81f7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ============================================================
    GLOBAL UX PATCH — tap highlight, focus rings, text selection
    ============================================================ */
@@ -85,6 +101,15 @@ code,
   --cfi:#10b981;--cfi2:#34d399;--cfi3:rgba(16,185,129,0.12);
   --cpb:#c86898;--cpb2:#e888bb;--cpb3:rgba(200,104,152,0.12);
   --ca:#1db954;--ca2:#4ade80;--ca3:rgba(29,185,84,0.12);
+  /* FIX: Standardize stacking context hierarchy for overlays, nav, and floating actions — UPGRADE-02 */
+  --z-base:1;
+  --z-card:10;
+  --z-nav:100;
+  --z-float:200;
+  --z-modal:300;
+  --z-agent:350;
+  --z-overlay:400;
+  --z-toast:500;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
@@ -122,7 +147,7 @@ body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring,body:has([onclick]:
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:99px}
 
 /* NAV */
-#nav{position:fixed;top:0;left:0;right:0;z-index:700;padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
+#nav{position:fixed;top:0;left:0;right:0;z-index:var(--z-nav);padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
 #nav.solid{background:rgba(8,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:.85rem 2.5rem}
 .nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:.5rem;cursor:none}
 .brand-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;flex-shrink:0;animation:pdot 2s infinite}
@@ -482,7 +507,7 @@ section{position:relative;z-index:10}
 .thread-ft{padding:1.1rem 1.25rem;border-top:1px solid var(--bd);font-size:.72rem;color:var(--tx3);text-align:center;line-height:1.5}
 
 /* MODAL */
-#modal{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .35s}
+#modal{position:fixed;inset:0;z-index:var(--z-modal);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .35s}
 #modal.open{opacity:1;pointer-events:auto}
 #modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #modal-sheet{position:relative;z-index:1;margin:2.5vh auto;width:96vw;max-width:1100px;height:95vh;background:var(--bg1);border:1px solid var(--bd2);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;transform:scale(.95) translateY(20px);transition:transform .4s cubic-bezier(.34,1.4,.64,1),opacity .35s;opacity:0}
@@ -1329,6 +1354,37 @@ document.addEventListener('keydown',function(e){
    MODAL — routes through VDRouter.openOverlay when available.
    Falls back gracefully to direct iframe if router absent.
    ============================================================ */
+// FIX: Introduce a single modal state manager to prevent conflicting open overlays — UPGRADE-03
+const ModalManager = {
+  active: null,
+  open(id, opts = {}) {
+    if (this.active && this.active !== id) this.close(this.active);
+    this.active = id;
+    if (id === 'search') {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = (scrollbarWidth > 0 ? scrollbarWidth : 0) + 'px';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+    document.body.setAttribute('data-modal', id);
+    if (opts.focusEl) opts.focusEl.focus();
+    document.dispatchEvent(new CustomEvent('modal:opened', { detail: { id } }));
+  },
+  close(id) {
+    if (this.active !== id) return;
+    this.active = null;
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    document.body.removeAttribute('data-modal');
+    document.dispatchEvent(new CustomEvent('modal:closed', { detail: { id } }));
+  },
+  toggle(id, opts = {}) {
+    this.active === id ? this.close(id) : this.open(id, opts);
+  }
+};
+
 let currentFile = '';
 let modalIsClosing = false;
 let modalLoadCheckTimer = null;
@@ -1420,8 +1476,9 @@ function _modalSetup(file, icon, name) {
     frame.src = 'about:blank'; // FIXED: '' resolves to parent URL → SW caches bad redirect → iframe broken-doc icon
     setTimeout(() => { frame.src = normalizedPath; }, 80); // 80ms — prevents blank/flicker
   }
+  // FIX: Route modal open state through shared manager with scroll lock compensation — UPGRADE-03/10
+  ModalManager.open('search');
   document.getElementById('modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
 // Expose for router.js (calls window._modalSetup at popstate / ?m= time)
 window._modalSetup = _modalSetup;
@@ -1470,7 +1527,8 @@ function closeModal() {
     modalLoadCheckTimer = null;
   }
   document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow = '';
+  // FIX: Ensure body scroll state resets through shared manager — UPGRADE-03/10
+  ModalManager.close('search');
   const mLoad = document.getElementById('modal-loading');
   if (mLoad) mLoad.classList.remove('active');
   setTimeout(() => {
@@ -1482,7 +1540,8 @@ function closeModal() {
   }, 400);
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpen) closeModal(); });
+// FIX: Close only when this modal is active, preventing key conflicts — UPGRADE-03
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpen && ModalManager.active === 'search') closeModal(); });
 
 /* ORB SEARCH */
 (function(){
@@ -1527,8 +1586,23 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
   function tokenScore(q,str){if(!str)return 0;let s=0;if(str===q)s+=80;if(str.includes(q))s+=40;q.split(/\s+/).filter(Boolean).forEach(p=>{if(str.includes(p))s+=10;});return s;}
   function score(q,item){const qq=norm(q);if(!qq)return 0;let s=0;s+=tokenScore(qq,norm(item.title));s+=tokenScore(qq,norm(item.desc))*.35;s+=tokenScore(qq,norm(item.intent))*.7;s+=tokenScore(qq,norm(item.orbit))*.8;s+=tokenScore(qq,norm(item.cat))*.3;return s;}
   let results=[],active=-1;
-  function hideSuggest(){suggest.style.display='none';suggest.innerHTML='';results=[];active=-1;}
-  function render(){if(!results.length){hideSuggest();return;}suggest.innerHTML=results.map((r,i)=>`<div class="orb-row${i===active?' active':''}" data-i="${i}"><div class="t">${r.title}</div><div class="d">${r.desc||''}</div></div>`).join('');suggest.style.display='block';}
+  // FIX: Avoid unsafe innerHTML rendering in search suggestions — UPGRADE-04
+  function hideSuggest(){suggest.style.display='none';while(suggest.firstChild)suggest.removeChild(suggest.firstChild);results=[];active=-1;}
+  function render(){
+    if(!results.length){hideSuggest();return;}
+    while(suggest.firstChild)suggest.removeChild(suggest.firstChild);
+    results.forEach((r,i)=>{
+      const row=document.createElement('a');
+      row.className='orb-row'+(i===active?' active':'');
+      row.dataset.i=String(i);
+      row.href = r.type==='route' ? ('/'+r.slug.replace(/^\/+/,'')) : (r.file || '#');
+      const t=document.createElement('div');t.className='t';t.textContent=r.title;
+      const d=document.createElement('div');d.className='d';d.textContent=r.desc||'';
+      row.appendChild(t);row.appendChild(d);
+      suggest.appendChild(row);
+    });
+    suggest.style.display='block';
+  }
   function doSearch(){const q=input.value.trim();if(!q){hideSuggest();return;}if(!INDEX.length)INDEX=buildIndex();results=INDEX.map(it=>({it,s:score(q,it)})).filter(x=>x.s>25).sort((a,b)=>b.s-a.s).slice(0,6).map(x=>x.it);active=results.length?0:-1;render();}
   function openItem(item){hideSuggest();if(!item)return;if(item.type==='modal'){openModal(item.file,item.icon,item.name||item.title);return;}if(item.type==='route'&&window.VDRouter){window.VDRouter.go(item.slug);return;}location.href=item.file;}
   function fallbackScroll(q){
@@ -1553,7 +1627,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !threadOpe
     else if(e.key==='Escape'){hideSuggest();input.blur();}
   });
   go.addEventListener('click',()=>{if(results.length)openItem(results[0]);else fallbackScroll(input.value);});
-  suggest.addEventListener('click',e=>{const row=e.target.closest('.orb-row');if(!row)return;openItem(results[Number(row.dataset.i)]);});
+  suggest.addEventListener('click',e=>{const row=e.target.closest('.orb-row');if(!row)return;e.preventDefault();openItem(results[Number(row.dataset.i)]);});
   document.addEventListener('mousedown',e=>{const wrap=document.getElementById('orb-wrap');if(!wrap)return;if(!wrap.contains(e.target))hideSuggest();});
   input.addEventListener('blur',()=>{const delay=window.matchMedia('(pointer:coarse)').matches?300:120;setTimeout(hideSuggest,delay);});
 })();
@@ -2187,9 +2261,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 <style>
   #glen-bot-fab {
     position: fixed;
-    left: 24px;
-    bottom: 24px;
-    z-index: 1890;
+    right: 20px;
+    left: auto;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    z-index: var(--z-float);
     font-family: 'JetBrains Mono', monospace;
   }
   #glen-bot-fab .glen-wrap {
@@ -2366,3 +2441,5 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
      Deferred so it never blocks homepage paint.
 ──────────────────────────────────────────────────────────── -->
 <script src="/viadecide-agent.js" defer></script>
+</body>
+</html>
