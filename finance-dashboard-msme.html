@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Finance Dashboard — India MSME</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,0)!important;tap-highlight-color:rgba(0,0,0,0)!important;}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+input,textarea,select,[contenteditable="true"],.allow-select,pre,code{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important;}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),[tabindex]:focus:not(:focus-visible),select:focus:not(:focus-visible){outline:none!important;box-shadow:none!important;}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid rgba(245,158,11,.55)!important;outline-offset:2px!important;}
+::selection{background:rgba(245,158,11,.18);color:inherit}
+:root{
+  --bg:#080c12;--bg2:#0d1320;--bg3:#111926;
+  --card:#131c2b;--card2:#1a2638;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e8edf5;--text2:#7a8fa8;--text3:#4a5c72;
+  --accent:#f59e0b;--accent2:#3b82f6;--accent3:#10b981;
+  --red:#ef4444;--green:#22c55e;--orange:#f97316;--purple:#a855f7;
+  --glow:rgba(245,158,11,0.12);
+  --sw:300px;--th:54px;
+  --mono:"Courier New","Lucida Console",monospace;
+  --ui:"Trebuchet MS","Segoe UI",Tahoma,sans-serif;
+  --sb:env(safe-area-inset-bottom,0px);
+}
+html{height:100%;background:var(--bg)}
+body{font-family:var(--ui);background:var(--bg);color:var(--text);line-height:1.5;min-height:100%;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--card2);border-radius:3px}
+
+#app{display:flex;height:100dvh;overflow:hidden;position:relative;}
+
+/* SIDEBAR */
+#sidebar{width:var(--sw);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;}
+@media(max-width:767px){
+  #sidebar{position:fixed;top:0;left:0;height:100dvh;transform:translateX(-100%);box-shadow:8px 0 40px rgba(0,0,0,.6);z-index:400;width:min(var(--sw),88vw);}
+  #sidebar.open{transform:translateX(0)}
+}
+#backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:399;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
+#backdrop.show{display:block}
+
+.sb-logo{padding:15px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#000;font-family:var(--mono);flex-shrink:0;}
+.logo-text{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
+.logo-sub{font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.sb-close{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--border);border:none;color:var(--text2);display:none;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex-shrink:0;touch-action:manipulation;}
+@media(max-width:767px){.sb-close{display:flex}}
+
+.sb-sec{padding:13px 15px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sb-sec:last-child{border-bottom:none;padding-bottom:calc(12px + var(--sb))}
+.sec-lbl{font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:9px;font-family:var(--mono);}
+.fl-group{margin-bottom:8px}
+.fl-label{font-size:11px;color:var(--text2);margin-bottom:3px;display:block}
+select,input[type=text],input[type=number],input[type=date]{
+  width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:7px;color:var(--text);font-size:13px;font-family:var(--ui);outline:none;
+  transition:border-color .15s;-webkit-appearance:none;appearance:none;
+  -webkit-user-select:text;user-select:text;
+}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--glow)}
+select option{background:var(--bg3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .12s;letter-spacing:.03em;font-family:var(--ui);text-transform:uppercase;touch-action:manipulation;}
+.btn-p{background:var(--accent);color:#000}.btn-p:active{filter:brightness(1.12);transform:scale(.97)}
+.btn-s{background:var(--card2);color:var(--text2);border:1px solid var(--border)}.btn-s:active{background:var(--bg3)}
+.btn-d{background:rgba(239,68,68,.14);color:var(--red);border:1px solid rgba(239,68,68,.22)}.btn-d:active{background:rgba(239,68,68,.25)}
+.btn-full{width:100%}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.form-grid .full{grid-column:1/-1}
+.form-g{display:flex;flex-direction:column;gap:3px}
+.form-g label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.form-g input,.form-g select{padding:7px 9px;font-size:12px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px}
+.stat-row .lbl{color:var(--text2)}.stat-row .val{color:var(--text);font-family:var(--mono);font-size:11px}
+
+/* TOPBAR */
+#topbar{flex-shrink:0;height:var(--th);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:0 14px;position:sticky;top:0;z-index:100;}
+.menu-btn{display:none;width:36px;height:36px;border-radius:8px;background:var(--card2);border:1px solid var(--border);color:var(--text2);align-items:center;justify-content:center;font-size:19px;cursor:pointer;flex-shrink:0;touch-action:manipulation;}
+@media(max-width:767px){.menu-btn{display:flex}}
+.tb-brand{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tb-title{font-size:13px;font-weight:700;color:var(--text)}
+.tb-sub{font-size:10px;color:var(--text3)}
+@media(max-width:400px){.tb-sub{display:none}}
+.tb-sp{flex:1}
+#lastUpdated{font-size:9px;color:var(--text3);font-family:var(--mono);white-space:nowrap;flex-shrink:0;}
+@media(max-width:600px){#lastUpdated{display:none}}
+.csv-lbl{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border-radius:7px;background:var(--card2);color:var(--text2);border:1px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;touch-action:manipulation;white-space:nowrap;}
+.csv-lbl:active{background:var(--bg3)}
+@media(max-width:767px){.csv-lbl .lbl-txt{display:none}}
+#csvInput{display:none}
+.tb-btn-lbl{display:inline;}
+@media(max-width:767px){.tb-btn-lbl{display:none}}
+
+/* FAB */
+#fab{display:none;position:fixed;bottom:calc(22px + var(--sb));right:18px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:26px;font-weight:400;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(245,158,11,.45);cursor:pointer;z-index:300;touch-action:manipulation;transition:transform .12s;}
+#fab:active{transform:scale(.9)}
+@media(max-width:767px){#fab{display:flex}}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 14px calc(80px + var(--sb));-webkit-overflow-scrolling:touch;}
+@media(min-width:768px){#content{padding:16px 18px 20px;}}
+
+/* KPI */
+#kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;}
+@media(max-width:960px){#kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:580px){#kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 11px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kpi-color,var(--accent));}
+.kpi-label{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:5px;font-family:var(--mono);line-height:1.3;}
+.kpi-value{font-size:17px;font-weight:900;color:var(--text);font-family:var(--mono);line-height:1;margin-bottom:5px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:500px){.kpi-value{font-size:14px}}
+.kpi-sub{font-size:9px;color:var(--text2)}
+.kpi-badge{display:inline-flex;align-items:center;gap:2px;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:99px;font-family:var(--mono);white-space:nowrap;}
+.bg-g{background:rgba(34,197,94,.14);color:var(--green)}.bg-r{background:rgba(239,68,68,.14);color:var(--red)}.bg-a{background:rgba(245,158,11,.14);color:var(--accent)}
+.kpi-icon{position:absolute;top:11px;right:9px;font-size:13px;opacity:.45;}
+
+/* CHARTS */
+#charts-row{display:grid;grid-template-columns:2fr 1.2fr 1.2fr;gap:10px;margin-bottom:12px;}
+@media(max-width:900px){#charts-row{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){#charts-row{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;display:flex;flex-direction:column;min-width:0;}
+.chart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:5px;}
+.chart-title{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.chart-legend{display:flex;gap:8px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:8.5px;color:var(--text3)}
+.leg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+canvas{display:block;width:100%!important;max-width:100%}
+
+/* PIVOTS */
+#lower-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+@media(max-width:900px){#lower-row{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){#lower-row{grid-template-columns:1fr}}
+.pivot-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.pivot-hd{padding:9px 13px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.pivot-wrap{overflow-x:auto;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pvt{width:100%;border-collapse:collapse;font-size:11px}
+.pvt thead th{padding:6px 10px;text-align:left;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;}
+.pvt tbody td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text);}
+.pvt tbody tr:active td{background:var(--card2)}
+.pvt td.num{text-align:right;font-family:var(--mono);font-size:10px}
+.pvt td.pct{text-align:right;font-family:var(--mono);font-size:9px;color:var(--text2)}
+
+/* DATA TABLE */
+#data-sec{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.data-hd{padding:10px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.data-hd-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.data-title{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+#rowCount{font-size:9.5px;color:var(--text3);font-family:var(--mono)}
+.data-acts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.srch-wrap{position:relative;display:flex;flex-direction:column}
+#searchBox{width:190px;padding:7px 10px;font-size:12px;border-radius:7px;}
+@media(max-width:600px){#searchBox{width:130px}}
+.srch-hint{display:none;font-size:9px;color:var(--accent);padding:3px 8px;border-radius:4px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);margin-top:3px;white-space:nowrap;}
+.srch-hint.show{display:inline-block}
+.tbl-wrap{overflow-x:auto;max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#dataTable{width:100%;border-collapse:collapse;font-size:12px;min-width:780px}
+#dataTable thead th{
+  padding:7px 10px;text-align:left;font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text3);font-weight:700;position:sticky;top:0;background:var(--bg2);z-index:1;
+  border-bottom:1px solid var(--border);cursor:pointer;
+  -webkit-user-select:none;user-select:none;white-space:nowrap;touch-action:manipulation;
+}
+#dataTable thead th:active{background:var(--bg3)}
+#dataTable thead th.sort-asc::after{content:" ↑"}
+#dataTable thead th.sort-desc::after{content:" ↓"}
+#dataTable tbody td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.03);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#dataTable tbody tr:active td{background:var(--card2)}
+#dataTable tbody td.editable{cursor:pointer}
+#dataTable tbody td.editable:focus{outline:2px solid rgba(245,158,11,.55);outline-offset:-2px;background:var(--card2);}
+#dataTable tbody td.editable:hover{background:rgba(255,255,255,.03)}
+.tag{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;font-family:var(--mono);}
+.ti{background:rgba(34,197,94,.12);color:var(--green)}.te{background:rgba(239,68,68,.12);color:var(--red)}.tp{background:rgba(16,185,129,.12);color:var(--accent3)}.tpd{background:rgba(245,158,11,.12);color:var(--accent)}.tpr{background:rgba(168,85,247,.12);color:var(--purple)}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:4px 6px;border-radius:5px;touch-action:manipulation;}
+.del-btn:active{color:var(--red);background:rgba(239,68,68,.1)}
+.empty-st{padding:30px;text-align:center;color:var(--text3);font-size:12px;line-height:2;}
+.empty-ico{font-size:22px;margin-bottom:6px;opacity:.4}
+
+/* BOTTOM SHEET */
+#add-sheet{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .22s;}
+#add-sheet.open{opacity:1;pointer-events:auto}
+#sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.7)}
+#sheet-body{position:relative;background:var(--bg2);border-radius:20px 20px 0 0;border-top:1px solid var(--border2);padding:18px 16px calc(22px + var(--sb));max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);-webkit-overflow-scrolling:touch;}
+#add-sheet.open #sheet-body{transform:translateY(0)}
+.sheet-handle{width:34px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px;}
+.sheet-hdr{font-size:14px;font-weight:700;color:var(--text);margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;}
+.sheet-x{background:var(--card2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;touch-action:manipulation;}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(22px + var(--sb));left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:7px;pointer-events:none;width:calc(100% - 28px);max-width:360px;}
+@media(min-width:768px){#toast{left:auto;right:20px;transform:none;width:auto}}
+.toast-item{padding:9px 14px;border-radius:8px;font-size:12px;font-weight:600;border-left:3px solid var(--accent);background:var(--card2);color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.6);animation:tsup .2s ease,tsout .3s ease 2.7s forwards;pointer-events:auto;width:100%;text-align:center;}
+@media(min-width:768px){.toast-item{text-align:left;width:auto;min-width:200px}}
+.toast-item.err{border-color:var(--red)}.toast-item.ok{border-color:var(--green)}
+@keyframes tsup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tsout{from{opacity:1}to{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="backdrop" onclick="closeSB()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-logo">
+    <div class="logo-mark">₹</div>
+    <div><div class="logo-text">FinTrack</div><div class="logo-sub">India MSME</div></div>
+    <button class="sb-close" onclick="closeSB()">✕</button>
+  </div>
+  <div class="sb-sec">
+    <div class="sec-lbl">Filters</div>
+    <div class="fl-group"><span class="fl-label">Financial Year</span><select id="filterFY" onchange="applyFilters()"><option value="all">All Years</option></select></div>
+    <div class="fl-group"><span class="fl-label">Month</span><select id="filterMonth" onchange="applyFilters()"><option value="all">All Months</option></select></div>
+    <div class="fl-group"><span class="fl-label">Category</span><select id="filterCategory" onchange="applyFilters()"><option value="all">All Categories</option></select></div>
+    <div class="fl-group"><span class="fl-label">Customer / Vendor</span><select id="filterParty" onchange="applyFilters()"><option value="all">All Parties</option></select></div>
+    <div class="fl-group"><span class="fl-label">Payment Mode</span>
+      <select id="filterPayment" onchange="applyFilters()"><option value="all">All Modes</option><option>Cash</option><option>NEFT</option><option>UPI</option><option>Cheque</option><option>Credit Card</option></select>
+    </div>
+    <div class="fl-group"><span class="fl-label">Transaction Type</span>
+      <select id="filterType" onchange="applyFilters()"><option value="all">All</option><option>Income</option><option>Expense</option></select>
+    </div>
+    <button class="btn btn-s btn-full" onclick="resetFilters()" style="margin-top:6px">↺ Reset Filters</button>
+  </div>
+  <div class="sb-sec">
+    <div class="sec-lbl">Quick Stats</div>
+    <div class="stat-row"><span class="lbl">Transactions</span><span class="val" id="qs-count">—</span></div>
+    <div class="stat-row"><span class="lbl">Income Txns</span><span class="val" id="qs-income-count">—</span></div>
+    <div class="stat-row"><span class="lbl">Expense Txns</span><span class="val" id="qs-expense-count">—</span></div>
+    <div class="stat-row"><span class="lbl">Pending AR</span><span class="val" id="qs-ar" style="color:var(--accent)">—</span></div>
+    <div class="stat-row"><span class="lbl">Avg Txn</span><span class="val" id="qs-avg">—</span></div>
+  </div>
+  <div class="sb-sec" id="dt-form">
+    <div class="sec-lbl">Add Transaction</div>
+    <div class="form-grid">
+      <div class="form-g full"><label>Date</label><input type="date" id="f-date"></div>
+      <div class="form-g"><label>Type</label><select id="f-type"><option>Income</option><option>Expense</option></select></div>
+      <div class="form-g"><label>Amount (₹)</label><input type="number" id="f-amount" placeholder="0" min="0"></div>
+      <div class="form-g full"><label>Category</label>
+        <select id="f-category"><option>Product Sales</option><option>Service Fees</option><option>Raw Material</option><option>Staff Cost</option><option>Marketing</option><option>Logistics</option><option>Rent</option><option>Utilities</option><option>GST Refund</option><option>Other</option></select>
+      </div>
+      <div class="form-g full"><label>Party Name</label><input type="text" id="f-party" placeholder="Customer / Vendor"></div>
+      <div class="form-g"><label>Party Type</label><select id="f-party-type"><option>Customer</option><option>Vendor</option></select></div>
+      <div class="form-g"><label>Payment Mode</label><select id="f-payment"><option>NEFT</option><option>UPI</option><option>Cash</option><option>Cheque</option><option>Credit Card</option></select></div>
+      <div class="form-g"><label>Status</label><select id="f-status"><option>Paid</option><option>Pending</option><option>Partial</option></select></div>
+      <div class="form-g"><label>Budget (₹)</label><input type="number" id="f-budget" placeholder="0" min="0"></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:6px">
+      <button class="btn btn-p" style="flex:1" onclick="addTransaction('f-')">+ Add</button>
+      <button class="btn btn-s" onclick="clrForm('f-')">Clear</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button class="menu-btn" onclick="openSB()">☰</button>
+    <div class="tb-brand">
+      <div class="logo-mark">₹</div>
+      <div><div class="tb-title">FinTrack</div><div class="tb-sub">India MSME</div></div>
+    </div>
+    <div class="tb-sp"></div>
+    <span id="lastUpdated"></span>
+    <label class="csv-lbl" for="csvInput">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      <span class="lbl-txt">Upload CSV</span>
+    </label>
+    <input type="file" id="csvInput" accept=".csv" onchange="handleCSV(event)">
+    <button class="btn btn-s" style="padding:7px 9px" onclick="loadSampleData()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span class="tb-btn-lbl">Sample</span>
+    </button>
+    <button class="btn btn-p" style="padding:7px 9px" onclick="generateDashboard()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      <span class="tb-btn-lbl">Generate</span>
+    </button>
+  </div>
+
+  <div id="content">
+    <!-- KPI -->
+    <div id="kpi-row">
+      <div class="kpi-card" style="--kpi-color:var(--accent3)"><div class="kpi-icon">📈</div><div class="kpi-label">Total Revenue</div><div class="kpi-value" id="kpi-revenue">₹0</div><div class="kpi-sub"><span class="kpi-badge bg-g" id="kpi-revenue-badge">—</span></div></div>
+      <div class="kpi-card" style="--kpi-color:var(--red)"><div class="kpi-icon">📉</div><div class="kpi-label">Total Expenses</div><div class="kpi-value" id="kpi-expenses">₹0</div><div class="kpi-sub"><span class="kpi-badge bg-r" id="kpi-expenses-badge">—</span></div></div>
+      <div class="kpi-card" style="--kpi-color:var(--accent2)"><div class="kpi-icon">💰</div><div class="kpi-label">Net Profit</div><div class="kpi-value" id="kpi-profit">₹0</div><div class="kpi-sub" id="kpi-profit-note" style="font-size:9px;color:var(--text2)">After expenses</div></div>
+      <div class="kpi-card" style="--kpi-color:var(--purple)"><div class="kpi-icon">%</div><div class="kpi-label">Profit Margin</div><div class="kpi-value" id="kpi-margin">0%</div><div class="kpi-sub"><span class="kpi-badge" id="kpi-margin-badge">—</span></div></div>
+      <div class="kpi-card" style="--kpi-color:var(--orange)"><div class="kpi-icon">🔄</div><div class="kpi-label">Net Cash Flow</div><div class="kpi-value" id="kpi-cashflow">₹0</div><div class="kpi-sub"><span class="kpi-badge" id="kpi-cashflow-badge">Paid only</span></div></div>
+    </div>
+
+    <!-- Charts -->
+    <div id="charts-row">
+      <div class="chart-card"><div class="chart-hd"><span class="chart-title">Revenue vs Expense</span><div class="chart-legend"><div class="leg-item"><div class="leg-dot" style="background:var(--accent3)"></div>Rev</div><div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Exp</div><div class="leg-item"><div class="leg-dot" style="background:var(--accent2)"></div>Net</div></div></div><canvas id="lineChart" height="155"></canvas></div>
+      <div class="chart-card"><div class="chart-hd"><span class="chart-title">Expense by Category</span></div><canvas id="barChart" height="155"></canvas></div>
+      <div class="chart-card"><div class="chart-hd"><span class="chart-title">Budget vs Actual</span><div class="chart-legend"><div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>Actual</div><div class="leg-item"><div class="leg-dot" style="background:var(--border2)"></div>Budget</div></div></div><canvas id="bvChart" height="155"></canvas></div>
+    </div>
+
+    <!-- Pivots -->
+    <div id="lower-row">
+      <div class="pivot-card"><div class="pivot-hd"><span>Revenue by Month</span><span id="pv1-tot" style="color:var(--accent3);font-family:var(--mono);font-size:10px">—</span></div><div class="pivot-wrap"><table class="pvt" id="pivot1"><thead><tr><th>Month</th><th>Revenue</th><th>%</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="pivot-card"><div class="pivot-hd"><span>Expense by Category</span><span id="pv2-tot" style="color:var(--red);font-family:var(--mono);font-size:10px">—</span></div><div class="pivot-wrap"><table class="pvt" id="pivot2"><thead><tr><th>Category</th><th>Amount</th><th>%</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="pivot-card"><div class="pivot-hd"><span>Customer Revenue</span><span id="pv3-tot" style="color:var(--accent2);font-family:var(--mono);font-size:10px">—</span></div><div class="pivot-wrap"><table class="pvt" id="pivot3"><thead><tr><th>Customer</th><th>Revenue</th><th>%</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+
+    <!-- Table -->
+    <div id="data-sec">
+      <div class="data-hd">
+        <div class="data-hd-l"><span class="data-title">Transaction Log</span><span id="rowCount">0 rows</span></div>
+        <div class="data-acts">
+          <div class="srch-wrap">
+            <input type="text" id="searchBox" placeholder="Search… upi, pending, income" oninput="searchTable()" onkeydown="searchKD(event)">
+            <span class="srch-hint" id="searchHint"></span>
+          </div>
+          <button class="btn btn-s" style="padding:6px 9px" onclick="exportCSV()">Export</button>
+          <button class="btn btn-d" style="padding:6px 9px" onclick="confirmClear()">Clear</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table id="dataTable">
+          <thead><tr>
+            <th onclick="sortTable('date')" tabindex="0">Date</th>
+            <th onclick="sortTable('month')" tabindex="0">Month</th>
+            <th onclick="sortTable('type')" tabindex="0">Type</th>
+            <th onclick="sortTable('category')" tabindex="0">Category</th>
+            <th onclick="sortTable('party_name')" tabindex="0">Party</th>
+            <th onclick="sortTable('party_type')" tabindex="0">P.Type</th>
+            <th onclick="sortTable('amount')" tabindex="0">Amount</th>
+            <th onclick="sortTable('payment_mode')" tabindex="0">Mode</th>
+            <th onclick="sortTable('status')" tabindex="0">Status</th>
+            <th>Del</th>
+          </tr></thead>
+          <tbody id="tableBody"><tr><td colspan="10" class="empty-st"><div class="empty-ico">📊</div>Load Sample Data or upload a CSV to begin.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- FAB -->
+<button id="fab" onclick="openSheet()" aria-label="Add transaction">＋</button>
+
+<!-- BOTTOM SHEET -->
+<div id="add-sheet">
+  <div id="sheet-bg" onclick="closeSheet()"></div>
+  <div id="sheet-body">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">Add Transaction <button class="sheet-x" onclick="closeSheet()">✕</button></div>
+    <div class="form-grid">
+      <div class="form-g full"><label>Date</label><input type="date" id="m-date"></div>
+      <div class="form-g"><label>Type</label><select id="m-type"><option>Income</option><option>Expense</option></select></div>
+      <div class="form-g"><label>Amount (₹)</label><input type="number" id="m-amount" placeholder="0" min="0"></div>
+      <div class="form-g full"><label>Category</label><select id="m-category"><option>Product Sales</option><option>Service Fees</option><option>Raw Material</option><option>Staff Cost</option><option>Marketing</option><option>Logistics</option><option>Rent</option><option>Utilities</option><option>GST Refund</option><option>Other</option></select></div>
+      <div class="form-g full"><label>Party Name</label><input type="text" id="m-party" placeholder="Customer / Vendor"></div>
+      <div class="form-g"><label>Party Type</label><select id="m-party-type"><option>Customer</option><option>Vendor</option></select></div>
+      <div class="form-g"><label>Payment Mode</label><select id="m-payment"><option>NEFT</option><option>UPI</option><option>Cash</option><option>Cheque</option><option>Credit Card</option></select></div>
+      <div class="form-g"><label>Status</label><select id="m-status"><option>Paid</option><option>Pending</option><option>Partial</option></select></div>
+      <div class="form-g"><label>Budget (₹)</label><input type="number" id="m-budget" placeholder="0" min="0"></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-p btn-full" onclick="addTransaction('m-')">+ Add Entry</button>
+      <button class="btn btn-s" onclick="closeSheet()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+document.addEventListener('touchstart',function(e){var el=e.target;for(var i=0;i<5;i++){if(!el||el===document.body)break;var tag=el.tagName;if(tag==='BUTTON'||tag==='A'||tag==='LABEL'||el.hasAttribute('tabindex')||el.hasAttribute('onclick')){if(document.activeElement&&document.activeElement!==el&&document.activeElement!==document.body){document.activeElement.blur();}break;}el=el.parentElement;}},{passive:true});
+document.addEventListener('keydown',function(e){var tgt=e.target;if((e.key==='Enter'||e.key===' ')&&tgt.tagName==='TH'){e.preventDefault();tgt.click();}});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('editable')){e.preventDefault();e.target.click();}});
+
+function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('backdrop').classList.add('show');document.body.style.overflow='hidden';}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('backdrop').classList.remove('show');document.body.style.overflow='';}
+function openSheet(){document.getElementById('add-sheet').classList.add('open');document.body.style.overflow='hidden';var d=document.getElementById('m-date');if(!d.value)d.value=new Date().toISOString().slice(0,10);}
+function closeSheet(){document.getElementById('add-sheet').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('sheet-bg').addEventListener('touchstart',closeSheet,{passive:true});
+
+let allData=[],filteredData=[],tableRows=[],sortState={col:'date',dir:'desc'},nextId=1000;
+
+const SAMPLE=[
+  {id:1,date:'2024-04-05',type:'Income',category:'Product Sales',party_name:'Reliance Retail',party_type:'Customer',amount:185000,payment_mode:'NEFT',status:'Paid',budget_amount:170000},
+  {id:2,date:'2024-04-08',type:'Expense',category:'Raw Material',party_name:'Tata Steel Ltd',party_type:'Vendor',amount:92000,payment_mode:'NEFT',status:'Paid',budget_amount:90000},
+  {id:3,date:'2024-04-12',type:'Expense',category:'Staff Cost',party_name:'Payroll April',party_type:'Vendor',amount:85000,payment_mode:'NEFT',status:'Paid',budget_amount:85000},
+  {id:4,date:'2024-04-15',type:'Income',category:'Service Fees',party_name:'Infosys BPO',party_type:'Customer',amount:42000,payment_mode:'UPI',status:'Pending',budget_amount:40000},
+  {id:5,date:'2024-04-20',type:'Expense',category:'Marketing',party_name:'Meta Ads India',party_type:'Vendor',amount:18500,payment_mode:'Credit Card',status:'Paid',budget_amount:20000},
+  {id:6,date:'2024-04-22',type:'Expense',category:'Logistics',party_name:'Blue Dart',party_type:'Vendor',amount:9800,payment_mode:'Cheque',status:'Paid',budget_amount:10000},
+  {id:7,date:'2024-04-25',type:'Income',category:'Product Sales',party_name:'Amazon Seller',party_type:'Customer',amount:68000,payment_mode:'NEFT',status:'Paid',budget_amount:65000},
+  {id:8,date:'2024-04-28',type:'Expense',category:'Rent',party_name:'Commercial Prop',party_type:'Vendor',amount:35000,payment_mode:'NEFT',status:'Paid',budget_amount:35000},
+  {id:9,date:'2024-04-30',type:'Expense',category:'Utilities',party_name:'MSEDCL',party_type:'Vendor',amount:8200,payment_mode:'NEFT',status:'Paid',budget_amount:9000},
+  {id:10,date:'2024-05-03',type:'Income',category:'Product Sales',party_name:'Flipkart Seller',party_type:'Customer',amount:112000,payment_mode:'NEFT',status:'Pending',budget_amount:100000},
+  {id:11,date:'2024-05-07',type:'Expense',category:'Raw Material',party_name:'Tata Steel Ltd',party_type:'Vendor',amount:88000,payment_mode:'NEFT',status:'Paid',budget_amount:90000},
+  {id:12,date:'2024-05-10',type:'Income',category:'Service Fees',party_name:'HCL Technologies',party_type:'Customer',amount:55000,payment_mode:'UPI',status:'Paid',budget_amount:50000},
+  {id:13,date:'2024-05-15',type:'Expense',category:'Staff Cost',party_name:'Payroll May',party_type:'Vendor',amount:85000,payment_mode:'NEFT',status:'Paid',budget_amount:85000},
+  {id:14,date:'2024-05-18',type:'Expense',category:'Marketing',party_name:'Google Ads',party_type:'Vendor',amount:22000,payment_mode:'Credit Card',status:'Paid',budget_amount:20000},
+  {id:15,date:'2024-05-22',type:'Income',category:'Product Sales',party_name:'Reliance Retail',party_type:'Customer',amount:210000,payment_mode:'NEFT',status:'Paid',budget_amount:200000},
+  {id:16,date:'2024-05-26',type:'Expense',category:'Logistics',party_name:'DTDC India',party_type:'Vendor',amount:11400,payment_mode:'NEFT',status:'Paid',budget_amount:10000},
+  {id:17,date:'2024-05-28',type:'Expense',category:'Rent',party_name:'Commercial Prop',party_type:'Vendor',amount:35000,payment_mode:'NEFT',status:'Paid',budget_amount:35000},
+  {id:18,date:'2024-06-04',type:'Income',category:'Product Sales',party_name:'Meesho',party_type:'Customer',amount:78000,payment_mode:'UPI',status:'Paid',budget_amount:75000},
+  {id:19,date:'2024-06-08',type:'Expense',category:'Raw Material',party_name:'Jindal Steel',party_type:'Vendor',amount:105000,payment_mode:'NEFT',status:'Paid',budget_amount:100000},
+  {id:20,date:'2024-06-12',type:'Income',category:'Service Fees',party_name:'Wipro Ltd',party_type:'Customer',amount:62000,payment_mode:'NEFT',status:'Paid',budget_amount:60000},
+  {id:21,date:'2024-06-15',type:'Expense',category:'Staff Cost',party_name:'Payroll June',party_type:'Vendor',amount:90000,payment_mode:'NEFT',status:'Paid',budget_amount:88000},
+  {id:22,date:'2024-06-18',type:'Expense',category:'Utilities',party_name:'MSEDCL',party_type:'Vendor',amount:9100,payment_mode:'NEFT',status:'Paid',budget_amount:9000},
+  {id:23,date:'2024-06-21',type:'Income',category:'Product Sales',party_name:'Amazon Seller',party_type:'Customer',amount:145000,payment_mode:'NEFT',status:'Paid',budget_amount:130000},
+  {id:24,date:'2024-06-25',type:'Expense',category:'Marketing',party_name:'Meta Ads India',party_type:'Vendor',amount:26000,payment_mode:'Credit Card',status:'Paid',budget_amount:25000},
+  {id:25,date:'2024-06-28',type:'Expense',category:'Rent',party_name:'Commercial Prop',party_type:'Vendor',amount:35000,payment_mode:'NEFT',status:'Paid',budget_amount:35000},
+  {id:26,date:'2024-07-05',type:'Income',category:'Product Sales',party_name:'Flipkart Seller',party_type:'Customer',amount:168000,payment_mode:'NEFT',status:'Paid',budget_amount:160000},
+  {id:27,date:'2024-07-09',type:'Expense',category:'Raw Material',party_name:'Tata Steel Ltd',party_type:'Vendor',amount:112000,payment_mode:'NEFT',status:'Paid',budget_amount:110000},
+  {id:28,date:'2024-07-14',type:'Income',category:'GST Refund',party_name:'GST Portal',party_type:'Customer',amount:32000,payment_mode:'NEFT',status:'Paid',budget_amount:0},
+  {id:29,date:'2024-07-18',type:'Expense',category:'Staff Cost',party_name:'Payroll July',party_type:'Vendor',amount:90000,payment_mode:'NEFT',status:'Paid',budget_amount:90000},
+  {id:30,date:'2024-07-22',type:'Income',category:'Service Fees',party_name:'Infosys BPO',party_type:'Customer',amount:75000,payment_mode:'UPI',status:'Pending',budget_amount:70000},
+  {id:31,date:'2024-07-26',type:'Expense',category:'Logistics',party_name:'Blue Dart',party_type:'Vendor',amount:13500,payment_mode:'Cheque',status:'Paid',budget_amount:12000},
+  {id:32,date:'2024-07-30',type:'Expense',category:'Marketing',party_name:'LinkedIn Ads',party_type:'Vendor',amount:18000,payment_mode:'Credit Card',status:'Paid',budget_amount:20000},
+  {id:33,date:'2024-08-05',type:'Income',category:'Product Sales',party_name:'Reliance Retail',party_type:'Customer',amount:220000,payment_mode:'NEFT',status:'Paid',budget_amount:200000},
+  {id:34,date:'2024-08-10',type:'Expense',category:'Raw Material',party_name:'Jindal Steel',party_type:'Vendor',amount:120000,payment_mode:'NEFT',status:'Paid',budget_amount:115000},
+  {id:35,date:'2024-08-15',type:'Expense',category:'Staff Cost',party_name:'Payroll August',party_type:'Vendor',amount:92000,payment_mode:'NEFT',status:'Paid',budget_amount:90000},
+  {id:36,date:'2024-08-20',type:'Income',category:'Product Sales',party_name:'Amazon Seller',party_type:'Customer',amount:195000,payment_mode:'NEFT',status:'Paid',budget_amount:180000},
+  {id:37,date:'2024-08-25',type:'Expense',category:'Rent',party_name:'Commercial Prop',party_type:'Vendor',amount:35000,payment_mode:'NEFT',status:'Paid',budget_amount:35000},
+  {id:38,date:'2024-08-28',type:'Expense',category:'Utilities',party_name:'MSEDCL',party_type:'Vendor',amount:10200,payment_mode:'NEFT',status:'Paid',budget_amount:9500}
+];
+
+function fmtINR(n){if(isNaN(n)||n===null)return'₹0';const a=Math.abs(n),s=n<0?'-':'';if(a>=10000000)return s+'₹'+(a/10000000).toFixed(2)+' Cr';if(a>=100000)return s+'₹'+(a/100000).toFixed(2)+' L';if(a>=1000){const st=Math.round(a).toString(),l3=st.slice(-3),r=st.slice(0,-3);return s+'₹'+(r?r.replace(/\B(?=(\d{2})+(?!\d))/g,',')+',':'')+l3;}return s+'₹'+Math.round(a).toLocaleString('en-IN');}
+function mStr(d){if(!d)return'';const dt=new Date(d);return isNaN(dt)?'':dt.toLocaleDateString('en-IN',{month:'short',year:'2-digit'});}
+function mKey(d){if(!d)return'';const dt=new Date(d);if(isNaN(dt))return'';return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');}
+function getFY(d){const dt=new Date(d),y=dt.getFullYear(),m=dt.getMonth();return m>=3?`FY ${y}-${String(y+1).slice(-2)}`:`FY ${y-1}-${String(y).slice(-2)}`;}
+function st(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function toast(msg,type=''){const c=document.getElementById('toast');const el=document.createElement('div');el.className='toast-item'+(type==='err'?' err':type==='ok'?' ok':'');el.textContent=msg;c.appendChild(el);setTimeout(()=>el.remove(),3100);}
+
+function loadSampleData(){allData=SAMPLE.map(r=>({...r}));nextId=2000;initFilters();applyFilters();toast('38 sample transactions loaded','ok');}
+function handleCSV(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{parseCSV(ev.target.result);e.target.value='';};r.readAsText(f);}
+function parseCSV(text){
+  const lines=text.trim().split('\n');if(lines.length<2){toast('No data rows','err');return;}
+  const hdr=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase().replace(/\s+/g,'_'));
+  const MAP={date:['date'],type:['type'],category:['category'],party_name:['party_name','party','customer','vendor'],party_type:['party_type'],amount:['amount'],payment_mode:['payment_mode','mode','payment'],status:['status'],budget_amount:['budget_amount','budget']};
+  function fc(k){const a=MAP[k]||[k];for(const x of a){const i=hdr.indexOf(x);if(i>=0)return i;}return -1;}
+  const cols={};Object.keys(MAP).forEach(k=>cols[k]=fc(k));
+  const parsed=[];
+  for(let i=1;i<lines.length;i++){const p=lines[i].split(',').map(x=>x.trim().replace(/"/g,''));if(!p[0])continue;const row={id:nextId++};Object.keys(cols).forEach(k=>{const idx=cols[k],v=idx>=0?p[idx]||'':'';if(k==='amount'||k==='budget_amount')row[k]=parseFloat(v)||0;else row[k]=v;});if(!row.date||!row.amount)continue;parsed.push(row);}
+  if(!parsed.length){toast('No valid rows','err');return;}
+  allData=[...allData,...parsed];initFilters();applyFilters();toast(`Loaded ${parsed.length} rows`,'ok');
+}
+
+function initFilters(){
+  pop('filterFY',[...new Set(allData.map(r=>getFY(r.date)).filter(Boolean))].sort());
+  pop('filterMonth',[...new Set(allData.map(r=>r.date?mStr(r.date):'').filter(Boolean))].sort((a,b)=>new Date('01 '+a)-new Date('01 '+b)));
+  pop('filterCategory',[...new Set(allData.map(r=>r.category).filter(Boolean))].sort());
+  pop('filterParty',[...new Set(allData.map(r=>r.party_name).filter(Boolean))].sort());
+}
+function pop(id,opts){const s=document.getElementById(id);const cur=s.value;s.innerHTML='<option value="all">All</option>';opts.forEach(o=>{s.appendChild(new Option(o,o));});if(opts.includes(cur))s.value=cur;}
+function gv(id){return document.getElementById(id).value;}
+function applyFilters(){
+  const fy=gv('filterFY'),mo=gv('filterMonth'),cat=gv('filterCategory'),party=gv('filterParty'),pay=gv('filterPayment'),type=gv('filterType');
+  filteredData=allData.filter(r=>{
+    if(fy!=='all'&&getFY(r.date)!==fy)return false;
+    if(mo!=='all'&&mStr(r.date)!==mo)return false;
+    if(cat!=='all'&&r.category!==cat)return false;
+    if(party!=='all'&&r.party_name!==party)return false;
+    if(pay!=='all'&&r.payment_mode!==pay)return false;
+    if(type!=='all'&&r.type!==type)return false;
+    return true;
+  });
+  renderAll();
+}
+function resetFilters(){['filterFY','filterMonth','filterCategory','filterParty','filterPayment','filterType'].forEach(id=>document.getElementById(id).value='all');document.getElementById('searchBox').value='';clrHint();applyFilters();}
+
+function renderAll(){updateKPIs();updateQS();renderCharts();renderPivots();renderTable(filteredData);const lu=document.getElementById('lastUpdated');if(lu)lu.textContent='↻ '+new Date().toLocaleTimeString('en-IN');}
+function generateDashboard(){renderAll();toast('Dashboard generated','ok');}
+
+function updateKPIs(){
+  const inc=filteredData.filter(r=>r.type==='Income'),exp=filteredData.filter(r=>r.type==='Expense');
+  const rev=inc.reduce((s,r)=>s+r.amount,0),expt=exp.reduce((s,r)=>s+r.amount,0);
+  const profit=rev-expt,margin=rev>0?(profit/rev)*100:0;
+  const ci=inc.filter(r=>r.status==='Paid').reduce((s,r)=>s+r.amount,0),co=exp.filter(r=>r.status==='Paid').reduce((s,r)=>s+r.amount,0),cf=ci-co;
+  st('kpi-revenue',fmtINR(rev));st('kpi-expenses',fmtINR(expt));st('kpi-profit',fmtINR(profit));st('kpi-margin',margin.toFixed(1)+'%');st('kpi-cashflow',fmtINR(cf));
+  bdg('kpi-revenue-badge',inc.length+' txns','bg-g');bdg('kpi-expenses-badge',exp.length+' txns','bg-r');
+  bdg('kpi-margin-badge',margin>=20?'Healthy':margin>=10?'Moderate':'Low',margin>=20?'bg-g':margin>=10?'bg-a':'bg-r');
+  bdg('kpi-cashflow-badge',cf>=0?'Positive':'Negative',cf>=0?'bg-g':'bg-r');
+  const pn=document.getElementById('kpi-profit-note');pn.textContent=profit>=0?'Profitable':'Loss period';pn.style.color=profit>=0?'var(--green)':'var(--red)';
+  document.getElementById('kpi-profit').style.color=profit>=0?'var(--text)':'var(--red)';
+}
+function bdg(id,txt,cls){const e=document.getElementById(id);if(e){e.textContent=txt;e.className='kpi-badge '+cls;}}
+function updateQS(){
+  const inc=filteredData.filter(r=>r.type==='Income'),exp=filteredData.filter(r=>r.type==='Expense');
+  const pnd=filteredData.filter(r=>r.status==='Pending'&&r.type==='Income');
+  const avg=filteredData.length?filteredData.reduce((s,r)=>s+r.amount,0)/filteredData.length:0;
+  st('qs-count',filteredData.length);st('qs-income-count',inc.length);st('qs-expense-count',exp.length);
+  st('qs-ar',fmtINR(pnd.reduce((s,r)=>s+r.amount,0)));st('qs-avg',fmtINR(avg));
+}
+
+function gc(id,h){const c=document.getElementById(id);const p=c.parentElement;c.width=p.clientWidth-26;c.height=h||155;return{ctx:c.getContext('2d'),w:c.width,h:c.height};}
+function renderCharts(){renderLine();renderBar();renderBV();}
+function renderLine(){
+  const{ctx,w,h}=gc('lineChart',155);ctx.clearRect(0,0,w,h);
+  const mm={};filteredData.forEach(r=>{const mk=mKey(r.date),ms=mStr(r.date);if(!mk)return;if(!mm[mk])mm[mk]={label:ms,rev:0,exp:0};if(r.type==='Income')mm[mk].rev+=r.amount;else mm[mk].exp+=r.amount;});
+  const months=Object.keys(mm).sort();if(!months.length){de(ctx,w,h,'No data');return;}
+  const revs=months.map(m=>mm[m].rev),exps=months.map(m=>mm[m].exp),nets=months.map((m,i)=>revs[i]-exps[i]);
+  const pad={t:14,r:10,b:26,l:46};const gw=w-pad.l-pad.r,gh=h-pad.t-pad.b;
+  const maxV=Math.max(...revs,...exps,...nets,0)*1.1||1,minV=Math.min(...nets,0)*1.1,range=maxV-minV||1;
+  function yC(v){return pad.t+gh-(((v-minV)/range)*gh);}const xS=gw/(months.length>1?months.length-1:1);
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){const y=pad.t+(gh/3)*i;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+gw,y);ctx.stroke();ctx.fillStyle='rgba(122,143,168,.6)';ctx.font='8px Courier New';ctx.textAlign='right';ctx.fillText(fmtINR(maxV-((maxV-minV)/3)*i),pad.l-3,y+3);}
+  ctx.fillStyle='rgba(122,143,168,.6)';ctx.font='8px Trebuchet MS';ctx.textAlign='center';
+  const step=Math.ceil(months.length/6);months.forEach((m,i)=>{if(i%step===0)ctx.fillText(mm[m].label,pad.l+i*xS,h-pad.b+11);});
+  function dl(vals,col,fill){
+    if(!vals.length)return;ctx.beginPath();vals.forEach((v,i)=>{const x=pad.l+i*xS,y=yC(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    if(fill){ctx.lineTo(pad.l+(vals.length-1)*xS,yC(0));ctx.lineTo(pad.l,yC(0));ctx.closePath();ctx.fillStyle=col.replace('rgb','rgba').replace(')',',0.07)');ctx.fill();}
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
+    vals.forEach((v,i)=>{ctx.beginPath();ctx.arc(pad.l+i*xS,yC(v),2.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();});
+  }
+  dl(exps,'#ef4444',true);dl(revs,'#22c55e',true);dl(nets,'#3b82f6');
+}
+function renderBar(){
+  const{ctx,w,h}=gc('barChart',155);ctx.clearRect(0,0,w,h);
+  const cm={};filteredData.filter(r=>r.type==='Expense').forEach(r=>{cm[r.category]=(cm[r.category]||0)+r.amount;});
+  const sorted=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,7);if(!sorted.length){de(ctx,w,h,'No expense data');return;}
+  const maxV=sorted[0][1];const pad={t:8,r:14,b:8,l:78};const gh=h-pad.t-pad.b,gw=w-pad.l-pad.r;
+  const barH=Math.min(20,(gh/sorted.length)-3);const colors=['#f59e0b','#ef4444','#3b82f6','#10b981','#a855f7','#f97316','#06b6d4'];
+  sorted.forEach(([cat,val],i)=>{
+    const y=pad.t+(gh/sorted.length)*i+(gh/sorted.length-barH)/2;
+    ctx.fillStyle='rgba(122,143,168,.8)';ctx.font='9px Trebuchet MS';ctx.textAlign='right';ctx.fillText(cat.length>10?cat.slice(0,9)+'…':cat,pad.l-3,y+barH/2+3.5);
+    ctx.fillStyle='rgba(255,255,255,.04)';ctx.beginPath();ctx.roundRect(pad.l,y,gw,barH,2);ctx.fill();
+    const bw=(val/maxV)*gw;ctx.fillStyle=colors[i%colors.length];ctx.beginPath();ctx.roundRect(pad.l,y,bw,barH,2);ctx.fill();
+    if(bw<gw-36){ctx.fillStyle='rgba(232,237,245,.7)';ctx.font='8px Courier New';ctx.textAlign='left';ctx.fillText(fmtINR(val),pad.l+bw+4,y+barH/2+3.5);}
+  });
+}
+function renderBV(){
+  const{ctx,w,h}=gc('bvChart',155);ctx.clearRect(0,0,w,h);
+  const cm={};filteredData.filter(r=>r.type==='Expense').forEach(r=>{if(!cm[r.category])cm[r.category]={actual:0,budget:0};cm[r.category].actual+=r.amount;cm[r.category].budget+=r.budget_amount||0;});
+  const cats=Object.keys(cm).filter(c=>cm[c].budget>0).slice(0,5);if(!cats.length){de(ctx,w,h,'No budget data');return;}
+  const pad={t:14,r:8,b:30,l:38};const gw=w-pad.l-pad.r,gh=h-pad.t-pad.b;
+  const maxV=Math.max(...cats.flatMap(c=>[cm[c].actual,cm[c].budget]))*1.1||1;
+  const grpW=gw/cats.length,bW=grpW*0.35;
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){const y=pad.t+(gh/3)*i;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+gw,y);ctx.stroke();ctx.fillStyle='rgba(122,143,168,.5)';ctx.font='8px Courier New';ctx.textAlign='right';ctx.fillText(fmtINR(maxV*(1-i/3)),pad.l-3,y+3);}
+  cats.forEach((cat,i)=>{
+    const{actual,budget}=cm[cat];const cx=pad.l+i*grpW+grpW/2;const over=actual>budget&&budget>0;
+    const bH=(budget/maxV)*gh;ctx.fillStyle='rgba(255,255,255,.1)';ctx.beginPath();ctx.roundRect(cx-bW-1,pad.t+gh-bH,bW,bH,2);ctx.fill();
+    const aH=(actual/maxV)*gh;ctx.fillStyle=over?'#ef4444':'#f59e0b';ctx.beginPath();ctx.roundRect(cx+1,pad.t+gh-aH,bW,aH,2);ctx.fill();
+    ctx.fillStyle='rgba(122,143,168,.8)';ctx.font='8px Trebuchet MS';ctx.textAlign='center';ctx.fillText(cat.length>6?cat.slice(0,5)+'…':cat,cx,h-pad.b+11);
+    if(budget>0){const pct=((actual-budget)/budget*100).toFixed(0);ctx.fillStyle=over?'#ef4444':'#22c55e';ctx.font='bold 8px Courier New';ctx.textAlign='center';ctx.fillText((pct>0?'+':'')+pct+'%',cx,pad.t+gh-Math.max(aH,bH)-3);}
+  });
+}
+function de(ctx,w,h,msg){ctx.fillStyle='rgba(74,92,114,.4)';ctx.font='11px Trebuchet MS';ctx.textAlign='center';ctx.fillText(msg,w/2,h/2);}
+
+function renderPivots(){pv1();pv2();pv3();}
+function pv1(){
+  const data=filteredData.filter(r=>r.type==='Income');const map={};
+  data.forEach(r=>{const mk=mKey(r.date);if(!map[mk])map[mk]={label:mStr(r.date),val:0};map[mk].val+=r.amount;});
+  const rows=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]));const tot=rows.reduce((s,[,v])=>s+v.val,0);
+  st('pv1-tot',fmtINR(tot));const tb=document.querySelector('#pivot1 tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="3" class="empty-st" style="padding:10px">No data</td></tr>';return;}
+  tb.innerHTML=rows.map(([,v])=>`<tr><td>${v.label}</td><td class="num">${fmtINR(v.val)}</td><td class="pct">${tot>0?(v.val/tot*100).toFixed(1)+'%':'—'}</td></tr>`).join('');
+}
+function pv2(){
+  const data=filteredData.filter(r=>r.type==='Expense');const map={};
+  data.forEach(r=>{map[r.category]=(map[r.category]||0)+r.amount;});
+  const rows=Object.entries(map).sort((a,b)=>b[1]-a[1]);const tot=rows.reduce((s,[,v])=>s+v,0);
+  st('pv2-tot',fmtINR(tot));const tb=document.querySelector('#pivot2 tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="3" class="empty-st" style="padding:10px">No data</td></tr>';return;}
+  tb.innerHTML=rows.map(([c,v])=>`<tr><td>${c}</td><td class="num">${fmtINR(v)}</td><td class="pct">${tot>0?(v/tot*100).toFixed(1)+'%':'—'}</td></tr>`).join('');
+}
+function pv3(){
+  const data=filteredData.filter(r=>r.type==='Income'&&r.party_type==='Customer');const map={};
+  data.forEach(r=>{map[r.party_name]=(map[r.party_name]||0)+r.amount;});
+  const rows=Object.entries(map).sort((a,b)=>b[1]-a[1]);const tot=rows.reduce((s,[,v])=>s+v,0);
+  st('pv3-tot',fmtINR(tot));const tb=document.querySelector('#pivot3 tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="3" class="empty-st" style="padding:10px">No data</td></tr>';return;}
+  tb.innerHTML=rows.map(([p,v])=>`<tr><td>${p}</td><td class="num">${fmtINR(v)}</td><td class="pct">${tot>0?(v/tot*100).toFixed(1)+'%':'—'}</td></tr>`).join('');
+}
+
+function renderTable(data){tableRows=[...data];sortAndRender();}
+function sortAndRender(){
+  const{col,dir}=sortState;
+  tableRows.sort((a,b)=>{let va=a[col]??'',vb=b[col]??'';if(col==='amount'||col==='budget_amount'){va=+va;vb=+vb;}else{va=String(va).toLowerCase();vb=String(vb).toLowerCase();}return dir==='asc'?(va>vb?1:va<vb?-1:0):(va<vb?1:va>vb?-1:0);});
+  displayTable(tableRows);
+}
+function displayTable(rows){
+  st('rowCount',rows.length+' rows');const tb=document.getElementById('tableBody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="10" class="empty-st"><div class="empty-ico">🔍</div>No matching transactions.</td></tr>';return;}
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td>${r.date||'—'}</td>
+    <td>${mStr(r.date)||'—'}</td>
+    <td><span class="tag ${r.type==='Income'?'ti':'te'}">${r.type||'—'}</span></td>
+    <td class="editable" role="button" tabindex="0" onclick="editCell(${r.id},'category',this)">${r.category||'—'}</td>
+    <td class="editable" role="button" tabindex="0" onclick="editCell(${r.id},'party_name',this)">${r.party_name||'—'}</td>
+    <td>${r.party_type||'—'}</td>
+    <td style="text-align:right;font-family:var(--mono);font-size:11px">${fmtINR(r.amount)}</td>
+    <td>${r.payment_mode||'—'}</td>
+    <td><span class="tag ${r.status==='Paid'?'tp':r.status==='Pending'?'tpd':'tpr'}">${r.status||'—'}</span></td>
+    <td><button class="del-btn" onclick="deleteRow(${r.id})">✕</button></td>
+  </tr>`).join('');
+}
+function sortTable(col){
+  if(sortState.col===col)sortState.dir=sortState.dir==='asc'?'desc':'asc';
+  else{sortState.col=col;sortState.dir='asc';}
+  document.querySelectorAll('#dataTable thead th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
+  const hs=['date','month','type','category','party_name','party_type','amount','payment_mode','status'];
+  const idx=hs.indexOf(col);if(idx>=0)document.querySelectorAll('#dataTable thead th')[idx].classList.add('sort-'+sortState.dir);
+  sortAndRender();
+}
+
+const CMDS=[
+  {re:/^(income|revenue|sales)$/,act(){apF('filterType','Income')},hint:'→ Income only'},
+  {re:/^(expense|expenses|cost)$/,act(){apF('filterType','Expense')},hint:'→ Expenses only'},
+  {re:/^upi$/,act(){apF('filterPayment','UPI')},hint:'→ UPI payments'},
+  {re:/^neft$/,act(){apF('filterPayment','NEFT')},hint:'→ NEFT payments'},
+  {re:/^cash$/,act(){apF('filterPayment','Cash')},hint:'→ Cash'},
+  {re:/^(cheque|check)$/,act(){apF('filterPayment','Cheque')},hint:'→ Cheque'},
+  {re:/^(credit|card|cc)$/,act(){apF('filterPayment','Credit Card')},hint:'→ Credit Card'},
+  {re:/^(pending|unpaid|due)$/,act(){plainS('Pending')},hint:'→ Pending txns'},
+  {re:/^(paid|cleared)$/,act(){plainS('Paid')},hint:'→ Paid txns'},
+  {re:/^partial$/,act(){plainS('Partial')},hint:'→ Partial txns'},
+  {re:/^(reset|clear|all)$/,act(){resetFilters()},hint:'→ Reset filters'},
+  {re:/^(customer|customers)$/,act(){plainS('Customer')},hint:'→ Customers'},
+  {re:/^(vendor|vendors)$/,act(){plainS('Vendor')},hint:'→ Vendors'},
+];
+function apF(id,val){document.getElementById(id).value=val;applyFilters();}
+function plainS(val){displayTable(tableRows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(val.toLowerCase()))));}
+function clrHint(){const h=document.getElementById('searchHint');if(h){h.textContent='';h.classList.remove('show');}}
+function searchTable(){
+  const raw=document.getElementById('searchBox').value,q=raw.trim().toLowerCase();
+  const hint=document.getElementById('searchHint');
+  const m=CMDS.find(c=>c.re.test(q));
+  if(m){hint.textContent=m.hint+' — Enter to apply';hint.classList.add('show');if(q)displayTable(tableRows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q))));else displayTable(tableRows);return;}
+  clrHint();if(!q){displayTable(tableRows);return;}
+  displayTable(tableRows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q))));
+}
+function searchKD(e){
+  if(e.key!=='Enter')return;
+  const q=document.getElementById('searchBox').value.trim().toLowerCase();
+  const m=CMDS.find(c=>c.re.test(q));
+  if(m){m.act();document.getElementById('searchBox').value='';clrHint();toast('Filter applied: '+q,'ok');}
+}
+
+function editCell(id,field,td){
+  const row=allData.find(r=>r.id===id);if(!row)return;
+  const orig=td.textContent;
+  const inp=document.createElement('input');
+  inp.value=orig;
+  inp.style.cssText='width:100%;background:var(--bg3);border:1px solid var(--accent);border-radius:4px;padding:4px 6px;color:var(--text);font-size:12px;font-family:var(--ui)';
+  td.textContent='';td.appendChild(inp);inp.focus();inp.select();
+  function save(){row[field]=inp.value||orig;applyFilters();}
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape')td.textContent=orig;});
+}
+function deleteRow(id){allData=allData.filter(r=>r.id!==id);applyFilters();toast('Deleted');}
+function confirmClear(){if(!allData.length){toast('No data');return;}if(confirm('Clear all '+allData.length+' transactions?')){allData=[];filteredData=[];renderAll();toast('Cleared');}}
+
+function addTransaction(pre){
+  const date=document.getElementById(pre+'date').value,amount=parseFloat(document.getElementById(pre+'amount').value)||0,party=document.getElementById(pre+'party').value.trim();
+  if(!date){toast('Enter a date','err');return;}
+  if(!amount){toast('Enter an amount','err');return;}
+  if(!party){toast('Enter party name','err');return;}
+  allData.push({id:nextId++,date,type:document.getElementById(pre+'type').value,category:document.getElementById(pre+'category').value,party_name:party,party_type:document.getElementById(pre+'party-type').value,amount,payment_mode:document.getElementById(pre+'payment').value,status:document.getElementById(pre+'status').value,budget_amount:parseFloat(document.getElementById(pre+'budget').value)||0});
+  initFilters();applyFilters();toast('Transaction added','ok');
+  if(pre==='m-')closeSheet();
+  clrForm(pre);
+}
+function clrForm(pre){['date','amount','party','budget'].forEach(f=>{const e=document.getElementById(pre+f);if(e)e.value='';});}
+
+function exportCSV(){
+  if(!filteredData.length){toast('No data','err');return;}
+  const h=['date','type','category','party_name','party_type','amount','payment_mode','status','budget_amount'];
+  const csv=[h.join(','),...filteredData.map(r=>h.map(k=>`"${r[k]??''}"`).join(','))].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='finance_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('Exported '+filteredData.length+' rows','ok');
+}
+
+let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(filteredData.length)renderCharts();},150);});
+document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0e15" />
+  <meta name="description" content="ViaDecide Agent demo page — production-ready global widget with Gemini chat, tasks, setup guidance, internal routing, and lazy DOCX export." />
+  <title>ViaDecide Agent — Production Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Outfit', system-ui, sans-serif;
+      background: #0b0e15;
+      color: #f4efe7;
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+    :root {
+      --teal: #22b4a0;
+      --gold: #c8932a;
+      --tx: #f4efe7;
+      --tx2: rgba(240,237,230,.65);
+      --sf: rgba(255,255,255,.03);
+      --bd: rgba(255,255,255,.09);
+    }
+    .shell { max-width: 980px; margin: 0 auto; padding: 0 24px 120px; }
+
+    /* Nav */
+    .demo-nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(11,14,21,.93);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--bd);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .demo-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
+    .demo-dot {
+      width: 8px; height: 8px; border-radius: 999px;
+      background: var(--gold);
+      box-shadow: 0 0 0 6px rgba(200,147,42,.1);
+    }
+    .demo-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .demo-links a {
+      color: var(--tx2); text-decoration: none; font-size: 13px;
+      padding: 7px 12px; border: 1px solid var(--bd);
+      border-radius: 999px; background: var(--sf);
+      transition: border-color .2s, color .2s;
+    }
+    .demo-links a:hover { border-color: rgba(255,255,255,.2); color: var(--tx); }
+
+    /* Hero */
+    .hero { padding: 56px 0 32px; display: grid; gap: 20px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: .16em;
+      color: var(--teal); font-weight: 700;
+    }
+    .eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--teal); opacity: .7; }
+    h1 {
+      margin: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      line-height: .95; font-weight: 500; letter-spacing: -.03em;
+    }
+    .hero p { max-width: 720px; color: var(--tx2); font-size: 17px; line-height: 1.8; }
+    .kbd {
+      display: inline-block; padding: 2px 7px;
+      border-radius: 7px; background: rgba(255,255,255,.06);
+      border: 1px solid var(--bd); font-size: 12px;
+    }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; margin-top: 16px; }
+    .card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--bd);
+      border-radius: 22px; padding: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.22);
+    }
+    .card h2 { margin: 0 0 12px; font-size: 18px; font-weight: 700; }
+    .card p, .card li { color: var(--tx2); line-height: 1.8; font-size: 14px; }
+    .card ul { margin: 10px 0 0 18px; padding: 0; }
+
+    /* Steps */
+    .steps { display: grid; gap: 10px; }
+    .step {
+      display: grid; grid-template-columns: auto 1fr; gap: 12px;
+      align-items: flex-start; padding: 13px;
+      border-radius: 16px; background: rgba(255,255,255,.03);
+      border: 1px solid var(--bd);
+    }
+    .step-n {
+      width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(34,180,160,.12); color: var(--teal);
+      font-weight: 700; font-size: 13px;
+    }
+    .step p { font-size: 13px; color: var(--tx2); line-height: 1.7; margin: 0; }
+
+    .foot { margin-top: 16px; font-size: 13px; color: var(--tx2); }
+
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .demo-links { display: none; } }
+  </style>
+</head>
+<body>
+
+  <nav class="demo-nav">
+    <div class="demo-brand">
+      <span class="demo-dot"></span>
+      ViaDecide Agent
+    </div>
+    <div class="demo-links">
+      <a href="/alchemist">Alchemist</a>
+      <a href="/app-generator">App Generator</a>
+      <a href="/sales-dashboard">Sales Dashboard</a>
+      <a href="/finance-dashboard-msme">Finance Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Production Widget</div>
+      <h1>Global widget.<br>Safe by default.</h1>
+      <p>
+        This page embeds the production-ready ViaDecide Agent widget via
+        <span class="kbd">/js/viadecide-agent.js</span>.
+        Drop the same script tag into any ViaDecide page &mdash; no extra markup needed.
+      </p>
+    </section>
+
+    <div class="grid">
+      <article class="card">
+        <h2>What&rsquo;s included</h2>
+        <ul>
+          <li>Duplicate-injection guard via <span class="kbd">window.VDAgentLoaded</span>.</li>
+          <li>Multi-turn chat &mdash; full conversation history sent to Gemini on every message.</li>
+          <li>Tasks tab &mdash; add, complete, and delete action items stored in localStorage.</li>
+          <li>Internal route intelligence &mdash; suggests clickable ViaDecide pages based on your question.</li>
+          <li>Lazy DOCX export &mdash; document library loads only when you click export.</li>
+          <li>Fresh page context on every send: pathname, title, and meta description.</li>
+          <li>All interactions bound via <span class="kbd">addEventListener</span> &mdash; no global onclick attributes.</li>
+        </ul>
+      </article>
+
+      <aside class="card">
+        <h2>Quick test</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-n">1</div>
+            <p>Open the floating <strong>&#10022;</strong> button in the bottom-right corner.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">2</div>
+            <p>Go to <strong>Setup</strong>, paste a Gemini API key, and click <strong>Test key</strong>.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">3</div>
+            <p>Go to <strong>Tasks</strong>, click <strong>+ Add</strong>, type a task, and press <strong>Save</strong>.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">4</div>
+            <p>Click <strong>&#11015; Export .docx</strong> to download your session.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <p class="foot">
+      The widget injects its own scoped DOM and CSS &mdash; works on any page without markup conflicts.
+    </p>
+  </div>
+
+  <script src="/js/viadecide-agent.js"></script>
+</body>
+</html>

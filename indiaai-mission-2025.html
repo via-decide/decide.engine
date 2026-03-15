@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <title>IndiaAI Mission: What It Means for Builders | viadecide.com</title>
+  <meta name="description" content="The ₹10,371 crore IndiaAI mission is the largest sovereign AI investment in Indian history. Here's what it unlocks for builders."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080808;--text:#f0f0f0;--accent:#ff671f;--accent2:rgba(255,103,31,.12);--border:rgba(255,255,255,.07);--card:rgba(14,14,14,.9);--maxw:720px;}
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(8,8,8,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,#ff671f 0%,rgba(255,103,31,.2) 100%);border:1px solid rgba(255,103,31,.3);position:relative;}
+    .logo-mark::after{content:"";position:absolute;inset:6px;border-radius:4px;border:1.5px solid rgba(255,255,255,.18);}
+    .nav-logo span{font-size:14px;font-weight:700;color:var(--text);}
+    .nav-back{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.8);font-size:12px;font-weight:700;text-decoration:none;}
+    .nav-back:hover{background:rgba(255,255,255,.09);text-decoration:none;}
+    .blog-hero{max-width:var(--maxw);margin:0 auto;padding:48px 20px 32px;}
+    .blog-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,103,31,.3);background:rgba(255,103,31,.1);color:rgba(255,140,60,.92);font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:18px;}
+    .blog-chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);}
+    .blog-title{font-size:clamp(28px,6vw,46px);font-weight:900;letter-spacing:-.03em;line-height:1.06;margin:0 0 18px;}
+    .blog-title .accent{color:var(--accent);}
+    .blog-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(240,240,240,.52);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;}
+    .blog-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(240,240,240,.25);}
+    .blog-body{max-width:var(--maxw);margin:0 auto;padding:36px 20px 80px;}
+    .blog-body p{font-size:16px;line-height:1.75;color:rgba(240,240,240,.78);margin:0 0 22px;}
+    .blog-body h2{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:40px 0 14px;}
+    .blog-body strong{color:var(--text);font-weight:700;}
+    .callout{border-radius:14px;border-left:3px solid var(--accent);background:var(--accent2);padding:18px 20px;margin:28px 0;}
+    .callout p{margin:0;font-size:15px;color:rgba(240,240,240,.85);}
+    .callout strong{color:var(--accent);}
+    .pillar-grid{display:grid;gap:10px;margin:24px 0;}
+    .pillar{border-radius:12px;border:1px solid var(--border);background:var(--card);padding:16px 18px;}
+    .pillar-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .pillar-icon{font-size:18px;}
+    .pillar-head strong{font-size:14px;color:var(--text);}
+    .pillar p{margin:0;font-size:13px;color:rgba(240,240,240,.58);line-height:1.5;}
+    .blog-footer{max-width:var(--maxw);margin:0 auto;padding:0 20px 48px;}
+    .blog-footer-card{border-radius:16px;border:1px solid var(--border);background:var(--card);padding:24px;display:flex;flex-direction:column;gap:14px;}
+    .blog-footer-card p{margin:0;font-size:14px;color:rgba(240,240,240,.62);}
+    .footer-ctas{display:flex;gap:10px;flex-wrap:wrap;}
+    .cta-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;transition:filter 130ms ease;}
+    .cta-btn:hover{filter:brightness(1.1);text-decoration:none;}
+    .cta-btn.primary{background:linear-gradient(135deg,rgba(255,103,31,.95),rgba(255,103,31,.55));border:1px solid rgba(255,103,31,.4);color:#0c0c0c;}
+    .cta-btn.ghost{background:rgba(255,255,255,.05);border:1px solid var(--border);color:rgba(240,240,240,.86);}
+    @media(max-width:480px){.blog-hero,.blog-body,.blog-footer{padding-left:16px;padding-right:16px;}}
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a class="nav-logo" href="/">
+      <div class="logo-mark"></div>
+      <span>viadecide.com</span>
+    </a>
+    <a class="nav-back" href="/">← Back to Home</a>
+  </nav>
+
+  <div class="blog-hero">
+    <div class="blog-chip">🤖 IndiaAI</div>
+    <h1 class="blog-title">IndiaAI Mission: What It Means for <span class="accent">Builders</span></h1>
+    <div class="blog-meta">
+      <span>ViaDecide Research</span>
+      <span class="dot"></span>
+      <span>28 June 2025</span>
+      <span class="dot"></span>
+      <span>5 min read</span>
+    </div>
+  </div>
+
+  <div class="blog-body">
+    <p>In March 2024, the Union Cabinet approved the IndiaAI Mission with an outlay of <strong>₹10,371 crore</strong> — the largest single sovereign AI investment in Indian history. This isn't just a budget line. It's a structural commitment to building India's position as an AI-native state.</p>
+
+    <p>For builders — founders, researchers, engineers, and civil society organizations working on AI-native products for India — this creates both a significant opportunity and a responsibility.</p>
+
+    <div class="callout">
+      <p><strong>The mandate in one line:</strong> IndiaAI Mission aims to build sovereign compute capacity, indigenous foundation models, a National Data Management Framework, and application-layer AI for governance and public services — all under a responsible AI framework.</p>
+    </div>
+
+    <h2>The seven pillars</h2>
+
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">🖥️</span><strong>IndiaAI Compute Capacity</strong></div>
+        <p>10,000+ GPU cluster through public-private partnership — giving startups and researchers access to sovereign compute at reasonable cost.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">🧠</span><strong>IndiaAI Innovation Centre (IAIC)</strong></div>
+        <p>Development of indigenous Large Multimodal Models — India-specific foundation models trained on Indian languages, contexts, and datasets.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">📊</span><strong>IndiaAI Datasets Platform</strong></div>
+        <p>A unified marketplace for quality non-personal datasets to fuel AI model training — dramatically reducing one of the biggest barriers for Indian AI builders.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">🔬</span><strong>IndiaAI Application Development Initiative</strong></div>
+        <p>Grant funding for AI applications in healthcare, agriculture, education, and governance — creating a funded demand-side for responsible AI products.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">🌱</span><strong>IndiaAI FutureSkills</strong></div>
+        <p>AI skilling at scale — targeting 1 million trained AI professionals by 2028. The supply-side investment for the talent that will build on this infrastructure.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">🚀</span><strong>IndiaAI Startup Financing</strong></div>
+        <p>Deep-tech AI startup fund through SIDBI — bridging the funding gap that kills promising AI ventures before they reach product-market fit.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-head"><span class="pillar-icon">⚖️</span><strong>Safe & Trusted AI</strong></div>
+        <p>Responsible AI framework — including bias auditing, explainability requirements, and data governance standards for AI deployed in public-facing applications.</p>
+      </div>
+    </div>
+
+    <h2>What this means for builders right now</h2>
+    <p>The most immediate impact is <strong>access to subsidized compute</strong>. Indian AI startups have historically been disadvantaged relative to US and Chinese counterparts on compute costs. The IndiaAI compute capacity initiative — targeting 10,000+ GPUs accessible through cloud interfaces — changes that calculus materially.</p>
+
+    <p>The datasets platform is equally significant. Building AI for Indian languages, Indian agriculture, Indian healthcare requires training data that simply doesn't exist in public repositories dominated by English-language Western internet content. IndiaAI's dataset initiative is a direct attempt to fix this.</p>
+
+    <h2>The responsible AI obligation</h2>
+    <p>The "Safe and Trusted AI" pillar isn't just a policy footnote. It's a signal that applications built on IndiaAI infrastructure will be expected to meet explainability, bias, and accountability standards. For builders, this means designing for responsibility from day one — not as a compliance afterthought.</p>
+
+    <p>At ViaDecide, this shapes our architecture fundamentally. Every research output is source-attributed. Every claim is traceable to a cited source. Synthesis is always presented as synthesis — not as ground truth. <strong>Responsible AI isn't a constraint we work around. It's a design principle we build toward.</strong></p>
+
+    <h2>The window for Bharat-first builders</h2>
+    <p>The IndiaAI Mission creates a unique two-to-three year window where sovereign infrastructure is being built but application-layer products for the Indian context are still sparse. Builders who move now — with responsible AI architectures, multilingual-first designs, and genuine focus on Bharat's decision-making challenges — are positioned to define the category.</p>
+
+    <p>That's the window ViaDecide is building for. And now you know why.</p>
+  </div>
+
+  <div class="blog-footer">
+    <div class="blog-footer-card">
+      <p>Research IndiaAI policy and explore structured decision briefs powered by open data.</p>
+      <div class="footer-ctas">
+        <a class="cta-btn primary" href="/student-research">Research IndiaAI →</a>
+        <a class="cta-btn ghost" href="/decision-brief">Build a Brief</a>
+        <a class="cta-btn ghost" href="/">← All Blogs</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

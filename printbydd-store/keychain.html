@@ -1,0 +1,1244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>Hardcore NFC Keychain • PrintByDD</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    /* ══════════════════════════════════════
+       GLOBAL UX PATCH
+       A) Kills iOS/Android blue tap flash
+          on every element universally.
+       A) :focus-visible keeps keyboard rings;
+          :focus:not(:focus-visible) strips
+          them for pointer/touch users.
+       A) Custom selection colour replaces
+          the default blue highlight.
+       B) Disables text selection globally;
+          re-enables for all input surfaces.
+    ══════════════════════════════════════ */
+
+    /* (A) Kill tap highlight on every element */
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      tap-highlight-color: rgba(0, 0, 0, 0) !important;
+      -webkit-touch-callout: none;
+    }
+
+    /* (A) Pointer users: no outline ring */
+    a:focus:not(:focus-visible),
+    button:focus:not(:focus-visible),
+    [tabindex]:focus:not(:focus-visible) {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    /* (A) Keyboard users: keep visible ring */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid rgba(232, 40, 40, 0.65) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* (A) Custom selection colour */
+    ::selection      { background: rgba(232, 40, 40, 0.22); color: inherit; }
+    ::-moz-selection { background: rgba(232, 40, 40, 0.22); color: inherit; }
+
+    /* (B) Disable text selection site-wide */
+    body,
+    h1, h2, h3, h4, h5, h6,
+    p, span, div, label,
+    .kicker, .big, .lead, .qt,
+    .step-title, .step-desc,
+    .ul, .ul li,
+    .sv, .slbl,
+    .pill, .back,
+    .hint, .swipe-hint,
+    .social-strip,
+    .stl-color-title,
+    .bn-cta, .stl-hint {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    /* (B) Re-enable selection for all input surfaces */
+    input,
+    textarea,
+    select,
+    [contenteditable="true"],
+    .allow-select,
+    pre,
+    code {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+      -webkit-touch-callout: default !important;
+    }
+
+    /* ── DESIGN TOKENS ── */
+    :root{
+      --bg:#050505;
+      --card-bg: rgba(18, 18, 20, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text:#fdfdfd;
+      --text-muted: rgba(242, 242, 242, 0.65);
+      --accent:#e82828;
+      --accent-glow: rgba(232, 40, 40, 0.15);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      --radius: 24px;
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --safeLeft: env(safe-area-inset-left, 0px);
+      --safeRight: env(safe-area-inset-right, 0px);
+      --maxw: 860px;
+      --header-height: 60px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{
+      height:100%; height:100dvh; margin:0;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow:hidden; overscroll-behavior-y:none;
+      -webkit-font-smoothing: antialiased;
+    }
+    a{ color:inherit; text-decoration:none; }
+    button{ background:none; border:none; color:inherit; font:inherit; cursor:pointer; }
+
+    /* ── Site Header ── */
+    .site-header{
+      position:absolute; top:0; left:0; right:0;
+      height: var(--header-height);
+      background: rgba(5,5,5,0.85);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+      z-index:1000;
+    }
+    .site-header .logo{ color:var(--accent); font-size:18px; font-weight:900; letter-spacing:-0.02em; }
+    .nav-container { display: flex; align-items: center; gap: 20px; }
+    .site-header nav{ display:flex; gap:20px; align-items:center; }
+    .site-header nav a{ color:var(--text-muted); font-weight:600; font-size:14px; transition:color 0.2s; }
+    .site-header nav a:hover, .site-header nav a.active{ color:var(--text); }
+
+    .nav-insta{
+      display:inline-flex; align-items:center; gap:5px;
+      padding: 5px 11px; border-radius:999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size:12px !important; font-weight:800 !important;
+      background: linear-gradient(135deg,rgba(240,148,51,0.12),rgba(188,24,136,0.12));
+      transition: all 0.2s;
+      white-space:nowrap;
+    }
+    .nav-insta:hover{ border-color: rgba(220,39,67,0.5); background: linear-gradient(135deg,rgba(240,148,51,0.2),rgba(188,24,136,0.2)); }
+    .nav-insta span{
+      background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+
+    body.invert-mode .site-header{ filter:invert(1) hue-rotate(180deg); }
+    body.invert-mode #appWrapper, body.invert-mode #translationToast, body.invert-mode #rotatePopup{ filter:invert(1) hue-rotate(180deg); }
+    body.invert-mode img, body.invert-mode video, body.invert-mode canvas{ filter:invert(1) hue-rotate(180deg); }
+
+    #appWrapper{ position:relative; width:100vw; height:100dvh; transform-origin:center center; transition:transform 0.4s cubic-bezier(0.25,1,0.5,1); overflow:hidden; }
+    #appWrapper.forced-landscape{ width:100dvh; height:100vw; position:absolute; top:50%; left:50%; margin-top:-50vw; margin-left:-50dvh; }
+
+    .bg-glow{ position:absolute; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%), radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 60%); z-index:0; }
+
+    .top{
+      position:absolute; top:var(--header-height); left:0; right:0;
+      padding:calc(16px + var(--safeTop)) calc(16px + var(--safeRight)) 16px calc(16px + var(--safeLeft));
+      z-index:50; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      pointer-events:none;
+      background:linear-gradient(180deg,rgba(5,5,5,0.95) 0%,rgba(5,5,5,0) 100%);
+    }
+    .top > *{ pointer-events:auto; }
+    .top-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .back, .pill, .btn-icon{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,0.08);
+      background:rgba(15,15,15,0.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      transition:all 0.2s ease;
+    }
+    .btn-icon{ padding:10px; font-weight:900; color:var(--accent); width:38px; height:38px; }
+    .btn-icon:active, .back:active{ transform:scale(0.96); }
+    .back{ color:rgba(255,255,255,0.92); font-weight:700; font-size:14px; cursor: pointer; }
+    .pill{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+    .pill b{ color:#fff; letter-spacing:0.1em; font-weight:900; }
+
+    .scroll-container{
+      position:absolute; top:var(--header-height); bottom:0; left:0; right:0;
+      overflow-y:auto; overflow-x:hidden;
+      scroll-snap-type:y mandatory; scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch; z-index:10;
+    }
+    .scroll-container::-webkit-scrollbar{ display:none; }
+
+    .section-wrapper{
+      height:100%; width:100%;
+      scroll-snap-align:start; scroll-snap-stop:always;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      padding:calc(90px + var(--safeTop)) calc(16px + var(--safeRight)) calc(120px + var(--safeBottom)) calc(16px + var(--safeLeft));
+      position:relative;
+    }
+
+    .card{
+      width:100%; max-width:var(--maxw); flex:1; min-height:0;
+      border-radius:var(--radius); border:1px solid var(--card-border);
+      background:var(--card-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      box-shadow:var(--shadow);
+      display:flex; flex-direction:column; overflow:hidden;
+      opacity:0.3; transform:scale(0.92) translateY(30px);
+      transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .section-wrapper.is-active .card{ opacity:1; transform:scale(1) translateY(0); }
+
+    .cardHeader{ padding:24px 24px 20px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.3); flex-shrink:0; }
+    .kicker{ font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; font-weight:900; }
+    .h1{ margin:0; font-size:clamp(22px,5vw,28px); line-height:1.3; letter-spacing:-0.01em; font-weight:900; }
+    .cardBody{ padding:24px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; }
+
+    .big{ font-size:clamp(28px,6vw,46px); line-height:1.12; font-weight:950; letter-spacing:-0.03em; margin:0 0 18px; }
+    .big .r, .r{ background:linear-gradient(135deg,#ff5555,#e82828); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .lead{ font-size:17px; line-height:1.65; color:rgba(255,255,255,0.85); margin:0 0 16px; }
+    .qt{ margin:18px 0 10px; padding:14px 18px; border-left:3px solid var(--accent); background:linear-gradient(90deg,var(--accent-glow),transparent); border-radius:0 12px 12px 0; color:rgba(255,255,255,0.95); line-height:1.65; font-size:15px; font-style:italic; }
+
+    .usecases{ display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+    .uc{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.3); font-size:13px; font-weight:700; color:rgba(255,255,255,0.65); }
+    .uc.active{ border-color:var(--accent); background:var(--accent-glow); color:#fff; }
+    .uc-icon{ font-size:15px; }
+
+    .steps{ display:flex; flex-direction:column; gap:16px; margin:16px 0; }
+    .step{ display:flex; gap:14px; align-items:flex-start; }
+    .step-num{ flex-shrink:0; width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; }
+    .step-title{ font-weight:900; font-size:15px; color:#fff; margin-bottom:4px; }
+    .step-desc{ font-size:14px; color:rgba(255,255,255,0.7); line-height:1.6; }
+
+    .ul{ margin:14px 0; padding:0; list-style:none; color:rgba(255,255,255,0.75); font-size:15px; line-height:1.65; }
+    .ul li{ position:relative; padding-left:22px; margin:10px 0; }
+    .ul li::before{ content:'→'; position:absolute; left:0; color:var(--accent); font-weight:900; }
+
+    .sg{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .sn{ background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px 10px; text-align:center; }
+    .sv{ font-size:22px; font-weight:950; color:#fff; line-height:1.1; letter-spacing:-0.02em; }
+    .slbl{ font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin-top:6px; }
+
+    .cp{
+      display:flex; align-items:center; justify-content:center;
+      border:none; border-radius:16px;
+      background:linear-gradient(135deg,#ff4444,#cc0000);
+      cursor:pointer; overflow:hidden; position:relative;
+      box-shadow:0 8px 28px rgba(232,40,40,0.4);
+      transition:transform .2s,filter .2s;
+      min-height:54px; width:100%; padding:0;
+    }
+    .cp:active{ transform:scale(0.97); }
+    .cpulse{ position:absolute; inset:0; background:rgba(255,255,255,0.15); animation:cpa 2s infinite; }
+    @keyframes cpa{ 0%,100%{opacity:0} 50%{opacity:1} }
+    .ci{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; color:#fff; font-weight:900; font-size:15px; padding:0 24px; }
+    .ca{ background:rgba(255,255,255,0.2); border-radius:8px; padding:4px 10px; font-size:14px; }
+
+    .btn-submit, .btn-secondary{
+      border:none; padding:16px; border-radius:12px; font-weight:900; font-size:15px;
+      transition:transform .2s,filter .2s;
+      display:flex; justify-content:center; align-items:center; gap:8px; width:100%;
+    }
+    .btn-submit{ background:var(--accent); color:#fff; }
+    .btn-secondary{ background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.16); }
+    .btn-submit:active, .btn-secondary:active{ transform:scale(0.98); filter:brightness(1.08); }
+
+    .btn-insta{
+      border:none; padding:14px 16px; border-radius:12px;
+      font-weight:900; font-size:14px;
+      display:flex; justify-content:center; align-items:center; gap:10px; width:100%;
+      background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      color:#fff;
+      box-shadow: 0 8px 24px rgba(220,39,67,0.35);
+      transition:transform .2s,filter .2s;
+      text-decoration:none;
+      cursor:pointer;
+    }
+    .btn-insta:active{ transform:scale(0.98); filter:brightness(1.08); }
+
+    .social-strip{
+      display:flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(255,255,255,0.07);
+      background:rgba(255,255,255,0.03);
+      margin-top:14px; font-size:13px; color:rgba(255,255,255,0.5);
+    }
+    .social-strip a{
+      display:inline-flex; align-items:center; gap:5px; font-weight:800;
+      background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      white-space:nowrap;
+    }
+
+    /* STL viewer */
+    .stl-viewer-wrap{
+      position:relative; width:100%;
+      height: 260px; min-height: 260px; max-height: 260px;
+      border-radius:16px; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.1);
+      background:#0a0a0a; margin-bottom:14px;
+      touch-action:none;
+    }
+    .stl-viewer-wrap canvas{ display:block; width:100%!important; height:100%!important; }
+    .stl-loading{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-size:13px; color:rgba(255,255,255,0.4);
+      letter-spacing:0.1em; text-transform:uppercase;
+      pointer-events:none; background:#0a0a0a;
+      transition:opacity 0.4s; padding:16px; text-align:center; z-index: 5;
+      white-space: pre-line;
+    }
+    .stl-loading.hidden{ opacity:0; pointer-events:none; }
+    .stl-hint{
+      position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+      font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.08em;
+      text-transform:uppercase; white-space:nowrap; pointer-events:none; z-index: 5;
+    }
+
+    /* Color pickers */
+    .stl-color-panel{ margin-top:8px; padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.22); }
+    .stl-color-title{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.45); font-weight:900; margin:0 0 8px; }
+    .stl-color-row{ display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; margin:8px 0 0; }
+    .stl-color-btn{
+      display:flex; flex-direction:row; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.35);
+      transition:all 0.2s;
+      font-size:12px; font-weight:800; color:rgba(255,255,255,0.7);
+      min-width:108px;
+    }
+    .stl-color-btn:active{ transform:scale(0.97); }
+    .stl-color-btn.active{ border-color:var(--accent); background:var(--accent-glow); color:#fff; }
+    .stl-swatch{ width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); flex-shrink:0; }
+    @media (max-width:420px){ .stl-color-btn{ min-width:46%; } }
+
+    /* Auth */
+    .auth-protocol{ background:rgba(232,40,40,0.06); border:1px dashed rgba(232,40,40,0.3); padding:16px; border-radius:12px; margin-bottom:18px; font-size:13px; line-height:1.6; color:var(--text-muted); }
+    .auth-protocol b{ color:var(--text); }
+    .auth-protocol .step-pill{ color:var(--accent); font-weight:900; margin-right:4px; }
+    .onboard-form{ display:flex; flex-direction:column; gap:14px; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width:520px){ .row{ grid-template-columns:1fr; } }
+    .input-group{ display:flex; flex-direction:column; gap:8px; }
+    .input-group label{ font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); font-weight:800; }
+    .input-group input{
+      background:rgba(0,0,0,0.45);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:12px;
+      padding:14px 16px;
+      color:#fff;
+      font-family:inherit;
+      font-size:15px;
+      outline:none;
+      transition:all 0.2s;
+      appearance:none;
+      /* Inputs must be selectable — the global patch handles this,
+         but we reinforce here for specificity */
+      -webkit-user-select:text !important;
+      user-select:text !important;
+      -webkit-touch-callout:default !important;
+    }
+    .input-group input::placeholder{ color:rgba(255,255,255,0.30); }
+    .input-group input:focus{ border-color:var(--accent); background:rgba(0,0,0,0.62); box-shadow:0 0 0 3px var(--accent-glow); }
+
+    /* Hint */
+    .hint{
+      position:absolute; bottom:calc(16px + var(--safeBottom)); left:50%;
+      transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      color:rgba(255,255,255,0.4); font-size:11px;
+      text-transform:uppercase; letter-spacing:0.1em;
+      pointer-events:none; animation:pulse 2s infinite; z-index:100;
+    }
+    .hint svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; }
+    @keyframes pulse{ 0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6} 50%{transform:translateX(-50%) translateY(5px);opacity:1} }
+    .section-wrapper:last-child .hint{ display:none; }
+
+    /* Overlays */
+    .rotate-popup{
+      position:fixed; bottom:80px; left:50%;
+      transform:translateX(-50%) scale(0.9);
+      background:var(--accent); color:#fff;
+      padding:12px 24px; border-radius:999px;
+      font-size:14px; font-weight:900;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 12px 30px rgba(232,40,40,0.4);
+      opacity:0; pointer-events:none;
+      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+      z-index:9999;
+    }
+    .rotate-popup.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) scale(1); }
+
+    .translate-toast{
+      position:fixed; top:calc(80px + var(--safeTop)); left:50%;
+      transform:translateX(-50%) translateY(-20px);
+      background:rgba(20,20,22,0.95);
+      border:1px solid rgba(255,255,255,0.15);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      color:#fff; padding:10px 16px 10px 20px;
+      border-radius:999px; font-size:14px;
+      display:flex; align-items:center; gap:16px;
+      box-shadow:0 16px 40px rgba(0,0,0,0.5);
+      opacity:0; pointer-events:none;
+      transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+      z-index:9999;
+    }
+    .translate-toast.is-visible{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+    .btn-undo{ color:var(--accent); font-weight:900; text-transform:uppercase; font-size:12px; letter-spacing:0.05em; padding:6px 12px; background:rgba(232,40,40,0.15); border-radius:999px; }
+
+    /* Bottom Nav */
+    .bottom-nav{
+      position:fixed;
+      left:max(10px,var(--safeLeft)); right:max(10px,var(--safeRight));
+      bottom:calc(10px + var(--safeBottom));
+      height:64px;
+      display:flex; align-items:center; gap:10px; padding:10px;
+      border-radius:18px; border:1px solid rgba(255,255,255,0.10);
+      background:rgba(10,10,12,0.78);
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 18px 60px rgba(0,0,0,0.55);
+      z-index:1200;
+    }
+    .bn-btn{
+      width:44px; height:44px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06);
+      color:rgba(255,255,255,0.92); font-weight:950;
+      display:flex; align-items:center; justify-content:center;
+      transition:transform .2s,opacity .2s; flex-shrink:0;
+    }
+    .bn-btn:active{ transform:scale(0.96); }
+    .bn-btn:disabled{ opacity:0.35; pointer-events:none; }
+    .bn-dots{
+      flex:1; display:flex; gap:8px;
+      align-items:center; justify-content:center;
+      min-width:0; overflow:hidden;
+    }
+    .bn-dot{
+      width:8px; height:8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.10);
+      transition:background .2s,border-color .2s,width .2s;
+      flex-shrink:0;
+    }
+    .bn-dot.active{ width:22px; background:var(--accent); border-color:rgba(232,40,40,0.7); }
+    .bn-cta{
+      height:44px; padding:0 16px; border-radius:14px; border:none;
+      background:linear-gradient(135deg,#ff4444,#b80000);
+      color:#fff; font-weight:950; letter-spacing:-0.01em;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 10px 26px rgba(232,40,40,0.45);
+      transition:transform .2s,filter .2s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    .bn-cta:active{ transform:scale(0.97); filter:brightness(1.06); }
+    .bn-cta .bn-tag{ font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.18); }
+    .cta-focus{ outline:3px solid rgba(232,40,40,0.65); box-shadow:0 0 0 6px rgba(232,40,40,0.18),0 18px 55px rgba(232,40,40,0.25); }
+
+    @media (max-width: 600px) {
+      .site-header nav { display: none; }
+      .nav-container { justify-content: flex-end; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       JS TAP-HIGHLIGHT POLISH (C)
+       Placed before any DOM so it can
+       intercept events immediately.
+       Blurs non-input elements on touch-
+       triggered focus via rAF — doesn't
+       block clicks or scroll.
+  ══════════════════════════════════════ -->
+  <script>
+  (function () {
+    var touchPending = false;
+    document.addEventListener('touchstart', function () {
+      touchPending = true;
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      setTimeout(function () { touchPending = false; }, 400);
+    }, { passive: true });
+    document.addEventListener('focus', function (e) {
+      if (!touchPending) return;
+      var tag = (e.target.tagName || '').toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+          e.target.isContentEditable) return;
+      requestAnimationFrame(function () {
+        if (document.activeElement === e.target) e.target.blur();
+      });
+    }, true);
+  })();
+  </script>
+
+  <div id="appWrapper">
+    <div class="bg-glow"></div>
+
+    <header class="site-header">
+      <a id="kcHomeLink" class="logo">PrintByDD</a>
+      <div class="nav-container">
+        <nav>
+          <a id="kcNavHome">Home</a>
+          <a id="kcNavProducts">Products</a>
+          <a id="kcNavBlog">Blog</a>
+        </nav>
+        <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
+           target="_blank" rel="noopener" class="nav-insta" aria-label="PrintByDD on Instagram">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="ig-h" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f09433"/>
+                <stop offset="50%" stop-color="#dc2743"/>
+                <stop offset="100%" stop-color="#bc1888"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-h)"/>
+            <circle cx="12" cy="12" r="4" stroke="url(#ig-h)"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="url(#ig-h)" stroke="none"/>
+          </svg>
+          <span>@printbydd</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="top">
+      <a class="back" id="backBtn">← Back</a>
+      <div class="top-actions">
+        <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        <button id="btnTranslate" class="btn-icon" aria-label="Translate">A/अ</button>
+        <div class="pill"><b id="secLabel">SEC 1/6</b> • <span id="secName">INTRO</span></div>
+      </div>
+    </div>
+
+    <main class="scroll-container" id="scrollContainer"></main>
+
+    <div class="bottom-nav" id="bottomNav">
+      <button class="bn-btn" id="bnPrev" type="button" aria-label="Previous">←</button>
+      <div class="bn-dots" id="bnDots"></div>
+      <button class="bn-btn" id="bnNext" type="button" aria-label="Next">→</button>
+      <button class="bn-cta" id="bnCta" type="button">
+        <span id="bnCtaText">Order</span>
+        <span class="bn-tag" id="bnCtaTag">Now</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="translationToast" class="translate-toast">
+    <span id="toastMsg">Translated to Hindi</span>
+    <button id="btnUndoTranslate" class="btn-undo">Undo</button>
+  </div>
+  <div id="rotatePopup" class="rotate-popup"></div>
+
+  <script>
+(function(){
+  "use strict";
+
+  // ========= ROUTING HELPER =========
+  function routeTo(pathHtml, pathRoute){
+    return location.hostname === 'store.viadecide.com' ? pathRoute : pathHtml;
+  }
+  (function(){
+    var links = {
+      'kcHomeLink':   ['./index.html',               '/printbydd/'],
+      'kcNavHome':    ['./index.html',               '/printbydd/'],
+      'kcNavProducts':['./products.html',            '/printbydd/products'],
+      'kcNavBlog':    ['./gifts-that-mean-more.html','/printbydd/gifts'],
+      'backBtn':      ['./index.html',               '/printbydd/'],
+    };
+    Object.keys(links).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.href = routeTo(links[id][0], links[id][1]);
+    });
+  })();
+
+  // ========= CONFIG =========
+  const STL_URL = "keychain.stl";
+  const WA_NUMBER = "+916351537770";
+  const INSTA = "https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n";
+
+  function igIcon(size){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none"/></svg>`;
+  }
+
+  // ========= THEME =========
+  const THEME_KEY = "VD_INVERT_THEME";
+  const btnTheme = document.getElementById("btnTheme");
+  function setInvert(on){
+    document.body.classList.toggle("invert-mode", !!on);
+    btnTheme.textContent = on ? "☀" : "☾";
+    try{ localStorage.setItem(THEME_KEY, on ? "1" : "0"); }catch(e){}
+  }
+  (function(){
+    let s="0";
+    try{ s=localStorage.getItem(THEME_KEY)||"0"; }catch(e){}
+    setInvert(s==="1");
+  })();
+  btnTheme.addEventListener("click", () => setInvert(!document.body.classList.contains("invert-mode")));
+
+  // ========= AUTH STATE =========
+  const authState = { email:null, role:null };
+  (function(){
+    try{
+      const e=localStorage.getItem('PBD_USER'), r=localStorage.getItem('PBD_ROLE');
+      if(e) authState.email=e;
+      if(r) authState.role=r;
+    }catch(e){}
+  })();
+
+  function genCode(email){
+    let h=0; for(let i=0;i<email.length;i++) h=(h*31+email.charCodeAt(i))>>>0;
+    return ("" + (h%9000+1000)).slice(-4);
+  }
+
+  window.requestAccess = function(role){
+    const name  = ((document.getElementById('b-name')||{}).value||'').trim();
+    const email = ((document.getElementById('b-email')||{}).value||'').trim();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      alert(currentLang==='hi'?"कृपया सही ईमेल डालें।":"Please enter a valid email.");
+      return;
+    }
+    localStorage.setItem('PBD_USER', email);
+    localStorage.setItem('PBD_ROLE', role);
+    authState.email=email;
+    authState.role=role;
+
+    const msg = `Hi! I want to order the Hardcore NFC Keychain (₹449).\n\nName: ${name||"-"}\nEmail: ${email}\n\nCode: ${genCode(email)}\n\nSelected Colors:\nBody: ${currentBodyKey}\nArms+Ring: ${currentArmKey}`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank');
+    renderSections();
+  };
+
+  window.logoutSession = function(){
+    if(confirm(currentLang==='hi'?"लॉग आउट करें?":"End your session?")){
+      localStorage.removeItem('PBD_USER');
+      localStorage.removeItem('PBD_ROLE');
+      location.reload();
+    }
+  };
+
+  // ========= 3D VIEWER =========
+  let stlScene=null, stlRenderer=null, stlCamera=null;
+  let stlMeshBody=null, stlMeshAccent=null, stlGroup=null;
+  let stlPointerDown=false, stlLastX=0, stlLastY=0, stlInited=false;
+  let stlAutoRotate=true;
+
+  const BODY_COLORS = { black:0x111111, white:0xf0f0f0, blue:0x1a6bd1, sand:0xd8c7a6 };
+  const ARM_COLORS  = { red:0xe82828, black:0x111111, white:0xf0f0f0, green:0x22c55e };
+  const COLOR_STORAGE_KEY = "PBD_KEYCHAIN_COLORS_V2";
+  let currentBodyKey="black", currentArmKey="red";
+
+  (function(){
+    try{
+      const s=JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY)||"{}");
+      if(s.body&&BODY_COLORS[s.body]) currentBodyKey=s.body;
+      if(s.arm&&ARM_COLORS[s.arm]) currentArmKey=s.arm;
+    }catch(e){}
+  })();
+
+  function persistColors(){
+    try{ localStorage.setItem(COLOR_STORAGE_KEY,JSON.stringify({body:currentBodyKey,arm:currentArmKey})); }catch(e){}
+  }
+  function syncColorUI(){
+    document.querySelectorAll('[data-body-btn]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-body-btn')===currentBodyKey));
+    document.querySelectorAll('[data-arm-btn]').forEach(b=>b.classList.toggle('active',b.getAttribute('data-arm-btn')===currentArmKey));
+    const bl=document.getElementById("bodyLbl"), al=document.getElementById("armLbl");
+    if(bl) bl.textContent=currentBodyKey.toUpperCase();
+    if(al) al.textContent=currentArmKey.toUpperCase();
+  }
+  function applyKeyColors(){
+    if(stlMeshBody && stlMeshBody.material) stlMeshBody.material.color.setHex(BODY_COLORS[currentBodyKey]);
+    if(stlMeshAccent && stlMeshAccent.material) stlMeshAccent.material.color.setHex(ARM_COLORS[currentArmKey]);
+    persistColors(); syncColorUI();
+  }
+
+  window.setBodyColor = function(key,btn){
+    if(!BODY_COLORS[key]) return;
+    currentBodyKey=key;
+    applyKeyColors();
+    if(btn){
+      document.querySelectorAll('[data-body-btn]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  };
+  window.setArmColor = function(key,btn){
+    if(!ARM_COLORS[key]) return;
+    currentArmKey=key;
+    applyKeyColors();
+    if(btn){
+      document.querySelectorAll('[data-arm-btn]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  };
+
+  function parseBinarySTL(buf){
+    const v=new DataView(buf), n=v.getUint32(80,true), pos=[], nor=[];
+    let o=84;
+    for(let i=0;i<n;i++){
+      const nx=v.getFloat32(o,true),ny=v.getFloat32(o+4,true),nz=v.getFloat32(o+8,true); o+=12;
+      for(let j=0;j<3;j++){
+        pos.push(v.getFloat32(o,true),v.getFloat32(o+4,true),v.getFloat32(o+8,true));
+        nor.push(nx,ny,nz);
+        o+=12;
+      }
+      o+=2;
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+    return g;
+  }
+  function parseAsciiSTL(txt){
+    const pos=[],nor=[],lines=txt.split(/\r?\n/); let cn=[0,0,1],v=[];
+    for(const lr of lines){
+      const l=lr.trim(); if(!l) continue;
+      if(l.startsWith("facet normal")){
+        const p=l.split(/\s+/);
+        cn=[parseFloat(p[2]),parseFloat(p[3]),parseFloat(p[4])];
+      } else if(l.startsWith("vertex")){
+        const p=l.split(/\s+/);
+        v.push([parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])]);
+        if(v.length===3){
+          for(const vv of v){ pos.push(vv[0],vv[1],vv[2]); nor.push(...cn); }
+          v=[];
+        }
+      }
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+    return g;
+  }
+
+  async function loadSTLGeometry(){
+    const res=await fetch(STL_URL,{cache:"no-store"});
+    if(!res.ok) throw new Error("Couldn't load STL ("+res.status+"). Put keychain.stl next to this HTML.");
+    const buf=await res.arrayBuffer();
+    const headerText = new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(buf.slice(0,256)));
+    const isAscii = headerText.trimStart().toLowerCase().startsWith("solid") && headerText.toLowerCase().includes("facet");
+    return isAscii
+      ? parseAsciiSTL(new TextDecoder().decode(new Uint8Array(buf)))
+      : parseBinarySTL(buf);
+  }
+
+  function buildGeo(posArray, norArray){
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(posArray, 3));
+    g.setAttribute('normal',   new THREE.Float32BufferAttribute(norArray, 3));
+    return g;
+  }
+
+  function splitByRawZ(geo, threshold) {
+    const pa = geo.getAttribute('position');
+    const na = geo.getAttribute('normal');
+    const bp=[], bn=[], ap=[], an=[];
+    for(let i = 0; i < pa.count; i += 3){
+      const z0 = pa.array[i*3+2];
+      const z1 = pa.array[(i+1)*3+2];
+      const z2 = pa.array[(i+2)*3+2];
+      const avgZ = (z0 + z1 + z2) / 3;
+      const tp = [
+        pa.array[i*3],     pa.array[i*3+1],     pa.array[i*3+2],
+        pa.array[(i+1)*3], pa.array[(i+1)*3+1], pa.array[(i+1)*3+2],
+        pa.array[(i+2)*3], pa.array[(i+2)*3+1], pa.array[(i+2)*3+2]
+      ];
+      const tn = [
+        na.array[i*3],     na.array[i*3+1],     na.array[i*3+2],
+        na.array[(i+1)*3], na.array[(i+1)*3+1], na.array[(i+1)*3+2],
+        na.array[(i+2)*3], na.array[(i+2)*3+1], na.array[(i+2)*3+2]
+      ];
+      if(avgZ >= threshold){ ap.push(...tp); an.push(...tn); }
+      else                  { bp.push(...tp); bn.push(...tn); }
+    }
+    return {
+      body:   { p: new Float32Array(bp), n: new Float32Array(bn) },
+      accent: { p: new Float32Array(ap), n: new Float32Array(an) }
+    };
+  }
+
+  function centerSplit(split){
+    const all = [...Array.from(split.body.p), ...Array.from(split.accent.p)];
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity, minZ=Infinity, maxZ=-Infinity;
+    for(let i=0; i<all.length; i+=3){
+      minX=Math.min(minX,all[i]);   maxX=Math.max(maxX,all[i]);
+      minY=Math.min(minY,all[i+1]); maxY=Math.max(maxY,all[i+1]);
+      minZ=Math.min(minZ,all[i+2]); maxZ=Math.max(maxZ,all[i+2]);
+    }
+    const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+    function shift(arr){
+      const out = new Float32Array(arr.length);
+      for(let i=0; i<arr.length; i+=3){ out[i]=arr[i]-cx; out[i+1]=arr[i+1]-cy; out[i+2]=arr[i+2]-cz; }
+      return out;
+    }
+    return {
+      body:   { p: shift(split.body.p),   n: split.body.n   },
+      accent: { p: shift(split.accent.p), n: split.accent.n }
+    };
+  }
+
+  window.initSTLViewer = async function(){
+    if(stlInited) return;
+    const wrap    = document.getElementById('stl-viewer-wrap');
+    const canvas  = document.getElementById('stl-canvas');
+    const loading = document.getElementById('stl-loading');
+    if(!wrap || !canvas) return;
+    stlInited = true;
+
+    const W = wrap.clientWidth || 300, H = 260;
+    stlRenderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    stlRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    stlRenderer.setSize(W, H, false);
+    stlScene = new THREE.Scene();
+    stlCamera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
+    stlCamera.position.set(0, 0, 4);
+    stlScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(2, 3, 2); stlScene.add(dir);
+    const dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
+    dir2.position.set(-2, -1, -2); stlScene.add(dir2);
+    stlGroup = new THREE.Group(); stlScene.add(stlGroup);
+
+    try{
+      const geo = await loadSTLGeometry();
+      const rawSplit = splitByRawZ(geo, 4.5);
+      const split = centerSplit(rawSplit);
+
+      const bodyGeo = buildGeo(split.body.p, split.body.n);
+      bodyGeo.computeVertexNormals();
+      stlMeshBody = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: BODY_COLORS[currentBodyKey], roughness: 0.62, metalness: 0.08 }));
+      stlGroup.add(stlMeshBody);
+
+      if(split.accent.p.length > 0){
+        const accentGeo = buildGeo(split.accent.p, split.accent.n);
+        accentGeo.computeVertexNormals();
+        stlMeshAccent = new THREE.Mesh(accentGeo, new THREE.MeshStandardMaterial({ color: ARM_COLORS[currentArmKey], roughness: 0.56, metalness: 0.08 }));
+        stlGroup.add(stlMeshAccent);
+      }
+
+      stlGroup.rotation.x = -0.25;
+      stlGroup.rotation.y =  0.9;
+      const box = new THREE.Box3().setFromObject(stlGroup);
+      const sz  = new THREE.Vector3();
+      box.getSize(sz);
+      const maxDim = Math.max(sz.x, sz.y, sz.z) || 1;
+      stlGroup.scale.setScalar(2.2 / maxDim);
+
+      if(loading) loading.classList.add('hidden');
+
+      function onDown(e){ stlPointerDown=true; stlAutoRotate=false; const t=e.touches?e.touches[0]:e; stlLastX=t.clientX; stlLastY=t.clientY; }
+      function onMove(e){ if(!stlPointerDown) return; const t=e.touches?e.touches[0]:e; stlGroup.rotation.y+=(t.clientX-stlLastX)*0.01; stlGroup.rotation.x+=(t.clientY-stlLastY)*0.01; stlLastX=t.clientX; stlLastY=t.clientY; }
+      function onUp(){ stlPointerDown=false; }
+      wrap.addEventListener('pointerdown', onDown);
+      wrap.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      wrap.addEventListener('touchstart', onDown, {passive:true});
+      wrap.addEventListener('touchmove',  onMove, {passive:true});
+      wrap.addEventListener('touchend',   onUp,   {passive:true});
+      window.addEventListener('resize', ()=>{
+        if(!wrap||!stlRenderer||!stlCamera) return;
+        const w=wrap.clientWidth||300, h=260;
+        stlRenderer.setSize(w,h,false); stlCamera.aspect=w/h; stlCamera.updateProjectionMatrix();
+      });
+
+      (function animate(){ requestAnimationFrame(animate); if(stlAutoRotate) stlGroup.rotation.y+=0.004; stlRenderer.render(stlScene,stlCamera); })();
+      applyKeyColors();
+
+    } catch(err){
+      if(loading){ loading.style.fontSize="12px"; loading.textContent="3D preview unavailable.\n"+(err&&err.message?err.message:""); }
+      console.error("STL viewer error:", err);
+    }
+  };
+
+  // ========= SECTIONS =========
+  const SECTIONS = [
+    {
+      name:"INTRO", kicker:"HARDCORE NFC KEYCHAIN",
+      title:{ en:"Not a Keychain. A One-Tap Identity.", hi:"सिर्फ Keychain नहीं। One-Tap पहचान।" },
+      html:{
+        en:()=>`
+          <p class="big">Your <span class="r">digital card</span> — on your keys.</p>
+          <p class="lead">Tap it on any phone. Your links, portfolio, socials, UPI, menu, Wi-Fi — whatever you want. No app. No friction.</p>
+          <div class="usecases">
+            <div class="uc active"><span class="uc-icon">📇</span>vCard</div>
+            <div class="uc"><span class="uc-icon">🔗</span>Links</div>
+            <div class="uc"><span class="uc-icon">💳</span>UPI</div>
+            <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
+          </div>
+          <div class="qt">One tap. One impression. <b>Forever.</b></div>
+          <div class="social-strip">See it in action →
+            <a href="${INSTA}" target="_blank" rel="noopener">${igIcon(13)} @printbydd</a>
+          </div>`,
+        hi:()=>`
+          <p class="big">आपकी <span class="r">digital card</span> — keys पर।</p>
+          <p class="lead">किसी भी phone पर tap करें। Links, portfolio, socials, UPI, menu, Wi-Fi — जो चाहो। No app.</p>
+          <div class="usecases">
+            <div class="uc active"><span class="uc-icon">📇</span>vCard</div>
+            <div class="uc"><span class="uc-icon">🔗</span>Links</div>
+            <div class="uc"><span class="uc-icon">💳</span>UPI</div>
+            <div class="uc"><span class="uc-icon">📶</span>Wi-Fi</div>
+          </div>
+          <div class="qt">एक tap. एक impression. <b>हमेशा।</b></div>
+          <div class="social-strip">Instagram पर देखें →
+            <a href="${INSTA}" target="_blank" rel="noopener">${igIcon(13)} @printbydd</a>
+          </div>`
+      }
+    },
+    {
+      name:"WHY", kicker:"WHY IT HITS",
+      title:{ en:"Because You're Already Carrying Your Keys.", hi:"क्योंकि keys तो साथ रहती ही हैं।" },
+      html:{
+        en:()=>`
+          <p class="lead">Business cards get lost. QR codes get ignored. This stays with you — and gets used.</p>
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div><div><div class="step-title">Tap</div><div class="step-desc">Hold it near the top of a phone.</div></div></div>
+            <div class="step"><div class="step-num">2</div><div><div class="step-title">Open</div><div class="step-desc">Instantly loads your link/card — no scanning.</div></div></div>
+            <div class="step"><div class="step-num">3</div><div><div class="step-title">Done</div><div class="step-desc">They save it. You move on.</div></div></div>
+          </div>
+          <div class="qt">Minimal effort. Maximum recall.</div>`,
+        hi:()=>`
+          <p class="lead">Business cards खो जाते हैं। QR codes ignore होते हैं। यह हमेशा आपके साथ रहता है।</p>
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div><div><div class="step-title">Tap</div><div class="step-desc">Phone के top के पास रखें।</div></div></div>
+            <div class="step"><div class="step-num">2</div><div><div class="step-title">Open</div><div class="step-desc">Link/card तुरंत खुलता है — scan नहीं।</div></div></div>
+            <div class="step"><div class="step-num">3</div><div><div class="step-title">Done</div><div class="step-desc">वो save कर लेते हैं। आप आगे बढ़ते हैं।</div></div></div>
+          </div>
+          <div class="qt">कम effort. ज़्यादा impact.</div>`
+      }
+    },
+    {
+      name:"USE", kicker:"WHAT YOU CAN STORE",
+      title:{ en:"Anything a Phone Can Open.", hi:"जो phone खोल सकता है — वो सब।" },
+      html:{
+        en:()=>`
+          <ul class="ul">
+            <li><b>Portfolio:</b> Behance, Notion, Website, GitHub.</li>
+            <li><b>Instant Wi-Fi:</b> Guests tap and connect.</li>
+            <li><b>Socials:</b> Instagram, LinkedIn, YouTube, X.</li>
+            <li><b>vCard:</b> Full contact card in seconds.</li>
+            <li><b>UPI:</b> Tap-to-pay link.</li>
+          </ul>
+          <div class="qt">Reprogram anytime. <b>No app required.</b></div>`,
+        hi:()=>`
+          <ul class="ul">
+            <li><b>Portfolio:</b> Behance, Notion, Website, GitHub.</li>
+            <li><b>Instant Wi-Fi:</b> Guests tap and connect.</li>
+            <li><b>Socials:</b> Instagram, LinkedIn, YouTube, X.</li>
+            <li><b>vCard:</b> Full contact card in seconds.</li>
+            <li><b>UPI:</b> Tap-to-pay link.</li>
+          </ul>
+          <div class="qt">जब चाहो reprogram करो। <b>कोई app नहीं।</b></div>`
+      }
+    },
+    {
+      name:"SPECS", kicker:"UNDER THE HOOD",
+      title:{ en:"Numbers That Back the Hype.", hi:"वो नंबर जो हाइप को साबित करते हैं।" },
+      html:{
+        en:()=>`
+          <div class="sg">
+            <div class="sn"><div class="sv">NTAG<br>213</div><div class="slbl">NFC Chip</div></div>
+            <div class="sn"><div class="sv">137B</div><div class="slbl">Rewritable</div></div>
+            <div class="sn"><div class="sv">∞</div><div class="slbl">Writes</div></div>
+          </div>
+          <ul class="ul" style="margin-top:14px;">
+            <li>Works with <b>Android + iPhone 7+</b> — no app needed.</li>
+            <li>Read range: <b>~3cm</b> (close contact only).</li>
+            <li>Rewritable chip. Update anytime.</li>
+          </ul>`,
+        hi:()=>`
+          <div class="sg">
+            <div class="sn"><div class="sv">NTAG<br>213</div><div class="slbl">NFC Chip</div></div>
+            <div class="sn"><div class="sv">137B</div><div class="slbl">Rewritable</div></div>
+            <div class="sn"><div class="sv">∞</div><div class="slbl">Writes</div></div>
+          </div>
+          <ul class="ul" style="margin-top:14px;">
+            <li><b>Android + iPhone 7+</b> पर काम करता है।</li>
+            <li>Read range: <b>~3cm</b>।</li>
+            <li>Rewritable chip. Update anytime.</li>
+          </ul>`
+      }
+    },
+    {
+      name:"BUYER", kicker:"Choose Colors • Order",
+      title:{ en:"See it. Pick colors. Own it.", hi:"देखें। Colors चुनें। खरीदें।" },
+      html:{
+        en:()=>{
+          const orderUI = authState.role
+            ? `<button class="cp" style="margin-top:14px;" onclick="window.open('https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hi! I want to order the Hardcore NFC Keychain (₹449). My email: "+(authState.email||"")+"\\n\\nSelected Colors:\\nBody: "+currentBodyKey+"\\nArms+Ring: "+currentArmKey)}','_blank')">
+                 <span class="cpulse"></span><div class="ci">🛒 Order on WhatsApp <div class="ca">→</div></div>
+               </button>
+               <button class="btn-secondary" style="margin-top:10px;" onclick="logoutSession()">Change Account</button>`
+            : `<div class="auth-protocol" style="font-size:12px;">
+                 <span class="step-pill">Quick order:</span> Drop your email &amp; we confirm via WhatsApp. <b>COD available.</b>
+               </div>
+               <div class="onboard-form">
+                 <div class="row">
+                   <div class="input-group"><label>Your Name</label><input type="text" id="b-name" placeholder="e.g., Rahul" /></div>
+                   <div class="input-group"><label>Email</label><input type="email" id="b-email" placeholder="you@email.com" required /></div>
+                 </div>
+                 <button class="btn-submit" onclick="requestAccess('buyer')">Order via WhatsApp →</button>
+               </div>`;
+          return `
+            <div id="stl-viewer-wrap" class="stl-viewer-wrap">
+              <canvas id="stl-canvas"></canvas>
+              <div class="stl-loading" id="stl-loading">Loading 3D Model…</div>
+              <div class="stl-hint">Drag to rotate</div>
+            </div>
+            <div class="qt" style="margin-top:6px;">
+              Body: <b id="bodyLbl">${currentBodyKey.toUpperCase()}</b> &nbsp;•&nbsp; Arm + Ring: <b id="armLbl">${currentArmKey.toUpperCase()}</b>
+            </div>
+            <div class="stl-color-panel">
+              <div class="stl-color-title">Body</div>
+              <div class="stl-color-row">
+                <button class="stl-color-btn" data-body-btn="black" onclick="setBodyColor('black',this)"><span class="stl-swatch" style="background:#111;"></span> Black</button>
+                <button class="stl-color-btn" data-body-btn="white" onclick="setBodyColor('white',this)"><span class="stl-swatch" style="background:#f0f0f0;"></span> White</button>
+                <button class="stl-color-btn" data-body-btn="blue"  onclick="setBodyColor('blue',this)"><span class="stl-swatch" style="background:#1a6bd1;"></span> Blue</button>
+                <button class="stl-color-btn" data-body-btn="sand"  onclick="setBodyColor('sand',this)"><span class="stl-swatch" style="background:#d8c7a6;"></span> Sand</button>
+              </div>
+              <div class="stl-color-title" style="margin-top:12px;">Arm + Ring</div>
+              <div class="stl-color-row">
+                <button class="stl-color-btn" data-arm-btn="red"   onclick="setArmColor('red',this)"><span class="stl-swatch" style="background:#e82828;"></span> Red</button>
+                <button class="stl-color-btn" data-arm-btn="black" onclick="setArmColor('black',this)"><span class="stl-swatch" style="background:#111;"></span> Black</button>
+                <button class="stl-color-btn" data-arm-btn="white" onclick="setArmColor('white',this)"><span class="stl-swatch" style="background:#f0f0f0;"></span> White</button>
+                <button class="stl-color-btn" data-arm-btn="green" onclick="setArmColor('green',this)"><span class="stl-swatch" style="background:#22c55e;"></span> Green</button>
+              </div>
+            </div>
+            ${orderUI}
+            <a href="${INSTA}" target="_blank" rel="noopener" class="btn-insta" style="margin-top:12px;">
+              ${igIcon(18)} See builds on Instagram
+            </a>
+            <p style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
+              Made in India · Delivery pan-India · NFC chip included
+            </p>`;
+        },
+        hi:()=>`
+          <p class="big">Live 3D <span class="r">preview</span></p>
+          <p class="lead">Body और Accent रंग चुनें — फिर WhatsApp पर order करें।</p>
+          <div class="qt">A/अ से भाषा बदलें। ☾ से mode बदलें।</div>`
+      }
+    },
+    {
+      name:"CLOSE", kicker:"READY?",
+      title:{ en:"One Tap. One Identity. Done.", hi:"One Tap. One Identity. बस।" },
+      html:{
+        en:()=>`
+          <p class="big">Make people <span class="r">remember</span> you.</p>
+          <p class="lead">This is the highest-ROI thing you can carry. It turns every meeting into a follow-up.</p>
+          <button class="cp" onclick="window.scrollToSectionByName('BUYER')">
+            <span class="cpulse"></span><div class="ci">🔥 Go to Order <div class="ca">→</div></div>
+          </button>
+          <a href="${INSTA}" target="_blank" rel="noopener" class="btn-insta" style="margin-top:12px;">
+            ${igIcon(18)} Follow @printbydd for drops
+          </a>`,
+        hi:()=>`
+          <p class="big">लोग आपको <span class="r">याद</span> रखें।</p>
+          <p class="lead">यह हर meeting को follow-up में बदल देती है।</p>
+          <button class="cp" onclick="window.scrollToSectionByName('BUYER')">
+            <span class="cpulse"></span><div class="ci">🔥 Order पर जाएँ <div class="ca">→</div></div>
+          </button>
+          <a href="${INSTA}" target="_blank" rel="noopener" class="btn-insta" style="margin-top:12px;">
+            ${igIcon(18)} @printbydd को Follow करें
+          </a>`
+      }
+    }
+  ];
+
+  // ========= NAV + RENDER =========
+  const container  = document.getElementById('scrollContainer');
+  const secLabel   = document.getElementById('secLabel');
+  const secName    = document.getElementById('secName');
+  const bnPrev     = document.getElementById('bnPrev');
+  const bnNext     = document.getElementById('bnNext');
+  const bnDots     = document.getElementById('bnDots');
+  const bnCta      = document.getElementById('bnCta');
+  const bnCtaText  = document.getElementById('bnCtaText');
+  const bnCtaTag   = document.getElementById('bnCtaTag');
+
+  const BUYER_IDX  = SECTIONS.findIndex(s=>s.name==='BUYER');
+  let currentSecIndex = 0;
+  let currentLang = 'en';
+
+  function buildBottomDots(){
+    if(!bnDots) return;
+    bnDots.innerHTML='';
+    for(let i=0;i<SECTIONS.length;i++){
+      const d=document.createElement('button');
+      d.type='button';
+      d.className='bn-dot';
+      d.setAttribute('aria-label',`Section ${i+1}`);
+      d.addEventListener('click',()=>scrollToIndex(i));
+      bnDots.appendChild(d);
+    }
+  }
+
+  function scrollToIndex(i){
+    i=Math.max(0,Math.min(SECTIONS.length-1,i));
+    const el=container.querySelector(`.section-wrapper[data-index="${i}"]`);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function focusPrimaryCTA(){
+    const a=container.querySelector(`.section-wrapper[data-index="${currentSecIndex}"]`);
+    if(!a) return;
+    const b=a.querySelector('.cp')||a.querySelector('.btn-submit')||a.querySelector('button');
+    if(!b) return;
+    b.classList.add('cta-focus');
+    try{b.scrollIntoView({behavior:"smooth",block:"center"});}catch(e){}
+    setTimeout(()=>b.classList.remove('cta-focus'),1200);
+  }
+
+  function updateBottomNav(){
+    if(bnPrev) bnPrev.disabled=currentSecIndex<=0;
+    if(bnNext) bnNext.disabled=currentSecIndex>=(SECTIONS.length-1);
+    if(bnDots) bnDots.querySelectorAll('.bn-dot').forEach((d,i)=>d.classList.toggle('active',i===currentSecIndex));
+    if(bnCtaText && bnCtaTag){
+      if(currentSecIndex===BUYER_IDX){ bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
+      else if(currentSecIndex<BUYER_IDX){ bnCtaText.textContent="Go to"; bnCtaTag.textContent="Order"; }
+      else { bnCtaText.textContent="Order"; bnCtaTag.textContent="Now"; }
+    }
+  }
+
+  function initBottomNav(){
+    buildBottomDots(); updateBottomNav();
+    if(bnPrev) bnPrev.addEventListener('click',()=>scrollToIndex(currentSecIndex-1));
+    if(bnNext) bnNext.addEventListener('click',()=>scrollToIndex(currentSecIndex+1));
+    if(bnCta) bnCta.addEventListener('click',()=>{
+      if(BUYER_IDX>=0 && currentSecIndex!==BUYER_IDX){
+        scrollToIndex(BUYER_IDX);
+        setTimeout(()=>{ currentSecIndex=BUYER_IDX; updateBottomNav(); focusPrimaryCTA(); },650);
+      } else focusPrimaryCTA();
+    });
+  }
+
+  const observer=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('is-active');
+        const idx=parseInt(entry.target.getAttribute('data-index'),10);
+        currentSecIndex=isNaN(idx)?0:idx;
+        secLabel.textContent=`SEC ${currentSecIndex+1}/${SECTIONS.length}`;
+        secName.textContent=entry.target.getAttribute('data-name');
+        updateBottomNav();
+        if(entry.target.getAttribute('data-name')==='BUYER'){
+          setTimeout(()=>{ window.initSTLViewer(); syncColorUI(); },120);
+        }
+      } else entry.target.classList.remove('is-active');
+    });
+  },{root:container,threshold:0.6});
+
+  window.scrollToSectionByName=function(name){
+    const idx=SECTIONS.findIndex(s=>s.name===name);
+    if(idx<0) return;
+    const el=container.querySelector(`.section-wrapper[data-index="${idx}"]`);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  function renderSections(){
+    container.innerHTML='';
+    SECTIONS.forEach((sec,index)=>{
+      const w=document.createElement('div');
+      w.className='section-wrapper';
+      w.setAttribute('data-index',index);
+      w.setAttribute('data-name',sec.name);
+      w.innerHTML=`
+        <article class="card">
+          <header class="cardHeader">
+            <div class="kicker">${sec.kicker}</div>
+            <h1 class="h1">${sec.title[currentLang]}</h1>
+          </header>
+          <div class="cardBody">
+            ${sec.html[currentLang]()}
+            <div style="height:85px;"></div>
+          </div>
+        </article>
+        <div class="hint">
+          <span>Scroll for more</span>
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>`;
+      container.appendChild(w);
+      observer.observe(w);
+    });
+    setTimeout(()=>{
+      if(bnDots && bnDots.children.length!==SECTIONS.length) buildBottomDots();
+      updateBottomNav(); syncColorUI();
+    },60);
+  }
+
+  // ========= TRANSLATION =========
+  const btnTranslate = document.getElementById('btnTranslate');
+  const toast        = document.getElementById('translationToast');
+  const btnUndo      = document.getElementById('btnUndoTranslate');
+  const toastMsg     = document.getElementById('toastMsg');
+  let toastTimer;
+
+  function triggerTranslation(lang){
+    currentLang=lang; renderSections();
+    toast.classList.add('is-visible');
+    toastMsg.textContent=lang==='hi'?"Translated to Hindi":"Back to English";
+    btnUndo.style.display=lang==='hi'?'block':'none';
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2200);
+  }
+  btnTranslate.addEventListener('click',()=>triggerTranslation(currentLang==='en'?'hi':'en'));
+  btnUndo.addEventListener('click',()=>{ triggerTranslation('en'); toast.classList.remove('is-visible'); });
+
+  // ========= ROTATION POPUP =========
+  const popup      = document.getElementById('rotatePopup');
+  const appWrapper = document.getElementById('appWrapper');
+  let isForcedLandscape=false, targetRotationAngle=0;
+
+  window.addEventListener('deviceorientation',e=>{
+    const g=e.gamma;
+    if(g===null||typeof g==='undefined') return;
+    if(!isForcedLandscape){
+      if(g>45)showRotatePopup(90);
+      else if(g<-45)showRotatePopup(-90);
+      else hideRotatePopup();
+    } else {
+      if(Math.abs(g)<25)showRotatePopup(0);
+      else hideRotatePopup();
+    }
+  });
+  function showRotatePopup(a){ targetRotationAngle=a; popup.classList.add('is-visible'); popup.textContent=a===0?"Tap for Portrait":"Tap for Landscape"; }
+  function hideRotatePopup(){ popup.classList.remove('is-visible'); }
+  popup.addEventListener('click',()=>{
+    if(targetRotationAngle!==0){
+      appWrapper.classList.add('forced-landscape');
+      appWrapper.style.transform=`rotate(${targetRotationAngle}deg)`;
+      isForcedLandscape=true;
+    } else {
+      appWrapper.classList.remove('forced-landscape');
+      appWrapper.style.transform='none';
+      isForcedLandscape=false;
+    }
+    hideRotatePopup();
+  });
+
+  // Back button
+  document.getElementById("backBtn").addEventListener("click", (e)=>{
+    e.preventDefault();
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = routeTo('./index.html', '/printbydd/');
+  });
+
+  // Boot
+  renderSections();
+  initBottomNav();
+  syncColorUI();
+
+})();
+  </script>
+</body>
+</html>

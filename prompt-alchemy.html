@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PromptAlchemy | First-Render Prompt Pack</title>
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="description" content="Cross-model prompt reliability engine for social growth creators. Generate first-render stable prompt packs for Canva, ChatGPT, Gemini, Claude." />
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#111827cc;
+      --line:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#ff671f;
+      --accent2:#22c55e;
+      --warn:#ef4444;
+      --chip:#0b1220;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(255,103,31,.22), transparent 55%),
+                  radial-gradient(1000px 600px at 90% 0%, rgba(34,197,94,.16), transparent 55%),
+                  linear-gradient(180deg, #070a11 0%, var(--bg) 55%, #070a11 100%);
+      color:var(--text);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:22px 14px 42px;}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+    .brand{display:flex;flex-direction:column;gap:6px;min-width:240px;}
+    .brand h1{margin:0;font-size:20px;letter-spacing:.2px}
+    .brand .sub{color:var(--muted);font-size:12.5px;line-height:1.35}
+    .pillbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+    .pill{
+      font-size:11px;color:#cbd5e1;border:1px solid var(--line);
+      padding:6px 10px;border-radius:999px;background:rgba(11,18,32,.75);
+    }
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 18px 40px rgba(0,0,0,.35);
+    }
+    .card h2{margin:0 0 10px 0;font-size:13px;color:#cbd5e1;font-weight:700;letter-spacing:.2px}
+    label{display:block;font-size:12px;color:#cbd5e1;margin:10px 0 6px}
+    input, select, textarea{
+      width:100%; border:1px solid var(--line); background:#0b1220; color:var(--text);
+      border-radius:12px; padding:10px 10px; outline:none;
+    }
+    textarea{min-height:84px; resize:vertical; line-height:1.35}
+    input::placeholder, textarea::placeholder{color:#64748b}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 560px){.row{grid-template-columns:1fr}}
+    .req{color:#fca5a5;font-weight:800;margin-left:6px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      border:1px solid var(--line); background:#0b1220; color:var(--text);
+      padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700;font-size:12px;
+    }
+    button.primary{background:linear-gradient(135deg,var(--accent),#f97316);border:none;color:#0b0f17}
+    button.good{background:linear-gradient(135deg,var(--accent2),#16a34a);border:none}
+    button.warn{background:linear-gradient(135deg,var(--warn),#b91c1c);border:none}
+    button:active{transform:translateY(1px);opacity:.96}
+    .mono{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      white-space:pre-wrap; word-break:break-word; font-size:12px; line-height:1.45;
+      background:#070a11; border:1px solid var(--line); border-radius:16px; padding:12px;
+      min-height:520px;
+    }
+    .muted{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.45}
+    .tiny{color:var(--muted);font-size:11px}
+    .split{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .status{font-size:11px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(11,18,32,.75)}
+    .status.ok{border-color:rgba(34,197,94,.6);color:#86efac}
+    .status.bad{border-color:rgba(239,68,68,.6);color:#fca5a5}
+    .footer{margin-top:14px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .chipline{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      border:1px solid var(--line);
+      background:rgba(11,18,32,.75);
+      padding:6px 10px;border-radius:999px;
+      font-size:11px;color:#cbd5e1;
+    }
+    .divider{height:1px;background:var(--line);margin:12px 0}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>PromptAlchemy</h1>
+      <div class="sub">Cross-model reliability engine for social growth creators. Generate <b>first-render</b> prompt packs for Canva / ChatGPT / Gemini / Claude.</div>
+      <div class="chipline">
+        <span class="chip">Model Adapter</span>
+        <span class="chip">Platform Rules</span>
+        <span class="chip">Tier Variants</span>
+        <span class="chip">Email = Credit Event</span>
+      </div>
+    </div>
+    <div class="pillbar">
+      <span class="pill">Share base: <b>viadecide.com</b></span>
+      <span class="pill">Amazon tag: <b>decideengine-21</b></span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <section class="card">
+      <h2>Inputs (structured = stable)</h2>
+
+      <div class="row">
+        <div>
+          <label>Target Model</label>
+          <select id="model">
+            <option value="canva">Canva</option>
+            <option value="chatgpt">ChatGPT (DALL·E style prompt)</option>
+            <option value="gemini">Gemini</option>
+            <option value="claude">Claude</option>
+          </select>
+        </div>
+        <div>
+          <label>Tier</label>
+          <select id="tier">
+            <option value="bronze">Bronze (basic)</option>
+            <option value="silver">Silver (scroll optimized)</option>
+            <option value="gold" selected>Gold (performance pack)</option>
+            <option value="obsidian">Obsidian (dominance pack)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Platform <span class="req">*required</span></label>
+          <select id="platform">
+            <option value="">Select…</option>
+            <option value="instagram">Instagram</option>
+            <option value="youtube">YouTube Thumbnail</option>
+            <option value="x">X (Twitter)</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="tiktok">TikTok Cover</option>
+          </select>
+        </div>
+        <div>
+          <label>Format / Aspect <span class="req">*required</span></label>
+          <select id="format">
+            <option value="">Select…</option>
+            <option value="1:1">1:1 (square)</option>
+            <option value="4:5" selected>4:5 (feed)</option>
+            <option value="9:16">9:16 (story/reel)</option>
+            <option value="16:9">16:9 (thumbnail/banner)</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Niche</label>
+      <input id="niche" placeholder="e.g., fitness, AI tools, finance, productivity" />
+
+      <label>Post Goal</label>
+      <select id="goal">
+        <option value="viral">Viral / scroll-stopping</option>
+        <option value="authority" selected>Authority / educational</option>
+        <option value="cta">CTA / conversion</option>
+        <option value="community">Community / engagement</option>
+      </select>
+
+      <label>Hook text (optional)</label>
+      <input id="hook" placeholder='e.g., "Stop doing this mistake…"' />
+
+      <div class="row">
+        <div>
+          <label>Brand style (optional)</label>
+          <textarea id="brand" placeholder="Palette, vibe, typography style. e.g., minimal, monochrome, orange accent, clean tech."></textarea>
+        </div>
+        <div>
+          <label>Strictness</label>
+          <select id="strict">
+            <option value="creative">Creative</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="deterministic">Deterministic (format-first)</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Core visual idea <span class="req">*required</span></label>
+      <textarea id="idea" placeholder="Concrete: subject + composition + scene + background. Example: 'Close-up athlete tying shoes, dramatic rim light, dark gym background, shallow depth of field'"></textarea>
+
+      <div class="row">
+        <div>
+          <label>Must include (optional)</label>
+          <textarea id="must" placeholder="e.g., close-up face, bold central object, dramatic lighting, one accent color"></textarea>
+        </div>
+        <div>
+          <label>Avoid / Negative elements (optional)</label>
+          <textarea id="avoid" placeholder="e.g., clutter, low contrast, extra fingers, text artifacts, watermarks"></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Output mode</label>
+          <select id="outmode">
+            <option value="pack" selected>Prompt Pack</option>
+            <option value="single">Single Prompt</option>
+          </select>
+        </div>
+        <div>
+          <label>Brand Profile</label>
+          <select id="profile">
+            <option value="">(none)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="primary" id="generate">Generate Preview</button>
+        <button id="copy">Copy</button>
+        <button id="download">Download .txt</button>
+        <button class="good" id="send">Send to Alchemy (Email)</button>
+        <button id="share">Share Link</button>
+        <button class="warn" id="reset">Reset</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="btns">
+        <button id="saveProfile">Save as Brand Profile</button>
+        <button id="deleteProfile" class="warn">Delete Profile</button>
+        <button id="amazonTools">Open Amazon (Affiliate)</button>
+      </div>
+
+      <div class="muted">
+        <b>Credit logic:</b> every “Send to Alchemy” email is a credit event (tier → credits embedded in subject).
+      </div>
+    </section>
+
+    <!-- OUTPUT -->
+    <section class="card">
+      <div class="split">
+        <h2>Prompt Preview</h2>
+        <div id="status" class="status">Ready</div>
+      </div>
+      <div class="mono" id="preview"></div>
+      <div class="muted">
+        “Share Link” always copies a URL starting with <b>https://viadecide.com/</b> and restores the form when opened.
+      </div>
+      <div class="footer">
+        <span>© viadecide.com</span>
+        <span class="tiny">Positioning: first-render prompt packs across models</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  /***********************
+   * CONFIG
+   ***********************/
+  const EMAIL_TO = "dharam@viadecide.com";
+
+  // ✅ Share links MUST open with viadecide.com
+  // If you later host under a subfolder, set SHARE_PATH="/PromptAlchemy/"
+  const SHARE_BASE = "https://viadecide.com";
+  const SHARE_PATH = "/PromptAlchemy/";
+
+  // ✅ Amazon Associates tracking ID (from your screenshot)
+  const AMZN_TAG = "decideengine-21";
+
+  const LS_PROFILES_KEY = "promptalchemy_brand_profiles_v1";
+
+  const MODEL_LABEL = { canva:"CANVA", chatgpt:"CHATGPT", gemini:"GEMINI", claude:"CLAUDE" };
+
+  const PLATFORM_RULES = {
+    instagram: {
+      focus: "Bold central focal point, minimal clutter, strong contrast. Designed to stop scroll in-feed.",
+      textRule: "If text is used, reserve clean negative space; keep hook to ≤ 6 words."
+    },
+    youtube: {
+      focus: "Face or primary object large in frame, extreme clarity, high contrast. Thumbnail readability at small size.",
+      textRule: "If text is used, ≤ 3 words, very large, high contrast."
+    },
+    x: {
+      focus: "Fast comprehension, clean iconography, high contrast. Avoid micro-details.",
+      textRule: "Prefer no text; if used keep ≤ 8 words."
+    },
+    linkedin: {
+      focus: "Clean, professional, slightly desaturated, authority posture, high clarity.",
+      textRule: "Use restrained text; avoid meme styling."
+    },
+    tiktok: {
+      focus: "9:16 cover-ready, strong subject separation, motion implication, vivid contrast.",
+      textRule: "If text is used, keep ≤ 5 words, bold."
+    }
+  };
+
+  const TIER_VARIANTS = { bronze: 1, silver: 3, gold: 5, obsidian: 7 };
+
+  const $ = (id) => document.getElementById(id);
+  const nonEmpty = (v) => (v || "").trim().length > 0;
+
+  function setStatus(msg, ok=true){
+    const el = $("status");
+    el.textContent = msg;
+    el.className = "status " + (ok ? "ok" : "bad");
+  }
+  function uid(){
+    return "PA-" + Math.random().toString(16).slice(2, 6).toUpperCase() + "-" + Date.now().toString(16).slice(-6).toUpperCase();
+  }
+
+  function scrollTriggers(goal){
+    if(goal === "viral") return ["pattern interrupt", "high contrast", "curiosity gap", "simple composition"];
+    if(goal === "cta") return ["clear focal point", "visual hierarchy", "product-first framing", "urgency cue"];
+    if(goal === "community") return ["relatable scene", "warm lighting", "human element", "clean message area"];
+    return ["authority framing", "clean layout", "high clarity", "minimal noise"];
+  }
+
+  function modelAdapterHeader(model){
+    if(model === "claude") return "You are an image prompt compiler. Output ONLY the requested sections. No analysis.\n";
+    if(model === "gemini") return "Return only the prompt content and requested sections. No extra commentary.\n";
+    if(model === "canva") return "Create an image description prompt for Canva. Keep it concrete and compositional.\n";
+    return "Return only the final prompt(s). No explanation.\n";
+  }
+
+  function strictnessBlock(strict){
+    if(strict === "deterministic") return "STRICT MODE: prioritize format compliance over creativity. Do not add extras.\n";
+    if(strict === "creative") return "CREATIVE MODE: allow tasteful style variations while respecting constraints.\n";
+    return "BALANCED MODE: optimize for clarity + scroll impact with controlled creativity.\n";
+  }
+
+  function buildSpec(){
+    return {
+      model: $("model").value,
+      tier: $("tier").value,
+      platform: $("platform").value,
+      format: $("format").value,
+      niche: $("niche").value.trim(),
+      goal: $("goal").value,
+      hook: $("hook").value.trim(),
+      brand: $("brand").value.trim(),
+      idea: $("idea").value.trim(),
+      must: $("must").value.trim(),
+      avoid: $("avoid").value.trim(),
+      strict: $("strict").value,
+      outmode: $("outmode").value
+    };
+  }
+
+  function validateSpec(spec){
+    const missing = [];
+    if(!nonEmpty(spec.platform)) missing.push("Platform");
+    if(!nonEmpty(spec.format)) missing.push("Format/Aspect");
+    if(!nonEmpty(spec.idea)) missing.push("Core visual idea");
+    return missing;
+  }
+
+  function buildCorePrompt(spec){
+    const pr = PLATFORM_RULES[spec.platform] || { focus:"", textRule:"" };
+    const triggers = scrollTriggers(spec.goal).join(", ");
+
+    const nicheLine = nonEmpty(spec.niche) ? `Niche context: ${spec.niche}\n` : "";
+    const brandLine = nonEmpty(spec.brand) ? `Brand style: ${spec.brand}\n` : "";
+    const hookLine  = nonEmpty(spec.hook)  ? `Hook intent (optional): "${spec.hook}"\n` : "";
+    const mustLine  = nonEmpty(spec.must)  ? `Must include: ${spec.must}\n` : "";
+    const avoidLine = nonEmpty(spec.avoid) ? `Avoid (negative): ${spec.avoid}\n` : "";
+
+    return (
+`${modelAdapterHeader(spec.model)}${strictnessBlock(spec.strict)}
+TARGET:
+- Platform: ${spec.platform.toUpperCase()}
+- Aspect ratio: ${spec.format}
+- Goal: ${spec.goal}
+- Scroll triggers: ${triggers}
+
+COMPOSITION RULES:
+- ${pr.focus}
+- Visual hierarchy: primary subject > supporting elements > background.
+- Strong subject separation (depth/contrast), clean background, readable at small size.
+- ${pr.textRule}
+
+CREATIVE BRIEF:
+${nicheLine}${brandLine}${hookLine}
+Core visual idea: ${spec.idea}
+
+DETAIL CONTROLS:
+- Lighting: high clarity, intentional highlights, no muddy tones.
+- Camera: specify angle/shot to maximize clarity (close-up if needed).
+- Color: strong contrast; one accent color max unless brand requires otherwise.
+${mustLine}${avoidLine}
+OUTPUT REQUIREMENTS:
+- Provide an image-generation-ready prompt.
+- No explanations. No commentary outside the requested sections.
+`.trim()
+    );
+  }
+
+  function compactify(text){
+    return text
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/COMPOSITION RULES:/g, "COMPOSITION:")
+      .replace(/CREATIVE BRIEF:/g, "BRIEF:")
+      .replace(/DETAIL CONTROLS:/g, "DETAILS:")
+      .replace(/OUTPUT REQUIREMENTS:/g, "OUTPUT:")
+      .trim();
+  }
+
+  function variantPrompts(spec){
+    const base = buildCorePrompt(spec);
+    const count = TIER_VARIANTS[spec.tier] || 1;
+
+    const variantStyles = [
+      {name:"PRIMARY", tweak:"Highest probability. Clean composition. Strong contrast. Minimal clutter."},
+      {name:"HIGH-CONTRAST", tweak:"Increase contrast & separation. Darker background. Brighter accent."},
+      {name:"MINIMAL", tweak:"Reduce elements to the minimum. Single dominant subject. Ultra-clean background."},
+      {name:"EMOTION", tweak:"Add emotional intensity (expression/gesture) without adding clutter."},
+      {name:"PATTERN-INTERRUPT", tweak:"One surprising but simple element that creates curiosity."},
+      {name:"BRAND-LOCK", tweak:"Enforce brand palette and styling strictly. Reduce randomness."},
+      {name:"SAFE", tweak:"Remove ambiguous/risky terms. Keep universally safe visuals."}
+    ].slice(0, count);
+
+    const negative = nonEmpty(spec.avoid)
+      ? `NEGATIVE PROMPT:\n${spec.avoid}`
+      : `NEGATIVE PROMPT:\nclutter, messy background, low contrast, blurry, text artifacts, watermarks, distorted hands, extra limbs`;
+
+    const compact = `COMPACT VERSION:\n${compactify(base)}`;
+
+    const prompts = variantStyles.map(v => (
+`=== ${v.name} ===
+${base}
+
+VARIANT TWEAK:
+- ${v.tweak}
+`
+    )).join("\n");
+
+    return { prompts, negative, compact };
+  }
+
+  function buildOutput(spec, promptId){
+    const missing = validateSpec(spec);
+    if(missing.length){
+      return { ok:false, text:`Missing required fields:\n- ${missing.join("\n- ")}\n\nFix inputs and regenerate.` };
+    }
+
+    const header =
+`PROMPTALCHEMY PREVIEW
+PromptID: ${promptId}
+Model: ${MODEL_LABEL[spec.model]} | Tier: ${spec.tier.toUpperCase()} | Platform: ${spec.platform.toUpperCase()} | Format: ${spec.format}
+Generated: ${new Date().toISOString()}
+`.trim();
+
+    if(spec.outmode === "single"){
+      const single = buildCorePrompt(spec);
+      const neg = nonEmpty(spec.avoid) ? spec.avoid : "clutter, messy background, low contrast, blurry, watermarks, text artifacts";
+      return { ok:true, text:`${header}\n\n=== SINGLE PROMPT ===\n${single}\n\n=== NEGATIVE PROMPT ===\n${neg}\n` };
+    }
+
+    const pack = variantPrompts(spec);
+    return { ok:true, text:`${header}\n\n${pack.prompts}\n\n${pack.negative}\n\n${pack.compact}\n` };
+  }
+
+  /***********************
+   * SHARE (FORCED viadecide.com)
+   ***********************/
+  function serialize(obj){
+    const json = JSON.stringify(obj);
+    return btoa(unescape(encodeURIComponent(json)))
+      .replaceAll("+","-").replaceAll("/","_").replaceAll("=","");
+  }
+  function deserialize(payload){
+    let b64 = payload.replaceAll("-","+").replaceAll("_","/");
+    while(b64.length % 4) b64 += "=";
+    const json = decodeURIComponent(escape(atob(b64)));
+    return JSON.parse(json);
+  }
+
+  function shareLink(){
+    const spec = buildSpec();
+    const payload = serialize({ spec });
+    const url = `${SHARE_BASE}${SHARE_PATH}#p=${payload}`;
+    if(navigator.clipboard?.writeText){
+      navigator.clipboard.writeText(url).then(() => setStatus("Share link copied (viadecide.com).", true));
+    } else {
+      window.prompt("Copy share link:", url);
+    }
+  }
+
+  function applyFromHash(){
+    const h = (location.hash || "").trim();
+    if(!h.startsWith("#p=")) return;
+    try{
+      const payload = h.slice(3);
+      const state = deserialize(payload);
+      if(state?.spec){
+        const s = state.spec;
+        $("model").value = s.model || "canva";
+        $("tier").value = s.tier || "gold";
+        $("platform").value = s.platform || "";
+        $("format").value = s.format || "";
+        $("niche").value = s.niche || "";
+        $("goal").value = s.goal || "authority";
+        $("hook").value = s.hook || "";
+        $("brand").value = s.brand || "";
+        $("idea").value = s.idea || "";
+        $("must").value = s.must || "";
+        $("avoid").value = s.avoid || "";
+        $("strict").value = s.strict || "balanced";
+        $("outmode").value = s.outmode || "pack";
+      }
+      setStatus("Loaded from share link.", true);
+      generate();
+    }catch(e){
+      console.error(e);
+      setStatus("Invalid share payload.", false);
+    }
+  }
+
+  /***********************
+   * AMAZON AFFILIATE
+   ***********************/
+  function buildAmazonAffiliateUrl(rawUrl){
+    try{
+      const u = new URL(rawUrl);
+      const host = u.hostname.replace(/^www\./, "");
+      if(!host.includes("amazon.")) return rawUrl;
+      u.searchParams.set("tag", AMZN_TAG);
+      return u.toString();
+    }catch(e){
+      if(rawUrl.includes("?")) return rawUrl + `&tag=${encodeURIComponent(AMZN_TAG)}`;
+      return rawUrl + `?tag=${encodeURIComponent(AMZN_TAG)}`;
+    }
+  }
+  function openAmazon(rawUrl){
+    window.open(buildAmazonAffiliateUrl(rawUrl), "_blank", "noopener,noreferrer");
+  }
+
+  /***********************
+   * BRAND PROFILES
+   ***********************/
+  function escapeHtml(s){
+    return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+  function loadProfiles(){
+    try{ return JSON.parse(localStorage.getItem(LS_PROFILES_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function saveProfiles(list){
+    localStorage.setItem(LS_PROFILES_KEY, JSON.stringify(list));
+  }
+  function refreshProfileSelect(){
+    const sel = $("profile");
+    const profiles = loadProfiles();
+    const curr = sel.value;
+    sel.innerHTML = `<option value="">(none)</option>` + profiles.map(p =>
+      `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+    ).join("");
+    if(curr) sel.value = curr;
+  }
+  function saveCurrentAsProfile(){
+    const name = window.prompt("Profile name (e.g., 'My IG Brand'):", "");
+    if(!name || !name.trim()) return;
+    const spec = buildSpec();
+    const profiles = loadProfiles();
+    profiles.unshift({
+      id: "bp_" + Math.random().toString(16).slice(2),
+      name: name.trim(),
+      brand: spec.brand,
+      strict: spec.strict
+    });
+    saveProfiles(profiles.slice(0, 30));
+    refreshProfileSelect();
+    setStatus("Brand profile saved.", true);
+  }
+  function deleteSelectedProfile(){
+    const id = $("profile").value;
+    if(!id) return setStatus("No profile selected.", false);
+    const next = loadProfiles().filter(p => p.id !== id);
+    saveProfiles(next);
+    refreshProfileSelect();
+    $("profile").value = "";
+    setStatus("Brand profile deleted.", true);
+  }
+  function applyProfile(){
+    const id = $("profile").value;
+    if(!id) return;
+    const p = loadProfiles().find(x => x.id === id);
+    if(!p) return;
+    $("brand").value = p.brand || "";
+    $("strict").value = p.strict || "balanced";
+    setStatus("Brand profile applied.", true);
+  }
+
+  /***********************
+   * GENERATE / COPY / DOWNLOAD / EMAIL
+   ***********************/
+  let CURRENT_PROMPT_ID = uid();
+
+  function generate(){
+    const spec = buildSpec();
+    const out = buildOutput(spec, CURRENT_PROMPT_ID);
+    $("preview").textContent = out.text;
+    setStatus(out.ok ? "Preview generated." : "Fix required fields.", out.ok);
+  }
+
+  async function copyPreview(){
+    const text = $("preview").textContent || "";
+    if(!text.trim()) return setStatus("Nothing to copy. Generate first.", false);
+    try{
+      await navigator.clipboard.writeText(text);
+      setStatus("Copied to clipboard.", true);
+    }catch(e){
+      setStatus("Copy blocked by browser. Select manually.", false);
+    }
+  }
+
+  function downloadTxt(){
+    const text = $("preview").textContent || "";
+    if(!text.trim()) return setStatus("Nothing to download. Generate first.", false);
+    const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `promptalchemy_${CURRENT_PROMPT_ID}_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setStatus("Downloaded .txt", true);
+  }
+
+  function sendEmail(){
+    const spec = buildSpec();
+    const out = buildOutput(spec, CURRENT_PROMPT_ID);
+    $("preview").textContent = out.text;
+    if(!out.ok) return setStatus("Cannot email. Fix required fields.", false);
+
+    const tierCredits = { bronze: 1, silver: 3, gold: 5, obsidian: 8 };
+    const credits = tierCredits[spec.tier] ?? 1;
+
+    const subject = `ALCHEMY | ${spec.tier.toUpperCase()} | ${MODEL_LABEL[spec.model]} | ${spec.platform.toUpperCase()} | ${spec.format} | ${CURRENT_PROMPT_ID} | CREDITS:${credits}`;
+    const body =
+`Hi Alchemy,
+
+Please process this prompt request.
+
+PromptID: ${CURRENT_PROMPT_ID}
+Tier: ${spec.tier} (credits=${credits})
+Model: ${MODEL_LABEL[spec.model]}
+Platform: ${spec.platform}
+Format: ${spec.format}
+Goal: ${spec.goal}
+Niche: ${spec.niche || "(none)"}
+Hook: ${spec.hook || "(none)"}
+
+OUTPUT PREVIEW:
+${out.text}
+
+Thanks.`;
+
+    const mailto = `mailto:${encodeURIComponent(EMAIL_TO)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+
+    CURRENT_PROMPT_ID = uid();
+    setStatus("Email draft opened (credit event).", true);
+  }
+
+  function resetAll(){
+    $("model").value = "canva";
+    $("tier").value = "gold";
+    $("platform").value = "";
+    $("format").value = "4:5";
+    $("niche").value = "";
+    $("goal").value = "authority";
+    $("hook").value = "";
+    $("brand").value = "";
+    $("idea").value = "";
+    $("must").value = "";
+    $("avoid").value = "";
+    $("strict").value = "balanced";
+    $("outmode").value = "pack";
+    $("profile").value = "";
+    $("preview").textContent = "";
+    CURRENT_PROMPT_ID = uid();
+    setStatus("Reset.", true);
+  }
+
+  /***********************
+   * EVENTS
+   ***********************/
+  $("generate").addEventListener("click", generate);
+  $("copy").addEventListener("click", copyPreview);
+  $("download").addEventListener("click", downloadTxt);
+  $("send").addEventListener("click", sendEmail);
+  $("share").addEventListener("click", shareLink);
+  $("reset").addEventListener("click", resetAll);
+
+  $("saveProfile").addEventListener("click", saveCurrentAsProfile);
+  $("deleteProfile").addEventListener("click", deleteSelectedProfile);
+  $("profile").addEventListener("change", applyProfile);
+
+  $("amazonTools").addEventListener("click", () => {
+    openAmazon("https://www.amazon.in/s?k=content+creator+lighting");
+  });
+
+  // Boot
+  refreshProfileSelect();
+  applyFromHash();
+  $("preview").textContent =
+`Fill required fields → Generate Preview.
+
+Required:
+- Platform
+- Format
+- Core visual idea
+
+Flow:
+1) Generate Preview
+2) Copy / Download
+3) Send to Alchemy (Email) = credit event
+4) Share Link = viadecide.com/#p=...`;
+</script>
+</body>
+</html>

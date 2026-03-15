@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SwipeOS · Gandhidham</title>
+<meta name="theme-color" content="#090909">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; width: 100%; overflow: hidden;
+  background: #090909; color: #f0f0f0;
+  font-family: 'Space Mono', monospace;
+  -webkit-user-select: none; user-select: none;
+  touch-action: none;
+}
+:root {
+  --orange: #ff671f; --green: #00e676; --red: #ff3b3b;
+  --bg: #090909; --bg2: #111111; --bg3: #181818;
+  --border: #1e1e1e; --muted: #444; --sub: #666; --text: #f0f0f0;
+}
+
+/* ── SCREENS ── */
+.screen {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.screen.active { opacity: 1; pointer-events: all; z-index: 10; }
+
+/* ── SCREEN 1: ONBOARDING ── */
+#s-onboard {
+  align-items: center; justify-content: center;
+  text-align: center; padding: 32px 28px; gap: 0;
+}
+.ob-logo { font-size: 0.6rem; color: var(--orange); letter-spacing: 4px; margin-bottom: 4px; }
+.ob-city { font-size: 0.45rem; color: var(--muted); letter-spacing: 3px; margin-bottom: 32px; }
+.ob-headline {
+  font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800;
+  color: #fff; line-height: 1.1; margin-bottom: 8px;
+}
+.ob-headline em { color: var(--orange); font-style: normal; }
+.ob-tagline { font-size: 0.48rem; color: var(--muted); letter-spacing: 2px; margin-bottom: 44px; }
+.ob-gestures { display: flex; justify-content: center; gap: 32px; margin-bottom: 44px; }
+.ob-gest { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.ob-arrow {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: var(--bg2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; color: var(--orange);
+}
+.ob-gest-lbl { font-size: 0.48rem; color: var(--sub); letter-spacing: 1.5px; }
+#ob-btn {
+  width: 100%; padding: 18px; background: var(--orange); color: #000;
+  border: none; border-radius: 12px; font-family: 'Space Mono', monospace;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 3px; cursor: pointer;
+}
+#ob-btn:active { opacity: 0.85; transform: scale(0.97); }
+.ob-badge { margin-top: 18px; font-size: 0.42rem; color: #252525; letter-spacing: 2px; }
+
+/* ── SCREEN 2: AREA ── */
+#s-area { padding: 40px 28px 32px; justify-content: center; }
+.sc-label { font-size: 0.5rem; color: var(--orange); letter-spacing: 3px; display: block; margin-bottom: 10px; }
+.sc-title {
+  font-family: 'Syne', sans-serif; font-size: 1.75rem;
+  font-weight: 800; color: #fff; line-height: 1.05; margin-bottom: 32px;
+}
+.area-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+.area-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 14px; text-align: center; cursor: pointer;
+  transition: all 0.18s;
+}
+.area-card:active { transform: scale(0.95); }
+.area-card.sel { background: rgba(255,103,31,.1); border-color: var(--orange); }
+.area-icon { font-size: 1.7rem; margin-bottom: 8px; }
+.area-name { font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: var(--text); }
+.area-card.sel .area-name { color: var(--orange); }
+#area-btn {
+  width: 100%; padding: 17px; background: var(--bg2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: 'Space Mono', monospace; font-size: 0.75rem;
+  letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+}
+#area-btn.ready { background: var(--orange); color: #000; border-color: var(--orange); }
+
+/* ── SCREEN 3: CUISINE ── */
+#s-cuisine { padding: 0; }
+.cuisine-hdr {
+  padding: 26px 26px 18px; border-left: 3px solid var(--orange); flex-shrink: 0;
+}
+.area-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,103,31,.08); border: 1px solid rgba(255,103,31,.25);
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 0.46rem; color: var(--orange); letter-spacing: 1px; margin-top: 8px;
+}
+.cuisine-list { flex: 1; overflow-y: auto; padding: 12px 24px; display: flex; flex-direction: column; gap: 10px; }
+.cuisine-tile {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px;
+  display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.18s;
+}
+.cuisine-tile:active { transform: scale(0.98); }
+.cuisine-tile.sel { border-color: var(--orange); background: rgba(255,103,31,.07); }
+.c-emoji { font-size: 1.6rem; flex-shrink: 0; }
+.c-info { flex: 1; }
+.c-name { font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; }
+.cuisine-tile.sel .c-name { color: var(--orange); }
+.c-sub { font-size: 0.46rem; color: var(--sub); letter-spacing: 1px; margin-top: 3px; }
+.c-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--border); display: flex;
+  align-items: center; justify-content: center;
+  font-size: 0.65rem; color: transparent; flex-shrink: 0; transition: all 0.18s;
+}
+.cuisine-tile.sel .c-check { background: var(--orange); border-color: var(--orange); color: #000; }
+.cuisine-footer { padding: 14px 24px 28px; flex-shrink: 0; }
+#cuisine-btn {
+  width: 100%; padding: 17px; background: var(--bg2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: 'Space Mono', monospace; font-size: 0.75rem;
+  letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+}
+#cuisine-btn.ready { background: #fff; color: #000; border-color: #fff; }
+
+/* ── SCREEN 4: SWIPE ── */
+#s-swipe { padding: 0; }
+.swipe-hdr {
+  padding: 18px 22px 12px; display: flex;
+  justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.swipe-hdr-l { display: flex; flex-direction: column; gap: 2px; }
+.swipe-lbl { font-size: 0.46rem; color: var(--sub); letter-spacing: 2px; }
+.swipe-cat { font-size: 0.7rem; color: var(--orange); font-weight: 700; letter-spacing: 1px; }
+.prog-wrap { display: flex; gap: 4px; align-items: center; }
+.prog-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+.prog-dot.done { background: var(--orange); }
+.prog-dot.curr { background: var(--green); width: 14px; border-radius: 3px; }
+.local-sig {
+  padding: 7px 22px; font-size: 0.46rem; color: var(--green);
+  letter-spacing: 2px; background: rgba(0,230,118,.04);
+  border-bottom: 1px solid rgba(0,230,118,.07); flex-shrink: 0;
+}
+.card-arena { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+/* CARDS */
+.food-card {
+  position: absolute;
+  width: calc(100% - 32px); max-width: 380px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px 24px 22px;
+  display: flex; flex-direction: column; gap: 10px;
+  will-change: transform; touch-action: none;
+}
+.food-card.back-card { transform: scale(0.94) translateY(16px); opacity: 0.45; z-index: 1; pointer-events: none; }
+.food-card.active-card { z-index: 2; }
+
+.card-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,103,31,.09); border: 1px solid rgba(255,103,31,.2);
+  border-radius: 6px; padding: 4px 10px;
+  font-size: 0.44rem; color: var(--orange); letter-spacing: 1px; width: fit-content;
+}
+.card-name {
+  font-family: 'Syne', sans-serif; font-size: 1.85rem;
+  font-weight: 800; color: #fff; line-height: 1.05; letter-spacing: -0.5px;
+}
+.card-price { font-size: 0.85rem; color: var(--sub); }
+.card-price strong { color: var(--orange); font-size: 1.05rem; }
+.card-hints {
+  margin-top: 10px; padding-top: 14px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between;
+}
+.hint {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.44rem; letter-spacing: 1.5px; padding: 5px 11px; border-radius: 20px;
+}
+.hint-s { background: rgba(255,59,59,.09); border: 1px solid rgba(255,59,59,.2); color: var(--red); }
+.hint-a { background: rgba(0,230,118,.09); border: 1px solid rgba(0,230,118,.2); color: var(--green); }
+
+.ov-add, .ov-skip {
+  position: absolute; inset: 0; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 2rem;
+  font-weight: 800; letter-spacing: 4px;
+  pointer-events: none; opacity: 0;
+}
+.ov-add { background: rgba(0,230,118,.1); border: 2px solid var(--green); color: var(--green); }
+.ov-skip { background: rgba(255,59,59,.1); border: 2px solid var(--red); color: var(--red); }
+
+/* BROWSE + ACTIONS */
+.browse-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 22px 4px; flex-shrink: 0;
+}
+.browse-btn {
+  background: var(--bg2); border: 1px solid var(--border); color: var(--sub);
+  padding: 8px 16px; border-radius: 8px;
+  font-family: 'Space Mono', monospace; font-size: 0.55rem;
+  letter-spacing: 1px; cursor: pointer; transition: all 0.15s;
+}
+.browse-btn:active { background: var(--bg3); transform: scale(0.96); }
+.browse-ctr { font-size: 0.5rem; color: var(--sub); letter-spacing: 1px; }
+.action-row { display: flex; gap: 10px; padding: 8px 22px 24px; flex-shrink: 0; }
+.act-skip {
+  flex: 1; padding: 15px; background: rgba(255,59,59,.08);
+  border: 1px solid rgba(255,59,59,.2); border-radius: 10px;
+  color: var(--red); font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; transition: all 0.15s;
+}
+.act-add {
+  flex: 2; padding: 15px; background: var(--green); color: #000;
+  border: none; border-radius: 10px; font-family: 'Space Mono', monospace;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 2px; cursor: pointer; transition: all 0.15s;
+}
+.act-skip:active { transform: scale(0.96); }
+.act-add:active  { transform: scale(0.97); opacity: 0.85; }
+
+/* ── SCREEN 5: CART ── */
+#s-cart { padding: 0; }
+.cart-hdr { padding: 22px 24px 14px; border-left: 3px solid var(--orange); flex-shrink: 0; }
+.cart-area { font-size: 0.44rem; color: var(--sub); letter-spacing: 2px; margin-top: 4px; display: block; }
+.cart-items { flex: 1; overflow-y: auto; padding: 12px 22px; display: flex; flex-direction: column; }
+.cart-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px; color: var(--muted);
+  font-size: 0.6rem; letter-spacing: 2px; text-align: center;
+}
+.cart-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.cart-rname { font-size: 0.65rem; }
+.cart-rright { display: flex; align-items: center; gap: 10px; }
+.cart-qty { font-size: 0.55rem; color: var(--sub); }
+.cart-rprice { font-size: 0.65rem; color: var(--green); font-weight: 700; }
+.cart-rm {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,59,59,.08); border: 1px solid rgba(255,59,59,.2);
+  color: var(--red); font-size: 0.6rem; display: flex;
+  align-items: center; justify-content: center; cursor: pointer;
+}
+.cart-total-row {
+  display: flex; justify-content: space-between; padding: 14px 22px;
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.cart-total-lbl { font-size: 0.6rem; color: var(--sub); letter-spacing: 1px; }
+.cart-total-val { font-size: 1rem; color: var(--orange); font-weight: 700; }
+.cart-deliver-hint {
+  margin: 0 22px 6px; background: rgba(0,230,118,.04);
+  border: 1px solid rgba(0,230,118,.1); border-radius: 8px;
+  padding: 9px 12px; font-size: 0.44rem; color: var(--green);
+  letter-spacing: 1.5px; text-align: center; flex-shrink: 0;
+}
+.cart-actions { padding: 6px 22px 26px; display: flex; flex-direction: column; gap: 9px; flex-shrink: 0; }
+.c-btn {
+  width: 100%; padding: 14px; border-radius: 10px;
+  font-family: 'Space Mono', monospace; font-size: 0.68rem;
+  letter-spacing: 2px; font-weight: 700; border: none;
+  cursor: pointer; transition: all 0.15s;
+}
+.c-btn:active { transform: scale(0.97); opacity: 0.88; }
+.btn-wa     { background: #25D366; color: #000; }
+.btn-zomato { background: #cb202d; color: #fff; }
+.btn-swiggy { background: #fc8019; color: #000; }
+.btn-share  { background: var(--bg2); color: var(--sub); border: 1px solid var(--border); }
+.btn-restart{ background: transparent; color: var(--muted); border: 1px solid var(--border); font-size: 0.58rem; }
+
+/* ── PROCESS VISUALIZER ── */
+#proc-tab {
+  position: fixed; bottom: 90px; right: 0; z-index: 9000;
+  writing-mode: vertical-rl;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-right: none; border-radius: 6px 0 0 6px;
+  padding: 11px 5px; font-family: 'Space Mono', monospace;
+  font-size: 0.42rem; letter-spacing: 2px; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+#proc-tab.lit { color: var(--orange); border-color: var(--orange); }
+#proc-drawer {
+  position: fixed; top: 0; right: -292px; bottom: 0;
+  width: 280px; z-index: 8999;
+  background: #050505; border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.2,.8,.2,1);
+  font-family: 'Space Mono', monospace;
+}
+#proc-drawer.open { right: 0; }
+.proc-hdr {
+  padding: 14px 12px 10px; border-bottom: 1px solid var(--border);
+  font-size: 0.52rem; color: var(--orange); letter-spacing: 2px;
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.proc-x { background: none; border: none; color: var(--muted); font-size: 1rem; cursor: pointer; }
+.proc-log { flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+.pe {
+  border-left: 2px solid var(--border); padding: 5px 8px;
+  font-size: 0.48rem; line-height: 1.6; color: var(--muted);
+  animation: pein 0.2s ease;
+}
+@keyframes pein { from { opacity:0; transform: translateX(6px); } to { opacity:1; transform:translateX(0); } }
+.pe-nav    { border-color: #2a6ea6; color: #5aabdb; }
+.pe-action { border-color: #1a6b3a; color: var(--green); }
+.pe-cart   { border-color: #8a4e10; color: var(--orange); }
+.pe-swipe  { border-color: #5a1a6a; color: #c084fc; }
+.pe-sys    { border-color: #222; color: #555; }
+.pe-ts { display: block; font-size: 0.4rem; color: #2a2a2a; margin-bottom: 1px; }
+.proc-state {
+  padding: 10px 10px 14px; border-top: 1px solid var(--border); flex-shrink: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
+}
+.ps-c { display: flex; flex-direction: column; gap: 2px; }
+.ps-l { font-size: 0.38rem; color: #2a2a2a; letter-spacing: 1px; text-transform: uppercase; }
+.ps-v { font-size: 0.55rem; color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-v.on { color: var(--green); }
+.ps-v.hi { color: var(--orange); }
+
+/* ── GLOBALS ── */
+.gfooter {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  text-align: center; font-size: 0.38rem;
+  color: #161616; letter-spacing: 2px; padding: 4px; pointer-events: none;
+}
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: var(--bg2); border: 1px solid var(--green); color: var(--green);
+  padding: 8px 18px; border-radius: 20px; font-size: 0.55rem; letter-spacing: 1px;
+  z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.22s; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+.toast.w { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div class="screen active" id="s-onboard">
+  <div class="ob-logo">SWIPE-OS</div>
+  <div class="ob-city">GANDHIDHAM FOOD DECISION ENGINE</div>
+  <div class="ob-headline">Decide food faster<br>in <em>Gandhidham</em></div>
+  <div class="ob-tagline">THREE GESTURES. DONE.</div>
+  <div class="ob-gestures">
+    <div class="ob-gest"><div class="ob-arrow">↓</div><div class="ob-gest-lbl">Add Item</div></div>
+    <div class="ob-gest"><div class="ob-arrow">←</div><div class="ob-gest-lbl">Skip</div></div>
+    <div class="ob-gest"><div class="ob-arrow">→</div><div class="ob-gest-lbl">Browse</div></div>
+  </div>
+  <button id="ob-btn" onclick="goScreen('s-area'); plog('nav','START → area')">START →</button>
+  <div class="ob-badge">FIRST CITY: GANDHIDHAM · BUILT IN KUTCH</div>
+</div>
+
+<!-- AREA SELECTION -->
+<div class="screen" id="s-area">
+  <span class="sc-label" style="padding:32px 28px 0">STEP 1 OF 2</span>
+  <div class="sc-title" style="padding:8px 28px 28px">Where are<br>you ordering?</div>
+  <div class="area-grid" style="padding:0 28px" id="area-grid">
+    <div class="area-card" data-area="Gandhidham" onclick="pickArea(this)">
+      <div class="area-icon">🏙️</div><div class="area-name">GANDHIDHAM</div>
+    </div>
+    <div class="area-card" data-area="Adipur" onclick="pickArea(this)">
+      <div class="area-icon">🌆</div><div class="area-name">ADIPUR</div>
+    </div>
+    <div class="area-card" data-area="Anjar" onclick="pickArea(this)">
+      <div class="area-icon">🏘️</div><div class="area-name">ANJAR</div>
+    </div>
+    <div class="area-card" data-area="Bhuj" onclick="pickArea(this)">
+      <div class="area-icon">🕌</div><div class="area-name">BHUJ</div>
+    </div>
+  </div>
+  <div style="padding:24px 28px 32px">
+    <button id="area-btn" onclick="confirmArea()">SELECT YOUR AREA FIRST</button>
+  </div>
+</div>
+
+<!-- CUISINE SELECTION -->
+<div class="screen" id="s-cuisine">
+  <div class="cuisine-hdr">
+    <span class="sc-label">STEP 2 OF 2</span>
+    <div class="sc-title">What are you<br>craving?</div>
+    <div class="area-pill" id="area-pill">📍 —</div>
+  </div>
+  <div class="cuisine-list" id="cuisine-list">
+    <div class="cuisine-tile" data-c="punjabi" onclick="togCuisine(this)">
+      <div class="c-emoji">🍛</div>
+      <div class="c-info"><div class="c-name">PUNJABI</div><div class="c-sub">Dal Makhani · Paneer · Naan</div></div>
+      <div class="c-check">✓</div>
+    </div>
+    <div class="cuisine-tile" data-c="chinese" onclick="togCuisine(this)">
+      <div class="c-emoji">🥢</div>
+      <div class="c-info"><div class="c-name">CHINESE</div><div class="c-sub">Noodles · Dumplings · Wok</div></div>
+      <div class="c-check">✓</div>
+    </div>
+    <div class="cuisine-tile" data-c="pizza" onclick="togCuisine(this)">
+      <div class="c-emoji">🍕</div>
+      <div class="c-info"><div class="c-name">PIZZA</div><div class="c-sub">Classic · Gourmet · Wood-fired</div></div>
+      <div class="c-check">✓</div>
+    </div>
+    <div class="cuisine-tile" data-c="snacks" onclick="togCuisine(this)">
+      <div class="c-emoji">🍟</div>
+      <div class="c-info"><div class="c-name">NASTA PANI</div><div class="c-sub">Samosa · Coke · Burger</div></div>
+      <div class="c-check">✓</div>
+    </div>
+  </div>
+  <div class="cuisine-footer">
+    <button id="cuisine-btn" onclick="beginHunt()">SELECT A CUISINE FIRST</button>
+  </div>
+</div>
+
+<!-- SWIPE CARDS -->
+<div class="screen" id="s-swipe">
+  <div class="swipe-hdr">
+    <div class="swipe-hdr-l">
+      <div class="swipe-lbl" id="swipe-lbl">ITEM 1 OF —</div>
+      <div class="swipe-cat" id="swipe-cat">—</div>
+    </div>
+    <div class="prog-wrap" id="prog-wrap"></div>
+  </div>
+  <div class="local-sig" id="local-sig">▸ Popular in Gandhidham tonight</div>
+  <div class="card-arena" id="card-arena"></div>
+  <div class="browse-row">
+    <button class="browse-btn" onclick="browse(-1)">← PREV</button>
+    <span class="browse-ctr" id="browse-ctr">1 / 1</span>
+    <button class="browse-btn" onclick="browse(1)">NEXT →</button>
+  </div>
+  <div class="action-row">
+    <button class="act-skip" onclick="doSkip()">✕ SKIP</button>
+    <button class="act-add"  onclick="doAdd()">↓ ADD TO CART</button>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="screen" id="s-cart">
+  <div class="cart-hdr">
+    <span class="sc-label">YOUR ORDER</span>
+    <div class="sc-title">Final Cart</div>
+    <span class="cart-area" id="cart-area">📍 —</span>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-total-row">
+    <span class="cart-total-lbl">EST. TOTAL</span>
+    <span class="cart-total-val" id="cart-total">₹0</span>
+  </div>
+  <div class="cart-deliver-hint">🚴 Local delivery coming soon in Gandhidham</div>
+  <div class="cart-actions">
+    <button class="c-btn btn-wa"      onclick="sendWA()">WHATSAPP ORDER</button>
+    <button class="c-btn btn-zomato"  onclick="openApp('zomato')">OPEN IN ZOMATO</button>
+    <button class="c-btn btn-swiggy"  onclick="openApp('swiggy')">OPEN IN SWIGGY</button>
+    <button class="c-btn btn-share"   onclick="shareOrder()">📤 SHARE GANDHIDHAM ORDER</button>
+    <button class="c-btn btn-restart" onclick="restart()">↩ NEW HUNT</button>
+  </div>
+</div>
+
+<!-- PROCESS PANEL -->
+<button id="proc-tab" onclick="togProc()">PROCESS</button>
+<div id="proc-drawer">
+  <div class="proc-hdr">
+    <span>⬡ PROCESS LOG</span>
+    <button class="proc-x" onclick="togProc()">✕</button>
+  </div>
+  <div class="proc-log" id="proc-log"></div>
+  <div class="proc-state">
+    <div class="ps-c"><div class="ps-l">SCREEN</div><div class="ps-v" id="pv-screen">onboard</div></div>
+    <div class="ps-c"><div class="ps-l">AREA</div><div class="ps-v hi" id="pv-area">—</div></div>
+    <div class="ps-c"><div class="ps-l">CUISINES</div><div class="ps-v on" id="pv-cuisines">—</div></div>
+    <div class="ps-c"><div class="ps-l">DECK SIZE</div><div class="ps-v" id="pv-deck">0</div></div>
+    <div class="ps-c"><div class="ps-l">CURRENT</div><div class="ps-v" id="pv-curr">—</div></div>
+    <div class="ps-c"><div class="ps-l">CART</div><div class="ps-v" id="pv-cart">0 items</div></div>
+    <div class="ps-c"><div class="ps-l">TOTAL</div><div class="ps-v on" id="pv-total">₹0</div></div>
+    <div class="ps-c"><div class="ps-l">ACTION</div><div class="ps-v hi" id="pv-action">—</div></div>
+  </div>
+</div>
+
+<div class="gfooter">BUILT IN KUTCH · SWIPEOS DECISION ENGINE</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   SWIPEOS v3.0 — GANDHIDHAM CLEAN BUILD
+   ══════════════════════════════════════ */
+
+const MENU = {
+  punjabi: {
+    label:'PUNJABI', emoji:'🍛',
+    items:[
+      {name:'Butter Naan',price:40,cat:'Breads'},
+      {name:'Garlic Naan',price:50,cat:'Breads'},
+      {name:'Tandoori Roti',price:25,cat:'Breads'},
+      {name:'Lachha Paratha',price:55,cat:'Breads'},
+      {name:'Dal Makhani',price:220,cat:'Mains'},
+      {name:'Paneer Butter Masala',price:240,cat:'Mains'},
+      {name:'Shahi Paneer',price:250,cat:'Mains'},
+      {name:'Butter Chicken',price:280,cat:'Mains'},
+      {name:'Kadai Paneer',price:230,cat:'Mains'},
+      {name:'Jeera Rice',price:150,cat:'Rice'},
+      {name:'Veg Pulao',price:160,cat:'Rice'},
+      {name:'Sweet Lassi',price:60,cat:'Drinks'},
+      {name:'Masala Chaas',price:40,cat:'Drinks'},
+    ]
+  },
+  chinese:{
+    label:'CHINESE', emoji:'🥢',
+    items:[
+      {name:'Hakka Noodles',price:200,cat:'Noodles'},
+      {name:'Lo Mein',price:220,cat:'Noodles'},
+      {name:'Dan Dan Noodles',price:260,cat:'Noodles'},
+      {name:'Chilli Chicken',price:260,cat:'Wok'},
+      {name:'Kung Pao Chicken',price:280,cat:'Wok'},
+      {name:'Mapo Tofu',price:240,cat:'Wok'},
+    ]
+  },
+  pizza:{
+    label:'PIZZA', emoji:'🍕',
+    items:[
+      {name:'Margherita',price:350,cat:'Classic'},
+      {name:'Marinara',price:330,cat:'Classic'},
+      {name:'Pepperoni',price:450,cat:'Classic'},
+      {name:'Burrata Pizza',price:550,cat:'Gourmet'},
+      {name:'Truffle Mushroom Pizza',price:520,cat:'Gourmet'},
+      {name:'Wood Fired Chicken',price:480,cat:'Gourmet'},
+    ]
+  },
+  snacks:{
+    label:'NASTA PANI', emoji:'🍟',
+    items:[
+      {name:'Samosa',price:20,cat:'Hot Snacks'},
+      {name:'Veg Puff',price:30,cat:'Hot Snacks'},
+      {name:'Burger',price:60,cat:'Hot Snacks'},
+      {name:'Coke',price:40,cat:'Drinks'},
+      {name:'Thums Up',price:40,cat:'Drinks'},
+      {name:'Chips',price:20,cat:'Drinks'},
+      {name:'Kurkure',price:20,cat:'Drinks'},
+    ]
+  }
+};
+
+/* ── STATE ── */
+const S = {
+  screen:'onboard', area:'', cuisines:[],
+  deck:[], idx:0, cart:{}, procOpen:false
+};
+
+/* ── SCREEN SWITCHER ── */
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  S.screen = id.replace('s-','');
+  psync();
+}
+
+/* ── AREA ── */
+function pickArea(el) {
+  document.querySelectorAll('.area-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  S.area = el.dataset.area;
+  localStorage.setItem('swipeos_user_area', S.area);
+  const btn = document.getElementById('area-btn');
+  btn.classList.add('ready');
+  btn.textContent = `CONTINUE → ${S.area.toUpperCase()}`;
+  plog('action', 'AREA', S.area);
+  psync();
+}
+
+function confirmArea() {
+  if (!S.area) { toast('Pick an area first', true); return; }
+  document.getElementById('area-pill').textContent = `📍 ${S.area}`;
+  document.getElementById('local-sig').textContent = `▸ Popular in ${S.area} tonight`;
+  document.getElementById('cart-area').textContent = `📍 ${S.area}`;
+  plog('nav', 'AREA CONFIRMED → cuisine');
+  goScreen('s-cuisine');
+}
+
+/* ── CUISINE ── */
+function togCuisine(el) {
+  const c = el.dataset.c;
+  if (S.cuisines.includes(c)) {
+    S.cuisines = S.cuisines.filter(x => x !== c);
+    el.classList.remove('sel');
+    plog('action', 'CUISINE REMOVED', c);
+  } else {
+    S.cuisines.push(c);
+    el.classList.add('sel');
+    plog('action', 'CUISINE ADDED', c);
+  }
+  const btn = document.getElementById('cuisine-btn');
+  if (S.cuisines.length) {
+    btn.classList.add('ready');
+    btn.textContent = `HUNT ${S.cuisines.length} CUISINE${S.cuisines.length>1?'S':''} →`;
+  } else {
+    btn.classList.remove('ready');
+    btn.textContent = 'SELECT A CUISINE FIRST';
+  }
+  psync();
+}
+
+/* ── BUILD DECK ── */
+function beginHunt() {
+  if (!S.cuisines.length) { toast('Pick a cuisine first!', true); return; }
+  S.deck = [];
+  S.cuisines.forEach(k => {
+    const m = MENU[k];
+    if (!m) return;
+    m.items.forEach(item => S.deck.push({ ...item, cuisineLabel: m.label, cuisineEmoji: m.emoji }));
+  });
+  if (!S.deck.length) { toast('No items found', true); return; }
+  S.idx = 0;
+  S.cart = {};
+  plog('sys', 'DECK BUILT', `${S.deck.length} items across ${S.cuisines.length} cuisine(s)`);
+  renderCards();
+  goScreen('s-swipe');
+}
+
+/* ── RENDER CARDS ── */
+function renderCards() {
+  const arena = document.getElementById('card-arena');
+  arena.innerHTML = '';
+
+  if (S.idx >= S.deck.length) {
+    plog('sys', 'DECK DONE → cart');
+    renderCart();
+    goScreen('s-cart');
+    return;
+  }
+
+  // Progress dots
+  const prog = document.getElementById('prog-wrap');
+  prog.innerHTML = '';
+  const shown = Math.min(S.deck.length, 8);
+  for (let i = 0; i < shown; i++) {
+    const d = document.createElement('div');
+    const rel = Math.round((i / shown) * S.deck.length);
+    d.className = 'prog-dot' + (rel < S.idx ? ' done' : rel === S.idx ? ' curr' : '');
+    prog.appendChild(d);
+  }
+
+  // Back card peek
+  if (S.idx + 1 < S.deck.length) {
+    arena.appendChild(makeCard(S.deck[S.idx + 1], false));
+  }
+
+  // Active card
+  const card = makeCard(S.deck[S.idx], true);
+  arena.appendChild(card);
+  attachGestures(card);
+
+  const item = S.deck[S.idx];
+  document.getElementById('swipe-lbl').textContent = `ITEM ${S.idx + 1} OF ${S.deck.length}`;
+  document.getElementById('swipe-cat').textContent = `${item.cuisineLabel} · ${item.cat}`;
+  document.getElementById('browse-ctr').textContent = `${S.idx + 1} / ${S.deck.length}`;
+  plog('swipe', 'CARD', item.name);
+  psync();
+}
+
+function makeCard(item, active) {
+  const d = document.createElement('div');
+  d.className = 'food-card ' + (active ? 'active-card' : 'back-card');
+  d.innerHTML = `
+    <div class="card-tag">${item.cuisineEmoji} ${item.cuisineLabel} · ${item.cat}</div>
+    <div class="card-name">${item.name}</div>
+    <div class="card-price">₹<strong>${item.price}</strong></div>
+    <div class="card-hints">
+      <div class="hint hint-s">← SKIP</div>
+      <div class="hint hint-a">↓ ADD</div>
+    </div>
+    <div class="ov-add">ADD ✓</div>
+    <div class="ov-skip">SKIP ✕</div>`;
+  return d;
+}
+
+/* ── GESTURE ENGINE ── */
+function attachGestures(card) {
+  let sx = 0, sy = 0, dragging = false;
+
+  function start(x, y) {
+    sx = x; sy = y; dragging = true;
+    card.style.transition = 'none';
+    plog('swipe', 'TOUCH START', `(${Math.round(x)}, ${Math.round(y)})`);
+  }
+
+  function move(x, y) {
+    if (!dragging) return;
+    const dx = x - sx, dy = y - sy;
+    const ovA = card.querySelector('.ov-add');
+    const ovS = card.querySelector('.ov-skip');
+
+    if (Math.abs(dy) >= Math.abs(dx)) {
+      // Vertical
+      if (dy > 0) {
+        // DOWN = add feedback
+        const r = Math.min(dy / 110, 1);
+        card.style.transform = `translateY(${dy * 0.55}px) scale(${1 + r * 0.03})`;
+        ovA.style.opacity = r; ovS.style.opacity = 0;
+      } else {
+        card.style.transform = `translateY(${dy * 0.25}px)`;
+        ovA.style.opacity = 0; ovS.style.opacity = 0;
+      }
+    } else {
+      // Horizontal
+      const r = Math.min(Math.abs(dx) / 90, 1);
+      card.style.transform = `translateX(${dx}px) rotate(${(dx / 280) * 14}deg)`;
+      ovS.style.opacity = dx < 0 ? r : 0;
+      ovA.style.opacity = 0;
+    }
+  }
+
+  function end(x, y) {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = '';
+
+    const dx = x - sx, dy = y - sy;
+    plog('swipe', 'TOUCH END', `dx=${Math.round(dx)} dy=${Math.round(dy)}`);
+
+    if (Math.abs(dy) >= Math.abs(dx)) {
+      if (dy > 55) { doAdd(); return; }
+    } else {
+      if (dx < -55) { doSkip(); return; }
+      if (dx >  55) { browse(1); return; }
+    }
+    // Snap back
+    card.style.transform = '';
+    card.querySelector('.ov-add').style.opacity = 0;
+    card.querySelector('.ov-skip').style.opacity = 0;
+  }
+
+  // Touch
+  card.addEventListener('touchstart', e => start(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+  card.addEventListener('touchmove',  e => { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+  card.addEventListener('touchend',   e => end(e.changedTouches[0].clientX, e.changedTouches[0].clientY), { passive: true });
+
+  // Mouse (desktop)
+  let mdown = false;
+  card.addEventListener('mousedown', e => { mdown = true; start(e.clientX, e.clientY); });
+  window.addEventListener('mousemove', e => { if (mdown) move(e.clientX, e.clientY); });
+  window.addEventListener('mouseup',   e => { if (mdown) { mdown = false; end(e.clientX, e.clientY); } });
+}
+
+/* ── CARD ACTIONS ── */
+function doAdd() {
+  if (S.idx >= S.deck.length) return;
+  const item = S.deck[S.idx];
+  if (S.cart[item.name]) S.cart[item.name].qty++;
+  else S.cart[item.name] = { price: item.price, qty: 1 };
+  plog('cart', 'ADDED', `${item.name} ₹${item.price}`);
+  toast(`✓ ${item.name}`);
+  S.idx++;
+  renderCards();
+}
+
+function doSkip() {
+  if (S.idx >= S.deck.length) return;
+  plog('action', 'SKIPPED', S.deck[S.idx].name);
+  toast('Skipped');
+  S.idx++;
+  renderCards();
+}
+
+function browse(dir) {
+  const n = S.idx + dir;
+  if (n < 0 || n >= S.deck.length) return;
+  S.idx = n;
+  plog('nav', 'BROWSE', `→ idx ${S.idx}`);
+  renderCards();
+}
+
+/* ── CART ── */
+function renderCart() {
+  const wrap   = document.getElementById('cart-items');
+  const entries = Object.entries(S.cart);
+  wrap.innerHTML = '';
+
+  if (!entries.length) {
+    wrap.innerHTML = `<div class="cart-empty"><div style="font-size:2.5rem">🛒</div>NO ITEMS YET<div style="font-size:0.46rem;color:#2a2a2a;margin-top:6px">Swipe DOWN on cards to add items</div></div>`;
+    document.getElementById('cart-total').textContent = '₹0';
+    psync(); return;
+  }
+
+  let total = 0;
+  entries.forEach(([name, d]) => {
+    const line = d.price * d.qty;
+    total += line;
+    const row = document.createElement('div');
+    row.className = 'cart-row';
+    row.innerHTML = `<div class="cart-rname">${name}</div>
+      <div class="cart-rright">
+        <span class="cart-qty">×${d.qty}</span>
+        <span class="cart-rprice">₹${line}</span>
+        <div class="cart-rm" onclick="rmCart('${name.replace(/'/g,"\\'")}')">✕</div>
+      </div>`;
+    wrap.appendChild(row);
+  });
+  document.getElementById('cart-total').textContent = `₹${total}`;
+  psync();
+}
+
+function rmCart(name) {
+  delete S.cart[name];
+  plog('cart', 'REMOVED', name);
+  renderCart();
+}
+
+/* ── CART ACTIONS ── */
+function cartText(forWA) {
+  const entries = Object.entries(S.cart);
+  if (!entries.length) return '';
+  let text = forWA ? `📋 *ORDER — ${S.area.toUpperCase()}*\n──────────\n` : `ORDER · ${S.area.toUpperCase()}\n──────────\n`;
+  let tot = 0;
+  entries.forEach(([n, d], i) => {
+    const l = d.price * d.qty; tot += l;
+    text += `${i+1}. ${n} ×${d.qty} — ₹${l}\n`;
+  });
+  text += `──────────\n${forWA ? `*TOTAL: ₹${tot}*\n📍 ${S.area}\n\nBuilt with SwipeOS · Gandhidham` : `TOTAL: ₹${tot}`}`;
+  return text;
+}
+
+function sendWA() {
+  const t = cartText(true);
+  if (!t) { toast('Cart empty', true); return; }
+  plog('action', 'WHATSAPP ORDER');
+  window.open(`https://wa.me/916351537770?text=${encodeURIComponent(t)}`, '_blank');
+}
+
+function openApp(p) {
+  const items = Object.keys(S.cart);
+  if (!items.length) { toast('Cart empty', true); return; }
+  const q = encodeURIComponent(items.slice(0, 3).join(', '));
+  plog('action', `OPEN ${p.toUpperCase()}`);
+  const urls = {
+    zomato: `https://www.zomato.com/search?q=${q}`,
+    swiggy: `https://www.swiggy.com/search?query=${q}`,
+  };
+  window.open(urls[p], '_blank');
+}
+
+function shareOrder() {
+  const t = `🍽️ Tonight's ${S.area} order\n\n${cartText(false)}\n\nBuilt with SwipeOS · Gandhidham`;
+  if (!t.trim()) { toast('Cart empty', true); return; }
+  plog('action', 'SHARE ORDER');
+  if (navigator.share) navigator.share({ title: `SwipeOS · ${S.area}`, text: t });
+  else navigator.clipboard.writeText(t).then(() => toast('Copied!'));
+}
+
+function restart() {
+  S.cuisines = []; S.deck = []; S.idx = 0; S.cart = {};
+  document.querySelectorAll('.cuisine-tile').forEach(t => t.classList.remove('sel'));
+  const btn = document.getElementById('cuisine-btn');
+  btn.classList.remove('ready');
+  btn.textContent = 'SELECT A CUISINE FIRST';
+  plog('sys', 'RESTART');
+  goScreen('s-cuisine');
+}
+
+/* ── TOAST ── */
+let _tt;
+function toast(msg, warn = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (warn ? ' w' : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ── PROCESS VISUALIZER ── */
+function togProc() {
+  S.procOpen = !S.procOpen;
+  document.getElementById('proc-drawer').classList.toggle('open', S.procOpen);
+  document.getElementById('proc-tab').classList.toggle('lit', S.procOpen);
+}
+
+const tsNow = () => {
+  const n = new Date();
+  return `${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}:${n.getSeconds().toString().padStart(2,'0')}.${n.getMilliseconds().toString().padStart(3,'0')}`;
+};
+
+function plog(type, key, val = '') {
+  const log = document.getElementById('proc-log');
+  if (!log) return;
+  const cls = { nav:'pe-nav', action:'pe-action', cart:'pe-cart', swipe:'pe-swipe', sys:'pe-sys' }[type] || 'pe-sys';
+  const el = document.createElement('div');
+  el.className = `pe ${cls}`;
+  el.innerHTML = `<span class="pe-ts">${tsNow()}</span><strong>${key}</strong>${val ? `<br><span style="font-size:0.44rem;color:#555">${val}</span>` : ''}`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  const all = log.querySelectorAll('.pe');
+  if (all.length > 100) all[0].remove();
+  psync();
+}
+
+function psync() {
+  const entries = Object.entries(S.cart);
+  const total   = entries.reduce((s, [, d]) => s + d.price * d.qty, 0);
+  const set = (id, val, cls) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.textContent = val;
+    el.className = 'ps-v' + (cls ? ` ${cls}` : '');
+  };
+  set('pv-screen',  S.screen);
+  set('pv-area',    S.area || '—', 'hi');
+  set('pv-cuisines',S.cuisines.join(', ') || '—', 'on');
+  set('pv-deck',    S.deck.length);
+  set('pv-curr',    S.deck[S.idx]?.name || '—');
+  set('pv-cart',    `${entries.length} item${entries.length !== 1 ? 's' : ''}`);
+  set('pv-total',   `₹${total}`, 'on');
+  set('pv-action',  S.screen === 'swipe' ? `idx ${S.idx}/${S.deck.length}` : '—', 'hi');
+}
+
+/* ── BOOT ── */
+(function boot() {
+  const saved = localStorage.getItem('swipeos_user_area');
+  if (saved) {
+    S.area = saved;
+    const el = document.querySelector(`.area-card[data-area="${saved}"]`);
+    if (el) el.classList.add('sel');
+    const btn = document.getElementById('area-btn');
+    btn.classList.add('ready');
+    btn.textContent = `CONTINUE → ${saved.toUpperCase()}`;
+  }
+  plog('sys', 'BOOT', 'SwipeOS Gandhidham v3.0 — clean build');
+})();
+</script>
+</body>
+</html>

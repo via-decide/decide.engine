@@ -1,0 +1,57 @@
+{
+  "name": "ViaDecide — India's Decision Engine",
+  "short_name": "ViaDecide",
+  "description": "Policy-grade decision intelligence for Bharat. Research, synthesize and export — for students, founders, farmers and officials.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Research Tool",
+      "short_name": "Research",
+      "description": "Open the student research tool",
+      "url": "/student-research.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Decision Brief",
+      "short_name": "Brief",
+      "description": "Open the decision brief PDF tool",
+      "url": "/decision-brief.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

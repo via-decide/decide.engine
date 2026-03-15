@@ -1,0 +1,972 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#070508"/>
+  <meta name="description" content="Why personalized gifts create stronger emotional bonds — psychology, memory and everyday meaning."/>
+  <title>Personalized Gifts & Emotional Bonds • The Gift Lab</title>
+
+  <script src="../router.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;0,900;1,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ══════════════ GLOBAL UX PATCH ══════════════ */
+    /* 1. Remove iOS/Android blue tap highlight on all interactive elements */
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 2. Remove focus outline for pointer/mouse users only; keep for keyboard (accessibility) */
+    *:focus:not(:focus-visible) {
+      outline: none !important;
+    }
+    /* Optional: style keyboard focus for visibility */
+    *:focus-visible {
+      outline: 2px solid rgba(167, 139, 250, 0.6);
+      outline-offset: 2px;
+    }
+
+    /* 3. Suppress blue selection highlight across the page */
+    ::selection {
+      background: rgba(167, 139, 250, 0.22);
+      color: inherit;
+    }
+    ::-moz-selection {
+      background: rgba(167, 139, 250, 0.22);
+      color: inherit;
+    }
+
+    /* 4. Disable text selection globally */
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* 5. Re-enable selection for editable and code elements */
+    input,
+    textarea,
+    [contenteditable="true"],
+    [contenteditable],
+    .allow-select,
+    pre,
+    code {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+    /* ══════════════ END GLOBAL UX PATCH ══════════════ */
+
+    /* ══════════════ TOKENS ══════════════ */
+    :root {
+      --bg:        #070508;
+      --surface:   rgba(14,11,18,0.82);
+      --border:    rgba(255,255,255,0.07);
+      --text:      #f0eaf8;
+      --muted:     rgba(235,220,255,0.50);
+      --rose:      #fb7185;
+      --gold:      #fbbf24;
+      --violet:    #a78bfa;
+      --teal:      #2dd4bf;
+      --glow-r:    rgba(251,113,133,0.14);
+      --glow-v:    rgba(167,139,250,0.14);
+      --glow-g:    rgba(45,212,191,0.12);
+      --shadow:    0 32px 100px rgba(0,0,0,0.70);
+      --r:         22px;
+      --safe-t:    env(safe-area-inset-top,0px);
+      --safe-b:    env(safe-area-inset-bottom,0px);
+      --safe-l:    env(safe-area-inset-left,0px);
+      --safe-r:    env(safe-area-inset-right,0px);
+      --maxw:      740px;
+      --display:   'Cormorant Garamond', Georgia, serif;
+      --body:      'Outfit', system-ui, sans-serif;
+    }
+
+    /* ══════════════ RESET / BASE ══════════════ */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;height:100dvh;background:var(--bg);color:var(--text);
+      font-family:var(--body);overflow:hidden;overscroll-behavior-y:none;
+      -webkit-font-smoothing:antialiased}
+    button{background:none;border:none;font:inherit;color:inherit;cursor:pointer}
+    a{color:inherit;text-decoration:none}
+
+    /* ══════════════ AMBIENT BG ══════════════ */
+    #appWrapper{position:relative;width:100vw;height:100dvh;overflow:hidden}
+
+    .aurora{position:absolute;inset:0;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 5%, rgba(251,113,133,0.10), transparent 60%),
+        radial-gradient(ellipse 55% 45% at 88% 90%, rgba(167,139,250,0.10), transparent 60%),
+        radial-gradient(ellipse 40% 60% at 50% 50%, rgba(45,212,191,0.05), transparent 70%)}
+
+    .grain{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.028;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+    /* ══════════════ TOP BAR ══════════════ */
+    .top{position:absolute;top:0;left:0;right:0;z-index:50;pointer-events:none;
+      padding:calc(13px + var(--safe-t)) calc(14px + var(--safe-r)) 13px calc(14px + var(--safe-l));
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      background:linear-gradient(180deg,rgba(7,5,8,0.95) 0%,transparent 100%)}
+    .top>*{pointer-events:auto}
+
+    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
+      border-radius:999px;border:1px solid rgba(255,255,255,0.09);
+      background:rgba(10,8,13,0.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);
+      transition:transform .18s,background .18s}
+    .back-btn:active{transform:scale(.96)}
+    .back-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5}
+
+    .top-right{display:flex;align-items:center;gap:8px}
+
+    .pill-tag{display:inline-flex;align-items:center;gap:5px;padding:8px 13px;
+      border-radius:999px;border:1px solid rgba(255,255,255,0.08);
+      background:rgba(10,8,13,0.65);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+    .pill-tag b{color:var(--rose);font-weight:700;letter-spacing:.05em}
+
+    /* Progress bar */
+    #prog{position:absolute;bottom:0;left:0;height:2px;border-radius:0 2px 2px 0;
+      background:linear-gradient(90deg,var(--rose),var(--gold),var(--violet));
+      transition:width .5s cubic-bezier(.16,1,.3,1);z-index:51}
+
+    /* ══════════════ SCROLL CONTAINER ══════════════ */
+    .scroller{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+      scroll-snap-type:y mandatory;scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;z-index:10}
+    .scroller::-webkit-scrollbar{display:none}
+
+    /* ══════════════ SECTION WRAPPER ══════════════ */
+    .sw{height:100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      padding:calc(82px + var(--safe-t)) calc(14px + var(--safe-r)) calc(56px + var(--safe-b)) calc(14px + var(--safe-l));
+      position:relative}
+
+    /* ══════════════ CARD ══════════════ */
+    .card{width:100%;max-width:var(--maxw);flex:1;min-height:0;
+      border-radius:var(--r);border:1px solid var(--border);
+      background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;
+      opacity:0;transform:scale(.90) translateY(32px);
+      transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+    .sw.active .card{opacity:1;transform:scale(1) translateY(0)}
+
+    /* ══════════════ VISUAL BANNER ══════════════ */
+    .vis{width:100%;height:170px;flex-shrink:0;position:relative;overflow:hidden;
+      background:rgba(0,0,0,0.30);border-bottom:1px solid rgba(255,255,255,0.05)}
+    .vis svg{width:100%;height:100%}
+
+    /* ══════════════ CARD HEADER ══════════════ */
+    .ch{padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,0.05);
+      background:rgba(0,0,0,0.18);flex-shrink:0}
+    .kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--rose);margin-bottom:5px;font-weight:700}
+    .h1{font-family:var(--display);font-size:clamp(17px,4.2vw,22px);
+      line-height:1.28;font-weight:700;color:var(--text)}
+
+    /* ══════════════ CARD BODY ══════════════ */
+    .cb{padding:18px 22px 22px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+    .cb::-webkit-scrollbar{width:3px}
+    .cb::-webkit-scrollbar-thumb{background:rgba(167,139,250,.25);border-radius:6px}
+
+    /* ══════════════ TYPOGRAPHY ══════════════ */
+    .big{font-family:var(--display);font-size:clamp(24px,5.5vw,36px);
+      line-height:1.18;font-weight:900;letter-spacing:-.02em;margin-bottom:16px}
+    .acc-rose{background:linear-gradient(135deg,var(--rose),var(--gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .acc-violet{background:linear-gradient(135deg,var(--violet),var(--teal));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    .lead{font-size:15px;line-height:1.72;color:rgba(240,234,248,.80);margin-bottom:12px}
+    .lead b{color:var(--text);font-weight:600}
+
+    .qt{margin:18px 0;padding:14px 18px;
+      border-left:3px solid var(--rose);
+      background:linear-gradient(90deg,rgba(251,113,133,.09),transparent);
+      border-radius:0 12px 12px 0;
+      font-family:var(--display);font-size:15px;font-style:italic;
+      line-height:1.65;color:rgba(240,234,248,.92)}
+
+    /* chips */
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+    .chip{padding:8px 14px;border-radius:999px;font-size:12.5px;font-weight:600;
+      border:1px solid rgba(255,255,255,0.10);background:rgba(0,0,0,0.30);
+      color:var(--text);display:flex;align-items:center;gap:6px}
+    .chip.rose{border-color:rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:var(--rose)}
+    .chip.violet{border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08);color:var(--violet)}
+    .chip.gold{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:var(--gold)}
+    .chip.teal{border-color:rgba(45,212,191,.3);background:rgba(45,212,191,.08);color:var(--teal)}
+
+    /* grid */
+    .fg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+    @media(max-width:440px){.fg{grid-template-columns:1fr}}
+    .fi{padding:13px 14px;border-radius:13px;background:rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.06)}
+    .fi-ic{font-size:17px;margin-bottom:5px;display:block}
+    .fi-t{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+    .fi-d{font-size:11.5px;color:var(--muted);line-height:1.4}
+
+    /* stat row */
+    .sr{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+    .sc{flex:1;min-width:80px;padding:12px 14px;border-radius:13px;
+      background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.06);
+      display:flex;flex-direction:column;align-items:center;gap:3px}
+    .sc-n{font-family:var(--display);font-size:clamp(20px,4vw,26px);font-weight:900;
+      line-height:1;background:linear-gradient(135deg,var(--rose),var(--gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .sc-l{font-size:10.5px;color:var(--muted);text-align:center;line-height:1.3}
+
+    /* takeaway list */
+    .tl{list-style:none;margin:12px 0}
+    .tl li{display:flex;align-items:flex-start;gap:11px;padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,.04);font-size:14.5px;
+      line-height:1.6;color:rgba(240,234,248,.78)}
+    .tl li:last-child{border-bottom:none}
+    .tl .ico{flex-shrink:0;font-size:15px;margin-top:2px}
+
+    /* buttons */
+    .btn,.btn-s{display:flex;justify-content:center;align-items:center;gap:8px;
+      width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:14.5px;
+      cursor:pointer;border:none;font-family:var(--body);text-decoration:none;
+      transition:transform .18s,filter .18s,box-shadow .18s;
+      -webkit-tap-highlight-color:transparent}
+    .btn{background:linear-gradient(135deg,var(--rose),#e11d48);color:#fff;
+      box-shadow:0 8px 28px rgba(251,113,133,.28)}
+    .btn-s{background:rgba(255,255,255,.05);color:var(--text);
+      border:1px solid rgba(255,255,255,.12)}
+    .btn:active,.btn-s:active{transform:scale(.98);filter:brightness(1.08)}
+    .btn:hover{box-shadow:0 12px 36px rgba(251,113,133,.40)}
+
+    .btn-amz{background:linear-gradient(135deg,#ff9900,#e67e00);color:#111;
+      box-shadow:0 8px 28px rgba(255,153,0,.30)}
+    .btn-amz:hover{box-shadow:0 12px 36px rgba(255,153,0,.45)}
+
+    .cta-g{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+
+    /* author bar */
+    .ab{display:flex;align-items:center;gap:11px;margin-bottom:16px;padding:11px 13px;
+      border-radius:12px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.06)}
+    .av{width:36px;height:36px;border-radius:50%;flex-shrink:0;
+      background:linear-gradient(135deg,var(--rose),var(--violet));
+      display:flex;align-items:center;justify-content:font-size:15px}
+    .an{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+    .am{font-size:11px;color:var(--muted)}
+
+    /* badge */
+    .badge{display:inline-block;margin-bottom:13px;padding:5px 13px;border-radius:999px;
+      font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+    .badge-r{background:rgba(251,113,133,.10);border:1px solid rgba(251,113,133,.2);color:var(--rose)}
+    .badge-v{background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.2);color:var(--violet)}
+    .badge-g{background:rgba(45,212,191,.10);border:1px solid rgba(45,212,191,.2);color:var(--teal)}
+
+    /* scroll hint */
+    .hint{position:absolute;bottom:calc(13px + var(--safe-b));left:50%;
+      transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;
+      color:rgba(255,255,255,.28);font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;
+      pointer-events:none;animation:floathint 2.5s ease-in-out infinite}
+    .hint svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5}
+    @keyframes floathint{0%,100%{transform:translateX(-50%) translateY(0);opacity:.5}
+      50%{transform:translateX(-50%) translateY(5px);opacity:.95}}
+    .sw:last-child .hint{display:none}
+
+    /* toast */
+    #toast{position:fixed;bottom:calc(22px + var(--safe-b));left:50%;
+      transform:translateX(-50%) translateY(18px);
+      background:rgba(251,113,133,.15);border:1px solid rgba(251,113,133,.3);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      color:var(--text);padding:9px 20px;border-radius:999px;font-size:13px;font-weight:600;
+      opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:9999}
+    #toast.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+
+    /* ══════════════ SVG ANIMATION KEYFRAMES ══════════════ */
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes lid-pop{0%,70%{transform:translateY(0) rotate(0deg)}80%{transform:translateY(-16px) rotate(-8deg)}100%{transform:translateY(-14px) rotate(-6deg)}}
+    @keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
+    @keyframes ribbon-wave{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.04)}}
+    @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.08)}70%{transform:scale(1)}}
+    @keyframes ripple{0%{r:20;opacity:.6}100%{r:60;opacity:0}}
+    @keyframes glow-pulse{0%,100%{filter:blur(18px);opacity:.5}50%{filter:blur(24px);opacity:.8}}
+    @keyframes blink{0%,94%,100%{transform:scaleY(1)}96%,98%{transform:scaleY(.08)}}
+    @keyframes iris-glow{0%,100%{opacity:.7}50%{opacity:1}}
+    @keyframes scan-line{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+    @keyframes bar-grow{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
+    @keyframes arrow-up{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+    @keyframes node-pulse{0%,100%{r:5;opacity:.8}50%{r:7;opacity:1}}
+    @keyframes edge-dash{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}
+    @keyframes brain-glow{0%,100%{opacity:.4}50%{opacity:.8}}
+    @keyframes swing{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+    @keyframes ring-spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    @keyframes tilt-heart{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(-3deg)}}
+    @keyframes tilt-price{0%,100%{transform:rotate(6deg)}50%{transform:rotate(3deg)}}
+    @keyframes orbit-a{0%{transform:rotate(0deg) translateX(42px) rotate(0deg)}100%{transform:rotate(360deg) translateX(42px) rotate(-360deg)}}
+    @keyframes orbit-b{0%{transform:rotate(180deg) translateX(42px) rotate(-180deg)}100%{transform:rotate(540deg) translateX(42px) rotate(-540deg)}}
+    @keyframes merge-glow{0%,100%{opacity:.3}50%{opacity:.7}}
+    @keyframes dollar-fade{0%,40%{opacity:1}70%,100%{opacity:.1}}
+    @keyframes heart-emerge{0%,30%{transform:scale(0);opacity:0}60%,100%{transform:scale(1);opacity:1}}
+    @keyframes spin-slow{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    @keyframes smile-draw{0%{stroke-dashoffset:60}100%{stroke-dashoffset:0}}
+    @keyframes bow-bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    @keyframes confetti-fall{0%{transform:translateY(-30px) rotate(0deg);opacity:1}100%{transform:translateY(90px) rotate(720deg);opacity:0}}
+  </style>
+</head>
+
+<body>
+<div id="appWrapper">
+  <div class="aurora"></div>
+  <div class="grain"></div>
+
+  <!-- ── TOP BAR ── -->
+  <header class="top">
+    <a class="back-btn back" href="#" data-back>
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </a>
+    <div class="top-right">
+      <div class="pill-tag"><b id="sl">1/11</b>&nbsp;•&nbsp;<span id="sn">INTRO</span></div>
+    </div>
+    <div id="prog" style="width:0%"></div>
+  </header>
+
+  <main class="scroller" id="sc"></main>
+</div>
+
+<div id="toast">✦ Article complete — explore gifts below</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ══ iOS Safari tap highlight & focus safety patch ══ */
+(function(){
+  // Prevent any focus-triggered outline flash on touchstart
+  // WITHOUT blocking scroll or click behaviour
+  var touchStarted = false;
+  document.addEventListener('touchstart', function(){
+    touchStarted = true;
+  }, {passive: true});
+
+  document.addEventListener('focusin', function(e){
+    if(touchStarted){
+      // Only suppress outline — don't prevent default or stop propagation
+      var el = e.target;
+      if(el && el.style !== undefined){
+        // Temporarily suppress, restore after paint so keyboard nav still works
+        el.style.outline = 'none';
+        requestAnimationFrame(function(){
+          el.style.outline = '';
+        });
+      }
+      touchStarted = false;
+    }
+  }, {passive: true});
+
+  // Re-enable keyboard focus styling when Tab key is used
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Tab'){
+      touchStarted = false;
+    }
+  }, {passive: true});
+})();
+
+/* ══ Keyboard support for any div[role="button"] or div[role="link"] ══ */
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){
+    var el = document.activeElement;
+    if(el && (el.getAttribute('role') === 'button' || el.getAttribute('role') === 'link')){
+      e.preventDefault();
+      el.click();
+    }
+  }
+}, {passive: false});
+
+/* ══ Amazon Affiliate Base ══ */
+const AMZ_TAG = "decideengine-21";
+function amzLink(query){ return `https://www.amazon.in/s?k=${encodeURIComponent(query)}&tag=${AMZ_TAG}`; }
+
+/* ══ SVG VISUALS ══ */
+const visuals = {
+
+  intro: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="bgr0" cx="50%" cy="60%" r="55%">
+        <stop offset="0%" stop-color="#3b0a1e" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="boxg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#e11d48"/>
+      </linearGradient>
+      <linearGradient id="lidg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fda4af"/><stop offset="100%" stop-color="#fb7185"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#bgr0)"/>
+    <ellipse cx="200" cy="120" rx="70" ry="25" fill="rgba(251,113,133,0.18)" style="animation:glow-pulse 2.5s ease-in-out infinite"/>
+    <g style="animation:float 3s ease-in-out infinite;transform-origin:200px 100px">
+      <rect x="150" y="88" width="100" height="70" rx="4" fill="url(#boxg)"/>
+      <rect x="194" y="88" width="12" height="70" fill="rgba(255,255,255,0.22)"/>
+      <g style="animation:lid-pop 3s ease-in-out infinite;transform-origin:200px 88px">
+        <rect x="144" y="76" width="112" height="18" rx="5" fill="url(#lidg)"/>
+        <g style="animation:ribbon-wave 2s ease-in-out infinite;transform-origin:200px 76px">
+          <ellipse cx="186" cy="71" rx="14" ry="9" fill="rgba(253,164,175,.9)" transform="rotate(-20,186,71)"/>
+          <ellipse cx="214" cy="71" rx="14" ry="9" fill="rgba(253,164,175,.9)" transform="rotate(20,214,71)"/>
+          <circle cx="200" cy="71" r="7" fill="#fda4af"/>
+        </g>
+      </g>
+      <line x1="158" y1="98" x2="165" y2="140" stroke="rgba(255,255,255,.18)" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g style="animation:sparkle 2.2s ease-in-out infinite .2s;transform-origin:260px 55px"><text x="255" y="62" font-size="16" opacity=".9">✦</text></g>
+    <g style="animation:sparkle 2.2s ease-in-out infinite .8s;transform-origin:140px 50px"><text x="134" y="57" font-size="12" opacity=".8">✦</text></g>
+    <g style="animation:sparkle 2.2s ease-in-out infinite 1.4s;transform-origin:285px 85px"><text x="280" y="90" font-size="10" opacity=".7">✦</text></g>
+    <g style="animation:sparkle 2.2s ease-in-out infinite .5s;transform-origin:120px 80px"><text x="115" y="85" font-size="11" opacity=".75">✦</text></g>
+    <g style="animation:sparkle 2.2s ease-in-out infinite 1.1s;transform-origin:310px 60px"><text x="304" y="67" font-size="9" opacity=".6">✦</text></g>
+    <text x="200" y="158" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" fill="rgba(253,164,175,0.7)" letter-spacing="3">THE GIFT LAB</text>
+  </svg>`,
+
+  heart: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="hbg" cx="50%" cy="50%" r="45%">
+        <stop offset="0%" stop-color="#4a0820" stop-opacity=".7"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#e11d48"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#hbg)"/>
+    <circle cx="200" cy="82" r="20" fill="none" stroke="rgba(251,113,133,0.5)" stroke-width="1.5" style="animation:ripple 2s ease-out infinite"/>
+    <circle cx="200" cy="82" r="20" fill="none" stroke="rgba(251,113,133,0.35)" stroke-width="1" style="animation:ripple 2s ease-out infinite .7s"/>
+    <circle cx="200" cy="82" r="20" fill="none" stroke="rgba(251,113,133,0.2)" stroke-width="1" style="animation:ripple 2s ease-out infinite 1.4s"/>
+    <g style="animation:heartbeat 1.6s ease-in-out infinite;transform-origin:200px 85px">
+      <path d="M200 105 C165 88, 155 65, 172 57 C182 52, 193 57, 200 65 C207 57, 218 52, 228 57 C245 65, 235 88, 200 105 Z"
+        fill="url(#hg)" filter="drop-shadow(0 0 12px rgba(251,113,133,.6))"/>
+    </g>
+    <ellipse cx="200" cy="78" rx="40" ry="28" fill="rgba(251,113,133,0.12)" style="animation:glow-pulse 2s ease-in-out infinite"/>
+    <text x="200" y="135" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(253,164,175,0.55)" letter-spacing="4" text-transform="uppercase">VICARIOUS PRIDE</text>
+    <text x="148" y="72" font-size="11" style="animation:sparkle 3s ease-in-out infinite .4s;transform-origin:153px 67px" opacity=".7">♥</text>
+    <text x="250" y="68" font-size="9" style="animation:sparkle 3s ease-in-out infinite 1.2s;transform-origin:254px 63px" opacity=".65">♥</text>
+    <text x="168" y="48" font-size="8" style="animation:sparkle 3s ease-in-out infinite .9s;transform-origin:172px 43px" opacity=".6">♥</text>
+  </svg>`,
+
+  eye: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="ebg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#0a1628" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="iris-g" cx="42%" cy="38%" r="55%">
+        <stop offset="0%" stop-color="#818cf8"/><stop offset="60%" stop-color="#6366f1"/><stop offset="100%" stop-color="#4f46e5"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#ebg)"/>
+    <ellipse cx="200" cy="82" rx="90" ry="42" fill="rgba(99,102,241,0.08)"/>
+    <g style="animation:blink 4s ease-in-out infinite;transform-origin:200px 82px">
+      <ellipse cx="200" cy="82" rx="80" ry="36" fill="rgba(16,14,22,0.9)" stroke="rgba(139,92,246,0.4)" stroke-width="1.5"/>
+      <circle cx="200" cy="82" r="24" fill="url(#iris-g)" style="animation:iris-glow 2.5s ease-in-out infinite"/>
+      <circle cx="200" cy="82" r="11" fill="#0d0b14"/>
+      <circle cx="206" cy="77" r="4" fill="rgba(255,255,255,0.3)"/>
+      <circle cx="200" cy="82" r="24" fill="none" stroke="rgba(139,92,246,0.3)" stroke-width="1"/>
+      <circle cx="200" cy="82" r="18" fill="none" stroke="rgba(139,92,246,0.2)" stroke-width=".8"/>
+    </g>
+    <clipPath id="eye-clip"><ellipse cx="200" cy="82" rx="79" ry="35"/></clipPath>
+    <rect x="120" y="48" width="60" height="68" fill="rgba(139,92,246,0.07)"
+      clip-path="url(#eye-clip)" style="animation:scan-line 3s linear infinite"/>
+    <line x1="160" y1="52" x2="157" y2="43" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="180" y1="47" x2="179" y2="38" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="200" y1="46" x2="200" y2="37" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="220" y1="47" x2="221" y2="38" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="240" y1="52" x2="243" y2="43" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+    <text x="200" y="152" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(139,92,246,0.55)" letter-spacing="4">SELF RECOGNITION</text>
+  </svg>`,
+
+  bars: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="bbg" cx="50%" cy="80%" r="55%">
+        <stop offset="0%" stop-color="#0f1f0a" stop-opacity=".7"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="bar1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#4ade80"/><stop offset="100%" stop-color="#16a34a"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#bbg)"/>
+    <line x1="80" y1="30" x2="320" y2="30" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+    <line x1="80" y1="55" x2="320" y2="55" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+    <line x1="80" y1="80" x2="320" y2="80" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+    <line x1="80" y1="105" x2="320" y2="105" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+    <line x1="80" y1="125" x2="320" y2="125" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+    <g style="animation:bar-grow .8s cubic-bezier(.16,1,.3,1) .1s both;transform-origin:120px 125px">
+      <rect x="100" y="85" width="36" height="40" rx="5" fill="rgba(74,222,128,.4)" stroke="rgba(74,222,128,.3)" stroke-width="1"/>
+      <text x="118" y="142" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(74,222,128,.6)">Generic</text>
+    </g>
+    <g style="animation:bar-grow 1s cubic-bezier(.16,1,.3,1) .3s both;transform-origin:180px 125px">
+      <rect x="160" y="58" width="36" height="67" rx="5" fill="rgba(74,222,128,.55)" stroke="rgba(74,222,128,.35)" stroke-width="1"/>
+      <text x="178" y="142" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(74,222,128,.65)">Custom</text>
+    </g>
+    <g style="animation:bar-grow 1.2s cubic-bezier(.16,1,.3,1) .5s both;transform-origin:240px 125px">
+      <rect x="220" y="34" width="36" height="91" rx="5" fill="url(#bar1)" filter="drop-shadow(0 0 8px rgba(74,222,128,.35))"/>
+      <text x="238" y="142" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(74,222,128,.75)" font-weight="600">Personal</text>
+    </g>
+    <g style="animation:arrow-up 1.8s ease-in-out infinite;transform-origin:280px 70px">
+      <path d="M278 80 L284 68 L290 80" fill="none" stroke="rgba(74,222,128,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="284" y1="68" x2="284" y2="90" stroke="rgba(74,222,128,.8)" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <text x="200" y="158" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(74,222,128,0.5)" letter-spacing="3">SELF-ESTEEM BOOST</text>
+  </svg>`,
+
+  brain: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="brain-bg" cx="50%" cy="45%" r="50%">
+        <stop offset="0%" stop-color="#1a0e2e" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#brain-bg)"/>
+    <path d="M148 95 C132 95, 124 82, 130 70 C124 62, 128 50, 140 50 C142 40, 155 36, 165 42 C170 35, 180 32, 190 36 C196 28, 210 28, 218 36 C228 30, 242 34, 246 44 C258 44, 268 56, 264 68 C274 72, 276 84, 268 92 C272 104, 262 114, 250 110 C248 120, 236 124, 226 118 C220 126, 208 128, 200 122 C192 128, 180 126, 175 118 C164 124, 152 118, 150 108 Z"
+      fill="none" stroke="rgba(167,139,250,0.35)" stroke-width="1.5"
+      style="animation:brain-glow 3s ease-in-out infinite"/>
+    <line x1="170" y1="62" x2="200" y2="78" stroke="rgba(167,139,250,0.5)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite"/>
+    <line x1="200" y1="78" x2="230" y2="62" stroke="rgba(45,212,191,0.5)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .5s"/>
+    <line x1="200" y1="78" x2="200" y2="100" stroke="rgba(167,139,250,0.5)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite 1s"/>
+    <line x1="170" y1="62" x2="155" y2="78" stroke="rgba(251,113,133,0.4)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .3s"/>
+    <line x1="230" y1="62" x2="245" y2="78" stroke="rgba(251,113,133,0.4)" stroke-width="1.2" stroke-dasharray="4,3" style="animation:edge-dash 2s linear infinite .8s"/>
+    <line x1="155" y1="78" x2="170" y2="95" stroke="rgba(45,212,191,0.35)" stroke-width="1" stroke-dasharray="3,3" style="animation:edge-dash 2.5s linear infinite .2s"/>
+    <line x1="245" y1="78" x2="230" y2="95" stroke="rgba(45,212,191,0.35)" stroke-width="1" stroke-dasharray="3,3" style="animation:edge-dash 2.5s linear infinite .6s"/>
+    <circle cx="200" cy="78" r="5" fill="#a78bfa" style="animation:node-pulse 2s ease-in-out infinite" filter="drop-shadow(0 0 5px #a78bfa)"/>
+    <circle cx="170" cy="62" r="4" fill="#fb7185" style="animation:node-pulse 2s ease-in-out infinite .3s" filter="drop-shadow(0 0 4px #fb7185)"/>
+    <circle cx="230" cy="62" r="4" fill="#2dd4bf" style="animation:node-pulse 2s ease-in-out infinite .6s" filter="drop-shadow(0 0 4px #2dd4bf)"/>
+    <circle cx="200" cy="100" r="4" fill="#fbbf24" style="animation:node-pulse 2s ease-in-out infinite .9s" filter="drop-shadow(0 0 4px #fbbf24)"/>
+    <circle cx="155" cy="78" r="3.5" fill="#a78bfa" style="animation:node-pulse 2s ease-in-out infinite 1.2s"/>
+    <circle cx="245" cy="78" r="3.5" fill="#fb7185" style="animation:node-pulse 2s ease-in-out infinite 1.5s"/>
+    <circle cx="170" cy="95" r="3" fill="#2dd4bf" style="animation:node-pulse 2.5s ease-in-out infinite .4s"/>
+    <circle cx="230" cy="95" r="3" fill="#fbbf24" style="animation:node-pulse 2.5s ease-in-out infinite .7s"/>
+    <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(167,139,250,0.55)" letter-spacing="3">ASSOCIATIVE MEMORY</text>
+  </svg>`,
+
+  key: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="kbg" cx="50%" cy="30%" r="55%">
+        <stop offset="0%" stop-color="#0e1820" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="tag-g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#d97706"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#kbg)"/>
+    <g style="animation:swing 3s ease-in-out infinite;transform-origin:200px 28px">
+      <ellipse cx="200" cy="28" rx="16" ry="10" fill="none" stroke="rgba(180,180,200,0.6)" stroke-width="3"/>
+      <ellipse cx="200" cy="28" rx="10" ry="6" fill="none" stroke="rgba(200,200,220,0.3)" stroke-width="1.5"/>
+      <line x1="200" y1="38" x2="200" y2="60" stroke="rgba(180,180,200,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="172" y="60" width="56" height="72" rx="10" fill="url(#tag-g)" filter="drop-shadow(0 4px 12px rgba(251,191,36,.35))"/>
+      <rect x="172" y="60" width="56" height="72" rx="10" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <circle cx="200" cy="60" r="5" fill="rgba(0,0,0,.5)"/>
+      <text x="200" y="90" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(120,60,0,0.9)" font-weight="700" letter-spacing="1.5">FOR</text>
+      <text x="200" y="104" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" fill="rgba(90,40,0,0.95)" font-weight="700" font-style="italic">Aarya</text>
+      <text x="200" y="118" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="rgba(100,50,0,0.7)" letter-spacing="1">ALWAYS ♥</text>
+      <line x1="178" y1="68" x2="183" y2="115" stroke="rgba(255,255,255,.18)" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <text x="145" y="82" font-size="12" style="animation:sparkle 2.5s ease-in-out infinite .3s;transform-origin:151px 75px" opacity=".8">✦</text>
+    <text x="250" y="78" font-size="10" style="animation:sparkle 2.5s ease-in-out infinite 1s;transform-origin:255px 73px" opacity=".7">✦</text>
+    <text x="240" y="115" font-size="8" style="animation:sparkle 2.5s ease-in-out infinite 1.7s;transform-origin:244px 110px" opacity=".6">✦</text>
+    <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,191,36,0.5)" letter-spacing="3">DAILY MEMORY TRIGGER</text>
+  </svg>`,
+
+  scale: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="sbg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#1a0a12" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#sbg)"/>
+    <line x1="200" y1="25" x2="200" y2="120" stroke="rgba(200,180,230,0.4)" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="180" y="118" width="40" height="6" rx="3" fill="rgba(200,180,230,0.25)"/>
+    <rect x="170" y="122" width="60" height="5" rx="2.5" fill="rgba(200,180,230,0.15)"/>
+    <line x1="100" y1="52" x2="300" y2="52" stroke="rgba(200,180,230,0.5)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="200" cy="52" r="5" fill="rgba(200,180,230,0.6)"/>
+    <g style="animation:tilt-heart 3s ease-in-out infinite;transform-origin:130px 52px">
+      <line x1="130" y1="52" x2="130" y2="72" stroke="rgba(200,180,230,0.4)" stroke-width="1.5"/>
+      <ellipse cx="130" cy="85" rx="28" ry="9" fill="rgba(251,113,133,0.2)" stroke="rgba(251,113,133,0.35)" stroke-width="1.2"/>
+      <path d="M130 82 C118 74, 114 63, 120 59 C124 57, 129 59, 130 63 C131 59, 136 57, 140 59 C146 63, 142 74, 130 82 Z"
+        fill="rgba(251,113,133,0.9)" filter="drop-shadow(0 0 6px rgba(251,113,133,.5))"/>
+      <text x="130" y="100" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(251,113,133,.7)">THOUGHT</text>
+    </g>
+    <g style="animation:tilt-price 3s ease-in-out infinite;transform-origin:270px 52px">
+      <line x1="270" y1="52" x2="270" y2="64" stroke="rgba(200,180,230,0.4)" stroke-width="1.5"/>
+      <ellipse cx="270" cy="77" rx="28" ry="9" fill="rgba(167,139,250,0.15)" stroke="rgba(167,139,250,0.25)" stroke-width="1.2"/>
+      <rect x="258" y="60" width="24" height="18" rx="4" fill="rgba(167,139,250,0.35)" stroke="rgba(167,139,250,0.4)" stroke-width="1"/>
+      <text x="270" y="72" text-anchor="middle" font-family="Outfit,sans-serif" font-size="11" fill="rgba(167,139,250,.9)" font-weight="700">₹</text>
+      <text x="270" y="92" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="rgba(167,139,250,.6)">PRICE</text>
+    </g>
+    <polygon points="200,52 192,68 208,68" fill="rgba(200,180,230,0.3)"/>
+    <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,113,133,0.5)" letter-spacing="3">THOUGHT WINS</text>
+  </svg>`,
+
+  orbit: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="obg" cx="50%" cy="50%" r="45%">
+        <stop offset="0%" stop-color="#060a1a" stop-opacity=".9"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#obg)"/>
+    <ellipse cx="200" cy="82" rx="55" ry="38" fill="rgba(167,139,250,0.1)" style="animation:merge-glow 2.5s ease-in-out infinite"/>
+    <circle cx="200" cy="82" r="42" fill="none" stroke="rgba(167,139,250,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+    <circle cx="200" cy="82" r="18" fill="rgba(251,113,133,0.18)" stroke="rgba(251,113,133,0.3)" stroke-width="1.5"/>
+    <circle cx="200" cy="72" r="7" fill="rgba(251,113,133,0.8)"/>
+    <path d="M188 90 C188 80, 212 80, 212 90" fill="rgba(251,113,133,0.5)"/>
+    <g style="animation:orbit-a 6s linear infinite;transform-origin:200px 82px">
+      <circle r="14" cx="0" cy="0" fill="rgba(45,212,191,0.18)" stroke="rgba(45,212,191,0.3)" stroke-width="1.5"/>
+      <circle r="5.5" cx="0" cy="-9" fill="rgba(45,212,191,0.8)"/>
+      <path d="M-10 6 C-10 -1, 10 -1, 10 6" fill="rgba(45,212,191,0.5)"/>
+    </g>
+    <g style="animation:sparkle 1.8s ease-in-out infinite .2s;transform-origin:242px 42px">
+      <circle cx="242" cy="42" r="2.5" fill="rgba(251,191,36,.8)"/>
+    </g>
+    <g style="animation:sparkle 1.8s ease-in-out infinite .9s;transform-origin:158px 120px">
+      <circle cx="158" cy="120" r="2" fill="rgba(251,191,36,.7)"/>
+    </g>
+    <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(45,212,191,0.5)" letter-spacing="3">EMOTIONAL BOND</text>
+  </svg>`,
+
+  value: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="vbg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#0a0e18" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#vbg)"/>
+    <line x1="200" y1="35" x2="200" y2="120" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="3,4"/>
+    <text x="200" y="82" text-anchor="middle" font-family="Outfit,sans-serif" font-size="11" fill="rgba(255,255,255,0.3)" font-weight="700">VS</text>
+    <g style="animation:dollar-fade 3s ease-in-out infinite">
+      <rect x="105" y="42" width="60" height="75" rx="10" fill="rgba(100,100,130,0.2)" stroke="rgba(100,100,130,0.3)" stroke-width="1.5"/>
+      <circle cx="135" cy="42" r="5" fill="rgba(80,80,110,0.4)"/>
+      <text x="135" y="90" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="32" fill="rgba(160,160,200,0.9)" font-weight="700">₹</text>
+      <text x="135" y="108" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="rgba(130,130,170,0.7)" letter-spacing="2">EXPENSIVE</text>
+    </g>
+    <g style="animation:heart-emerge 3s ease-in-out infinite;transform-origin:265px 78px">
+      <circle cx="265" cy="78" r="32" fill="rgba(251,113,133,0.08)" filter="blur(8px)"/>
+      <path d="M265 94 C244 80, 238 60, 250 53 C256 49, 263 53, 265 59 C267 53, 274 49, 280 53 C292 60, 286 80, 265 94 Z"
+        fill="rgba(251,113,133,0.85)" filter="drop-shadow(0 0 10px rgba(251,113,133,.6))"/>
+      <text x="265" y="110" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="rgba(253,164,175,0.8)" letter-spacing="2">THOUGHTFUL</text>
+    </g>
+    <text x="200" y="155" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,113,133,0.5)" letter-spacing="3">EMOTIONAL VALUE</text>
+  </svg>`,
+
+  sun: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="sunbg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#1c0e00" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="sun-core" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#fbbf24"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#sunbg)"/>
+    <circle cx="200" cy="80" r="58" fill="rgba(251,191,36,0.07)" style="animation:glow-pulse 2s ease-in-out infinite"/>
+    <g style="animation:spin-slow 12s linear infinite;transform-origin:200px 80px">
+      <line x1="200" y1="22" x2="200" y2="12" stroke="rgba(251,191,36,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="200" y1="138" x2="200" y2="148" stroke="rgba(251,191,36,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="148" y1="80" x2="138" y2="80" stroke="rgba(251,191,36,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="252" y1="80" x2="262" y2="80" stroke="rgba(251,191,36,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="163" y1="43" x2="156" y2="36" stroke="rgba(251,191,36,0.4)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="237" y1="43" x2="244" y2="36" stroke="rgba(251,191,36,0.4)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="163" y1="117" x2="156" y2="124" stroke="rgba(251,191,36,0.4)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="237" y1="117" x2="244" y2="124" stroke="rgba(251,191,36,0.4)" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <circle cx="200" cy="80" r="40" fill="url(#sun-core)" filter="drop-shadow(0 0 18px rgba(251,191,36,.5))"/>
+    <circle cx="187" cy="72" r="4" fill="rgba(120,60,0,.8)"/>
+    <circle cx="213" cy="72" r="4" fill="rgba(120,60,0,.8)"/>
+    <path d="M183 88 Q200 104 217 88" fill="none" stroke="rgba(120,60,0,.8)" stroke-width="3"
+      stroke-linecap="round" stroke-dasharray="50" stroke-dashoffset="50"
+      style="animation:smile-draw .8s ease-out .2s forwards"/>
+    <text x="200" y="157" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="rgba(251,191,36,0.55)" letter-spacing="3">WARM-GLOW EFFECT</text>
+  </svg>`,
+
+  bow: `<svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="bowbg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#200a12" stop-opacity=".7"/>
+        <stop offset="100%" stop-color="#070508" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="170" fill="url(#bowbg)"/>
+    <rect x="150" y="10" width="8" height="8" rx="2" fill="rgba(251,113,133,.7)" style="animation:confetti-fall 2.5s ease-in infinite .1s"/>
+    <rect x="230" y="5" width="6" height="6" rx="1.5" fill="rgba(167,139,250,.7)" style="animation:confetti-fall 2.5s ease-in infinite .5s"/>
+    <rect x="175" y="8" width="5" height="10" rx="2" fill="rgba(251,191,36,.7)" style="animation:confetti-fall 2.5s ease-in infinite 1s"/>
+    <circle cx="260" cy="12" r="4" fill="rgba(45,212,191,.7)" style="animation:confetti-fall 2.5s ease-in infinite .7s"/>
+    <rect x="130" y="15" width="7" height="7" rx="1.5" fill="rgba(251,191,36,.6)" style="animation:confetti-fall 2.5s ease-in infinite 1.3s"/>
+    <circle cx="310" cy="8" r="3.5" fill="rgba(251,113,133,.6)" style="animation:confetti-fall 2.5s ease-in infinite .3s"/>
+    <rect x="270" y="14" width="6" height="6" rx="1" fill="rgba(167,139,250,.65)" style="animation:confetti-fall 2.5s ease-in infinite .9s"/>
+    <g style="animation:bow-bounce 2s ease-in-out infinite;transform-origin:200px 75px">
+      <path d="M200 75 C185 58, 155 52, 152 65 C149 78, 178 80, 200 75 Z" fill="rgba(251,113,133,.75)" stroke="rgba(253,164,175,.3)" stroke-width="1"/>
+      <path d="M200 75 C185 58, 155 52, 152 65 C149 78, 178 80, 200 75 Z" fill="rgba(255,255,255,0.07)"/>
+      <path d="M200 75 C215 58, 245 52, 248 65 C251 78, 222 80, 200 75 Z" fill="rgba(251,113,133,.75)" stroke="rgba(253,164,175,.3)" stroke-width="1"/>
+      <path d="M200 75 C190 90, 165 100, 162 112" fill="none" stroke="rgba(251,113,133,.6)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M200 75 C210 90, 235 100, 238 112" fill="none" stroke="rgba(251,113,133,.6)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="200" cy="75" r="9" fill="#fb7185" stroke="rgba(253,164,175,.5)" stroke-width="1.5" filter="drop-shadow(0 0 8px rgba(251,113,133,.6))"/>
+    </g>
+    <text x="200" y="155" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="13" fill="rgba(253,164,175,0.7)" letter-spacing="3" font-style="italic">The End & Beginning</text>
+  </svg>`
+};
+
+/* ══ SECTIONS DATA ══ */
+const SECTIONS = [
+  {
+    name:"INTRO", kicker:"The Gift Lab", vis:"intro",
+    title:"Why Personalized Gifts Create Stronger Emotional Bonds",
+    html:()=>`
+      <div class="ab">
+        <div class="av">✍️</div>
+        <div><div class="an">The Gift Lab Editorial</div><div class="am">Psychology · Memory · Meaning · Feb 2026</div></div>
+      </div>
+      <div class="big">Objects become <span class="acc-rose">emotional anchors.</span></div>
+      <p class="lead">In a world full of mass-produced items, personalized gifts feel <b>different</b> — deeper, more thoughtful, and genuinely meaningful. Whether it's a custom keychain, an engraved name, or a message only you and the recipient understand.</p>
+      <p class="lead">They don't just announce "I remembered you." They make the person feel <b>seen, cherished, and appreciated.</b></p>
+      <div class="chips">
+        <span class="chip rose">❤️ 10 Psychology Principles</span>
+        <span class="chip gold">✦ Memory Science</span>
+        <span class="chip teal">🔑 Everyday Meaning</span>
+      </div>
+      <div class="cta-g">
+        <a class="btn btn-amz" href="${amzLink('personalized gifts india')}" target="_blank" rel="noopener">🛍️ Shop Personalized Gifts on Amazon →</a>
+      </div>`
+  },
+  {
+    name:"EMOTIONAL SYMBOLS", kicker:"Psychology #1", vis:"heart",
+    title:"Personalized Gifts Are More Than Objects — They Are Emotional Symbols",
+    html:()=>`
+      <div class="badge badge-r">The Vicarious Pride Effect</div>
+      <div class="big">A simple item becomes a <span class="acc-rose">deeply emotional</span> token.</div>
+      <p class="lead">When a gift is <b>personalized</b> — customized with a name, date, message, or meaningful detail — it transforms from a simple item into something far richer than its material form.</p>
+      <div class="qt">Research from marketing scientists shows personalized gifts evoke <em>vicarious pride</em> — a feeling of satisfaction that echoes the care the giver took in creating the unique present.</div>
+      <div class="fg">
+        <div class="fi"><span class="fi-ic">🔬</span><div class="fi-t">Vicarious Pride</div><div class="fi-d">Recipient feels the giver's care reflected back</div></div>
+        <div class="fi"><span class="fi-ic">🪞</span><div class="fi-t">Identity Mirror</div><div class="fi-d">Reflects who the person is, not what they own</div></div>
+        <div class="fi"><span class="fi-ic">🔗</span><div class="fi-t">Relational Bond</div><div class="fi-d">Object becomes a symbol of the relationship</div></div>
+        <div class="fi"><span class="fi-ic">⚓</span><div class="fi-t">Emotional Anchor</div><div class="fi-d">Keeps meaningful moments alive in everyday life</div></div>
+      </div>`
+  },
+  {
+    name:"SEEN & VALUED", kicker:"Psychology #2", vis:"eye",
+    title:"Personalization Makes People Feel Seen and Valued",
+    html:()=>`
+      <div class="badge badge-v">Self-Recognition Effect</div>
+      <div class="big">To feel <span class="acc-violet">understood</span> is deeply human.</div>
+      <p class="lead">When a gift is tailored to someone's identity or experiences, it creates a sense of being <b>understood and acknowledged</b>. Studies show recipients of custom gifts — like engraved accessories or bespoke keepsakes — show significantly higher emotional response than generic presents.</p>
+      <div class="qt"><em>Personalization activates self-recognition</em> — the gift reflects who the person is, not just what they own. This is why a monogrammed item hits differently than a gift card.</div>
+      <div class="sr">
+        <div class="sc"><span class="sc-n">↑↑</span><span class="sc-l">Emotional appreciation vs generic</span></div>
+        <div class="sc"><span class="sc-n">↑</span><span class="sc-l">Sense of being known</span></div>
+        <div class="sc"><span class="sc-n">✓</span><span class="sc-l">Deep acknowledgment signal</span></div>
+      </div>`
+  },
+  {
+    name:"SELF-ESTEEM BOOST", kicker:"Psychology #3", vis:"bars",
+    title:"Customized Gifts Boost Self-Esteem and Relationship Warmth",
+    html:()=>`
+      <div class="badge badge-g">Research-Backed Finding</div>
+      <div class="big">More than a moment —<br><span class="acc-violet">a lasting lift.</span></div>
+      <p class="lead">Research involving multiple experimental scenarios — from clothing to mugs and watches — confirmed that people receiving <b>personalized gifts experience stronger appreciation and higher self-esteem</b> than those receiving non-customized gifts.</p>
+      <div class="qt">This isn't just about feeling good for a moment — it reinforces <em>emotional warmth and attachment</em> between the giver and receiver long after the event.</div>
+      <div class="fg">
+        <div class="fi"><span class="fi-ic">🌡️</span><div class="fi-t">Emotional Warmth</div><div class="fi-d">Increases perceived closeness between both people</div></div>
+        <div class="fi"><span class="fi-ic">💎</span><div class="fi-t">Self-Worth Signal</div><div class="fi-d">Demonstrates the recipient matters personally</div></div>
+      </div>`
+  },
+  {
+    name:"MEMORY SCIENCE", kicker:"Psychology #4", vis:"brain",
+    title:"Personalized Gifts Create Stronger Long-Term Memories",
+    html:()=>`
+      <div class="badge badge-v">Associative Memory</div>
+      <div class="big">Objects become <span class="acc-violet">portals to the past.</span></div>
+      <p class="lead">Unlike ordinary presents, personalized gifts often evoke memories tied to <b>specific moments</b> — a special trip, a milestone, a shared joke. These gifts become <b>memory cues</b> that bring back positive emotions every time the item is seen or used.</p>
+      <div class="qt">Psychologists call this <em>associative memory</em>: a physical object linked to a mental experience, enhancing emotional impact and making the gift memorable for years — even decades — to come.</div>
+      <div class="chips">
+        <span class="chip violet">🧠 Object as memory key</span>
+        <span class="chip teal">♾️ Compounding returns</span>
+        <span class="chip rose">⚡ Instant recall trigger</span>
+      </div>`
+  },
+  {
+    name:"EVERYDAY KEEPSAKES", kicker:"Psychology #5", vis:"key",
+    title:"Keychains and Everyday Objects Are Perfect Memory Triggers",
+    html:()=>`
+      <div class="badge badge-r">The Keychain Effect</div>
+      <div class="big">Touched daily,<br><span class="acc-rose">remembered always.</span></div>
+      <p class="lead">Items we use every day — like keychains — are uniquely positioned to become emotional reminders. A personalized keychain doesn't just hold keys; <b>it holds meaning.</b> Because it's touched, seen, and carried <b>every single day</b>, it repeatedly triggers emotional recall.</p>
+      <div class="qt">This daily interaction turns an ordinary accessory into a cherished keepsake that <em>reinforces connection over time</em> without requiring any deliberate effort.</div>
+      <div class="fg">
+        <div class="fi"><span class="fi-ic">📅</span><div class="fi-t">Daily Exposure</div><div class="fi-d">Constant contact = constant emotional reinforcement</div></div>
+        <div class="fi"><span class="fi-ic">🧲</span><div class="fi-t">Memory Pull</div><div class="fi-d">Each touch recalls the moment and person behind it</div></div>
+        <div class="fi"><span class="fi-ic">⏳</span><div class="fi-t">Time Resistance</div><div class="fi-d">Emotional value grows as years pass</div></div>
+        <div class="fi"><span class="fi-ic">🪢</span><div class="fi-t">Bond Maintenance</div><div class="fi-d">Keeps the emotional link alive without effort</div></div>
+      </div>
+      <div class="cta-g">
+        <a class="btn btn-amz" href="${amzLink('personalized keychain gifts india')}" target="_blank" rel="noopener">🛍️ Personalized Keychains on Amazon →</a>
+      </div>`
+  },
+  {
+    name:"THOUGHTFULNESS", kicker:"Psychology #6", vis:"scale",
+    title:"Personalized Gifts Are Perceived as More Thoughtful",
+    html:()=>`
+      <div class="badge badge-r">The Effort Signal</div>
+      <div class="big">Thought matters more<br>than <span class="acc-rose">the price tag.</span></div>
+      <p class="lead">Gift giving isn't just about the item — it's about the <b>effort behind it</b>. Studies consistently show people value the thought and intention in selecting or personalizing a gift more than its price tag.</p>
+      <div class="qt">When a gift includes elements that reflect the recipient's personality or experiences, it sends a powerful message that no expensive generic gift can replicate.</div>
+      <div class="sr">
+        <div class="sc"><span class="sc-n">"I</span><span class="sc-l">see you."</span></div>
+        <div class="sc"><span class="sc-n">"I</span><span class="sc-l">know you."</span></div>
+        <div class="sc"><span class="sc-n">"I</span><span class="sc-l">value you."</span></div>
+      </div>`
+  },
+  {
+    name:"EMOTIONAL BONDS", kicker:"Psychology #7", vis:"orbit",
+    title:"Unique Gifts Strengthen Emotional Bonds",
+    html:()=>`
+      <div class="badge badge-v">Exclusivity Effect</div>
+      <div class="big">Not just a gift —<br>a <span class="acc-violet">declaration.</span></div>
+      <p class="lead">Personalized gifts help build stronger emotional connections because they convey <b>care and exclusivity</b>. They're not generic objects — they're unique expressions of a relationship.</p>
+      <ul class="tl">
+        <li><span class="ico">👯</span> For a friend — <em>"I know your quirks and love them"</em></li>
+        <li><span class="ico">💑</span> For a partner — <em>"I treasure our shared story"</em></li>
+        <li><span class="ico">👪</span> For a parent — <em>"I see your love and sacrifice"</em></li>
+        <li><span class="ico">👦</span> For a sibling — <em>"Our inside world is real"</em></li>
+      </ul>
+      <div class="cta-g">
+        <a class="btn btn-amz" href="${amzLink('personalized gifts for couples india')}" target="_blank" rel="noopener">🛍️ Gifts for Couples on Amazon →</a>
+        <a class="btn btn-amz" href="${amzLink('personalized gifts for friends india')}" target="_blank" rel="noopener">🛍️ Gifts for Friends on Amazon →</a>
+      </div>`
+  },
+  {
+    name:"PRICE vs THOUGHT", kicker:"Psychology #8", vis:"value",
+    title:"Thoughtfulness Beats Price Every Time",
+    html:()=>`
+      <div class="badge badge-g">Emotional Economics</div>
+      <div class="big">Small object.<br><span class="acc-violet">Enormous weight.</span></div>
+      <p class="lead">One of the most consistent findings: the <b>emotional value of personalized gifts often outweighs their material cost</b>. It isn't money spent that matters most — it's effort, intention, and personal relevance.</p>
+      <div class="qt">Even a small, everyday object like a customized keychain can carry <em>far more emotional weight</em> than an expensive but generic gift.</div>
+      <div class="fg">
+        <div class="fi"><span class="fi-ic">💸</span><div class="fi-t">High Price, Low Thought</div><div class="fi-d">Luxury item, no personal connection → forgotten quickly</div></div>
+        <div class="fi"><span class="fi-ic">❤️</span><div class="fi-t">Low Price, High Thought</div><div class="fi-d">Simple personalized item → cherished for years</div></div>
+      </div>
+      <p class="lead" style="margin-top:8px">The formula isn't <em>spend more</em> — it's <b>care more visibly.</b></p>`
+  },
+  {
+    name:"HAPPINESS", kicker:"Psychology #9", vis:"sun",
+    title:"Personalized Gifts Make Life Happier and More Connected",
+    html:()=>`
+      <div class="badge badge-r">The Warm-Glow Effect</div>
+      <div class="big">Giving thoughtfully<br><span class="acc-rose">feels extraordinary.</span></div>
+      <p class="lead">Beyond emotional attachment, personalized gifts make <b>both the giver and receiver feel happier</b>. The act of giving something thoughtful releases positive feelings — a concept psychologists call the <b>warm-glow effect.</b></p>
+      <div class="qt">The warm-glow effect: the giver experiences joy from making someone else happy. This shared happiness is a fundamental driver of social wellbeing and relationship quality.</div>
+      <div class="sr">
+        <div class="sc"><span class="sc-n">😊</span><span class="sc-l">Giver's joy</span></div>
+        <div class="sc"><span class="sc-n">+</span><span class="sc-l"></span></div>
+        <div class="sc"><span class="sc-n">😊</span><span class="sc-l">Receiver's joy</span></div>
+        <div class="sc"><span class="sc-n">=</span><span class="sc-l"></span></div>
+        <div class="sc"><span class="sc-n">🤝</span><span class="sc-l">Stronger bond</span></div>
+      </div>`
+  },
+  {
+    name:"FINAL TAKEAWAY", kicker:"Conclusion", vis:"bow",
+    title:"Personalization Creates Unforgettable Moments",
+    html:()=>`
+      <div class="big">Ordinary objects.<br><span class="acc-rose">Extraordinary bonds.</span></div>
+      <p class="lead">Unlike generic presents, personalized gifts stay with people — not just as objects, but as <b>symbols of meaningful relationships.</b></p>
+      <ul class="tl">
+        <li><span class="ico">💬</span> Communicate care and deep attention</li>
+        <li><span class="ico">📸</span> Create lasting, vivid memories</li>
+        <li><span class="ico">🔗</span> Reinforce emotional connections over time</li>
+        <li><span class="ico">⏪</span> Remind recipients of shared moments every day</li>
+        <li><span class="ico">✨</span> Make everyday items feel extraordinary</li>
+      </ul>
+      <div class="qt">Personalized gifts tell stories that words alone can't express — stories of love, connection, appreciation, and shared experiences.</div>
+      <div class="cta-g">
+        <a class="btn btn-amz" href="${amzLink('personalized custom gifts india')}" target="_blank" rel="noopener">🛍️ Explore All Personalized Gifts →</a>
+        <a class="btn-s btn" href="index">← Back to Home</a>
+      </div>`
+  }
+];
+
+/* ══ RENDER ══ */
+const scr = document.getElementById('sc');
+const sl  = document.getElementById('sl');
+const sn  = document.getElementById('sn');
+const pr  = document.getElementById('prog');
+const toast = document.getElementById('toast');
+let lastComplete = false;
+
+function render(){
+  scr.innerHTML = '';
+  SECTIONS.forEach((sec, i) => {
+    const w = document.createElement('div');
+    w.className = 'sw';
+    w.dataset.index = i;
+    w.dataset.name  = sec.name;
+    w.innerHTML = `
+      <article class="card">
+        <div class="vis">${visuals[sec.vis] || ''}</div>
+        <header class="ch">
+          <div class="kicker">${sec.kicker}</div>
+          <h1 class="h1">${sec.title}</h1>
+        </header>
+        <div class="cb">${sec.html()}</div>
+      </article>
+      <div class="hint"><span>Scroll</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>`;
+    scr.appendChild(w);
+  });
+
+  /* Upgrade any div[onclick] to accessible clickable elements */
+  scr.querySelectorAll('div[onclick]').forEach(function(el){
+    if(!el.getAttribute('role')) el.setAttribute('role', 'button');
+    if(!el.getAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  });
+
+  document.querySelectorAll('.sw').forEach(el => obs.observe(el));
+}
+
+/* ══ INTERSECTION OBSERVER ══ */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('active');
+      const i = +e.target.dataset.index;
+      const T = SECTIONS.length;
+      sl.textContent = `${i+1}/${T}`;
+      sn.textContent = e.target.dataset.name;
+      pr.style.width = `${((i+1)/T)*100}%`;
+      if(i === T-1 && !lastComplete){
+        lastComplete = true;
+        setTimeout(()=>{ toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),4000); },600);
+      }
+    } else {
+      e.target.classList.remove('active');
+    }
+  });
+},{root:scr, threshold:0.55});
+
+render();
+
+/* ══ ROUTER AWARENESS ══ */
+document.addEventListener('router:navigate', function(e){
+  if(e.detail && e.detail.slug === 'blog-personalized-gifts'){
+    scr.scrollTo({top:0, behavior:'smooth'});
+  }
+});
+
+})();
+</script>
+</body>
+</html>

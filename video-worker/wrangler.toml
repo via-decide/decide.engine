@@ -1,0 +1,33 @@
+name = "decide-youtube-worker"
+main = "src/consumer.js"
+compatibility_date = "2026-02-13"
+
+# =========================
+# D1 DATABASE BINDING
+# =========================
+[[d1_databases]]
+binding = "DB"
+database_name = "decide_os"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# =========================
+# CRON TRIGGER (every 2 minutes)
+# =========================
+[triggers]
+crons = ["*/2 * * * *"]
+
+# =========================
+# ENVIRONMENT VARIABLES
+# =========================
+[vars]
+PROBLEMS_PLAYLIST_ID = "REPLACE_PROBLEMS_PLAYLIST_ID"
+SOLUTIONS_PLAYLIST_ID = "REPLACE_SOLUTIONS_PLAYLIST_ID"
+
+# Your video render API endpoint
+RENDER_API_URL = "https://your-render-api.com/render"
+
+# Optional metadata
+CHANNEL_HANDLE = "@decide.engine"
+
+# OAuth endpoint (keep default)
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"

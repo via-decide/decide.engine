@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="theme-color" content="#080a0f"/>
+  <meta name="description" content="ViaDecide Personal Brand Sessions — clarity, strategy, and decision research for founders and builders."/>
+  <title>ViaDecide · Personal Brand Sessions</title>
+
+  <!-- Fonts (same family feel as your main site) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Optional: if you have icon.png in same folder -->
+  <link rel="icon" href="favicon.svg"/>
+  <link rel="apple-touch-icon" href="favicon.svg"/>
+
+  <style>
+    :root{
+      --bg:#080a0f;--bg1:#0c0e15;--bg2:#10131c;--bg3:#161923;
+      --sf:rgba(255,255,255,0.04);--sf2:rgba(255,255,255,0.07);
+      --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.12);
+      --tx:#f0ede6;--tx2:#9aa0b6;--tx3:#58607a;
+
+      --gold:#c8932a;--gold2:#e8a830;--gold3:rgba(200,147,42,0.14);
+      --teal:#1a8c7d;--teal2:#22b4a0;--teal3:rgba(34,180,160,0.12);
+
+      /* Personal brand accent */
+      --pb:#c86898;--pb2:#e888bb;--pb3:rgba(200,104,152,0.12);
+
+      --r:1.5rem;
+      --shadow: 0 24px 70px rgba(0,0,0,.55);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:Outfit,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:var(--bg);
+      color:var(--tx);
+      line-height:1.65;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;border:0;background:none;color:inherit}
+    ::selection{background:rgba(34,180,160,.22)}
+
+    /* Reduce tap highlight + keep keyboard focus */
+    *,*::before,*::after{-webkit-tap-highlight-color:rgba(0,0,0,0)}
+    :focus:not(:focus-visible){outline:none}
+    :focus-visible{outline:2px solid rgba(34,180,160,.55);outline-offset:3px;border-radius:10px}
+
+    /* Background vibe */
+    .noise{
+      position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.04;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .glow{
+      position:fixed;inset:-30vh -30vw;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(ellipse 45% 35% at 20% 15%, rgba(200,104,152,.14) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 10%, rgba(200,147,42,.12) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 50% 100%, rgba(34,180,160,.10) 0%, transparent 60%);
+      filter: blur(2px);
+    }
+
+    /* Top Nav */
+    .nav{
+      position:sticky;top:0;z-index:50;
+      background:rgba(8,10,15,.72);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--bd);
+    }
+    .nav-in{
+      max-width:1100px;margin:0 auto;
+      padding:.9rem 1rem;
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    }
+    .brand{
+      display:flex;align-items:center;gap:.55rem;
+      font-family:"Cormorant Garamond",serif;
+      font-weight:600;letter-spacing:.02em;font-size:1.25rem;
+    }
+    .brand-dot{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--gold);
+      box-shadow:0 0 0 0 rgba(200,147,42,.35);
+      animation:pdot 2s infinite;
+    }
+    @keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(200,147,42,.4)}50%{box-shadow:0 0 0 8px rgba(200,147,42,0)}}
+
+    .nav-cta{
+      display:inline-flex;align-items:center;gap:.5rem;
+      font-size:.78rem;font-weight:700;
+      letter-spacing:.08em;text-transform:uppercase;
+      padding:.55rem 1.05rem;border-radius:999px;
+      background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:#141007;
+      box-shadow:0 12px 26px rgba(200,147,42,.25);
+      transition:transform .18s ease,filter .18s ease;
+      white-space:nowrap;
+    }
+    .nav-cta:hover{transform:translateY(-1px);filter:brightness(1.03)}
+    .nav-sub{
+      display:none;
+      font-size:.74rem;color:var(--tx3);
+    }
+    @media(min-width:860px){ .nav-sub{display:block} }
+
+    /* Layout */
+    main{position:relative;z-index:2}
+    .wrap{max-width:1100px;margin:0 auto;padding:1.2rem 1rem 6.5rem}
+
+    /* Hero */
+    .hero{
+      padding:1.25rem 0 1.2rem;
+      display:grid;gap:1rem;
+    }
+    .kicker{
+      display:inline-flex;align-items:center;gap:.5rem;
+      width:fit-content;
+      font-size:.65rem;font-weight:800;letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--pb2);
+      padding:.35rem .75rem;border-radius:999px;
+      background:rgba(200,104,152,.09);
+      border:1px solid rgba(200,104,152,.22);
+    }
+    .kdot{
+      width:6px;height:6px;border-radius:50%;
+      background:var(--teal2);
+      box-shadow:0 0 0 0 rgba(34,180,160,.35);
+      animation:pdot 1.8s infinite;
+    }
+
+    .h1{
+      font-family:"Cormorant Garamond",serif;
+      font-weight:300;
+      letter-spacing:-.03em;
+      line-height:1.02;
+      font-size:clamp(2.1rem,7vw,4.1rem);
+      margin-top:.3rem;
+    }
+    .h1 em{font-style:italic;color:var(--gold)}
+    .lead{
+      color:var(--tx2);
+      font-size:.95rem;
+      max-width:62ch;
+      margin-top:.35rem;
+    }
+
+    .hero-grid{
+      margin-top:1.2rem;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:.9rem;
+    }
+    @media(min-width:900px){
+      .hero-grid{grid-template-columns:1.2fr .8fr;align-items:stretch}
+    }
+
+    .card{
+      background:linear-gradient(145deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--bd);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .card::before{
+      content:"";
+      position:absolute;inset:0;
+      background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(200,104,152,.10) 0%, transparent 60%);
+      pointer-events:none;
+    }
+    .card-in{position:relative;padding:1.25rem}
+    @media(min-width:640px){ .card-in{padding:1.6rem} }
+
+    .badge-row{
+      display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.9rem
+    }
+    .badge{
+      font-size:.62rem;font-weight:800;letter-spacing:.08em;
+      text-transform:uppercase;
+      padding:.28rem .6rem;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      color:var(--tx3);
+    }
+    .badge.pb{background:rgba(200,104,152,.10);border-color:rgba(200,104,152,.22);color:var(--pb2)}
+    .badge.t{background:rgba(34,180,160,.10);border-color:rgba(34,180,160,.22);color:var(--teal2)}
+    .badge.g{background:rgba(200,147,42,.10);border-color:rgba(200,147,42,.22);color:var(--gold2)}
+
+    /* CTA cluster */
+    .cta-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.2rem}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+      padding:.9rem 1.05rem;
+      border-radius:14px;
+      font-weight:700;
+      font-size:.9rem;
+      transition:transform .18s ease, filter .18s ease, box-shadow .18s ease;
+      cursor:pointer;
+      user-select:none;
+      min-height:46px;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--pb),var(--pb2));
+      color:#140812;
+      box-shadow:0 16px 34px rgba(200,104,152,.25);
+    }
+    .btn-ghost{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--bd2);
+      color:var(--tx);
+    }
+    .btn-ghost:hover{filter:brightness(1.08)}
+    .btn-teal{
+      background:rgba(34,180,160,.12);
+      border:1px solid rgba(34,180,160,.26);
+      color:var(--teal2);
+    }
+    .btn-teal:hover{filter:brightness(1.08);box-shadow:0 12px 28px rgba(34,180,160,.12)}
+    .fine{
+      margin-top:.85rem;
+      color:var(--tx3);
+      font-size:.78rem;
+      line-height:1.55;
+    }
+    .fine b{color:var(--tx2);font-weight:600}
+
+    /* Right panel summary */
+    .side{
+      background:rgba(16,19,28,.65);
+      border:1px solid var(--bd);
+      border-radius:22px;
+      overflow:hidden;
+      position:relative;
+    }
+    .side-in{padding:1.25rem;position:relative}
+    .mini-title{
+      font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--tx3);
+      display:flex;align-items:center;gap:.5rem;
+      margin-bottom:.7rem;
+    }
+    .mini-title::before{content:"";width:18px;height:1px;background:var(--tx3);opacity:.7}
+    .list{display:grid;gap:.65rem;margin-top:.6rem}
+    .li{
+      display:flex;gap:.7rem;align-items:flex-start;
+      padding:.75rem .8rem;border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .li i{font-style:normal}
+    .li .t{font-weight:700;font-size:.9rem}
+    .li .d{color:var(--tx2);font-size:.8rem;line-height:1.55;margin-top:.1rem}
+
+    /* Sections */
+    .sec{margin-top:1.2rem}
+    .sec-h{
+      margin:2.2rem 0 1.05rem;
+      display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+    }
+    .sec-h h2{
+      font-family:"Cormorant Garamond",serif;
+      font-weight:300;
+      font-size:clamp(1.55rem,4.8vw,2.4rem);
+      letter-spacing:-.02em;
+      line-height:1.1;
+    }
+    .sec-h h2 em{font-style:italic;color:var(--gold)}
+    .sec-h p{color:var(--tx3);font-size:.85rem;max-width:60ch}
+
+    .grid3{display:grid;gap:.8rem;grid-template-columns:1fr}
+    @media(min-width:820px){ .grid3{grid-template-columns:repeat(3,1fr)} }
+
+    .pkg{
+      padding:1.1rem;
+      border-radius:20px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07);
+      position:relative;
+      overflow:hidden;
+    }
+    .pkg::before{
+      content:"";
+      position:absolute;left:0;right:0;top:0;height:2px;
+      background:linear-gradient(90deg, rgba(200,104,152,.0), rgba(200,104,152,.9), rgba(34,180,160,.55));
+      opacity:.65;
+    }
+    .pkg .name{font-weight:800;letter-spacing:.02em}
+    .pkg .price{
+      font-family:"JetBrains Mono",monospace;
+      color:var(--gold2);
+      font-weight:700;
+      margin-top:.35rem;
+      font-size:.95rem;
+    }
+    .pkg .desc{color:var(--tx2);font-size:.82rem;line-height:1.65;margin-top:.55rem}
+    .pkg ul{margin-top:.85rem;display:grid;gap:.5rem;padding-left:1.05rem}
+    .pkg li{color:var(--tx2);font-size:.8rem;line-height:1.55}
+    .pkg .action{margin-top:1rem}
+
+    .tiny{
+      font-size:.72rem;color:var(--tx3);margin-top:.55rem;line-height:1.6
+    }
+
+    /* FAQ */
+    .faq{display:grid;gap:.6rem}
+    details{
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    summary{
+      cursor:pointer;
+      padding:1rem 1rem;
+      font-weight:700;
+      list-style:none;
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    }
+    summary::-webkit-details-marker{display:none}
+    summary span{color:var(--tx3);font-weight:900}
+    details .ans{
+      padding:0 1rem 1rem;
+      color:var(--tx2);
+      font-size:.86rem;
+      line-height:1.75;
+    }
+
+    /* Sticky mobile bottom bar */
+    .sticky{
+      position:fixed;left:0;right:0;bottom:0;z-index:60;
+      background:rgba(8,10,15,.78);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      border-top:1px solid var(--bd);
+      padding:.75rem .85rem;
+    }
+    .sticky-in{
+      max-width:1100px;margin:0 auto;
+      display:flex;gap:.65rem;align-items:center;justify-content:space-between;
+    }
+    .sticky .txt{
+      display:flex;flex-direction:column;gap:.1rem;
+      min-width:0;
+    }
+    .sticky .txt b{font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sticky .txt small{font-size:.72rem;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sticky .btn{padding:.75rem .95rem;border-radius:12px;font-size:.85rem;min-height:44px}
+    @media(min-width:900px){
+      .sticky{display:none}
+      .wrap{padding-bottom:3rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="noise"></div>
+
+  <header class="nav">
+    <div class="nav-in">
+      <a class="brand" href="/" aria-label="ViaDecide Home">
+        <span class="brand-dot"></span>
+        ViaDecide
+      </a>
+      <div class="nav-sub">Personal Brand · Sessions</div>
+      <a class="nav-cta" href="#book">Book Session ↗</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section class="hero" id="top">
+        <div class="kicker"><span class="kdot"></span> Personal Brand Sessions</div>
+
+        <!-- Better line vs "research smarter.choose better" -->
+        <h1 class="h1">Research with <em>signal.</em><br/>Choose with confidence.</h1>
+        <p class="lead">
+          A focused 1:1 to sharpen your positioning, clarify your product narrative, and make faster decisions.
+          Walk away with a written plan — not motivation.
+        </p>
+
+        <div class="hero-grid">
+          <!-- Main card -->
+          <div class="card" id="book">
+            <div class="card-in">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+                <div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;letter-spacing:-.01em;line-height:1.1">
+                    ViaDecide · 1:1 Session
+                  </div>
+                  <div style="color:var(--tx3);font-size:.85rem;margin-top:.25rem">
+                    Strategy • Decision research • Brand clarity
+                  </div>
+                </div>
+                <div class="badge-row" style="margin-top:0">
+                  <span class="badge pb">● Limited Slots</span>
+                  <span class="badge g">60–75 min</span>
+                  <span class="badge t">Online</span>
+                </div>
+              </div>
+
+              <div class="cta-row">
+                <!-- Replace these links with your real booking links -->
+                <a class="btn btn-primary" href="https://calendly.com/" target="_blank" rel="noopener">
+                  ⊕ Book on Calendly
+                </a>
+                <a class="btn btn-teal" href="https://wa.me/91XXXXXXXXXX?text=Hi%20ViaDecide%2C%20I%20want%20to%20book%20a%201%3A1%20session." target="_blank" rel="noopener">
+                  💬 WhatsApp
+                </a>
+                <a class="btn btn-ghost" href="mailto:hello@viadecide.com?subject=ViaDecide%201:1%20Session&body=Hi%20ViaDecide%2C%20I%20want%20to%20book%20a%201:1%20session.%0A%0AContext%3A%0AGoal%3A%0ATimeline%3A">
+                  ✉️ Email
+                </a>
+              </div>
+
+              <div class="fine">
+                <b>Best for:</b> founders, creators, students, and builders who want clarity on messaging, market, or a high-stakes choice.
+                <br/>
+                <b>After the call:</b> you receive a short written brief (decision + next steps).
+              </div>
+            </div>
+          </div>
+
+          <!-- Side card -->
+          <aside class="side">
+            <div class="side-in">
+              <div class="mini-title">What you get</div>
+              <div class="list">
+                <div class="li">
+                  <i>🧭</i>
+                  <div>
+                    <div class="t">Positioning clarity</div>
+                    <div class="d">One sentence: who you help, what you solve, why you win.</div>
+                  </div>
+                </div>
+                <div class="li">
+                  <i>🧪</i>
+                  <div>
+                    <div class="t">Decision framework</div>
+                    <div class="d">Score options, remove bias, choose faster with structure.</div>
+                  </div>
+                </div>
+                <div class="li">
+                  <i>📋</i>
+                  <div>
+                    <div class="t">Action plan</div>
+                    <div class="d">A concrete checklist for the next 7–14 days.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="badge-row" style="margin-top:1rem">
+                <span class="badge">No fluff</span>
+                <span class="badge">No pitch</span>
+                <span class="badge">Just outcomes</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- PACKAGES -->
+      <section class="sec">
+        <div class="sec-h">
+          <h2>Pick a session that fits your <em>goal</em></h2>
+          <p>Replace prices/time as you like. Buttons reuse the same booking link.</p>
+        </div>
+
+        <div class="grid3">
+          <div class="pkg">
+            <div class="name">Clarity Sprint</div>
+            <div class="price">₹1,499 · 45 min</div>
+            <div class="desc">For quick clarity on one decision or one bottleneck.</div>
+            <ul>
+              <li>Define the decision + constraints</li>
+              <li>Options + trade-offs</li>
+              <li>Clear next steps</li>
+            </ul>
+            <div class="action">
+              <a class="btn btn-primary" href="https://calendly.com/" target="_blank" rel="noopener">Book Sprint ↗</a>
+            </div>
+            <div class="tiny">Best when you’re stuck and need a fast, structured push.</div>
+          </div>
+
+          <div class="pkg">
+            <div class="name">Personal Brand Build</div>
+            <div class="price">₹2,999 · 75 min</div>
+            <div class="desc">Positioning + content direction + profile rewrite guidance.</div>
+            <ul>
+              <li>Positioning statement</li>
+              <li>Bio + headline guidance</li>
+              <li>30-day content angles</li>
+            </ul>
+            <div class="action">
+              <a class="btn btn-primary" href="https://calendly.com/" target="_blank" rel="noopener">Book Build ↗</a>
+            </div>
+            <div class="tiny">Best for creators/founders building authority and inbound.</div>
+          </div>
+
+          <div class="pkg">
+            <div class="name">Product Narrative</div>
+            <div class="price">₹4,999 · 90 min</div>
+            <div class="desc">For founders who need a sharper story and buyer clarity.</div>
+            <ul>
+              <li>ICP + problem framing</li>
+              <li>Messaging hierarchy</li>
+              <li>Landing page outline</li>
+            </ul>
+            <div class="action">
+              <a class="btn btn-primary" href="https://calendly.com/" target="_blank" rel="noopener">Book Narrative ↗</a>
+            </div>
+            <div class="tiny">Best for MVP → launch → first sales messaging.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROCESS -->
+      <section class="sec">
+        <div class="sec-h">
+          <h2>How it works in <em>3 steps</em></h2>
+          <p>Short, crisp, and “ViaDecide” structured.</p>
+        </div>
+
+        <div class="grid3">
+          <div class="pkg">
+            <div class="name">1) Share context</div>
+            <div class="desc">Before the call you send your goal + links (optional).</div>
+            <div class="badge-row">
+              <span class="badge t">Form / WhatsApp</span>
+              <span class="badge">2 mins</span>
+            </div>
+          </div>
+          <div class="pkg">
+            <div class="name">2) Deep clarity call</div>
+            <div class="desc">We map the decision, remove noise, and lock the path.</div>
+            <div class="badge-row">
+              <span class="badge pb">Structure</span>
+              <span class="badge g">No hype</span>
+            </div>
+          </div>
+          <div class="pkg">
+            <div class="name">3) You get a brief</div>
+            <div class="desc">A short written brief: decisions + next actions.</div>
+            <div class="badge-row">
+              <span class="badge">Checklist</span>
+              <span class="badge t">Clear steps</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="sec">
+        <div class="sec-h">
+          <h2>FAQ</h2>
+          <p>Fast answers so users don’t bounce.</p>
+        </div>
+
+        <div class="faq">
+          <details>
+            <summary>Is this coaching or consulting? <span>+</span></summary>
+            <div class="ans">
+              It’s a structured clarity session. We use decision frameworks + positioning logic.
+              You leave with a plan and a brief, not generic motivation.
+            </div>
+          </details>
+
+          <details>
+            <summary>Do I need to prepare anything? <span>+</span></summary>
+            <div class="ans">
+              Optional: your LinkedIn, website, product doc, or 3 competitors.
+              If you have nothing, we still start from your goal and constraints.
+            </div>
+          </details>
+
+          <details>
+            <summary>Can we discuss ONDC / product decisions too? <span>+</span></summary>
+            <div class="ans">
+              Yes — especially if it’s a buy/build decision, go-to-market, or a research-heavy choice.
+              ViaDecide sessions are built for high-signal decisions.
+            </div>
+          </details>
+
+          <details>
+            <summary>Refunds / rescheduling? <span>+</span></summary>
+            <div class="ans">
+              Reschedule anytime up to 12 hours before the slot. Refund policy depends on the booking platform you use.
+              (Update this line to your exact policy.)
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Footer CTA -->
+      <section class="sec" style="margin-top:2.6rem">
+        <div class="card">
+          <div class="card-in">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+              <div>
+                <div style="font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);display:flex;align-items:center;gap:.5rem">
+                  <span style="width:18px;height:1px;background:var(--tx3);display:block"></span>
+                  Ready?
+                </div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;line-height:1.05;margin-top:.55rem">
+                  Start with clarity. <em style="color:var(--gold);font-style:italic">Not confusion.</em>
+                </div>
+                <div style="color:var(--tx2);font-size:.9rem;margin-top:.5rem;max-width:62ch">
+                  If you’re stuck between options or your message feels messy — book a session and leave with structure.
+                </div>
+              </div>
+              <div class="cta-row" style="margin-top:.2rem">
+                <a class="btn btn-primary" href="https://calendly.com/" target="_blank" rel="noopener">Book Now ↗</a>
+                <a class="btn btn-ghost" href="/">Back to ViaDecide</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Mobile sticky CTA -->
+  <div class="sticky" role="region" aria-label="Book session">
+    <div class="sticky-in">
+      <div class="txt">
+        <b>ViaDecide · 1:1 Session</b>
+        <small>Clarity • Strategy • Decision research</small>
+      </div>
+      <a class="btn btn-primary" href="https://calendly.com/" target="_blank" rel="noopener">Book ↗</a>
+    </div>
+  </div>
+
+  <script>
+    // Small UX: turn "+" into "−" on open FAQ
+    document.querySelectorAll('details').forEach(d=>{
+      d.addEventListener('toggle',()=>{
+        const s = d.querySelector('summary span');
+        if(!s) return;
+        s.textContent = d.open ? '−' : '+';
+      });
+    });
+  </script>
+</body>
+  </html>

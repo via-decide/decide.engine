@@ -1,0 +1,1366 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Retro Interview Practice (Offline)</title>
+  <style>
+    :root{
+      --bg:#050807;
+      --panel:#07110d;
+      --text:#d9ffe9;
+      --muted:#86c7a3;
+      --accent:#39ff88;
+      --accent2:#ffd86b; /* amber */
+      --danger:#ff5e5e;
+      --shadow: 0 0 18px rgba(57,255,136,.25), 0 0 42px rgba(57,255,136,.15);
+      --shadow-strong: 0 0 22px rgba(57,255,136,.35), 0 0 70px rgba(57,255,136,.18);
+      --border: rgba(57,255,136,.35);
+      --scan: rgba(57,255,136,.06);
+      --font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    [data-theme="amber"]{
+      --accent: var(--accent2);
+      --shadow: 0 0 18px rgba(255,216,107,.22), 0 0 42px rgba(255,216,107,.12);
+      --shadow-strong: 0 0 22px rgba(255,216,107,.34), 0 0 70px rgba(255,216,107,.16);
+      --border: rgba(255,216,107,.35);
+      --scan: rgba(255,216,107,.05);
+      --muted:#d7c28a;
+      --text:#fff3d6;
+    }
+    [data-mode="light"]{
+      --bg:#f5f7f6;
+      --panel:#ffffff;
+      --text:#0b1a13;
+      --muted:#2d6b4f;
+      --shadow: 0 0 0 rgba(0,0,0,0);
+      --shadow-strong: 0 0 0 rgba(0,0,0,0);
+      --border: rgba(0,0,0,.12);
+      --scan: rgba(0,0,0,.04);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      background: radial-gradient(1200px 900px at 40% 10%, rgba(57,255,136,.09), transparent 55%),
+                  radial-gradient(900px 700px at 80% 70%, rgba(57,255,136,.06), transparent 55%),
+                  var(--bg);
+    }
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(to bottom, transparent 0%, var(--scan) 50%, transparent 100%);
+      opacity:.55;
+      mix-blend-mode:screen;
+      background-size: 100% 6px;
+      animation: scan 8s linear infinite;
+    }
+    @keyframes scan{
+      0%{transform:translateY(-20px)}
+      100%{transform:translateY(20px)}
+    }
+
+    .app{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:16px 12px 22px;
+      gap:12px;
+    }
+
+    .shell{
+      width:min(980px, 100%);
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      backdrop-filter: blur(6px);
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width:0;
+    }
+    .dots{display:flex; gap:6px}
+    .dot{width:10px;height:10px;border-radius:999px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.12)}
+    .title{
+      font-weight:700;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .subtitle{
+      color:var(--muted);
+      font-size:12px;
+      margin-left:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .controls{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+    }
+
+    .btn, .chip{
+      appearance:none;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      font-family:var(--font);
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:13px;
+      cursor:pointer;
+      transition: transform .04s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+      user-select:none;
+    }
+    .btn:hover{background: rgba(0,0,0,.26)}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{
+      border-color: rgba(255,255,255,.18);
+      background: rgba(57,255,136,.12);
+      box-shadow: var(--shadow);
+    }
+    [data-theme="amber"] .btn.primary{ background: rgba(255,216,107,.14); }
+    [data-mode="light"] .btn.primary{ background: rgba(0,0,0,.04); box-shadow:none; }
+
+    .btn.danger{
+      border-color: rgba(255,94,94,.55);
+      background: rgba(255,94,94,.10);
+    }
+
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+
+    .main{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:0;
+      min-height: 620px;
+    }
+    @media (max-width: 860px){
+      .main{grid-template-columns: 1fr; min-height:unset}
+    }
+
+    .side{
+      border-right:1px solid var(--border);
+      padding:12px;
+      background: rgba(0,0,0,.10);
+    }
+    @media (max-width: 860px){
+      .side{border-right:none; border-bottom:1px solid var(--border)}
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      background: rgba(0,0,0,.12);
+      box-shadow: var(--shadow);
+    }
+    [data-mode="light"] .card{background: rgba(0,0,0,.02); box-shadow:none}
+
+    .card h3{
+      margin:0 0 10px 0;
+      font-size:14px;
+      letter-spacing:.3px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:10px;
+    }
+    label{
+      font-size:12px;
+      color:var(--muted);
+    }
+    input, select{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 10px;
+      font-family:var(--font);
+      font-size:13px;
+      outline:none;
+    }
+    input::placeholder{color: rgba(255,255,255,.35)}
+    [data-mode="light"] input, [data-mode="light"] select{background:#fff; color:#0b1a13}
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .row > *{flex:1}
+    .toggleline{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 10px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background: rgba(0,0,0,.16);
+      margin-top:8px;
+    }
+    [data-mode="light"] .toggleline{background: rgba(0,0,0,.02)}
+    .toggleline small{color:var(--muted)}
+    .switch{
+      width:46px;height:26px;border-radius:999px;border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      position:relative;
+      cursor:pointer;
+      flex:0 0 auto;
+    }
+    .switch::after{
+      content:"";
+      position:absolute; top:3px; left:3px;
+      width:20px;height:20px;border-radius:999px;
+      background: var(--accent);
+      box-shadow: var(--shadow);
+      transition:left .18s ease, opacity .18s ease;
+    }
+    .switch[aria-checked="true"]::after{left:23px}
+    .switch[aria-disabled="true"]{opacity:.55; cursor:not-allowed}
+
+    .meta{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .meta .kv{
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius:10px;
+      padding:8px 9px;
+      background: rgba(0,0,0,.10);
+      min-height:40px;
+    }
+    [data-mode="light"] .meta .kv{border-color: rgba(0,0,0,.18); background: rgba(0,0,0,.02)}
+    .meta b{color:var(--text); font-weight:700; display:block; margin-top:4px}
+
+    .progressWrap{
+      margin-top:12px;
+    }
+    .progressLabel{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .bar{
+      height:12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.00));
+      position:relative;
+    }
+    .bar > div::before{
+      content:"";
+      position:absolute; inset:-10px;
+      background: radial-gradient(120px 60px at 20% 50%, rgba(255,255,255,.18), transparent 60%);
+      opacity:.9;
+      transform: translateX(-30%);
+      animation: glowmove 1.8s linear infinite;
+    }
+    @keyframes glowmove{
+      0%{transform:translateX(-60%)}
+      100%{transform:translateX(160%)}
+    }
+
+    .chat{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height: 620px;
+    }
+    @media (max-width: 860px){
+      .chat{min-height: 560px}
+    }
+
+    .resumeBanner{
+      display:none;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.12);
+      border-radius:12px;
+      padding:10px 10px;
+      color:var(--muted);
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      box-shadow: var(--shadow);
+    }
+    .resumeBanner strong{color:var(--text)}
+    .resumeBanner .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+
+    .stream{
+      flex:1;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      background: rgba(0,0,0,.12);
+      overflow:auto;
+      box-shadow: var(--shadow-strong);
+      scroll-behavior:smooth;
+    }
+    [data-mode="light"] .stream{background: rgba(0,0,0,.02); box-shadow:none}
+
+    .msg{
+      display:flex;
+      gap:10px;
+      margin:10px 0;
+      align-items:flex-start;
+    }
+    .avatar{
+      width:32px;height:32px;border-radius:10px;
+      display:grid;place-items:center;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color:var(--accent);
+      box-shadow: var(--shadow);
+      flex:0 0 auto;
+      font-weight:800;
+      letter-spacing:.4px;
+    }
+    .bubble{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      border-radius:12px;
+      padding:10px 10px;
+      max-width: 78ch;
+      box-shadow: var(--shadow);
+      line-height:1.45;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .msg.user{flex-direction:row-reverse}
+    .msg.user .avatar{color:rgba(255,255,255,.85)}
+    .msg.user .bubble{
+      background: rgba(255,255,255,.03);
+    }
+    [data-mode="light"] .bubble{background:#fff}
+    [data-mode="light"] .msg.user .bubble{background:#fff}
+
+    .bubble .small{
+      display:block;
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .composer{
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.12);
+      border-radius:12px;
+      padding:10px;
+      box-shadow: var(--shadow);
+    }
+    [data-mode="light"] .composer{background: rgba(0,0,0,.02); box-shadow:none}
+    textarea{
+      resize:none;
+      flex:1;
+      min-height:46px;
+      max-height:160px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px;
+      font-family:var(--font);
+      font-size:13px;
+      outline:none;
+      line-height:1.35;
+    }
+    [data-mode="light"] textarea{background:#fff; color:#0b1a13}
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    [data-mode="light"] .pill{background: rgba(0,0,0,.02)}
+
+    .footerline{
+      width:min(980px, 100%);
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      padding:4px 0 0;
+    }
+    .kbd{
+      border:1px solid var(--border);
+      border-bottom-width:2px;
+      border-radius:8px;
+      padding:2px 7px;
+      font-size:12px;
+      color:var(--muted);
+      background: rgba(0,0,0,.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app" data-mode="dark" data-theme="green">
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="dots" aria-hidden="true">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          </div>
+          <div style="min-width:0">
+            <div class="title">Placement Interview Practice — Retro Terminal</div>
+            <div class="subtitle" id="statusLine">offline • localStorage enabled</div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn" id="toggleModeBtn" title="Toggle Dark/Light">Dark</button>
+          <button class="btn" id="toggleThemeBtn" title="Toggle Green/Amber">Green</button>
+          <button class="btn" id="downloadBtn" title="Download transcript (.txt)" disabled>Download Transcript</button>
+          <button class="btn danger" id="restartBtn" title="Restart interview">Restart Interview</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <aside class="side">
+          <div class="card" id="setupCard">
+            <h3>Setup (2 min) • Bilingual Hinglish</h3>
+
+            <div class="field">
+              <label for="studentName">Student Name</label>
+              <input id="studentName" placeholder="e.g., Ananya Sharma" autocomplete="name" />
+            </div>
+
+            <div class="field">
+              <label for="targetCompany">Target Company</label>
+              <input id="targetCompany" placeholder="e.g., TCS / Google / Flipkart" />
+            </div>
+
+            <div class="field">
+              <label for="targetRole">Target Role</label>
+              <input id="targetRole" placeholder="e.g., SDE Intern / Analyst" />
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="timeline">Interview Timeline</label>
+                <select id="timeline">
+                  <option value="1 week">1 week</option>
+                  <option value="2 weeks">2 weeks</option>
+                  <option value="1 month" selected>1 month</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="level">Current Level</label>
+                <select id="level">
+                  <option value="Beginner" selected>Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="toggleline">
+              <div>
+                <div style="font-size:13px;color:var(--text);font-weight:700">Deep Dive Mode?</div>
+                <small>Yes = more follow-up questions</small>
+              </div>
+              <div class="switch" id="deepDiveSwitch" role="switch" aria-checked="true" tabindex="0" title="Toggle Deep Dive"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+              <button class="btn primary" id="startBtn">Start Interview</button>
+              <button class="btn" id="clearSavedBtn">Clear Saved Session</button>
+            </div>
+
+            <div class="meta" aria-label="Session stats">
+              <div class="kv">Questions<b id="kvQuestions">—</b></div>
+              <div class="kv">Completion<b id="kvCompletion">0%</b></div>
+              <div class="kv">Avg words<b id="kvAvgWords">—</b></div>
+              <div class="kv">Time<b id="kvTime">—</b></div>
+            </div>
+
+            <div class="progressWrap">
+              <div class="progressLabel">
+                <span>Progress</span>
+                <span id="progressText">0 / 20</span>
+              </div>
+              <div class="bar" aria-label="Progress bar">
+                <div id="progressBar"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="summaryCard" style="display:none; margin-top:12px">
+            <h3>Final Summary</h3>
+            <div id="summaryBody" style="font-size:13px; line-height:1.45"></div>
+            <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
+              <button class="btn primary" id="downloadBtn2">Download Transcript</button>
+              <button class="btn danger" id="restartBtn2">Restart Interview</button>
+            </div>
+          </div>
+        </aside>
+
+        <section class="chat">
+          <div class="resumeBanner" id="resumeBanner">
+            <div>
+              <strong>Saved session found.</strong>
+              <span>Resume or start fresh?</span>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="resumeBtn">Resume</button>
+              <button class="btn" id="newBtn">New</button>
+            </div>
+          </div>
+
+          <div class="stream" id="stream" aria-live="polite" aria-label="Chat transcript"></div>
+
+          <div class="composer">
+            <textarea id="answerBox" placeholder="Type your answer… (Hindi + English mix ok)"></textarea>
+            <button class="btn primary" id="sendBtn" disabled>Send</button>
+          </div>
+          <div class="hint">
+            <div class="pill">Tip: Use STAR (Situation–Task–Action–Result) • examples help</div>
+            <div class="pill"><span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to send</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="footerline">Works offline • No external APIs • Saves locally in your browser</div>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      const STORAGE_KEY = "retroInterviewSession_v1";
+
+      const el = (id) => document.getElementById(id);
+
+      const app = el("app");
+      const statusLine = el("statusLine");
+
+      const toggleModeBtn = el("toggleModeBtn");
+      const toggleThemeBtn = el("toggleThemeBtn");
+      const downloadBtn = el("downloadBtn");
+      const restartBtn = el("restartBtn");
+
+      const studentName = el("studentName");
+      const targetCompany = el("targetCompany");
+      const targetRole = el("targetRole");
+      const timeline = el("timeline");
+      const level = el("level");
+      const deepDiveSwitch = el("deepDiveSwitch");
+      const startBtn = el("startBtn");
+      const clearSavedBtn = el("clearSavedBtn");
+
+      const kvQuestions = el("kvQuestions");
+      const kvCompletion = el("kvCompletion");
+      const kvAvgWords = el("kvAvgWords");
+      const kvTime = el("kvTime");
+
+      const progressText = el("progressText");
+      const progressBar = el("progressBar");
+
+      const stream = el("stream");
+      const answerBox = el("answerBox");
+      const sendBtn = el("sendBtn");
+
+      const resumeBanner = el("resumeBanner");
+      const resumeBtn = el("resumeBtn");
+      const newBtn = el("newBtn");
+
+      const summaryCard = el("summaryCard");
+      const summaryBody = el("summaryBody");
+      const downloadBtn2 = el("downloadBtn2");
+      const restartBtn2 = el("restartBtn2");
+
+      const questions = [
+        { id:"intro-1", cat:"Intro", text:"Chalo start karte hain 🙂 1) Apna short introduction do: aap kaun ho, kya karte ho, aur why this role?" },
+        { id:"mot-1", cat:"Motivation", text:"2) Why {company}? Thoda specific bolo — culture/tech/product/impact, jo bhi real reason hai." },
+        { id:"mot-2", cat:"Motivation", text:"3) Why {role}? Is role me aapko kya exciting lagta hai?" },
+        { id:"proj-1", cat:"Projects", text:"4) Apne best project ka overview do. Problem kya thi aur solution kya banaya?" },
+        { id:"proj-2", cat:"Projects", text:"5) Us project me aapka exact contribution kya tha? (ownership, modules, decisions)" },
+        { id:"proj-3", cat:"Projects", text:"6) Project ka toughest bug / issue kya aaya tha? How did you debug it?" },
+        { id:"proj-4", cat:"Projects", text:"7) Agar aapko woh project production scale pe le jana ho, kya changes karoge? (performance/security/monitoring)" },
+        { id:"team-1", cat:"Teamwork", text:"8) Team me conflict hua ho toh example do. Aapne handle kaise kiya?" },
+        { id:"team-2", cat:"Teamwork", text:"9) Kabhi kisi teammate ko mentor/help kiya? Story share karo." },
+        { id:"comm-1", cat:"Communication", text:"10) Non-technical person ko apna project kaise explain karoge? 2-3 lines me." },
+        { id:"ds-1", cat:"CS Basics", text:"11) Data structures me: Array vs Linked List — kab kya choose karoge? Example bhi." },
+        { id:"algo-1", cat:"CS Basics", text:"12) Time complexity samjhao: O(n) vs O(n log n). Real life scenario se explain." },
+        { id:"db-1", cat:"Databases", text:"13) SQL me JOINs: INNER vs LEFT. Use-case batao." },
+        { id:"sys-1", cat:"System Design", text:"14) Simple system design: URL shortener ka basic design outline karo (high level)." },
+        { id:"api-1", cat:"Backend", text:"15) REST API me idempotency ka matlab? Example do (GET/POST/PUT)." },
+        { id:"os-1", cat:"CS Basics", text:"16) Concurrency vs parallelism — difference Hinglish me." },
+        { id:"net-1", cat:"Networking", text:"17) HTTP vs HTTPS — what changes and why it matters?" },
+        { id:"beh-1", cat:"Behavioral", text:"18) Failure story: kisi cheez me fail hue ho, kya seekha, aur next time kya different?" },
+        { id:"beh-2", cat:"Behavioral", text:"19) Strength & weakness — but keep it practical. Weakness ka mitigation plan bhi." },
+        { id:"case-1", cat:"Problem Solving", text:"20) Suppose deadline close hai aur requirements change ho gayi. Aap prioritize kaise karoge?" },
+        { id:"hr-1", cat:"HR", text:"21) Salary/CTC expectations? (Even if fresher, approach explain karo.)" },
+        { id:"wrap-1", cat:"Wrap-up", text:"22) Any questions for me? Interviewer se kya poochna chahoge?" }
+      ];
+
+      // Follow-up templates (natural, non-robotic)
+      const followUps = {
+        genericShort: [
+          "Nice. Thoda aur detail? Ek specific example ya numbers add kar do.",
+          "Okay—can you walk me through it step-by-step? Like what you did first, then next.",
+          "Good start. Isme aapka personal role kya tha—what did *you* actually do?"
+        ],
+        project: [
+          "Project me constraints kya the? Time, tech, team size—kuch context do.",
+          "Impact quantify kar sakte ho? Like latency ↓, accuracy ↑, users ↑, etc.",
+          "Agar same project dobara karna ho, what would you do differently?"
+        ],
+        company: [
+          "Company ke kisi product/initiative ka naam lo aur batao why it resonates with you.",
+          "Role me first 90 days me aap kaise ramp-up karoge? Plan?",
+          "Aapne company ke values/culture pe kya research kiya? 1-2 points."
+        ],
+        behavioral: [
+          "Us situation me aapki mistake kya thi? Honest reflection.",
+          "Aapne feedback kaise liya/diya? Example?",
+          "If you could rewind, one thing you'd change?"
+        ],
+        tech: [
+          "Edge cases? Example do.",
+          "Trade-offs? (memory vs speed, simplicity vs flexibility) kya choose karoge and why?",
+          "Agar scale 10x ho jaye, then what breaks first?"
+        ]
+      };
+
+      // --- State ---
+      const blankState = () => ({
+        version: 1,
+        settings: {
+          mode: "dark",
+          theme: "green"
+        },
+        profile: {
+          name: "",
+          company: "",
+          role: "",
+          timeline: "1 month",
+          level: "Beginner",
+          deepDive: true
+        },
+        started: false,
+        finished: false,
+        startTs: null,            // ms epoch
+        activeSinceTs: null,      // ms epoch (for live time)
+        totalSeconds: 0,          // accumulated
+        qIndex: 0,                // main question index
+        pendingFollowUp: null,    // { parentId, text }
+        asked: [],                // array of {kind:"main"|"follow", id, text, ts}
+        answers: [],              // array of {kind, id, text, words, ts}
+        transcript: [],           // array of {from:"I"|"U", text, ts}
+        analytics: {
+          answerCount: 0,
+          totalWords: 0
+        },
+        score: null
+      });
+
+      let state = blankState();
+      let clockTimer = null;
+
+      // --- Utilities ---
+      function now(){ return Date.now(); }
+      function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+      function safeText(s){ return (s||"").toString().trim(); }
+      function wordCount(s){
+        const t = safeText(s);
+        if(!t) return 0;
+        // split on whitespace, ignore empty
+        return t.split(/\s+/).filter(Boolean).length;
+      }
+      function fmtTime(totalSec){
+        const s = Math.max(0, Math.floor(totalSec));
+        const mm = Math.floor(s/60);
+        const ss = s % 60;
+        return `${mm}m ${ss}s`;
+      }
+      function tsToClock(ts){
+        try{
+          const d = new Date(ts);
+          return d.toLocaleString();
+        }catch(_){ return ""; }
+      }
+
+      function setStatus(msg){
+        statusLine.textContent = msg;
+      }
+
+      function scrollToBottom(){
+        stream.scrollTop = stream.scrollHeight;
+      }
+
+      function pushTranscript(from, text){
+        state.transcript.push({from, text, ts: now()});
+      }
+
+      function addMsg(from, text, metaSmall){
+        const wrap = document.createElement("div");
+        wrap.className = "msg " + (from === "U" ? "user" : "interviewer");
+
+        const av = document.createElement("div");
+        av.className = "avatar";
+        av.textContent = from === "U" ? "YOU" : "INT";
+
+        const bub = document.createElement("div");
+        bub.className = "bubble";
+        bub.textContent = text;
+
+        if(metaSmall){
+          const sm = document.createElement("span");
+          sm.className = "small";
+          sm.textContent = metaSmall;
+          bub.appendChild(sm);
+        }
+
+        wrap.appendChild(av);
+        wrap.appendChild(bub);
+        stream.appendChild(wrap);
+        scrollToBottom();
+      }
+
+      function renderAllFromState(){
+        stream.innerHTML = "";
+        for(const m of state.transcript){
+          addMsg(m.from, m.text);
+        }
+        setUIFromState();
+      }
+
+      function setUIFromState(){
+        app.dataset.mode = state.settings.mode;
+        app.dataset.theme = state.settings.theme;
+        toggleModeBtn.textContent = state.settings.mode === "dark" ? "Dark" : "Light";
+        toggleThemeBtn.textContent = state.settings.theme === "green" ? "Green" : "Amber";
+
+        deepDiveSwitch.setAttribute("aria-checked", String(!!state.profile.deepDive));
+
+        const totalQ = questions.length;
+        const completed = clamp(state.qIndex, 0, totalQ);
+        const pct = totalQ ? Math.round((completed/totalQ)*100) : 0;
+
+        kvQuestions.textContent = String(totalQ);
+        kvCompletion.textContent = `${pct}%`;
+        progressText.textContent = `${completed} / ${totalQ}`;
+        progressBar.style.width = `${pct}%`;
+
+        const avg = state.analytics.answerCount ? (state.analytics.totalWords / state.analytics.answerCount) : 0;
+        kvAvgWords.textContent = state.analytics.answerCount ? `${avg.toFixed(1)} words` : "—";
+
+        const liveSec = getTotalSeconds();
+        kvTime.textContent = state.started ? fmtTime(liveSec) : "—";
+
+        const canSend = state.started && !state.finished;
+        sendBtn.disabled = !canSend;
+        answerBox.disabled = !canSend;
+
+        downloadBtn.disabled = !(state.started && state.transcript.length > 0);
+      }
+
+      function save(){
+        try{
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          setStatus("saved locally • offline");
+        }catch(e){
+          setStatus("localStorage error • changes may not save");
+        }
+      }
+
+      function loadSaved(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if(!raw) return null;
+          const parsed = JSON.parse(raw);
+          return parsed;
+        }catch(_){
+          return null;
+        }
+      }
+
+      function clearSaved(){
+        try{ localStorage.removeItem(STORAGE_KEY); }catch(_){}
+      }
+
+      function applyProfileInputsToState(){
+        state.profile.name = safeText(studentName.value);
+        state.profile.company = safeText(targetCompany.value);
+        state.profile.role = safeText(targetRole.value);
+        state.profile.timeline = timeline.value;
+        state.profile.level = level.value;
+        state.profile.deepDive = deepDiveSwitch.getAttribute("aria-checked") === "true";
+      }
+
+      function fillInputsFromProfile(){
+        studentName.value = state.profile.name || "";
+        targetCompany.value = state.profile.company || "";
+        targetRole.value = state.profile.role || "";
+        timeline.value = state.profile.timeline || "1 month";
+        level.value = state.profile.level || "Beginner";
+        deepDiveSwitch.setAttribute("aria-checked", String(!!state.profile.deepDive));
+      }
+
+      function personalize(text){
+        const c = state.profile.company || "the company";
+        const r = state.profile.role || "this role";
+        const n = state.profile.name || "friend";
+        return text
+          .replaceAll("{company}", c)
+          .replaceAll("{role}", r)
+          .replaceAll("{name}", n);
+      }
+
+      function ensureClock(){
+        if(clockTimer) return;
+        clockTimer = setInterval(() => {
+          if(!state.started || state.finished) return;
+          setUIFromState();
+        }, 1000);
+      }
+
+      function getTotalSeconds(){
+        let sec = state.totalSeconds || 0;
+        if(state.started && state.activeSinceTs && !state.finished){
+          sec += Math.floor((now() - state.activeSinceTs)/1000);
+        }
+        return sec;
+      }
+
+      function startTiming(){
+        const t = now();
+        if(!state.startTs) state.startTs = t;
+        state.activeSinceTs = t;
+        ensureClock();
+      }
+
+      function pauseTiming(){
+        if(state.activeSinceTs){
+          const delta = Math.floor((now() - state.activeSinceTs)/1000);
+          state.totalSeconds = (state.totalSeconds || 0) + Math.max(0, delta);
+          state.activeSinceTs = null;
+        }
+      }
+
+      function greetAndExplain(){
+        const n = state.profile.name || "yaar";
+        const c = state.profile.company || "your target company";
+        const r = state.profile.role || "your target role";
+        const tl = state.profile.timeline || "1 month";
+        const lvl = state.profile.level || "Beginner";
+        const dd = state.profile.deepDive ? "ON" : "OFF";
+
+        const msg =
+`Hi ${n}! Main aapka interviewer ban jaata/jaati hoon 🙂
+Target: ${c} • Role: ${r}
+Timeline: ${tl} • Level: ${lvl} • Deep Dive: ${dd}
+
+Rules simple:
+- Main question puchunga/puchungi, aap answer do.
+- Agar Deep Dive ON hai, toh main natural follow-ups bhi puch sakta/sakti hoon.
+- End me aapko score + analytics + transcript download mil jayega.
+
+Ready? Let's go!`;
+
+        addMsg("I", msg);
+        pushTranscript("I", msg);
+      }
+
+      function currentMainQuestion(){
+        if(state.qIndex >= questions.length) return null;
+        const q = questions[state.qIndex];
+        return { ...q, text: personalize(q.text) };
+      }
+
+      function askNext(){
+        if(state.finished) return;
+
+        // If pending follow-up exists, ask it first
+        if(state.pendingFollowUp){
+          const fu = state.pendingFollowUp;
+          const qText = fu.text;
+          addMsg("I", qText, "follow-up");
+          pushTranscript("I", qText);
+          state.asked.push({kind:"follow", id: "follow-" + (fu.parentId || "x"), text:qText, ts: now()});
+          save();
+          return;
+        }
+
+        const q = currentMainQuestion();
+        if(!q){
+          finishInterview();
+          return;
+        }
+
+        const qText = q.text;
+        addMsg("I", qText, q.cat);
+        pushTranscript("I", qText);
+        state.asked.push({kind:"main", id:q.id, text:qText, ts: now()});
+        save();
+      }
+
+      function chooseFollowUp(mainQ, answerText){
+        if(!state.profile.deepDive) return null;
+
+        const wc = wordCount(answerText);
+        const lower = safeText(answerText).toLowerCase();
+
+        // If answer is too short => generic short follow-up
+        if(wc > 0 && wc < 20){
+          return pick(followUps.genericShort);
+        }
+
+        // Simple heuristics by category or keywords
+        const cat = (mainQ && mainQ.cat) ? mainQ.cat.toLowerCase() : "";
+        if(cat.includes("projects") || /project|app|website|api|model|dataset|github|hackathon|intern/i.test(answerText)){
+          return pick(followUps.project);
+        }
+        if(cat.includes("motivation") || /{company}|company|culture|product|mission|values/i.test(mainQ.text)){
+          return pick(followUps.company);
+        }
+        if(cat.includes("behavioral") || cat.includes("teamwork") || /conflict|failure|feedback|mistake|pressure/i.test(lower)){
+          return pick(followUps.behavioral);
+        }
+        if(cat.includes("cs") || cat.includes("databases") || cat.includes("system") || cat.includes("backend") || cat.includes("networking")){
+          return pick(followUps.tech);
+        }
+
+        // If answer looks generic (no numbers and very broad)
+        const hasNumber = /\d/.test(answerText);
+        if(!hasNumber && wc >= 20 && wc < 45){
+          return "Can you add 1-2 measurable outcomes? Even approx is fine (e.g., 20% faster, 500 users, etc.).";
+        }
+
+        return null;
+      }
+
+      function pick(arr){
+        return arr[Math.floor(Math.random()*arr.length)];
+      }
+
+      function onUserSend(){
+        if(!state.started || state.finished) return;
+
+        const ans = safeText(answerBox.value);
+        if(!ans) return;
+
+        // Show user message
+        addMsg("U", ans);
+        pushTranscript("U", ans);
+
+        const w = wordCount(ans);
+        state.analytics.answerCount += 1;
+        state.analytics.totalWords += w;
+
+        // Determine what we just answered: follow-up or main?
+        const justWasFollowUp = !!state.pendingFollowUp;
+
+        if(justWasFollowUp){
+          // record follow-up answer
+          state.answers.push({kind:"follow", id: "follow-" + (state.pendingFollowUp.parentId || "x"), text: ans, words: w, ts: now()});
+          // clear follow-up and move to next main question (without incrementing qIndex yet)
+          state.pendingFollowUp = null;
+          answerBox.value = "";
+          save();
+          setUIFromState();
+          // Ask next main question
+          setTimeout(askNext, 220);
+          return;
+        }
+
+        // record main answer
+        const mainQ = currentMainQuestion();
+        const qId = mainQ ? mainQ.id : ("q-" + state.qIndex);
+        state.answers.push({kind:"main", id: qId, text: ans, words: w, ts: now()});
+
+        // decide follow-up (before incrementing qIndex)
+        const fu = mainQ ? chooseFollowUp(mainQ, ans) : null;
+
+        // advance main question index (completed one)
+        state.qIndex += 1;
+
+        if(fu){
+          state.pendingFollowUp = { parentId: qId, text: fu };
+        }
+
+        answerBox.value = "";
+        save();
+        setUIFromState();
+
+        setTimeout(askNext, 220);
+      }
+
+      function computeScore(){
+        const totalQ = questions.length;
+        const completed = clamp(state.qIndex, 0, totalQ);
+        const completionRatio = totalQ ? (completed/totalQ) : 0;
+
+        const ansCount = state.answers.filter(a => a.kind === "main").length;
+        const totalWordsMain = state.answers.filter(a => a.kind === "main").reduce((s,a)=>s+a.words,0);
+        const avgWordsMain = ansCount ? (totalWordsMain/ansCount) : 0;
+
+        // normalize avg words: 0 at 10 words, 1 at 90 words, clamp
+        const norm = clamp((avgWordsMain - 10) / (90 - 10), 0, 1);
+
+        const score = Math.round( (completionRatio*60) + (norm*40) );
+
+        return {
+          score,
+          completionPct: Math.round(completionRatio*100),
+          ansCount,
+          avgWordsMain: avgWordsMain,
+          totalWordsMain
+        };
+      }
+
+      function finishInterview(){
+        state.finished = true;
+        pauseTiming();
+        const res = computeScore();
+        state.score = res.score;
+        save();
+        setUIFromState();
+        sendBtn.disabled = true;
+        answerBox.disabled = true;
+
+        const timeSec = getTotalSeconds();
+        const avgAll = state.analytics.answerCount ? (state.analytics.totalWords / state.analytics.answerCount) : 0;
+
+        const sum =
+`✅ Interview complete!
+
+Score: ${res.score} / 100
+Completion: ${res.completionPct}% (${res.ansCount} main answers)
+Avg words (main): ${res.avgWordsMain.toFixed(1)}
+Avg words (overall): ${avgAll.toFixed(1)}
+Total time: ${fmtTime(timeSec)}
+
+Feedback (friendly):
+- Strong answers usually have: context + what you did + outcome (numbers help).
+- If any answer felt short, try adding a quick example.
+
+You can download the transcript or restart.`;
+
+        addMsg("I", sum);
+        pushTranscript("I", sum);
+
+        summaryCard.style.display = "block";
+        summaryBody.textContent = sum;
+
+        downloadBtn.disabled = false;
+      }
+
+      function buildTranscriptTxt(){
+        const p = state.profile;
+        const timeSec = getTotalSeconds();
+        const avgAll = state.analytics.answerCount ? (state.analytics.totalWords / state.analytics.answerCount) : 0;
+
+        const header =
+`RETRO INTERVIEW PRACTICE (OFFLINE)
+Generated: ${tsToClock(now())}
+
+Student: ${p.name || "-"}
+Target Company: ${p.company || "-"}
+Target Role: ${p.role || "-"}
+Timeline: ${p.timeline || "-"}
+Level: ${p.level || "-"}
+Deep Dive: ${p.deepDive ? "Yes" : "No"}
+
+----------------------------------------
+TRANSCRIPT
+----------------------------------------`;
+
+        const lines = [header];
+
+        for(const m of state.transcript){
+          const who = m.from === "U" ? (p.name || "YOU") : "INTERVIEWER";
+          lines.push(`\n[${who}] ${m.text}\n`);
+        }
+
+        const score = (state.score != null) ? state.score : computeScore().score;
+
+        lines.push(
+`\n----------------------------------------
+ANALYTICS
+----------------------------------------
+Answers (total): ${state.analytics.answerCount}
+Total words: ${state.analytics.totalWords}
+Average words: ${avgAll.toFixed(1)}
+Total time: ${fmtTime(timeSec)}
+Final score: ${score}/100
+`);
+
+        return lines.join("\n");
+      }
+
+      function downloadTranscript(){
+        const txt = buildTranscriptTxt();
+        const blob = new Blob([txt], {type:"text/plain;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const safeName = (state.profile.name || "student").replace(/[^\w\-]+/g,"_");
+        a.href = url;
+        a.download = `interview_transcript_${safeName}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      }
+
+      function restartInterview(keepThemeMode){
+        pauseTiming();
+        const prev = { settings: {...state.settings} };
+        state = blankState();
+        if(keepThemeMode){
+          state.settings = prev.settings;
+        }
+        summaryCard.style.display = "none";
+        stream.innerHTML = "";
+        answerBox.value = "";
+        fillInputsFromProfile();
+        setUIFromState();
+        clearSaved();
+        setStatus("restarted • offline");
+      }
+
+      function startNewInterview(){
+        // validate minimal fields (soft)
+        applyProfileInputsToState();
+        if(!state.profile.name){
+          studentName.focus();
+          flashInfo("Name missing — but I'll still proceed 🙂");
+        }
+        if(!state.profile.company){
+          flashInfo("Company missing — I'll keep it generic.");
+        }
+        if(!state.profile.role){
+          flashInfo("Role missing — I'll keep it generic.");
+        }
+
+        // Reset and start
+        const keep = { settings: {...state.settings} };
+        state = blankState();
+        state.settings = keep.settings;
+        applyProfileInputsToState();
+        state.started = true;
+        state.finished = false;
+        state.qIndex = 0;
+        state.pendingFollowUp = null;
+
+        stream.innerHTML = "";
+        summaryCard.style.display = "none";
+
+        startTiming();
+        greetAndExplain();
+        askNext();
+        setUIFromState();
+        save();
+      }
+
+      function flashInfo(text){
+        setStatus(text);
+        setTimeout(()=>setStatus("offline • localStorage enabled"), 1600);
+      }
+
+      function canResume(saved){
+        return saved && saved.started && saved.transcript && saved.transcript.length > 0;
+      }
+
+      function resumeSaved(saved){
+        state = normalizeSaved(saved);
+        fillInputsFromProfile();
+        renderAllFromState();
+        if(state.started && !state.finished){
+          startTiming(); // resume time
+          const last = state.transcript[state.transcript.length-1];
+          if(last && last.from === "U"){
+            setTimeout(askNext, 150);
+          }
+        }
+        save();
+      }
+
+      function normalizeSaved(saved){
+        const s = blankState();
+        try{
+          s.version = 1;
+          s.settings.mode = (saved.settings && (saved.settings.mode === "light" || saved.settings.mode === "dark")) ? saved.settings.mode : s.settings.mode;
+          s.settings.theme = (saved.settings && (saved.settings.theme === "amber" || saved.settings.theme === "green")) ? saved.settings.theme : s.settings.theme;
+
+          s.profile = Object.assign(s.profile, saved.profile || {});
+          s.started = !!saved.started;
+          s.finished = !!saved.finished;
+          s.startTs = saved.startTs || null;
+          s.activeSinceTs = null;
+          s.totalSeconds = Number.isFinite(saved.totalSeconds) ? saved.totalSeconds : 0;
+          s.qIndex = Number.isFinite(saved.qIndex) ? saved.qIndex : 0;
+          s.pendingFollowUp = saved.pendingFollowUp || null;
+          s.asked = Array.isArray(saved.asked) ? saved.asked : [];
+          s.answers = Array.isArray(saved.answers) ? saved.answers : [];
+          s.transcript = Array.isArray(saved.transcript) ? saved.transcript : [];
+          s.analytics = Object.assign(s.analytics, saved.analytics || {});
+          s.score = (saved.score == null) ? null : saved.score;
+        }catch(_){}
+        return s;
+      }
+
+      // --- Events ---
+      function toggleSwitch(sw){
+        const cur = sw.getAttribute("aria-checked") === "true";
+        sw.setAttribute("aria-checked", String(!cur));
+        if(state && state.profile){
+          state.profile.deepDive = !cur;
+          save();
+        }
+      }
+
+      deepDiveSwitch.addEventListener("click", () => toggleSwitch(deepDiveSwitch));
+      deepDiveSwitch.addEventListener("keydown", (e) => {
+        if(e.key === " " || e.key === "Enter"){
+          e.preventDefault();
+          toggleSwitch(deepDiveSwitch);
+        }
+      });
+
+      toggleModeBtn.addEventListener("click", () => {
+        state.settings.mode = (state.settings.mode === "dark") ? "light" : "dark";
+        setUIFromState();
+        save();
+      });
+
+      toggleThemeBtn.addEventListener("click", () => {
+        state.settings.theme = (state.settings.theme === "green") ? "amber" : "green";
+        setUIFromState();
+        save();
+      });
+
+      startBtn.addEventListener("click", () => {
+        resumeBanner.style.display = "none";
+        startNewInterview();
+      });
+
+      clearSavedBtn.addEventListener("click", () => {
+        clearSaved();
+        flashInfo("Saved session cleared.");
+      });
+
+      sendBtn.addEventListener("click", onUserSend);
+      answerBox.addEventListener("keydown", (e) => {
+        if((e.ctrlKey || e.metaKey) && e.key === "Enter"){
+          e.preventDefault();
+          onUserSend();
+        }
+      });
+
+      downloadBtn.addEventListener("click", downloadTranscript);
+      downloadBtn2.addEventListener("click", downloadTranscript);
+
+      restartBtn.addEventListener("click", () => restartInterview(true));
+      restartBtn2.addEventListener("click", () => restartInterview(true));
+
+      resumeBtn.addEventListener("click", () => {
+        const saved = loadSaved();
+        if(saved) resumeSaved(saved);
+        resumeBanner.style.display = "none";
+      });
+
+      newBtn.addEventListener("click", () => {
+        resumeBanner.style.display = "none";
+        restartInterview(true);
+      });
+
+      // Persist profile input changes gently (without starting)
+      [studentName, targetCompany, targetRole, timeline, level].forEach(inp => {
+        inp.addEventListener("change", () => {
+          if(state.started) return;
+          applyProfileInputsToState();
+          save();
+        });
+        inp.addEventListener("blur", () => {
+          if(state.started) return;
+          applyProfileInputsToState();
+          save();
+        });
+      });
+
+      // --- Init ---
+      function init(){
+        const saved = loadSaved();
+        if(canResume(saved)){
+          resumeBanner.style.display = "flex";
+          state = normalizeSaved(saved);
+          fillInputsFromProfile();
+          setUIFromState();
+        }else{
+          deepDiveSwitch.setAttribute("aria-checked", "true");
+          setUIFromState();
+        }
+
+        if(saved && saved.finished){
+          state = normalizeSaved(saved);
+          renderAllFromState();
+          summaryCard.style.display = "block";
+          summaryBody.textContent = (state.transcript.findLast ? (state.transcript.findLast(m=>m.from==="I")?.text || "") : "");
+        }
+
+        ensureClock();
+      }
+
+      init();
+
+      window.addEventListener("beforeunload", () => {
+        pauseTiming();
+        save();
+      });
+
+    })();
+  </script>
+</body>
+  </html>

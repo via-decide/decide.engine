@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#070b14"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="HexWars"/>
+<meta name="description" content="Conquer the hex battlefield with your knowledge. Timed quiz meets territory strategy."/>
+<title>HexWars — ViaDecide Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<style>
+:root{
+  --bg:#070b14;
+  --bg1:#0a0f1e;
+  --bg2:#0d1525;
+  --line:rgba(255,255,255,.07);
+  --line2:rgba(255,255,255,.12);
+  --tx:#e8eefc;
+  --tx2:#7a8bb0;
+  --tx3:#3a4a6a;
+  --acc:#ff7a18;
+  --acc2:#ff9a48;
+  --acc3:rgba(255,122,24,.14);
+  --good:#22c55e;
+  --good2:rgba(34,197,94,.14);
+  --bad:#ef4444;
+  --bad2:rgba(239,68,68,.14);
+  --blue:#3b82f6;
+  --blue2:rgba(59,130,246,.14);
+  --r:16px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+html{height:100%;font-size:16px}
+body{
+  min-height:100%;
+  background:var(--bg);
+  color:var(--tx);
+  font-family:'Syne',ui-sans-serif,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  /* Prevent scroll when modal/result is up */
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(900px 600px at 20% -10%, rgba(255,122,24,.07) 0%, transparent 60%),
+    radial-gradient(700px 600px at 90% 110%, rgba(59,130,246,.06) 0%, transparent 60%);
+}
+
+/* ── HEADER ── */
+#header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,11,20,.92);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+  padding:
+    calc(10px + env(safe-area-inset-top))
+    calc(16px + env(safe-area-inset-right))
+    10px
+    calc(16px + env(safe-area-inset-left));
+}
+.topbar{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:12px;
+  max-width:1200px;margin:0 auto;
+}
+.brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.brand-hex{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,var(--acc),rgba(255,122,24,.6));
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:#000;flex-shrink:0;
+}
+.brand-text{display:flex;flex-direction:column;gap:2px}
+.brand-title{font-size:15px;font-weight:800;letter-spacing:.3px;line-height:1}
+.brand-sub{font-size:10px;color:var(--tx2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+
+.stats{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  padding:5px 10px;border-radius:999px;
+  font-size:12px;font-weight:700;
+  white-space:nowrap;flex-shrink:0;
+  transition:background .2s,border-color .2s;
+}
+.stat.flash{background:rgba(255,122,24,.15)!important;border-color:rgba(255,122,24,.4)!important}
+.stat .k{color:var(--tx2);font-weight:600;font-size:11px}
+.stat-val{color:var(--tx);font-family:'DM Mono',monospace;letter-spacing:.02em}
+
+/* ── LAYOUT ── */
+#main{
+  position:relative;z-index:1;
+  padding:
+    14px
+    calc(12px + env(safe-area-inset-right))
+    calc(24px + env(safe-area-inset-bottom))
+    calc(12px + env(safe-area-inset-left));
+}
+.layout{
+  max-width:1200px;margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+@media(min-width:680px){
+  .layout{grid-template-columns:1fr 1fr;align-items:start}
+  /* Map right on tablet/desktop */
+  .layout>.quiz-panel{order:1}
+  .layout>.map-panel{order:2}
+}
+
+/* ── PANEL ── */
+.panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+  position:relative;
+}
+.panel-head{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:rgba(10,16,30,.5);
+}
+.panel-head .ph-l{display:flex;flex-direction:column;gap:3px}
+.panel-title{font-size:13px;font-weight:800;letter-spacing:.2px}
+.panel-sub{font-size:11px;color:var(--tx2);font-weight:600}
+.panel-body{padding:12px}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{
+  position:relative;
+  height:3px;
+  background:rgba(255,255,255,.05);
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--acc),var(--acc2));
+  transition:width .5s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.progress-fill::after{
+  content:'';
+  position:absolute;right:0;top:0;bottom:0;
+  width:20px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4));
+}
+
+/* ── MAP CANVAS ── */
+.map-wrap{
+  display:flex;align-items:center;justify-content:center;
+  padding:4px;
+}
+#map{
+  width:100%;height:auto;
+  max-width:460px;
+  aspect-ratio:1/1;
+  border-radius:12px;
+  display:block;
+}
+
+/* Territory legend */
+.legend{
+  display:flex;gap:12px;align-items:center;
+  justify-content:center;padding:6px 14px 10px;
+  font-size:11px;color:var(--tx2);font-weight:600;
+}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── TIMER ARC ── */
+.timer-wrap{
+  position:relative;
+  width:52px;height:52px;
+  flex-shrink:0;
+}
+.timer-svg{
+  width:52px;height:52px;
+  transform:rotate(-90deg);
+}
+.timer-bg{fill:none;stroke:rgba(255,255,255,.07);stroke-width:4}
+.timer-arc{
+  fill:none;stroke:var(--acc);stroke-width:4;
+  stroke-linecap:round;
+  stroke-dasharray:130;
+  stroke-dashoffset:0;
+  transition:stroke-dashoffset .25s linear, stroke .3s;
+}
+.timer-label{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;
+  font-size:13px;font-weight:500;
+  color:var(--tx);
+}
+
+/* ── QUESTION BOX ── */
+.quiz-area{display:flex;flex-direction:column;gap:10px}
+
+.q-meta{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:0 2px;
+}
+.q-badge{
+  display:flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:700;
+  color:var(--tx2);letter-spacing:.04em;text-transform:uppercase;
+}
+.diff-stars{display:flex;gap:2px}
+.diff-star{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,.12);
+}
+.diff-star.on{background:var(--acc)}
+
+.q-box{
+  background:rgba(10,16,30,.7);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  transition:border-color .3s;
+}
+.q-box.correct-bg{border-color:rgba(34,197,94,.35)!important;background:rgba(34,197,94,.05)!important}
+.q-box.wrong-bg{border-color:rgba(239,68,68,.35)!important;background:rgba(239,68,68,.05)!important}
+
+.q-text{
+  font-size:17px;font-weight:700;
+  line-height:1.45;
+  margin-bottom:14px;
+  color:var(--tx);
+}
+
+/* MCQ choices */
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 14px;
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  cursor:pointer;
+  font-size:14px;font-weight:700;
+  transition:background .15s,border-color .15s,transform .12s;
+  -webkit-user-select:none;user-select:none;
+  min-height:52px; /* thumb-friendly */
+  position:relative;overflow:hidden;
+}
+.choice::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--acc3),transparent);
+  opacity:0;transition:opacity .2s;
+}
+.choice:active{transform:scale(.98)}
+.choice:hover{border-color:rgba(255,122,24,.3);background:rgba(255,122,24,.07)}
+.choice:hover::before{opacity:1}
+.choice.correct{
+  background:var(--good2)!important;
+  border-color:rgba(34,197,94,.4)!important;
+  color:var(--good)!important;
+}
+.choice.wrong{
+  background:var(--bad2)!important;
+  border-color:rgba(239,68,68,.4)!important;
+  color:var(--bad)!important;
+}
+.choice-letter{
+  width:26px;height:26px;border-radius:7px;
+  background:rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;
+  letter-spacing:.04em;font-family:'DM Mono',monospace;
+}
+.choice.correct .choice-letter{background:rgba(34,197,94,.25)}
+.choice.wrong .choice-letter{background:rgba(239,68,68,.25)}
+
+/* Short answer */
+.input-row{display:flex;gap:8px;margin-top:6px}
+#answer{
+  flex:1;
+  padding:13px 14px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.3);
+  color:var(--tx);
+  font-size:15px;font-weight:600;
+  font-family:'Syne',sans-serif;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  min-height:52px;
+}
+#answer:focus{
+  border-color:rgba(255,122,24,.45);
+  box-shadow:0 0 0 3px rgba(255,122,24,.1);
+}
+#submitBtn{
+  padding:13px 18px;
+  background:linear-gradient(135deg,var(--acc),rgba(255,122,24,.8));
+  border:1px solid rgba(255,255,255,.12);
+  color:#070b14;
+  font-weight:800;font-size:14px;
+  font-family:'Syne',sans-serif;
+  cursor:pointer;border-radius:12px;
+  white-space:nowrap;
+  transition:transform .12s,box-shadow .15s;
+  min-height:52px;
+  letter-spacing:.03em;
+}
+#submitBtn:hover{box-shadow:0 4px 18px rgba(255,122,24,.38);transform:translateY(-1px)}
+#submitBtn:active{transform:scale(.97)}
+#submitBtn:disabled{opacity:.45;pointer-events:none}
+
+.hint-tip{
+  font-size:11px;color:var(--tx3);font-weight:600;
+  text-align:center;letter-spacing:.04em;margin-top:4px;
+}
+
+/* Feedback pill */
+.feedback-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:999px;
+  font-size:13px;font-weight:700;
+  margin-top:10px;
+  animation:pillPop .3s cubic-bezier(.34,1.56,.64,1);
+}
+.feedback-pill.ok{background:var(--good2);border:1px solid rgba(34,197,94,.3);color:var(--good)}
+.feedback-pill.ko{background:var(--bad2);border:1px solid rgba(239,68,68,.3);color:var(--bad)}
+@keyframes pillPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+
+/* ── STREAK INDICATOR ── */
+.streak-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;
+  background:rgba(255,122,24,.06);
+  border-top:1px solid rgba(255,122,24,.12);
+  font-size:12px;font-weight:700;
+  color:var(--acc2);
+  min-height:0;overflow:hidden;
+  transition:max-height .3s,padding .3s;
+}
+.streak-bar.hidden{max-height:0;padding:0 14px;border-top-color:transparent;overflow:hidden}
+.streak-flames{display:flex;gap:2px}
+
+/* ── RESULT SCREEN ── */
+#resultOverlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(7,11,20,.95);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  opacity:0;pointer-events:none;
+  transition:opacity .4s;
+}
+#resultOverlay.show{opacity:1;pointer-events:auto}
+.result-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+  border:1px solid var(--line2);
+  border-radius:24px;
+  padding:32px 28px;
+  max-width:400px;width:100%;
+  text-align:center;
+  animation:cardIn .5s .1s cubic-bezier(.34,1.4,.64,1) both;
+}
+@keyframes cardIn{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.result-trophy{font-size:56px;margin-bottom:16px;display:block}
+.result-title{font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-.02em}
+.result-sub{font-size:13px;color:var(--tx2);font-weight:600;margin-bottom:20px}
+.result-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-bottom:22px;
+}
+.rstat{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  border-radius:12px;padding:12px 8px;
+  display:flex;flex-direction:column;gap:4px;align-items:center;
+}
+.rstat .rv{
+  font-size:22px;font-weight:800;
+  font-family:'DM Mono',monospace;
+  color:var(--acc);
+}
+.rstat .rk{font-size:10px;color:var(--tx2);font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.result-grade{
+  font-size:13px;font-weight:700;color:var(--tx2);
+  padding:10px;border:1px solid var(--line);
+  border-radius:10px;margin-bottom:18px;
+}
+.btn-restart{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--acc),rgba(255,122,24,.8));
+  border:none;color:#070b14;
+  font-weight:800;font-size:15px;
+  font-family:'Syne',sans-serif;
+  cursor:pointer;border-radius:14px;
+  letter-spacing:.04em;
+  transition:transform .12s,box-shadow .15s;
+}
+.btn-restart:hover{box-shadow:0 6px 22px rgba(255,122,24,.4);transform:translateY(-1px)}
+.btn-restart:active{transform:scale(.98)}
+
+/* ── PWA INSTALL BANNER ── */
+#install-banner{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:var(--bg2);
+  border-top:1px solid var(--line2);
+  padding:.9rem 1.1rem;
+  box-shadow:0 -8px 32px rgba(0,0,0,.5);
+}
+#install-banner.show{display:block}
+.ib-inner{
+  display:flex;align-items:center;gap:10px;
+  max-width:560px;margin:0 auto;
+}
+.ib-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--acc3);border:1px solid rgba(255,122,24,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.ib-txt{flex:1}
+.ib-txt strong{display:block;font-size:.85rem;font-weight:700;color:var(--tx)}
+.ib-txt span{font-size:.74rem;color:var(--tx2)}
+.ib-acts{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.ib-btn{
+  padding:.48rem .95rem;
+  background:var(--acc);color:#070b14;
+  border:none;border-radius:8px;
+  font-size:.8rem;font-weight:800;
+  font-family:'Syne',sans-serif;cursor:pointer;
+}
+.ib-dismiss{
+  background:none;border:none;
+  color:var(--tx2);font-size:1.2rem;cursor:pointer;
+  padding:.2rem .4rem;border-radius:6px;
+}
+#ios-hint{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:var(--bg2);border-top:1px solid var(--line2);
+  padding:1.2rem 1.4rem 1.6rem;
+  text-align:center;box-shadow:0 -8px 32px rgba(0,0,0,.5);
+}
+#ios-hint.show{display:block}
+#ios-hint strong{display:block;color:var(--tx);margin-bottom:.5rem;font-size:.95rem}
+#ios-hint p{font-size:.82rem;color:var(--tx2)}
+#ios-hint-close{
+  position:absolute;top:.75rem;right:1rem;
+  background:none;border:none;color:var(--tx2);font-size:1.1rem;cursor:pointer;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes hexClaim{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.18)}
+  70%{transform:scale(.95)}
+  100%{transform:scale(1)}
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-5px)}
+  40%{transform:translateX(5px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(3px)}
+}
+.shake{animation:shake .35s ease}
+
+/* ── RESPONSIVE TWEAKS ── */
+@media(max-width:400px){
+  .stats{gap:4px}
+  .stat{padding:4px 8px;font-size:11px}
+  .q-text{font-size:15px}
+}
+@media(min-width:680px){
+  .q-text{font-size:18px}
+  .choice{font-size:15px;padding:15px 16px}
+}
+
+/* Touch cursor fix */
+@media(hover:none),(pointer:coarse){
+  #answer{font-size:16px} /* prevent iOS zoom */
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header id="header">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-hex">⬡</div>
+      <div class="brand-text">
+        <div class="brand-title">HexWars</div>
+        <div class="brand-sub">ViaDecide Arena</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat" id="s-score"><span class="k">Score</span><span class="stat-val" id="score">0</span></div>
+      <div class="stat" id="s-elo"><span class="k">ELO</span><span class="stat-val" id="elo">1000</span></div>
+      <div class="stat" id="s-streak"><span class="k">Streak</span><span class="stat-val" id="streak">0🔥</span></div>
+      <div class="stat" id="s-tokens"><span class="k">Tokens</span><span class="stat-val" id="tokens">0</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<main id="main">
+  <div class="layout">
+
+    <!-- QUIZ PANEL (left/top) -->
+    <section class="panel quiz-panel">
+      <div class="panel-head">
+        <div class="ph-l">
+          <div class="panel-title">Quiz Battle</div>
+          <div class="panel-sub">Speed × difficulty × streak = points</div>
+        </div>
+        <!-- Visual timer arc -->
+        <div class="timer-wrap" id="timerWrap">
+          <svg class="timer-svg" viewBox="0 0 52 52">
+            <circle class="timer-bg" cx="26" cy="26" r="20.7"/>
+            <circle class="timer-arc" id="timerArc" cx="26" cy="26" r="20.7"/>
+          </svg>
+          <div class="timer-label" id="timerLabel">0</div>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="progress-wrap">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <!-- Streak bar -->
+      <div class="streak-bar hidden" id="streakBar">
+        <div class="streak-flames" id="streakFlames"></div>
+        <span id="streakMsg">On a roll!</span>
+      </div>
+      <div class="panel-body">
+        <div id="quizArea" class="quiz-area"></div>
+      </div>
+    </section>
+
+    <!-- MAP PANEL (right/bottom) -->
+    <section class="panel map-panel">
+      <div class="panel-head">
+        <div class="ph-l">
+          <div class="panel-title">Hex Battlefield</div>
+          <div class="panel-sub">Conquer territory with every correct answer</div>
+        </div>
+        <span id="progressPill" style="font-size:12px;font-weight:700;color:var(--tx2);font-family:'DM Mono',monospace">0/30</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-fill" id="mapProgress" style="width:0%"></div>
+      </div>
+      <div class="panel-body">
+        <div class="map-wrap">
+          <canvas id="map"></canvas>
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:rgba(255,122,24,.55)"></div> Your territory
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:rgba(255,255,255,.08)"></div> Unclaimed
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ══ RESULT OVERLAY ══ -->
+<div id="resultOverlay">
+  <div class="result-card">
+    <span class="result-trophy" id="resultTrophy">🏆</span>
+    <div class="result-title" id="resultTitle">Battle Complete!</div>
+    <div class="result-sub" id="resultSub">You conquered the hex battlefield</div>
+    <div class="result-stats">
+      <div class="rstat"><div class="rv" id="r-score">0</div><div class="rk">Score</div></div>
+      <div class="rstat"><div class="rv" id="r-elo">1000</div><div class="rk">ELO</div></div>
+      <div class="rstat"><div class="rv" id="r-tokens">0</div><div class="rk">Tokens</div></div>
+    </div>
+    <div class="result-grade" id="resultGrade">Loading grade...</div>
+    <button class="btn-restart" id="restartBtn">⚔️ Play Again</button>
+  </div>
+</div>
+
+<!-- ══ PWA BANNERS ══ -->
+<div id="install-banner">
+  <div class="ib-inner">
+    <div class="ib-icon">⚔️</div>
+    <div class="ib-txt">
+      <strong>Install HexWars</strong>
+      <span>Play offline, loads instantly</span>
+    </div>
+    <div class="ib-acts">
+      <button id="install-banner-btn" class="ib-btn">Install</button>
+      <button id="install-banner-dismiss" class="ib-dismiss">✕</button>
+    </div>
+  </div>
+</div>
+<div id="ios-hint">
+  <button id="ios-hint-close">✕</button>
+  <strong>Add HexWars to Home Screen</strong>
+  <p>Tap the <strong>Share button (□↑)</strong> in Safari, then tap <strong>"Add to Home Screen"</strong>.</p>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   QUESTIONS
+══════════════════════════════════════ */
+const QUESTIONS = [
+  {q:"What drives lasting habits?", a:"Identity", type:"mcq", choices:["Goals","Identity","Motivation","Luck"], diff:1},
+  {q:"Opposite of 'easy' in habit breaking?", a:"Difficult", type:"short", diff:1},
+  {q:"Environment shapes behavior more than ____.", a:"Willpower", type:"short", diff:2},
+  {q:"First law of behavior change?", a:"Obvious", type:"short", diff:1},
+  {q:"Second law of behavior change?", a:"Attractive", type:"short", diff:1},
+  {q:"Third law of behavior change?", a:"Easy", type:"short", diff:1},
+  {q:"Fourth law of behavior change?", a:"Satisfying", type:"short", diff:1},
+  {q:"Small improvements daily equal ____ over time.", a:"Compounding", type:"short", diff:2},
+  {q:"Which is identity-based habit?", a:"I am a reader", type:"mcq", choices:["Read 10 books","I am a reader","Buy books","Try reading"], diff:2},
+  {q:"Habits are the compound interest of ____.", a:"Self-improvement", type:"short", diff:2},
+  {q:"Make bad habits ____.", a:"Difficult", type:"short", diff:2},
+  {q:"Clear cues make habits ____.", a:"Obvious", type:"short", diff:1},
+  {q:"Habits reduce ____ load.", a:"Cognitive", type:"short", diff:3},
+  {q:"System > ____.", a:"Goals", type:"short", diff:1},
+  {q:"Tiny gains lead to ____ success.", a:"Massive", type:"short", diff:2},
+  {q:"Which builds identity?", a:"Repeated action", type:"mcq", choices:["Motivation","Repeated action","Luck","Talent"], diff:2},
+  {q:"Behavior is a function of person and ____.", a:"Environment", type:"short", diff:2},
+  {q:"Reward reinforces the habit ____.", a:"Loop", type:"short", diff:2},
+  {q:"Tracking habit builds ____.", a:"Consistency", type:"short", diff:2},
+  {q:"Which reduces friction?", a:"Preparation", type:"mcq", choices:["Preparation","Delay","Chaos","Distraction"], diff:2},
+  {q:"Atomic means ____.", a:"Small", type:"short", diff:1},
+  {q:"Habits create ____ identity.", a:"Long-term", type:"short", diff:2},
+  {q:"Focus on becoming not achieving ____.", a:"Outcome", type:"short", diff:2},
+  {q:"Change environment to change ____.", a:"Behavior", type:"short", diff:2},
+  {q:"Which law increases motivation?", a:"Attractive", type:"short", diff:1},
+  {q:"Visible cue improves habit ____.", a:"Trigger", type:"short", diff:2},
+  {q:"Automaticity increases with ____.", a:"Repetition", type:"short", diff:2},
+  {q:"Tiny habits remove ____ barrier.", a:"Psychological", type:"short", diff:3},
+  {q:"Bad habits are cue-craving-____-reward.", a:"Response", type:"short", diff:3},
+  {q:"Consistency beats ____.", a:"Intensity", type:"short", diff:2}
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let score=0, tokens=0, elo=1000, streak=0, currentQ=0;
+let startTime=0, timerTick=null, timerAnimTick=null;
+const TIMER_MAX = 20; // seconds until timer turns red
+
+/* ══════════════════════════════════════
+   HAPTICS
+══════════════════════════════════════ */
+function haptic(type){
+  if(!navigator.vibrate) return;
+  if(type==='correct') navigator.vibrate(40);
+  else if(type==='wrong') navigator.vibrate([60,30,60]);
+  else if(type==='win') navigator.vibrate([40,30,40,30,80]);
+}
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function esc(str){
+  return String(str??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
+}
+function norm(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=String(v); }
+
+function flashStat(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'),600);
+}
+
+function updateStats(){
+  setText('score', score);
+  setText('elo', elo);
+  setText('streak', streak>0 ? streak+'🔥' : '0');
+  setText('tokens', tokens);
+  const pct = (currentQ/QUESTIONS.length*100).toFixed(0);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('mapProgress').style.width = pct+'%';
+  document.getElementById('progressPill').textContent = currentQ+'/'+QUESTIONS.length;
+  // Streak bar
+  const sb = document.getElementById('streakBar');
+  if(streak >= 3){
+    sb.classList.remove('hidden');
+    const flames = '🔥'.repeat(Math.min(streak,8));
+    document.getElementById('streakFlames').textContent = flames;
+    document.getElementById('streakMsg').textContent =
+      streak>=8?'LEGENDARY! +'+streak*2:streak>=5?'On fire! +'+streak*2:'Streak x'+streak;
+  } else {
+    sb.classList.add('hidden');
+  }
+}
+
+function calcPoints(diff, timeTaken){
+  const base = 10*diff;
+  const speed = Math.max(0, TIMER_MAX-timeTaken);
+  return base + speed + streak*2;
+}
+
+/* ══════════════════════════════════════
+   TIMER (visual arc)
+══════════════════════════════════════ */
+const CIRC = 2*Math.PI*20.7; // ~130
+const arc = document.getElementById('timerArc');
+const timerLabel = document.getElementById('timerLabel');
+
+function startTimer(){
+  startTime = Date.now();
+  if(timerTick) clearInterval(timerTick);
+  timerTick = setInterval(()=>{
+    const t = (Date.now()-startTime)/1000;
+    const secs = Math.floor(t);
+    timerLabel.textContent = secs;
+    const ratio = Math.min(1, t/TIMER_MAX);
+    arc.style.strokeDashoffset = CIRC * ratio;
+    // Color shift
+    if(ratio < 0.5) arc.style.stroke = 'var(--acc)';
+    else if(ratio < 0.8) arc.style.stroke = '#f0a020';
+    else arc.style.stroke = 'var(--bad)';
+  }, 100);
+}
+
+function stopTimer(){
+  clearInterval(timerTick);
+  arc.style.strokeDashoffset = 0;
+  arc.style.stroke = 'var(--acc)';
+  timerLabel.textContent = '0';
+}
+
+/* ══════════════════════════════════════
+   QUIZ ENGINE
+══════════════════════════════════════ */
+const LETTERS = ['A','B','C','D'];
+
+function loadQuestion(){
+  updateStats();
+  if(currentQ >= QUESTIONS.length){
+    stopTimer();
+    showResult();
+    return;
+  }
+
+  const q = QUESTIONS[currentQ];
+  const qa = document.getElementById('quizArea');
+
+  // diff stars
+  const stars = [1,2,3].map(i=>
+    `<div class="diff-star${i<=q.diff?' on':''}"></div>`
+  ).join('');
+
+  let inner = `
+    <div class="q-meta">
+      <div class="q-badge">
+        <span>Q${currentQ+1}/${QUESTIONS.length}</span>
+        <div class="diff-stars">${stars}</div>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:var(--tx3)">
+        ${q.type==='mcq'?'Multiple choice':'Type answer'}
+      </span>
+    </div>
+    <div class="q-box" id="qBox">
+      <div class="q-text">${esc(q.q)}</div>
+  `;
+
+  if(q.type==='mcq'){
+    inner += `<div class="choices">`;
+    q.choices.forEach((c,i)=>{
+      inner += `<div class="choice" data-choice="${esc(c)}">
+        <div class="choice-letter">${LETTERS[i]}</div>
+        <span>${esc(c)}</span>
+      </div>`;
+    });
+    inner += `</div>`;
+  } else {
+    inner += `
+      <div class="input-row">
+        <input id="answer" autocomplete="off" autocapitalize="none"
+               autocorrect="off" spellcheck="false"
+               placeholder="Type your answer…" inputmode="text"/>
+        <button id="submitBtn">Go →</button>
+      </div>
+      <div class="hint-tip">Case-insensitive</div>
+    `;
+  }
+  inner += `</div>`;
+  qa.innerHTML = inner;
+
+  if(q.type==='mcq'){
+    qa.querySelectorAll('.choice').forEach(el=>{
+      el.addEventListener('click',()=>checkAnswer(el.getAttribute('data-choice'), el));
+    });
+  } else {
+    const btn=document.getElementById('submitBtn');
+    const input=document.getElementById('answer');
+    btn.addEventListener('click',()=>checkAnswer(input.value, null));
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer(input.value, null);});
+    // Don't auto-focus on mobile (would pop keyboard immediately)
+    if(window.matchMedia('(hover:hover)').matches){
+      setTimeout(()=>input.focus(), 80);
+    }
+  }
+  startTimer();
+}
+
+function checkAnswer(ans, clickedEl){
+  const q = QUESTIONS[currentQ];
+  const timeTaken = Math.floor((Date.now()-startTime)/1000);
+  const correct = norm(q.a)===norm(ans);
+  stopTimer();
+
+  const qBox = document.getElementById('qBox');
+
+  if(q.type==='mcq'){
+    document.querySelectorAll('.choice').forEach(ch=>{
+      const v = ch.getAttribute('data-choice');
+      if(norm(v)===norm(q.a)) ch.classList.add('correct');
+      else if(ch===clickedEl) ch.classList.add('wrong');
+      ch.style.pointerEvents='none';
+    });
+  } else {
+    if(qBox){
+      const fb=document.createElement('div');
+      fb.className='feedback-pill '+(correct?'ok':'ko');
+      fb.textContent = correct ? '✓ Correct!' : `✗ Answer: ${q.a}`;
+      qBox.appendChild(fb);
+    }
+    const input=document.getElementById('answer');
+    const btn=document.getElementById('submitBtn');
+    if(input) input.disabled=true;
+    if(btn) btn.disabled=true;
+  }
+
+  // Q-box feedback bg
+  if(qBox) qBox.classList.add(correct?'correct-bg':'wrong-bg');
+
+  if(correct){
+    streak++;
+    const pts=calcPoints(q.diff, timeTaken);
+    score += pts;
+    tokens += Math.max(1, Math.floor(pts/6));
+    elo += 5*q.diff;
+    claimHex();
+    haptic('correct');
+    flashStat('s-score');
+    flashStat('s-streak');
+  } else {
+    streak=0;
+    elo-=5;
+    loseHex();
+    haptic('wrong');
+    flashStat('s-elo');
+    // Shake the quiz panel
+    const qp=document.querySelector('.quiz-panel');
+    if(qp){qp.classList.remove('shake');void qp.offsetWidth;qp.classList.add('shake');}
+  }
+
+  updateStats();
+  currentQ++;
+  setTimeout(loadQuestion, correct?600:900);
+}
+
+/* ══════════════════════════════════════
+   RESULT
+══════════════════════════════════════ */
+function showResult(){
+  const pct = owned.filter(v=>v===1).length / owned.length;
+  haptic('win');
+
+  // Grade
+  const gradeMap=[
+    {min:25,t:'🏆 Grandmaster','msg':'Perfect battlefield domination!'},
+    {min:20,t:'⭐ Expert','msg':'Exceptional knowledge and speed!'},
+    {min:15,t:'🥇 Advanced','msg':'Strong performance overall.'},
+    {min:10,t:'🥈 Intermediate','msg':'Good effort — keep practicing!'},
+    {min:0 ,t:'🥉 Novice','msg':'Every battle is a lesson.'},
+  ];
+  const q_correct = owned.filter(v=>v===1).length;
+  const grade=gradeMap.find(g=>q_correct>=g.min)||gradeMap[gradeMap.length-1];
+
+  const trophy = elo>=1150?'🏆':elo>=1100?'⭐':elo>=1050?'🥇':'⚔️';
+  setText('resultTrophy', trophy);
+  setText('resultTitle', grade.t);
+  setText('resultSub', grade.msg);
+  setText('r-score', score);
+  setText('r-elo', elo);
+  setText('r-tokens', tokens);
+  document.getElementById('resultGrade').textContent =
+    `${q_correct} hexes claimed  ·  ${Math.round(pct*100)}% map covered`;
+
+  const overlay=document.getElementById('resultOverlay');
+  overlay.classList.add('show');
+  document.getElementById('restartBtn').addEventListener('click',restart,{once:true});
+}
+
+function restart(){
+  score=0;tokens=0;elo=1000;streak=0;currentQ=0;
+  resetHexOwnership();
+  updateStats();
+  document.getElementById('resultOverlay').classList.remove('show');
+  loadQuestion();
+}
+
+/* ══════════════════════════════════════
+   HEX MAP
+══════════════════════════════════════ */
+const canvas=document.getElementById('map');
+const ctx=canvas.getContext('2d');
+const gridRows=5, gridCols=6;
+let owned=[];
+let claimIdx=0;
+
+function resetHexOwnership(){
+  owned=Array.from({length:gridRows*gridCols},()=>0);
+  claimIdx=0;
+  drawMap();
+}
+
+function claimHex(){
+  for(let i=0;i<owned.length;i++){
+    const idx=(claimIdx+i)%owned.length;
+    if(owned[idx]===0){owned[idx]=1;claimIdx=(idx+1)%owned.length;break;}
+  }
+  drawMap();
+}
+
+function loseHex(){
+  for(let i=owned.length-1;i>=0;i--){
+    if(owned[i]===1){owned[i]=0;break;}
+  }
+  drawMap();
+}
+
+function resizeCanvas(){
+  const rect=canvas.getBoundingClientRect();
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.floor(rect.width*dpr);
+  canvas.height=Math.floor(rect.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawHexPath(x,y,size){
+  ctx.beginPath();
+  for(let i=0;i<6;i++){
+    const a=Math.PI/3*i+Math.PI/6;
+    const px=x+size*Math.cos(a);
+    const py=y+size*Math.sin(a);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+}
+
+function drawMap(){
+  resizeCanvas();
+  const W=canvas.getBoundingClientRect().width;
+  const H=canvas.getBoundingClientRect().height;
+  ctx.clearRect(0,0,W,H);
+
+  const size=Math.min(W,H)/(gridCols*1.95);
+  const xStep=size*1.75;
+  const yStep=size*1.52;
+  const totalW=(gridCols-1)*xStep+size*2.4;
+  const totalH=(gridRows-1)*yStep+size*2.4;
+  const sX=(W-totalW)/2+size*1.2;
+  const sY=(H-totalH)/2+size*1.2;
+
+  const claimedCount=owned.filter(v=>v===1).length;
+  const totalCells=owned.length;
+
+  for(let r=0;r<gridRows;r++){
+    for(let c=0;c<gridCols;c++){
+      const idx=r*gridCols+c;
+      const ox=(r%2?xStep/2:0);
+      const x=sX+c*xStep+ox;
+      const y=sY+r*yStep;
+      const state=owned[idx];
+
+      // Shadow for claimed
+      if(state===1){
+        ctx.save();
+        ctx.shadowColor='rgba(255,122,24,.5)';
+        ctx.shadowBlur=12;
+        drawHexPath(x,y,size*1.0);
+        ctx.fillStyle='rgba(255,122,24,.22)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      drawHexPath(x,y,size*.95);
+
+      // Fill
+      if(state===1){
+        const gradient=ctx.createRadialGradient(x,y,0,x,y,size);
+        gradient.addColorStop(0,'rgba(255,122,24,.40)');
+        gradient.addColorStop(1,'rgba(255,122,24,.18)');
+        ctx.fillStyle=gradient;
+      } else {
+        ctx.fillStyle='rgba(255,255,255,.03)';
+      }
+      ctx.fill();
+
+      // Border
+      ctx.lineWidth = state===1 ? 1.5 : 1;
+      ctx.strokeStyle = state===1
+        ? 'rgba(255,122,24,.55)'
+        : 'rgba(160,190,255,.14)';
+      ctx.stroke();
+
+      // Claimed icon
+      if(state===1){
+        ctx.font=`${size*.5}px sans-serif`;
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.globalAlpha=.75;
+        ctx.fillStyle='#fff';
+        ctx.fillText('⬡',x,y);
+        ctx.globalAlpha=1;
+      }
+    }
+  }
+
+  // Ownership label inside map
+  if(claimedCount>0){
+    ctx.font=`bold ${Math.max(10,size*.55)}px Syne, sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,122,24,.8)';
+    ctx.globalAlpha=.6;
+    ctx.fillText(
+      Math.round(claimedCount/totalCells*100)+'% claimed',
+      W/2, H-8
+    );
+    ctx.globalAlpha=1;
+  }
+}
+
+window.addEventListener('resize',()=>{resizeCanvas();drawMap();});
+
+/* ══════════════════════════════════════
+   PWA
+══════════════════════════════════════ */
+var deferredInstall=null;
+var isIOS=/iP(ad|hone|od)/.test(navigator.userAgent)&&!window.MSStream;
+var isStandalone=window.matchMedia('(display-mode:standalone)').matches||(window.navigator.standalone===true);
+var banner=document.getElementById('install-banner');
+var iosHint=document.getElementById('ios-hint');
+
+function doInstall(){
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(r=>{
+    if(r.outcome==='accepted'){deferredInstall=null;banner.classList.remove('show');}
+  });
+}
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredInstall=e;
+  setTimeout(function(){
+    try{if(!sessionStorage.getItem('hw-dismissed')&&!isStandalone)banner.classList.add('show');}catch(ex){}
+  },8000); // Show after 8s of play
+});
+
+document.getElementById('install-banner-btn').addEventListener('click',doInstall);
+document.getElementById('install-banner-dismiss').addEventListener('click',function(){
+  banner.classList.remove('show');
+  try{sessionStorage.setItem('hw-dismissed','1');}catch(e){}
+});
+
+if(isIOS&&!isStandalone){
+  setTimeout(function(){
+    try{if(!sessionStorage.getItem('hw-ios-dismissed'))iosHint.classList.add('show');}catch(e){}
+  },10000);
+}
+document.getElementById('ios-hint-close').addEventListener('click',function(){
+  iosHint.classList.remove('show');
+  try{sessionStorage.setItem('hw-ios-dismissed','1');}catch(e){}
+});
+window.addEventListener('appinstalled',function(){deferredInstall=null;banner.classList.remove('show');});
+
+// Service worker (inline cache-first)
+if('serviceWorker' in navigator){
+  const swBlob = new Blob([`
+    const CACHE='hexwars-v1';
+    const OFFLINE=['./HexWars.html'];
+    self.addEventListener('install',e=>{
+      e.waitUntil(caches.open(CACHE).then(c=>c.addAll(OFFLINE)));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate',e=>{
+      e.waitUntil(caches.keys().then(keys=>Promise.all(
+        keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))
+      )));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch',e=>{
+      e.respondWith(
+        caches.match(e.request).then(cached=>{
+          if(cached) return cached;
+          return fetch(e.request).then(resp=>{
+            const clone=resp.clone();
+            caches.open(CACHE).then(c=>c.put(e.request,clone));
+            return resp;
+          }).catch(()=>caches.match('./HexWars.html'));
+        })
+      );
+    });
+  `],{type:'application/javascript'});
+  const swURL=URL.createObjectURL(swBlob);
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register(swURL).catch(()=>{});
+  });
+}
+
+/* ══════════════════════════════════════
+   BOOT
+══════════════════════════════════════ */
+resetHexOwnership();
+updateStats();
+loadQuestion();
+</script>
+</body>
+</html>

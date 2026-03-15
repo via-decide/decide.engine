@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PrintByDD" />
+  <meta name="description" content="Precision 3D manufacturing — smart accessories, architectural models, and gifts that mean more." />
+  <link rel="manifest" href="./manifest.json" />
+  <title>PrintByDD • Architectural 3D Manufacturing</title>
+
+  <style>
+    /* ══════════════════════════════════════
+       GLOBAL UX PATCH — (A) + (B)
+       ── Kills iOS/Android blue tap flash
+       ── Pointer users: no outline
+          Keyboard users: :focus-visible ring
+       ── Text selection disabled site-wide;
+          re-enabled for all editable surfaces
+    ══════════════════════════════════════ */
+
+    /* (A) Kill tap highlight on every element */
+    *,
+    *::before,
+    *::after {
+      -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+      tap-highlight-color: rgba(0,0,0,0) !important;
+      -webkit-touch-callout: none;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* (A) Mouse/pointer users: suppress outline.
+           Keyboard users: keep :focus-visible ring. */
+    *:focus:not(:focus-visible) {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid rgba(255,42,42,0.55) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* (A) Subtle branded selection colour */
+    ::selection      { background: rgba(255,42,42,0.18); color: inherit; }
+    ::-moz-selection { background: rgba(255,42,42,0.18); color: inherit; }
+
+    /* (B) Disable text selection globally */
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    /* (B) Re-enable for all editable / readable surfaces */
+    input,
+    textarea,
+    select,
+    [contenteditable],
+    [contenteditable="true"],
+    .allow-select,
+    pre,
+    code,
+    .code-input {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+      -webkit-touch-callout: default !important;
+    }
+
+    /* ══════════════════════════════════════
+       CORE DESIGN TOKENS & BASE
+    ══════════════════════════════════════ */
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --text-main: #111111;
+      --text-muted: #666666;
+      --accent: #ff2a2a;
+      --border: rgba(0,0,0,0.08);
+      --header-height: 70px;
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                    "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    html { overflow-x: hidden; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; cursor: pointer; }
+    button { background: none; border: none; cursor: pointer; font: inherit; }
+
+    body.invert-mode { background-color: #050505; }
+    body.invert-mode #appWrapper,
+    body.invert-mode .site-header,
+    body.invert-mode .auth-modal,
+    body.invert-mode #install-banner,
+    body.invert-mode #ios-hint { filter: invert(1) hue-rotate(180deg); }
+    body.invert-mode img { filter: invert(1) hue-rotate(180deg); }
+
+    #appWrapper {
+      min-height: 100vh;
+      background-color: var(--bg);
+      transition: filter 0.3s ease;
+    }
+
+    /* ── PWA Install Banner ── */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 3000;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 14px 20px;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.10);
+    }
+    #install-banner.show { display: block; }
+    .ib-inner {
+      display: flex; align-items: center; gap: 14px;
+      max-width: 640px; margin: 0 auto;
+    }
+    .ib-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; flex-shrink: 0;
+      letter-spacing: -0.02em;
+    }
+    .ib-txt { flex: 1; }
+    .ib-txt strong { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); }
+    .ib-txt span   { font-size: 12px; color: var(--text-muted); }
+    .ib-acts { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .ib-btn {
+      font-size: 13px; font-weight: 800; padding: 9px 18px;
+      background: var(--text-main); color: #fff; border-radius: 999px;
+      cursor: pointer; transition: background .2s; white-space: nowrap;
+      border: none;
+    }
+    .ib-btn:hover { background: var(--accent); }
+    .ib-dismiss {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer; padding: 2px 6px;
+      line-height: 1; transition: color .2s;
+    }
+    .ib-dismiss:hover { color: var(--text-main); }
+
+    /* ── iOS Install Hint ── */
+    #ios-hint {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 3000;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 20px 24px 28px;
+      text-align: center;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+    }
+    #ios-hint.show { display: block; }
+    #ios-hint strong { display: block; font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
+    #ios-hint p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    #ios-hint p strong { display: inline; font-size: 13px; }
+    #ios-hint-close {
+      position: absolute; top: 12px; right: 16px;
+      background: none; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer;
+    }
+
+    /* ── Nav install button ── */
+    #install-pwa-nav {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px; font-weight: 800;
+      color: var(--accent);
+      padding: 6px 14px;
+      border: 1.5px solid var(--accent);
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    #install-pwa-nav:hover { background: var(--accent); color: #fff; }
+
+    /* ── Install App Section ── */
+    #install-section {
+      max-width: 840px;
+      margin: 60px 0 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+    }
+    .install-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      background: #f5f5f5;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+    }
+    .install-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,42,42,0.08);
+      color: var(--accent);
+      font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid rgba(255,42,42,0.20);
+      margin-bottom: 14px;
+    }
+    .install-badge::before {
+      content: ''; width: 7px; height: 7px;
+      background: var(--accent); border-radius: 50%;
+      animation: ibdot 1.8s infinite;
+    }
+    @keyframes ibdot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    #install-section h2 {
+      font-size: clamp(22px,3vw,34px);
+      font-weight: 900; letter-spacing: -0.03em;
+      margin-bottom: 10px; color: var(--text-main); line-height: 1.15;
+    }
+    #install-section h2 span { color: var(--accent); }
+    #install-section > .install-inner > .install-l > p {
+      font-size: 15px; color: var(--text-muted); margin-bottom: 22px; line-height: 1.65;
+    }
+    .install-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .install-step  { display: flex; align-items: flex-start; gap: 12px; }
+    .step-n {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--text-main); color: #fff;
+      font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step-txt { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+    .step-txt strong { color: var(--text-main); }
+    .install-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .install-r {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+    }
+    .dev-tabs {
+      display: flex; gap: 4px;
+      background: #f0f0f0; padding: 4px;
+      border-radius: 10px; margin-bottom: 16px;
+      width: 100%;
+    }
+    .dev-tab {
+      flex: 1; padding: 7px 0; border-radius: 7px;
+      font-size: 12px; font-weight: 700; text-align: center;
+      color: var(--text-muted); cursor: pointer;
+      border: none; background: transparent;
+      transition: all .2s;
+    }
+    .dev-tab.active {
+      background: #fff; color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .dev-inst { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+    .dev-inst strong { display: block; font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+    .dev-inst ol { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+    .dev-inst li strong { display: inline; }
+
+    @media (max-width: 620px) {
+      .install-inner { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
+      .install-btns  { flex-direction: column; }
+      .install-btns button { width: 100%; text-align: center; }
+    }
+
+    /* ── Global Header ── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: rgba(250,250,250,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5vw;
+      z-index: 1000;
+      transition: filter 0.3s ease;
+      overflow: hidden;
+    }
+    .site-header .logo {
+      font-size: 20px; font-weight: 900;
+      letter-spacing: -0.03em; color: var(--text-main);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .site-header nav {
+      display: flex; align-items: center; gap: 24px;
+      overflow: hidden; min-width: 0;
+    }
+    .site-header nav a {
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      transition: color 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .site-header nav a:hover,
+    .site-header nav a.active { color: var(--accent); }
+
+    .btn-icon {
+      font-weight: 900; color: var(--accent); font-size: 18px;
+      padding: 4px 10px; border: 1px solid var(--border);
+      border-radius: 999px; transition: transform 0.2s;
+      line-height: 1; flex-shrink: 0;
+    }
+    .btn-icon:active { transform: scale(0.92); }
+
+    /* ── Layout ── */
+    main {
+      padding-top: calc(var(--header-height) + 56px);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-left: 5vw;
+      padding-right: 5vw;
+      padding-bottom: 100px;
+    }
+
+    /* ── Hero ── */
+    .hero { max-width: 840px; margin-bottom: 64px; }
+    .hero h1 {
+      font-size: clamp(40px,6vw,72px);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -0.04em; margin-bottom: 18px; color: var(--text-main);
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: clamp(18px,2vw,22px);
+      color: var(--text-muted); line-height: 1.5;
+      max-width: 640px; margin-bottom: 32px;
+    }
+
+    .portal-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    .btn-primary {
+      background: var(--text-main); color: var(--surface);
+      font-weight: 800; font-size: 14px;
+      padding: 14px 24px; border-radius: 999px;
+      letter-spacing: 0.02em;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .btn-primary:hover  { background: var(--accent); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-secondary {
+      background: transparent; color: var(--text-main);
+      font-weight: 800; font-size: 14px;
+      padding: 14px 24px; border-radius: 999px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover  { border-color: var(--text-main); }
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* ── Auth Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .auth-modal {
+      background: var(--surface); width: 90%; max-width: 400px;
+      border-radius: 20px; padding: 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.15);
+      border: 1px solid var(--border);
+      transform: translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .modal-overlay.active .auth-modal { transform: translateY(0); }
+    .auth-modal h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; color: var(--text-main); letter-spacing: -0.02em; }
+    .auth-modal p  { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+    .code-input {
+      width: 100%; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; font-size: 20px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: 3px; text-align: center; text-transform: uppercase;
+      color: var(--text-main); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 16px;
+    }
+    .code-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,42,42,0.1); }
+    .auth-error { color: var(--accent); font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 16px; display: none; }
+    .modal-actions { display: flex; gap: 12px; }
+    .modal-actions button { flex: 1; }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 26px;
+      border-bottom: 1px solid var(--border); padding-bottom: 14px;
+    }
+    .section-header h2 {
+      font-size: 14px; text-transform: uppercase;
+      letter-spacing: 0.1em; font-weight: 800; color: var(--text-muted);
+    }
+
+    /* ── Grid ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 40px; }
+
+    /* ── Cards — native <a> tags, keyboard-accessible by default ── */
+    .card { display: flex; flex-direction: column; position: relative; cursor: pointer; }
+    .card:hover .card-image-wrap,
+    .card:hover .carousel-container {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.10);
+    }
+    .card-image-wrap {
+      width: 100%; aspect-ratio: 4/3;
+      border-radius: 14px; margin-bottom: 20px;
+      overflow: hidden; background: #f0f0f0;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.06);
+      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
+                  box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-image-wrap img {
+      width: 100%; height: 100%;
+      object-fit: contain; object-position: center; display: block;
+    }
+
+    /* ── Carousel ── */
+    .carousel-container {
+      width: 100%; aspect-ratio: 4/3;
+      border-radius: 14px; margin-bottom: 20px;
+      overflow: hidden; position: relative; background: #f0f0f0;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.06);
+      transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1),
+                  box-shadow 0.4s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .carousel-track {
+      display: flex; width: 100%; height: 100%;
+      overflow-x: auto; scroll-snap-type: x mandatory;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    .carousel-track img {
+      flex: 0 0 100%; width: 100%; height: 100%;
+      object-fit: contain; object-position: center;
+      background: #f0f0f0; scroll-snap-align: center; display: block;
+    }
+    .swipe-hint {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.60); backdrop-filter: blur(4px);
+      color: #fff; font-size: 10px; font-weight: 700;
+      padding: 6px 14px; border-radius: 999px;
+      pointer-events: none; letter-spacing: 0.1em;
+      text-transform: uppercase; white-space: nowrap;
+    }
+
+    .card .kicker {
+      font-size: 11px; font-weight: 800; color: var(--accent);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .card h3 {
+      font-size: 24px; font-weight: 800; line-height: 1.2;
+      letter-spacing: -0.02em; margin-bottom: 12px; color: var(--text-main);
+    }
+    .card p {
+      font-size: 15px; color: var(--text-muted);
+      line-height: 1.6; margin-bottom: 24px; flex-grow: 1;
+    }
+    .card-link {
+      font-size: 13px; font-weight: 800; color: var(--text-main);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .card-link::after { content: '→'; transition: transform 0.2s; color: var(--accent); }
+    .card:hover .card-link::after { transform: translateX(4px); }
+
+    /* ── Mobile ── */
+    @media (max-width: 720px) {
+      .site-header { padding: 0 4vw; gap: 8px; }
+      .site-header nav { gap: 10px; }
+      .site-header nav a { font-size: 12px; }
+      .btn-icon { padding: 4px 9px; font-size: 16px; }
+      #navInsta { display: none !important; }
+      #install-pwa-nav { display: none !important; }
+      .grid { grid-template-columns: 1fr; gap: 28px; }
+      main { padding-left: 4vw; padding-right: 4vw; }
+      .portal-cta { flex-direction: column; align-items: stretch; }
+      .portal-cta button { width: 100%; text-align: center; }
+      #install-section { padding: 24px 20px; }
+      .install-btns { flex-direction: column; }
+      .install-btns button { width: 100%; text-align: center; }
+    }
+
+    @media (max-width: 420px) {
+      #navBlog { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!--
+    ══════════════════════════════════════
+    JS TAP-HIGHLIGHT POLISH — (C)
+    Inline, before paint. Intercepts focus
+    events fired by touch on non-input
+    elements and immediately blurs them,
+    preventing iOS's lingering focus ring.
+    • Passive listeners — no scroll impact.
+    • Click fires before blur (rAF defer).
+    ══════════════════════════════════════
+  -->
+  <script>
+  (function () {
+    var touchActive = false;
+    document.addEventListener('touchstart', function () {
+      touchActive = true;
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      setTimeout(function () { touchActive = false; }, 400);
+    }, { passive: true });
+
+    document.addEventListener('focus', function (e) {
+      if (!touchActive) return;
+      var tag = (e.target.tagName || '').toUpperCase();
+      if (
+        tag === 'INPUT' || tag === 'TEXTAREA' ||
+        tag === 'SELECT' || e.target.isContentEditable
+      ) return;
+      requestAnimationFrame(function () {
+        if (document.activeElement === e.target) e.target.blur();
+      });
+    }, true);
+  })();
+  </script>
+
+  <!-- ══════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════ -->
+  <header class="site-header">
+    <a id="navLogo" href="/" class="logo">PrintByDD</a>
+    <nav>
+      <a id="navHome"     href="/"                class="active">Home</a>
+      <a id="navProducts" href="/products">Products</a>
+      <a id="navBlog"     href="/printbydd/gifts">Blog</a>
+
+      <a href="https://www.instagram.com/printbydd?igsh=a2Z3cDFwNG1wYm5n"
+         target="_blank" rel="noopener" id="navInsta"
+         style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
+                border-radius:999px;border:1px solid rgba(0,0,0,0.10);
+                font-size:12px;font-weight:800;
+                background:linear-gradient(135deg,rgba(240,148,51,0.08),rgba(188,24,136,0.08));
+                white-space:nowrap;transition:all 0.2s;"
+         aria-label="PrintByDD on Instagram">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="ig-s" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#f09433"/>
+              <stop offset="50%"  stop-color="#dc2743"/>
+              <stop offset="100%" stop-color="#bc1888"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-s)"/>
+          <circle cx="12" cy="12" r="4" stroke="url(#ig-s)"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="url(#ig-s)" stroke="none"/>
+        </svg>
+        <span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                     background-clip:text;">@printbydd</span>
+      </a>
+
+      <button id="install-pwa-nav" aria-label="Install app" type="button">📲 Install</button>
+      <button id="btnTheme" class="btn-icon" aria-label="Toggle theme" title="Toggle theme" type="button">☾</button>
+    </nav>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════ -->
+  <div id="appWrapper">
+    <main>
+
+      <!-- Hero -->
+      <div class="hero">
+        <h1>Physical concepts,<br>built in <span>3D.</span></h1>
+        <p>Precision manufacturing, smart accessories, and the psychology behind objects that matter.</p>
+        <div class="portal-cta" id="portalCtaContainer">
+          <button class="btn-primary"   onclick="openAuthModal()">Enter Portal</button>
+          <button class="btn-secondary" onclick="requestNewCode()">Request Access</button>
+        </div>
+      </div>
+
+      <!-- Products section -->
+      <div class="section-header">
+        <h2>Products</h2>
+      </div>
+
+      <div class="grid">
+        <a id="cardKeychain" href="/keychain" class="card">
+          <div class="card-image-wrap">
+            <img src="./1000217293.jpg" alt="Hardcore NFC Keychain" />
+          </div>
+          <div class="kicker">Smart Accessories</div>
+          <h3>The Hardcore NFC Keychain</h3>
+          <p>A seamless blend of physical durability and digital utility. Discover how we engineered a hidden digital vault inside a dual-color 3D print.</p>
+          <span class="card-link">View Product</span>
+        </a>
+
+        <a id="cardNumberplate" href="/printbydd/numberplate" class="card">
+          <div class="card-image-wrap">
+            <img src="./numberplate-preview.png" alt="3D Numberplate Keychain"
+                 onerror="this.style.display='none';" />
+          </div>
+          <div class="kicker">Custom Vehicle ID</div>
+          <h3>3D Two-Tone Numberplate</h3>
+          <p>Pick character color + boundary-height color, preview in 3D, then order. Designed for crisp readability and an engineered finish.</p>
+          <span class="card-link">View Product</span>
+        </a>
+      </div>
+
+      <!-- Blog section -->
+      <div class="section-header" style="margin-top:56px;">
+        <h2>Featured Perspectives</h2>
+      </div>
+
+      <div class="grid">
+        <a id="cardBlog" href="/printbydd/gifts" class="card">
+          <div class="carousel-container" aria-label="Image gallery">
+            <div class="carousel-track">
+              <img src="./1000217292.png" alt="Geometric Organizer" />
+              <img src="./1000217276.jpg" alt="Muscle Keychain Model" />
+            </div>
+            <div class="swipe-hint">Swipe Gallery ↔</div>
+          </div>
+          <div class="kicker">Gifting Psychology</div>
+          <h3>Gifts That Mean More</h3>
+          <p>The gifts people remember aren't always the costly ones. Learn why personalized objects become everyday memory triggers.</p>
+          <span class="card-link">Read Story</span>
+        </a>
+
+        <!-- Added blog card (active like others) -->
+        <a id="cardBlogPersonalized" href="./blog-personalized-gifts.html" class="card">
+          <div class="card-image-wrap">
+            <img
+              alt="Personalized gifts and emotional bonds"
+              src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20400%20300%27%3E%3Cdefs%3E%3CradialGradient%20id%3D%27g%27%20cx%3D%2750%25%27%20cy%3D%2740%25%27%20r%3D%2770%25%27%3E%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%23ff2a2a%27%20stop-opacity%3D%270.18%27/%3E%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%23ffffff%27%20stop-opacity%3D%270%27/%3E%3C/radialGradient%3E%3ClinearGradient%20id%3D%27r%27%20x1%3D%270%25%27%20y1%3D%270%25%27%20x2%3D%27100%25%27%20y2%3D%27100%25%27%3E%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%23ff2a2a%27/%3E%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%23ff6b6b%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%27400%27%20height%3D%27300%27%20fill%3D%27%23f0f0f0%27/%3E%3Crect%20width%3D%27400%27%20height%3D%27300%27%20fill%3D%27url(%23g)%27/%3E%3Cg%20transform%3D%27translate(70%2C58)%27%3E%3Crect%20x%3D%2760%27%20y%3D%27110%27%20width%3D%27140%27%20height%3D%27110%27%20rx%3D%2716%27%20fill%3D%27url(%23r)%27%20opacity%3D%270.95%27/%3E%3Crect%20x%3D%2752%27%20y%3D%2790%27%20width%3D%27156%27%20height%3D%2738%27%20rx%3D%2716%27%20fill%3D%27%23ffffff%27%20opacity%3D%270.72%27/%3E%3Crect%20x%3D%27124%27%20y%3D%2790%27%20width%3D%2712%27%20height%3D%27130%27%20rx%3D%276%27%20fill%3D%27%23ffffff%27%20opacity%3D%270.34%27/%3E%3Cpath%20d%3D%27M130%2090%20c-10-10-26-12-36-3%20c-10%209-6%2023%205%2028%20c11%205%2021-2%2029-10%20c8%208%2018%2015%2029%2010%20c11-5%2015-19%205-28%20c-10-9-26-7-36%203z%27%20fill%3D%27%23ff2a2a%27%20opacity%3D%270.45%27/%3E%3C/g%3E%3Ctext%20x%3D%27200%27%20y%3D%27258%27%20text-anchor%3D%27middle%27%20font-family%3D%27-apple-system%2C%20BlinkMacSystemFont%2C%20Segoe%20UI%2C%20Arial%2C%20sans-serif%27%20font-size%3D%2716%27%20fill%3D%27%23111111%27%20opacity%3D%270.75%27%3EThe%20Gift%20Lab%20%E2%80%94%20Emotional%20Bonds%3C/text%3E%3C/svg%3E" />
+          </div>
+          <div class="kicker">The Gift Lab</div>
+          <h3>Personalized Gifts & Emotional Bonds</h3>
+          <p>Why custom details create stronger attachment — psychology, memory science, and how everyday objects become emotional anchors.</p>
+          <span class="card-link">Read Story</span>
+        </a>
+      </div>
+
+      <!-- Install section -->
+      <div id="install-section">
+        <div class="install-inner">
+          <div class="install-l">
+            <div class="install-badge">📲 Install App</div>
+            <h2>Get PrintByDD on<br>any <span>device.</span></h2>
+            <p>Install our store as a Progressive Web App — no App Store needed. Works on Android, iPhone, Windows, Mac, and Linux. Browse and order offline, loads instantly from your homescreen.</p>
+            <div class="install-steps">
+              <div class="install-step">
+                <div class="step-n">1</div>
+                <div class="step-txt"><strong>Open in your browser</strong> — Chrome, Safari, or Edge</div>
+              </div>
+              <div class="install-step">
+                <div class="step-n">2</div>
+                <div class="step-txt"><strong>Tap the install prompt</strong> — or use your browser menu</div>
+              </div>
+              <div class="install-step">
+                <div class="step-n">3</div>
+                <div class="step-txt"><strong>Enjoy instant access</strong> — PrintByDD lives on your homescreen</div>
+              </div>
+            </div>
+            <div class="install-btns">
+              <button id="install-pwa-section" class="btn-primary"   style="display:none" type="button">📲 Install PrintByDD</button>
+              <button id="ios-trigger-section" class="btn-secondary" style="display:none" type="button">🍎 iPhone Instructions</button>
+            </div>
+          </div>
+
+          <div class="install-r">
+            <div class="dev-tabs">
+              <button class="dev-tab active" data-tab="android" type="button">Android</button>
+              <button class="dev-tab"        data-tab="ios"     type="button">iPhone</button>
+              <button class="dev-tab"        data-tab="desktop" type="button">Desktop</button>
+            </div>
+            <div id="tab-android" class="dev-inst">
+              <strong>📱 Android — Chrome</strong>
+              <ol>
+                <li>Open <strong>store.viadecide.com</strong> in Chrome</li>
+                <li>Tap the <strong>3-dot menu (⋮)</strong> top-right</li>
+                <li>Tap <strong>"Install app"</strong></li>
+                <li>Tap <strong>Install</strong> — icon appears on homescreen</li>
+              </ol>
+            </div>
+            <div id="tab-ios" class="dev-inst" style="display:none">
+              <strong>🍎 iPhone / iPad — Safari</strong>
+              <ol>
+                <li>Open in <strong>Safari</strong> (not Chrome)</li>
+                <li>Tap the <strong>Share button (□↑)</strong> at bottom</li>
+                <li>Tap <strong>"Add to Home Screen"</strong></li>
+                <li>Tap <strong>Add</strong> — done!</li>
+              </ol>
+            </div>
+            <div id="tab-desktop" class="dev-inst" style="display:none">
+              <strong>💻 Desktop — Chrome / Edge</strong>
+              <ol>
+                <li>Open in <strong>Chrome or Edge</strong></li>
+                <li>Look for the <strong>install icon ⊕</strong> in address bar</li>
+                <li>Or: <strong>3-dot menu → "Install PrintByDD"</strong></li>
+                <li>Click <strong>Install</strong> — opens as its own app!</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PWA BANNERS
+  ══════════════════════════════════════ -->
+  <div id="install-banner">
+    <div class="ib-inner">
+      <div class="ib-icon">P</div>
+      <div class="ib-txt">
+        <strong>Install PrintByDD Store</strong>
+        <span>Add to homescreen — works offline, loads instantly</span>
+      </div>
+      <div class="ib-acts">
+        <button class="ib-btn"     id="install-banner-btn"     type="button">Install</button>
+        <button class="ib-dismiss" id="install-banner-dismiss" aria-label="Dismiss" type="button">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ios-hint">
+    <button id="ios-hint-close" aria-label="Close" type="button">✕</button>
+    <strong>Install on iPhone / iPad</strong>
+    <p>Tap the <strong>Share button (□↑)</strong> at the bottom of Safari,<br>
+       then tap <strong>"Add to Home Screen"</strong> and tap <strong>Add</strong>.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       AUTH MODAL
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="authModalOverlay">
+    <div class="auth-modal">
+      <h2>Client Login</h2>
+      <p>Enter your 5-character secure access code (e.g., VIA-A1B2C).</p>
+      <input type="text" id="accessCodeInput" class="code-input allow-select"
+             placeholder="VIA-XXXXX" autocomplete="off" spellcheck="false" maxlength="9">
+      <div class="auth-error" id="authErrorMsg">Invalid code. Please check your WhatsApp.</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeAuthModal()" type="button">Cancel</button>
+        <button class="btn-primary"   onclick="verifyCode()"     type="button">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════ -->
+  <script>
+  (function () {
+    "use strict";
+
+    /* ── ROUTER ── */
+    (function fixStoreLinks() {
+      var isStoreDomain = location.hostname === 'store.viadecide.com';
+      if (!isStoreDomain) return;
+      if (location.pathname === '/printbydd') history.replaceState(null, '', '/printbydd/');
+    })();
+
+    function isStore() {
+      return location.hostname === 'store.viadecide.com' ||
+             location.pathname.startsWith('/printbydd');
+    }
+    function routeTo(pathHtml, pathRoute) {
+      return isStore() ? pathRoute : pathHtml;
+    }
+    (function applyNavRoutes() {
+      var links = {
+        'navLogo':              ['./index.html',                     '/printbydd/'],
+        'navHome':              ['./index.html',                     '/printbydd/'],
+        'navProducts':          ['./products.html',                  '/printbydd/products'],
+        'navBlog':              ['./gifts-that-mean-more.html',      '/printbydd/gifts'],
+        'cardKeychain':         ['./keychain.html',                  '/printbydd/keychain'],
+        'cardNumberplate':      ['./numberplate.html',               '/printbydd/numberplate'],
+        'cardBlog':             ['./gifts-that-mean-more.html',      '/printbydd/gifts'],
+        'cardBlogPersonalized': ['./blog-personalized-gifts.html',   '/printbydd/blog-personalized-gifts']
+      };
+      Object.keys(links).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.href = routeTo(links[id][0], links[id][1]);
+      });
+    })();
+
+    /* ── THEME ── */
+    var THEME_KEY = "VD_INVERT_THEME";
+    var btnTheme  = document.getElementById("btnTheme");
+
+    function setInvert(on) {
+      document.body.classList.toggle("invert-mode", !!on);
+      btnTheme.textContent = on ? "☀" : "☾";
+      try { localStorage.setItem(THEME_KEY, on ? "1" : "0"); } catch (e) {}
+    }
+    (function initTheme() {
+      var saved = "0";
+      try { saved = localStorage.getItem(THEME_KEY) || "0"; } catch (e) {}
+      setInvert(saved === "1");
+    })();
+    btnTheme.addEventListener("click", function () {
+      setInvert(!document.body.classList.contains("invert-mode"));
+    });
+
+    /* ── AUTH ── */
+    var AUTH_KEY  = "PBD_USER_VERIFIED";
+    var WA_NUMBER = "916351537770";
+
+    (function checkAuthStatus() {
+      if (localStorage.getItem(AUTH_KEY) === "true") showLoggedInState();
+    })();
+
+    window.requestNewCode = function () {
+      var text = "✦ *PRINTBYDD ACCESS REQUEST* ✦\n\n*Role:* CUSTOMER\n*Email:* [Enter your email here]\n\n_Please generate my secure access code._";
+      window.open('https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text), '_blank');
+    };
+
+    var modal    = document.getElementById("authModalOverlay");
+    var input    = document.getElementById("accessCodeInput");
+    var errorMsg = document.getElementById("authErrorMsg");
+
+    window.openAuthModal  = function () {
+      modal.classList.add("active");
+      input.value = "";
+      errorMsg.style.display = "none";
+      input.focus();
+    };
+    window.closeAuthModal = function () { modal.classList.remove("active"); };
+    window.verifyCode     = function () {
+      var code = input.value.trim().toUpperCase();
+      if (code.startsWith("VIA-") && code.length >= 8) {
+        localStorage.setItem(AUTH_KEY, "true");
+        closeAuthModal();
+        showLoggedInState();
+      } else {
+        errorMsg.style.display = "block";
+        input.value = "";
+        input.focus();
+      }
+    };
+    function showLoggedInState() {
+      document.getElementById("portalCtaContainer").innerHTML =
+        '<button class="btn-primary" onclick="alert(\'Portal Dashboard Coming Soon!\')">Access Dashboard</button>' +
+        '<button class="btn-secondary" onclick="logout()" style="border:none;text-decoration:underline">Sign Out</button>';
+    }
+    window.logout = function () { localStorage.removeItem(AUTH_KEY); location.reload(); };
+
+    /* Allow closing auth modal with Escape */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('active')) closeAuthModal();
+    });
+
+    /* ── DEVICE TABS ── */
+    document.querySelectorAll('.dev-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.dev-tab').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.dev-inst').forEach(function (d) { d.style.display = 'none'; });
+        var panel = document.getElementById('tab-' + tab.dataset.tab);
+        if (panel) panel.style.display = 'block';
+      });
+      /* Keyboard support for tab buttons */
+      tab.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tab.click(); }
+      });
+    });
+
+    /* ── PWA INSTALL ── */
+    var dP = null;
+    var isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !window.MSStream;
+    var isStandalone = window.matchMedia('(display-mode:standalone)').matches ||
+                       navigator.standalone === true;
+
+    var navBtn     = document.getElementById('install-pwa-nav');
+    var secBtn     = document.getElementById('install-pwa-section');
+    var iosTrigger = document.getElementById('ios-trigger-section');
+    var banner     = document.getElementById('install-banner');
+    var bannerBtn  = document.getElementById('install-banner-btn');
+    var bannerDis  = document.getElementById('install-banner-dismiss');
+    var iosHint    = document.getElementById('ios-hint');
+    var iosClose   = document.getElementById('ios-hint-close');
+
+    function isMobile() { return window.innerWidth <= 720; }
+
+    function showInstallBtns() {
+      if (navBtn && !isMobile()) navBtn.style.display = 'inline-flex';
+      if (secBtn) secBtn.style.display = 'inline-flex';
+    }
+    function hideInstallBtns() {
+      if (navBtn) navBtn.style.display = 'none';
+      if (secBtn) secBtn.style.display = 'none';
+      if (banner) banner.classList.remove('show');
+    }
+
+    if (isStandalone) hideInstallBtns();
+
+    function doInstall() {
+      if (dP) {
+        dP.prompt();
+        dP.userChoice.then(function (result) {
+          if (result.outcome === 'accepted') { dP = null; hideInstallBtns(); }
+        });
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      dP = e;
+      showInstallBtns();
+      setTimeout(function () {
+        try {
+          var dismissed = sessionStorage.getItem('pbd-install-dismissed');
+          if (!dismissed && !isStandalone && banner) banner.classList.add('show');
+        } catch (ex) {}
+      }, 3500);
+    });
+
+    if (navBtn)    navBtn.addEventListener('click', doInstall);
+    if (secBtn)    secBtn.addEventListener('click', doInstall);
+    if (bannerBtn) bannerBtn.addEventListener('click', function () {
+      doInstall();
+      if (banner) banner.classList.remove('show');
+    });
+    if (bannerDis) bannerDis.addEventListener('click', function () {
+      if (banner) banner.classList.remove('show');
+      try { sessionStorage.setItem('pbd-install-dismissed', '1'); } catch (e) {}
+    });
+
+    if (isIOS && !isStandalone) {
+      if (navBtn && !isMobile()) navBtn.style.display = 'inline-flex';
+      if (iosTrigger) {
+        iosTrigger.style.display = 'inline-flex';
+        iosTrigger.addEventListener('click', function () {
+          if (iosHint) iosHint.classList.add('show');
+        });
+      }
+      setTimeout(function () {
+        try {
+          var d = sessionStorage.getItem('pbd-ios-dismissed');
+          if (!d && iosHint) iosHint.classList.add('show');
+        } catch (e) {}
+      }, 4500);
+    }
+    if (iosClose) iosClose.addEventListener('click', function () {
+      if (iosHint) iosHint.classList.remove('show');
+      try { sessionStorage.setItem('pbd-ios-dismissed', '1'); } catch (e) {}
+    });
+
+    window.addEventListener('appinstalled', function () { dP = null; hideInstallBtns(); });
+    window.addEventListener('resize', function () {
+      if (isMobile() && navBtn) navBtn.style.display = 'none';
+    });
+
+    /* ── SERVICE WORKER ── */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      });
+    }
+
+  })();
+  </script>
+</body>
+</html>

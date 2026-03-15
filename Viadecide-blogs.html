@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>| ViaDecide</title>
+  <meta name="description" content="" />
+  <script>window.__MAIN_WEBSITE__ = "https://viadecide.com/";</script>
+  <script src="./router.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET & TOKENS ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* Deepened for a more cinematic, "Netflix" feel */
+      --bg:        #000000;
+      --bg2:       #0f0f0f;
+      --bg3:       #1a1a1a;
+      --border:    rgba(255,255,255,.04);
+      --border-hi: rgba(255,103,31,.5);
+      --acc:       #ff671f;
+      --acc2:      #ff8c4b;
+      --txt:       #ffffff;
+      --txt2:      #a0a0a0;
+      --txt3:      #666666;
+      --card:      rgba(255,255,255,.02);
+      --card-h:    rgba(255,103,31,.08);
+      --r:         12px; /* Slightly sharper radii for a modern tech feel */
+      --r-sm:      6px;
+      --font-head: 'DM Serif Display', Georgia, serif;
+      --font-ui:   'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: var(--font-ui);
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLL SNAP CONTAINER ───────────────────────────────── */
+    .snap-root {
+      height: 100dvh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none; /* Hidden for cleaner UI */
+    }
+    .snap-root::-webkit-scrollbar { display: none; }
+
+    /* ── SECTIONS ────────────────────────────────────────────── */
+    .section {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px 40px;
+      position: relative;
+    }
+    .section-inner {
+      width: 100%;
+      max-width: 780px;
+      opacity: 0;
+      transform: translateY(28px) scale(.985);
+      transition: opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1);
+    }
+    .section-inner.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .section.infographics-section {
+      min-height: 100dvh;
+      align-items: flex-start;
+      padding: 100px 0 60px 20px; /* Adjusted padding to let carousels bleed to the edge */
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    .section.infographics-section .section-inner { max-width: 100%; padding-right: 20px; }
+    .infographics-header { max-width: 780px; margin: 0 auto 56px auto; }
+
+    /* ── FIXED TOP BAR ───────────────────────────────────────── */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
+      border-bottom: none;
+    }
+    .top-bar .back {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--txt2);
+      text-decoration: none;
+      letter-spacing: .03em;
+      transition: color .2s;
+      white-space: nowrap;
+    }
+    .top-bar .back:hover { color: var(--txt); }
+    .sec-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--txt3);
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 4px 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+    .sec-pill span { color: var(--txt); font-weight: 600; }
+    .translate-btn {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      color: var(--txt2);
+      border-radius: var(--r-sm);
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .translate-btn:hover { background: rgba(255,255,255,0.1); color: var(--txt); }
+
+    /* ── SITE TOP NAV ────────────────────────────────────────── */
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+      padding: 12px 16px;
+      background: var(--bg2);
+      border-radius: var(--r);
+    }
+    .site-nav .brand {
+      font-family: var(--font-head);
+      font-size: 20px;
+      color: var(--acc);
+      text-decoration: none;
+      margin-right: 12px;
+      letter-spacing: -.02em;
+    }
+    .site-nav .nav-links {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .site-nav a.nav-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--txt2);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--r-sm);
+      transition: color .2s;
+    }
+    .site-nav a.nav-link:hover { color: var(--txt); }
+    .site-nav .nav-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-left: auto;
+    }
+    .btn-yt {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--txt2);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .btn-yt:hover { color: var(--txt); }
+    .btn-cta {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--bg);
+      background: var(--txt);
+      border-radius: var(--r-sm);
+      padding: 8px 16px;
+      text-decoration: none;
+      transition: transform .2s, background .2s;
+    }
+    .btn-cta:hover { background: var(--acc); color: #fff; transform: scale(1.02); }
+
+    /* ── SECTION LABELS & HEADINGS ───────────────────────────── */
+    .sec-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--txt2);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sec-label::before {
+      content: '';
+      display: inline-block;
+      width: 16px; height: 2px;
+      background: var(--acc);
+    }
+    h1, h2 {
+      font-family: var(--font-head);
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+    h1 { font-size: clamp(40px, 7vw, 76px); }
+    h2 { font-size: clamp(32px, 5vw, 54px); }
+    h3 { font-family: var(--font-ui); font-size: 20px; font-weight: 700; }
+
+    /* ── BODY TEXT ───────────────────────────────────────────── */
+    .lead {
+      font-size: clamp(17px, 2.5vw, 22px);
+      color: var(--txt2);
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+    .body-text {
+      font-size: 16px;
+      color: var(--txt2);
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+    strong { color: var(--txt); font-weight: 700; }
+    em { font-style: italic; color: var(--acc); }
+
+    /* ── CARDS (Vertical list style) ─────────────────────────── */
+    .card {
+      background: transparent;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      transition: transform .2s;
+    }
+    .card:last-child { border-bottom: none; }
+    .card:hover { transform: translateX(8px); }
+
+    /* ── MODULAR HORIZONTAL CAROUSELS ("NETFLIX" STYLE) ──────── */
+    /* Instead of wrapping grids, we use horizontal scrolling */
+    .carousel-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 16px;
+      padding: 10px 0 30px 0; /* Padding for hover shadows */
+      scrollbar-width: none;
+    }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    
+    .carousel-card {
+      background: var(--bg2);
+      border-radius: var(--r);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 260px;
+      max-width: 260px;
+      scroll-snap-align: start;
+      flex-shrink: 0;
+      text-decoration: none;
+      transition: transform .3s cubic-bezier(.25,.8,.25,1), background .3s;
+      position: relative;
+    }
+    .carousel-card:hover { 
+      transform: scale(1.04); 
+      background: var(--bg3);
+      z-index: 10;
+    }
+
+    /* Thumbnail block inside cards to simulate video UI */
+    .card-thumb {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+      border-radius: var(--r-sm);
+      margin-bottom: 8px;
+    }
+
+    .carousel-card h4 { font-size: 15px; font-weight: 700; color: var(--txt); line-height: 1.3; }
+    .carousel-card p { font-size: 13px; color: var(--txt2); line-height: 1.5; flex: 1; }
+    .carousel-card a, .carousel-card .cta-link {
+      font-size: 12px; font-weight: 700; color: var(--txt); margin-top: auto;
+    }
+    .carousel-card:hover a { color: var(--acc); }
+
+    /* ── PROBLEM SECTION & CHECKLIST ─────────────────────────── */
+    .problem-list, .checklist {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .problem-item, .check-item {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bg2);
+      border-radius: var(--r);
+      font-size: 15px;
+      color: var(--txt2);
+      transition: background .2s;
+    }
+    .problem-item:hover, .check-item:hover { background: var(--bg3); color: var(--txt); }
+    .problem-item .icon { font-size: 20px; }
+    .check-item::before {
+      content: '✓';
+      color: var(--bg);
+      background: var(--txt);
+      font-weight: 800; font-size: 12px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── FRAMEWORK STEPS ─────────────────────────────────────── */
+    .steps { margin-top: 32px; display: flex; flex-direction: column; }
+    .step { display: flex; gap: 24px; position: relative; }
+    .step-num {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--bg2);
+      color: var(--acc);
+      font-family: var(--font-mono);
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+    .step-line {
+      position: absolute; left: 19px; top: 40px;
+      width: 2px; height: calc(100% - 10px);
+      background: var(--bg2);
+    }
+    .step-body { padding-bottom: 32px; }
+    .step-body h4 { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
+    .step-body p { font-size: 15px; color: var(--txt2); line-height: 1.6; }
+
+    /* ── INFO BLOCKS (For Infographics) ──────────────────────── */
+    .info-block { margin-bottom: 48px; }
+    .info-block-label {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--txt3);
+      margin-bottom: 8px; padding-left: 20px; /* Aligns with section padding */
+    }
+    .info-block-title {
+      font-family: var(--font-ui); font-size: 20px; font-weight: 700;
+      margin-bottom: 16px; color: var(--txt); padding-left: 20px;
+    }
+
+    /* ── FOOTER NAV ──────────────────────────────────────────── */
+    .footer-nav-grid { 
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; 
+      padding-left: 20px; max-width: 780px;
+    }
+    .footer-col h5 {
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--txt3);
+      margin-bottom: 16px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-col ul a {
+      font-size: 14px; color: var(--txt2); text-decoration: none; transition: color .2s;
+    }
+    .footer-col ul a:hover { color: var(--txt); }
+
+    /* ── EXTRAS ──────────────────────────────────────────────── */
+    .sec-divider {
+      width: 100%; height: 1px; background: var(--border);
+      margin: 32px 0;
+    }
+    .hook-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,255,255,.03) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    @media (max-width: 600px) {
+      .site-nav .nav-links { display: none; }
+      .section { padding: 76px 16px 32px; }
+      .footer-nav-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-bar" role="banner">
+  <a class="back" href="#" data-back>← Back</a>
+  <div class="sec-pill" id="secPill"><span id="secNum">1</span>/<span id="secTotal">?</span></div>
+  <button class="translate-btn" id="translateBtn" aria-label="Toggle language">A / अ</button>
+</header>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="snap-root" id="snapRoot">
+
+  <section class="section" data-sec="1" data-name="Intro">
+    <div class="hook-bg"></div>
+    <div class="section-inner">
+      <nav class="site-nav" id="siteNav" aria-label="Site navigation"></nav>
+      <div class="sec-label">· </div>
+      <h1 id="hookTitle"></h1>
+      <p class="lead" id="hookLead">Most buying decisions are made on vibes, ads, and top-ranked results that someone paid to be there. There's a better way — and it's been hiding in plain sight.</p>
+      <div class="sec-divider"></div>
+      <a class="btn-cta" href="guides">Start Reading</a>
+    </div>
+  </section>
+
+  <section class="section" data-sec="2" data-name="Problem">
+    <div class="section-inner">
+      <div class="sec-label">The Problem</div>
+      <h2 id="problemTitle">Why product research is broken</h2>
+      <p class="body-text">The internet is flooded with reviews that exist to rank high and convert clicks — not to actually help you decide.</p>
+      <div class="problem-list">
+        <div class="problem-item"><span class="icon">💸</span><p><strong>Pay-to-rank</strong> — Sponsored placements masquerade as organic recommendations.</p></div>
+        <div class="problem-item"><span class="icon">📊</span><p><strong>Opaque scoring</strong> — "Editor's Pick" badges appear with zero methodology behind them.</p></div>
+        <div class="problem-item"><span class="icon">📅</span><p><strong>Outdated data</strong> — Articles published in 2021 rank on page one today.</p></div>
+        <div class="problem-item"><span class="icon">🎭</span><p><strong>Hidden conflicts</strong> — Affiliate commissions influence rankings, silently.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-sec="3" data-name="Insight">
+    <div class="section-inner">
+      <div class="sec-label">The Insight</div>
+      <h2 id="insightTitle">Decisions need a <em>system</em></h2>
+      <p class="body-text">The best decisions aren't made by reading more articles. They're made by applying a consistent framework — weighting criteria that <strong>matter to you</strong>.</p>
+      <div style="margin-top:40px; border-left: 2px solid var(--acc); padding-left: 24px;">
+        <p style="font-size:20px; font-family:var(--font-head); line-height:1.4; color:var(--txt);" id="insightQuote">
+          "The question isn't which laptop is best. It's which laptop is best <em>for you</em> — and that requires a decision engine, not a listicle."
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-sec="4" data-name="Framework">
+    <div class="section-inner">
+      <div class="sec-label">The Framework</div>
+      <h2 id="frameworkTitle">How the Engine works</h2>
+      <div class="steps">
+        <div class="step">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div class="step-num">1</div><div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <h4>Define requirements</h4>
+            <p>Budget, use-case, deal-breakers turned into weighted criteria.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div class="step-num">2</div><div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <h4>Transparent comparison</h4>
+            <p>Every data point is sourced. Weighted scores are calculated openly.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div class="step-num">3</div>
+          </div>
+          <div class="step-body" style="padding-bottom:0">
+            <h4>Check for red flags</h4>
+            <p>Hidden caveats and misleading specs surfaced before you commit.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-sec="5" data-name="Examples">
+    <div class="section-inner">
+      <div class="sec-label">In Practice</div>
+      <h2 id="examplesTitle">Decisions made smarter</h2>
+      <div style="display:flex;flex-direction:column;margin-top:32px;">
+        <div class="card">
+          <h3 style="font-size:18px;margin-bottom:8px;">Laptops Under ₹50,000</h3>
+          <p class="body-text" style="margin-top:0;font-size:15px;">Scored across 11 weighted criteria: performance, thermals, display, build quality, and more. <a href="laptops-under-50000" style="color:var(--txt);font-weight:600;margin-left:8px;">Compare →</a></p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:18px;margin-bottom:8px;">Wireless Earbuds Under ₹3,000</h3>
+          <p class="body-text" style="margin-top:0;font-size:15px;">ANC quality, latency, touch controls, and app support independently tested. <a href="earbuds-under-3000" style="color:var(--txt);font-weight:600;margin-left:8px;">Compare →</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section infographics-section" data-sec="6" data-name="Infographics">
+    <div class="section-inner">
+      <div class="infographics-header">
+        <div class="sec-label">Visual Guide</div>
+        <h2>Explore the Ecosystem</h2>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-label">01 / Engine Tools</div>
+        <h3 class="info-block-title">Powering your research</h3>
+        <div class="carousel-track" id="toolsGrid"></div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-label">02 / Latest Guides</div>
+        <h3 class="info-block-title">Trending categories</h3>
+        <div class="carousel-track" id="guidesGrid"></div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-label">03 / Built For</div>
+        <h3 class="info-block-title">Who is this for?</h3>
+        <div class="carousel-track" id="audienceGrid"></div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-label">04 / Directory</div>
+        <h3 class="info-block-title">Platform Map</h3>
+        <div class="footer-nav-grid" id="footerNavGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-sec="7" data-name="Checklist">
+    <div class="section-inner">
+      <div class="sec-label">Action Plan</div>
+      <h2 id="checklistTitle">Before you buy</h2>
+      <div class="checklist">
+        <div class="check-item">Write down your top 3 requirements — not features, but outcomes.</div>
+        <div class="check-item">Set a hard budget ceiling. Treat it as separate from your ideal spend.</div>
+        <div class="check-item">Run the Red Flag Detector on your shortlist before committing.</div>
+        <div class="check-item">Verify the review date. Outdated data = bad decisions.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const TOP_NAV = [
+  { label: "Compare", route: "compare" },
+  { label: "Tools", route: "tools" },
+  { label: "Guides", route: "guides" }
+];
+
+const TOOLS_GRID = [
+  { title: "Deep Comparisons", desc: "Side-by-side analysis with weighted scoring.", route: "compare", cta: "Explore" },
+  { title: "Decision Guides", desc: "Frameworks that adapt to your budget.", route: "guides", cta: "Browse" },
+  { title: "Price Fairness", desc: "Know if you're paying above fair value.", route: "price-fairness", cta: "Check" },
+  { title: "Red Flag Detector", desc: "Surfaces hidden caveats before you buy.", route: "red-flag-detector", cta: "Learn More" }
+];
+
+const LATEST_GUIDES = [
+  { tag: "Laptops", title: "Laptops Under ₹50,000", minutes: 8, route: "laptops-under-50000" },
+  { tag: "Audio", title: "Wireless Earbuds Under ₹3,000", minutes: 6, route: "earbuds-under-3000" },
+  { tag: "Phones", title: "Mid-Range Smartphone Guide", minutes: 10, route: "mid-range-phones-2025" }
+];
+
+const AUDIENCE = [
+  { title: 'First-time buyers', desc: 'Navigating a category for the very first time.' },
+  { title: 'Professionals', desc: 'Need reliable tools, not the cheapest option.' },
+  { title: 'Budget-conscious', desc: 'Every rupee counts. Maximum value required.' },
+  { title: 'Busy decision-makers', desc: 'Need a trustworthy shortlist in under 10 minutes.' }
+];
+
+const FOOTER = {
+  tools: [ { label: "Compare Products", route: "compare" }, { label: "All Tools", route: "tools" } ],
+  guides: [ { label: "Laptops Under ₹50k", route: "laptops-under-50000" }, { label: "All Guides →", route: "guides" } ],
+  company: [ { label: "About Us", route: "about" }, { label: "Methodology", route: "methodology" } ]
+};
+
+
+const BLOG_ROUTE_MAP = {
+  compare: 'alchemist',
+  tools: 'alchemist',
+  guides: 'viaguide',
+  'price-fairness': 'alchemist',
+  'red-flag-detector': 'alchemist',
+  'laptops-under-50000': 'laptops-under-50000',
+  'earbuds-under-3000': 'viadecide-blogs',
+  'mid-range-phones-2025': 'viadecide-blogs',
+  about: 'founder',
+  methodology: 'founder'
+};
+function toHref(route){
+  const slug = BLOG_ROUTE_MAP[route] || route;
+  if (window.VDRouter && window.VDRouter.resolve) {
+    return '/' + window.VDRouter.resolve(slug);
+  }
+  return '/' + slug + '.html';
+}
+function bindRouteLinks(){
+  document.querySelectorAll('a[data-route]').forEach(a=>{
+    if(a._bound) return;
+    a.addEventListener('click', (e)=>{
+      const route = a.getAttribute('data-route');
+      const slug = BLOG_ROUTE_MAP[route] || route;
+      if(window.VDRouter){
+        e.preventDefault();
+        window.VDRouter.go(slug);
+      }
+    });
+    a._bound = true;
+  });
+}
+(function renderSiteNav() {
+  const nav = document.getElementById('siteNav');
+  if (!nav) return;
+  nav.innerHTML = `<a class="brand" href="/">ViaDecide</a><div class="nav-links"></div>`;
+  const links = nav.querySelector('.nav-links');
+  TOP_NAV.forEach(item => links.innerHTML += `<a class=\"nav-link\" href=\"${toHref(item.route)}\" data-route=\"${item.route}\">${item.label}</a>`);
+})();
+
+(function renderCarousels() {
+  const tGrid = document.getElementById('toolsGrid');
+  if (tGrid) TOOLS_GRID.forEach(t => tGrid.innerHTML += `
+    <a href="${toHref(t.route)}" data-route="${t.route}" class="carousel-card">
+      <div class="card-thumb"></div>
+      <h4>${t.title}</h4><p>${t.desc}</p>
+      <span class="cta-link">${t.cta} →</span>
+    </a>`);
+
+  const gGrid = document.getElementById('guidesGrid');
+  if (gGrid) LATEST_GUIDES.forEach(g => gGrid.innerHTML += `
+    <a href="${toHref(g.route)}" data-route="${g.route}" class="carousel-card">
+      <div class="card-thumb"></div>
+      <div style="font-size:11px;color:var(--acc);letter-spacing:.05em;">${g.tag.toUpperCase()}</div>
+      <h4>${g.title}</h4>
+      <p style="font-family:var(--font-mono);font-size:11px;">⏱ ${g.minutes} min read</p>
+    </a>`);
+
+  const aGrid = document.getElementById('audienceGrid');
+  if (aGrid) AUDIENCE.forEach(a => aGrid.innerHTML += `
+    <div class="carousel-card" style="justify-content:center;">
+      <h4>${a.title}</h4><p>${a.desc}</p>
+    </div>`);
+})();
+
+(function renderFooterNav() {
+  const el = document.getElementById('footerNavGrid');
+  if (!el) return;
+  [{ h: 'Tools', i: FOOTER.tools }, { h: 'Guides', i: FOOTER.guides }, { h: 'Company', i: FOOTER.company }].forEach(col => {
+    let lis = col.i.map(item => `<li><a href="${toHref(item.route)}" data-route="${item.route}">${item.label}</a></li>`).join('');
+    el.innerHTML += `<div class="footer-col"><h5>${col.h}</h5><ul>${lis}</ul></div>`;
+  });
+})();
+
+bindRouteLinks();
+
+const sections = Array.from(document.querySelectorAll('.section'));
+const secNumEl = document.getElementById('secNum');
+const secTotalEl = document.getElementById('secTotal');
+secTotalEl.textContent = sections.length;
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const inner = entry.target.querySelector('.section-inner');
+    if (entry.isIntersecting && inner) {
+      inner.classList.add('visible');
+      if (entry.target.dataset.sec) secNumEl.textContent = entry.target.dataset.sec;
+    }
+  });
+}, { threshold: 0.15 });
+sections.forEach(sec => observer.observe(sec));
+</script>
+</body>
+</html>

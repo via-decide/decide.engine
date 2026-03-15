@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>StudyOS — Swipe Daily Progress</title>
+  <meta name="theme-color" content="#0b1020" />
+  <style>
+    :root{
+      --bg:#070a13;
+      --card:#0f162a;
+      --card2:#0b1224;
+      --text:#e9efff;
+      --muted:#94a3b8;
+      --line:rgba(255,255,255,.10);
+      --brand:#7c3aed;
+      --brand2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --bottomH: 86px; /* fixed bottom navigator height allowance */
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(124,58,237,.20), transparent 55%),
+        radial-gradient(900px 500px at 80% 10%, rgba(34,197,94,.14), transparent 55%),
+        radial-gradient(800px 420px at 50% 100%, rgba(59,130,246,.10), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      overflow:hidden; /* we control internal scrolling */
+    }
+
+    /* Safe area */
+    .safe-top{padding-top: env(safe-area-inset-top);}
+    .safe-bottom{padding-bottom: env(safe-area-inset-bottom);}
+
+    .wrap{
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding:14px 14px calc(12px + var(--bottomH));
+      gap:12px;
+    }
+
+    /* Header */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; min-width:0;
+    }
+    .logo{
+      width:38px; height:38px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.65));
+      box-shadow: 0 12px 30px rgba(124,58,237,.25);
+      display:grid; place-items:center;
+      font-weight:900;
+      letter-spacing:-.03em;
+    }
+    .title{min-width:0}
+    .title h1{
+      margin:0;
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.02em;
+      line-height:1.1;
+    }
+    .title p{
+      margin:3px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .pillrow{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: rgba(233,239,255,.92);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-family:var(--mono);
+      letter-spacing:.04em;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      transition: transform .08s ease, border-color .18s ease, background .18s ease;
+    }
+    .pill:active{transform:scale(.98)}
+    .pill.active{
+      border-color: rgba(124,58,237,.55);
+      background: rgba(124,58,237,.15);
+    }
+
+    /* Swipe Deck */
+    .deck{
+      position:relative;
+      flex:1;
+      min-height:0;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .deck::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 260px at 50% 0%, rgba(124,58,237,.16), transparent 55%),
+                  radial-gradient(520px 240px at 90% 20%, rgba(34,197,94,.11), transparent 55%);
+      pointer-events:none;
+      filter: blur(0px);
+    }
+
+    .track{
+      position:absolute; inset:0;
+      display:flex;
+      width:100%;
+      height:100%;
+      transform: translateX(0);
+      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      will-change: transform;
+    }
+
+    .card{
+      position:relative;
+      min-width:100%;
+      height:100%;
+      padding:16px 14px 170px; /* more room for fixed bottom navigator */
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .card-inner{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding:14px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .kicker{
+      font-family:var(--mono);
+      color: rgba(233,239,255,.85);
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .kbadge{
+      font-size:11px;
+      color: rgba(148,163,184,.95);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(15,22,42,.55);
+      letter-spacing:.08em;
+      font-family:var(--mono);
+      white-space:nowrap;
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:-.02em;
+    }
+    .hint{
+      margin:0 0 14px;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:13px;
+    }
+
+    .grid{
+      display:grid;
+      gap:10px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:8px;
+      padding:12px;
+      border-radius: var(--radius2);
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(7,10,19,.35);
+    }
+    .row .label{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      font-weight:800;
+      letter-spacing:.01em;
+    }
+    .row .label span.small{
+      font-weight:700;
+      font-family:var(--mono);
+      color: rgba(148,163,184,.95);
+      font-size:12px;
+    }
+
+    input[type="text"], textarea, select{
+      width:100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(15,22,42,.55);
+      color: var(--text);
+      padding: 11px 12px;
+      outline:none;
+      font-size:14px;
+      transition: border-color .2s ease, transform .06s ease;
+    }
+    textarea{min-height:90px; resize: vertical; line-height:1.5}
+    input:focus, textarea:focus, select:focus{border-color: rgba(124,58,237,.55)}
+    input:active, textarea:active, select:active{transform: scale(.996)}
+
+    .chips{
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:2px;
+    }
+    .chip{
+      border-radius:999px;
+      padding:8px 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      font-size:12px;
+      color: rgba(233,239,255,.92);
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      transition: all .16s ease;
+      font-family: var(--mono);
+      letter-spacing:.04em;
+    }
+    .chip.active{
+      border-color: rgba(34,197,94,.50);
+      background: rgba(34,197,94,.14);
+      color: rgba(216,255,232,.95);
+    }
+
+    /* Fixed bottom navigator (visible on all pages) */
+    .bottom{
+      position:fixed;
+      left:14px;
+      right:14px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      padding:12px 12px 12px;
+      background: linear-gradient(180deg, rgba(15,22,42,.78), rgba(7,10,19,.90));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 16px 60px rgba(0,0,0,.55);
+      z-index: 2000;
+    }
+
+    .nav{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+
+    .btn{
+      border:none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight:900;
+      letter-spacing:.02em;
+      cursor:pointer;
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      transition: transform .08s ease, filter .18s ease, background .18s ease, border-color .18s ease;
+      -webkit-tap-highlight-color:transparent;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      min-width: 44px;
+      user-select:none;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn.primary{
+      background: rgba(124,58,237,.22);
+      border-color: rgba(124,58,237,.45);
+      box-shadow: 0 14px 30px rgba(124,58,237,.20);
+    }
+    .btn.good{
+      background: rgba(34,197,94,.18);
+      border-color: rgba(34,197,94,.42);
+      box-shadow: 0 14px 30px rgba(34,197,94,.16);
+    }
+    .btn.warn{
+      background: rgba(245,158,11,.16);
+      border-color: rgba(245,158,11,.42);
+    }
+    .btn.danger{
+      background: rgba(239,68,68,.16);
+      border-color: rgba(239,68,68,.42);
+    }
+
+    .leftbtns, .rightbtns{display:flex; gap:8px; align-items:center}
+    .progress{
+      display:flex; align-items:center; gap:8px; justify-content:center;
+      flex:1;
+      min-width:0;
+    }
+    .dot{
+      width:7px; height:7px; border-radius:999px;
+      background: rgba(255,255,255,.18);
+      transition: all .2s ease;
+    }
+    .dot.active{width:22px; border-radius:999px; background: rgba(124,58,237,.85)}
+    .dot.done{background: rgba(34,197,94,.8)}
+    .ptext{
+      font-family:var(--mono);
+      color: rgba(148,163,184,.95);
+      font-size:11px;
+      letter-spacing:.12em;
+      white-space:nowrap;
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom: calc(18px + env(safe-area-inset-bottom) + var(--bottomH));
+      padding:10px 14px;
+      border-radius: 999px;
+      background: rgba(15,22,42,.88);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 16px 50px rgba(0,0,0,.45);
+      color: rgba(233,239,255,.92);
+      font-family: var(--mono);
+      font-size:12px;
+      letter-spacing:.04em;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index:9999;
+    }
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+    /* Small screens */
+    @media (max-width:360px){
+      .card{padding-bottom:190px}
+      .btn{padding:11px 12px}
+      .wrap{padding-bottom: calc(12px + var(--bottomH) + 10px);}
+    }
+  </style>
+</head>
+
+<body class="safe-top safe-bottom">
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">S</div>
+        <div class="title">
+          <h1>StudyOS</h1>
+          <p id="subtitle">Swipe to log today’s progress • autosaves</p>
+        </div>
+      </div>
+
+      <div class="pillrow">
+        <div class="pill active" id="modeToday" role="button" tabindex="0">TODAY</div>
+        <div class="pill" id="modeYday" role="button" tabindex="0">YDAY</div>
+      </div>
+    </header>
+
+    <main class="deck" id="deck">
+      <div class="track" id="track">
+        <!-- CARD 1 -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="kicker">
+              <span>DAILY SETUP</span>
+              <span class="kbadge" id="dateLabel"></span>
+            </div>
+            <h2>Quick check-in</h2>
+            <p class="hint">Keep it simple. Swipe →. You can copy a clean report anytime.</p>
+
+            <div class="grid">
+              <div class="row">
+                <div class="label">Focus of the day <span class="small">(1 line)</span></div>
+                <input id="focus" type="text" placeholder="e.g. DSA arrays + OS notes" maxlength="80" />
+              </div>
+
+              <div class="row">
+                <div class="label">Energy level <span class="small">(tap)</span></div>
+                <div class="chips" id="energyChips">
+                  <div class="chip" data-val="Low">LOW</div>
+                  <div class="chip" data-val="Medium">MED</div>
+                  <div class="chip" data-val="High">HIGH</div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="label">Distractions <span class="small">(optional)</span></div>
+                <input id="distractions" type="text" placeholder="e.g. reels, calls, sleep" maxlength="90" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 2 -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="kicker">
+              <span>STUDY</span>
+              <span class="kbadge">CORE</span>
+            </div>
+            <h2>Study progress</h2>
+            <p class="hint">Log actual output. Not plans.</p>
+
+            <div class="grid">
+              <div class="row">
+                <div class="label">Hours studied <span class="small">(number)</span></div>
+                <select id="studyHours">
+                  <option value="">Select…</option>
+                  <option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option>
+                  <option>2.5</option><option>3</option><option>4</option><option>5</option><option>6+</option>
+                </select>
+              </div>
+
+              <div class="row">
+                <div class="label">What did you complete? <span class="small">(bullets ok)</span></div>
+                <textarea id="studyDone" placeholder="• Topic 1&#10;• Topic 2"></textarea>
+              </div>
+
+              <div class="row">
+                <div class="label">One key learning <span class="small">(1 sentence)</span></div>
+                <input id="learning" type="text" placeholder="e.g. Binary search invariants finally clicked" maxlength="110" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 3 -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="kicker">
+              <span>HEALTH + HABITS</span>
+              <span class="kbadge">STABILITY</span>
+            </div>
+            <h2>Habits</h2>
+            <p class="hint">Small consistency beats big motivation.</p>
+
+            <div class="grid">
+              <div class="row">
+                <div class="label">Workout / steps <span class="small">(optional)</span></div>
+                <input id="workout" type="text" placeholder="e.g. 6k steps + pushups" maxlength="80" />
+              </div>
+
+              <div class="row">
+                <div class="label">Sleep <span class="small">(hours)</span></div>
+                <select id="sleep">
+                  <option value="">Select…</option>
+                  <option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9+</option>
+                </select>
+              </div>
+
+              <div class="row">
+                <div class="label">Mood <span class="small">(tap)</span></div>
+                <div class="chips" id="moodChips">
+                  <div class="chip" data-val="🙂 Good">🙂 GOOD</div>
+                  <div class="chip" data-val="😐 Okay">😐 OK</div>
+                  <div class="chip" data-val="😣 Low">😣 LOW</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 4 -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="kicker">
+              <span>WRAP UP</span>
+              <span class="kbadge">COPY / SHARE</span>
+            </div>
+            <h2>Daily report</h2>
+            <p class="hint">Tap <b>Copy</b> to paste into WhatsApp/Notion. Tap <b>Share</b> to send directly.</p>
+
+            <div class="grid">
+              <div class="row">
+                <div class="label">Tomorrow’s priority <span class="small">(1 line)</span></div>
+                <input id="tomorrow" type="text" placeholder="e.g. Finish CN subnetting + 2 leetcode" maxlength="90" />
+              </div>
+
+              <div class="row">
+                <div class="label">Blockers <span class="small">(if any)</span></div>
+                <textarea id="blockers" placeholder="What stopped you? What do you need?"></textarea>
+              </div>
+
+              <div class="row">
+                <div class="label">Generated text <span class="small">(auto)</span></div>
+                <textarea id="preview" readonly></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Fixed bottom navigation (visible on all pages/cards) -->
+  <div class="bottom" id="bottomNav">
+    <div class="nav">
+      <div class="leftbtns">
+        <button class="btn" id="prevBtn" title="Previous">←</button>
+        <button class="btn danger" id="resetBtn" title="Reset today">Reset</button>
+      </div>
+
+      <div class="progress" aria-label="Progress">
+        <span class="ptext" id="ptext">01/04</span>
+        <span class="dot active" id="d0"></span>
+        <span class="dot" id="d1"></span>
+        <span class="dot" id="d2"></span>
+        <span class="dot" id="d3"></span>
+      </div>
+
+      <div class="rightbtns">
+        <button class="btn good" id="copyBtn">Copy</button>
+        <button class="btn primary" id="shareBtn">Share</button>
+        <button class="btn primary" id="nextBtn" title="Next">→</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== Helpers =====
+    const $ = (id) => document.getElementById(id);
+    const toastEl = $("toast");
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toastEl._t);
+      toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
+
+    // Robust clipboard copy (works even when Clipboard API is blocked)
+    async function copyText(txt){
+      const text = String(txt || "");
+      // Try modern async clipboard when available & allowed
+      try{
+        if (navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      }catch(e){ /* fall through */ }
+
+      // Fallback: temporary textarea selection
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-1000px";
+        ta.style.left = "-1000px";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return !!ok;
+      }catch(e){
+        return false;
+      }
+    }
+
+    // ===== Date + Mode (Today / Yesterday) =====
+    const modeToday = $("modeToday");
+    const modeYday = $("modeYday");
+    const dateLabel = $("dateLabel");
+
+    function fmtDate(d){
+      return d.toLocaleDateString("en-IN", { weekday:"short", day:"2-digit", month:"short" });
+    }
+    function dayKey(offsetDays){
+      const d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      const iso = d.toISOString().slice(0,10);
+      return `studyos_v2_${iso}`;
+    }
+
+    let activeOffset = 0; // 0 = today, -1 = yesterday
+    let storageKey = dayKey(activeOffset);
+
+    function setMode(offset){
+      activeOffset = offset;
+      storageKey = dayKey(activeOffset);
+      modeToday.classList.toggle("active", activeOffset===0);
+      modeYday.classList.toggle("active", activeOffset===-1);
+      const d = new Date(); d.setDate(d.getDate()+activeOffset);
+      dateLabel.textContent = fmtDate(d);
+      load();
+      renderPreview();
+      toast(activeOffset===0 ? "Today loaded" : "Yesterday loaded");
+    }
+
+    modeToday.onclick = () => setMode(0);
+    modeYday.onclick = () => setMode(-1);
+
+    // ===== Swipe deck =====
+    const track = $("track");
+    const deck = $("deck");
+    const cardsCount = 4;
+    let idx = 0;
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+    function go(i){
+      idx = clamp(i, 0, cardsCount-1);
+      track.style.transition = "transform .28s cubic-bezier(.2,.8,.2,1)";
+      track.style.transform = `translateX(${-idx*100}%)`;
+      updateDots();
+      updateNavBtns();
+      renderPreview();
+    }
+
+    function updateDots(){
+      $("ptext").textContent = String(idx+1).padStart(2,"0") + "/" + String(cardsCount).padStart(2,"0");
+      for(let i=0;i<cardsCount;i++){
+        const d = $("d"+i);
+        d.classList.toggle("active", i===idx);
+        d.classList.toggle("done", i<idx);
+      }
+    }
+
+    function updateNavBtns(){
+      $("prevBtn").style.opacity = idx===0 ? .55 : 1;
+      $("nextBtn").style.opacity = idx===cardsCount-1 ? .55 : 1;
+    }
+
+    $("prevBtn").onclick = ()=> go(idx-1);
+    $("nextBtn").onclick = ()=> go(idx+1);
+
+    // Touch swipe (horizontal)
+    let startX=null, startY=null, dragging=false;
+    deck.addEventListener("touchstart", (e)=>{
+      if(!e.touches || e.touches.length!==1) return;
+      const t = e.target;
+      if (t.closest("textarea") || t.closest("input") || t.closest("select")) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      dragging = true;
+      track.style.transition = "none";
+    }, {passive:true});
+
+    deck.addEventListener("touchmove", (e)=>{
+      if(!dragging || startX===null) return;
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const dx = x - startX;
+      const dy = y - startY;
+      // only horizontal
+      if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10){
+        e.preventDefault();
+        const pct = (dx / deck.clientWidth) * 100;
+        track.style.transform = `translateX(${(-idx*100) + pct}%)`;
+      }
+    }, {passive:false});
+
+    deck.addEventListener("touchend", (e)=>{
+      if(!dragging) return;
+      dragging=false;
+      const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
+      const dx = endX - startX;
+      track.style.transition = "transform .28s cubic-bezier(.2,.8,.2,1)";
+      if(Math.abs(dx) > 55){
+        if(dx < 0) go(idx+1);
+        else go(idx-1);
+      } else {
+        go(idx);
+      }
+      startX=null; startY=null;
+    }, {passive:true});
+
+    // ===== Chips =====
+    function bindChips(containerId, hiddenSetter){
+      const box = $(containerId);
+      box.querySelectorAll(".chip").forEach(ch=>{
+        ch.addEventListener("click", ()=>{
+          box.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+          ch.classList.add("active");
+          hiddenSetter(ch.dataset.val || ch.textContent.trim());
+          save();
+          renderPreview();
+        });
+      });
+    }
+
+    let energy = "";
+    let mood = "";
+
+    bindChips("energyChips", (v)=>energy=v);
+    bindChips("moodChips", (v)=>mood=v);
+
+    // ===== Autosave =====
+    const fields = [
+      "focus","distractions","studyHours","studyDone","learning",
+      "workout","sleep","tomorrow","blockers"
+    ];
+
+    fields.forEach(id=>{
+      const el = $(id);
+      el.addEventListener("input", ()=>{
+        save();
+        renderPreview();
+      });
+      el.addEventListener("change", ()=>{
+        save();
+        renderPreview();
+      });
+    });
+
+    function readState(){
+      const st = {
+        focus: $("focus").value.trim(),
+        energy,
+        distractions: $("distractions").value.trim(),
+        studyHours: $("studyHours").value,
+        studyDone: $("studyDone").value.trim(),
+        learning: $("learning").value.trim(),
+        workout: $("workout").value.trim(),
+        sleep: $("sleep").value,
+        mood,
+        tomorrow: $("tomorrow").value.trim(),
+        blockers: $("blockers").value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      return st;
+    }
+
+    function applyState(st){
+      $("focus").value = st.focus || "";
+      energy = st.energy || "";
+      $("distractions").value = st.distractions || "";
+      $("studyHours").value = st.studyHours || "";
+      $("studyDone").value = st.studyDone || "";
+      $("learning").value = st.learning || "";
+      $("workout").value = st.workout || "";
+      $("sleep").value = st.sleep || "";
+      mood = st.mood || "";
+      $("tomorrow").value = st.tomorrow || "";
+      $("blockers").value = st.blockers || "";
+
+      // chips UI
+      const setChip = (containerId, value)=>{
+        const box=$(containerId);
+        box.querySelectorAll(".chip").forEach(x=>{
+          x.classList.toggle("active", (x.dataset.val||"")===value);
+        });
+      };
+      setChip("energyChips", energy);
+      setChip("moodChips", mood);
+    }
+
+    function save(){
+      try{
+        localStorage.setItem(storageKey, JSON.stringify(readState()));
+        $("subtitle").textContent = "Saved • swipe to log • copy/share report";
+      }catch(e){
+        $("subtitle").textContent = "Save failed (storage blocked)";
+      }
+    }
+
+    function load(){
+      try{
+        const raw = localStorage.getItem(storageKey);
+        if(!raw){
+          applyState({});
+          return;
+        }
+        applyState(JSON.parse(raw));
+      }catch(e){
+        applyState({});
+      }
+    }
+
+    // ===== Report formatter =====
+    function buildReport(st){
+      const d = new Date(); d.setDate(d.getDate()+activeOffset);
+      const dateStr = d.toLocaleDateString("en-IN", { weekday:"long", day:"2-digit", month:"short", year:"numeric" });
+
+      const lines = [];
+      lines.push(`📌 StudyOS Daily Report — ${dateStr}`);
+      lines.push(`━━━━━━━━━━━━━━━━━━━━`);
+      lines.push(`🎯 Focus: ${st.focus || "—"}`);
+      lines.push(`⚡ Energy: ${st.energy || "—"}`);
+      if(st.distractions) lines.push(`🧩 Distractions: ${st.distractions}`);
+
+      lines.push(``);
+      lines.push(`📚 Study`);
+      lines.push(`• Hours: ${st.studyHours || "—"}`);
+      lines.push(`• Done: ${st.studyDone ? st.studyDone.replace(/\n/g,"\n  ") : "—"}`);
+      lines.push(`• Key learning: ${st.learning || "—"}`);
+
+      lines.push(``);
+      lines.push(`🧘 Health`);
+      lines.push(`• Workout/Steps: ${st.workout || "—"}`);
+      lines.push(`• Sleep: ${st.sleep ? st.sleep+"h" : "—"}`);
+      lines.push(`• Mood: ${st.mood || "—"}`);
+
+      lines.push(``);
+      lines.push(`➡️ Tomorrow: ${st.tomorrow || "—"}`);
+      lines.push(`🧱 Blockers: ${st.blockers ? st.blockers.replace(/\n/g,"\n  ") : "—"}`);
+
+      lines.push(`━━━━━━━━━━━━━━━━━━━━`);
+      lines.push(`(autosaved by StudyOS)`);
+
+      return lines.join("\n");
+    }
+
+    function renderPreview(){
+      const st = readState();
+      $("preview").value = buildReport(st);
+    }
+
+    // ===== Copy & Share =====
+    $("copyBtn").onclick = async ()=>{
+      const txt = $("preview").value || "";
+      const ok = await copyText(txt);
+      toast(ok ? "Copied ✅" : "Copy failed ❌");
+    };
+
+    $("shareBtn").onclick = async ()=>{
+      const txt = $("preview").value || "";
+      if(!txt.trim()){
+        toast("Nothing to share");
+        return;
+      }
+
+      // Best: Web Share API
+      if(navigator.share){
+        try{
+          await navigator.share({ text: txt, title:"StudyOS Daily Report" });
+          toast("Shared ✅");
+          return;
+        }catch(e){
+          // user cancelled or share failed
+          toast("Share cancelled");
+          return;
+        }
+      }
+
+      // Fallback: open WhatsApp compose (if possible), else copy
+      try{
+        const wa = "https://wa.me/?text=" + encodeURIComponent(txt);
+        const win = window.open(wa, "_blank");
+        if(!win){
+          const ok = await copyText(txt);
+          toast(ok ? "Copied ✅ (share unsupported)" : "Share unsupported");
+        } else {
+          toast("Opening WhatsApp…");
+        }
+      }catch(e){
+        const ok = await copyText(txt);
+        toast(ok ? "Copied ✅ (share unsupported)" : "Share unsupported");
+      }
+    };
+
+    // Optional: long press Copy = Share (kept)
+    let holdT = null;
+    $("copyBtn").addEventListener("touchstart", ()=>{
+      holdT = setTimeout(async ()=>{
+        const txt = $("preview").value || "";
+        if(navigator.share){
+          try{ await navigator.share({ text: txt, title:"StudyOS Daily Report" }); toast("Shared ✅"); }
+          catch(e){ toast("Share cancelled"); }
+        } else {
+          toast("Share not supported");
+        }
+      }, 520);
+    }, {passive:true});
+    ["touchend","touchcancel"].forEach(ev=>{
+      $("copyBtn").addEventListener(ev, ()=>{ if(holdT) clearTimeout(holdT); holdT=null; }, {passive:true});
+    });
+
+    // ===== Reset =====
+    $("resetBtn").onclick = ()=>{
+      if(!confirm("Reset this day’s entries?")) return;
+      localStorage.removeItem(storageKey);
+      applyState({});
+      renderPreview();
+      toast("Reset done");
+    };
+
+    // Keyboard support
+    document.addEventListener("keydown",(e)=>{
+      if(e.key==="ArrowRight") go(idx+1);
+      if(e.key==="ArrowLeft") go(idx-1);
+    });
+
+    // Init
+    setMode(0);
+    go(0);
+    load();
+    renderPreview();
+    updateDots();
+    updateNavBtns();
+  </script>
+</body>
+</html>

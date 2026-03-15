@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MSME Sales Register Dashboard</title>
+
+<!-- ═══════════════════════════════════════
+     GLOBAL UX PATCH — tap highlight + selection
+     (A) Removes iOS/Android blue tap flash
+     (B) Disables text selection site-wide,
+         but re-enables for all input surfaces
+     (C) Keeps keyboard :focus-visible rings intact
+═══════════════════════════════════════ -->
+<style>
+/* ── (A) Kill tap highlight on every interactive element ── */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+  tap-highlight-color: rgba(0,0,0,0) !important;
+  -webkit-touch-callout: none;
+}
+
+/* ── (B) Disable text selection globally ── */
+body,
+h1, h2, h3, h4, h5, h6,
+p, span, div, label,
+.kpi-card, .kpi-label, .kpi-value, .kpi-sub,
+.chart-card, .chart-card h3,
+.pivot-card, .pivot-card h3,
+.pivot-table th, .pivot-table td,
+.chip, .tab-btn, .btn, .del-btn,
+.header, .tabs, .sidebar, .sidebar-section,
+.hint, .form-card {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* ── Re-enable selection for all input/editable surfaces ── */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.cell-edit,
+.allow-select,
+pre,
+code {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* ── Remove default focus outline for pointer users,
+      keep it for keyboard (:focus-visible) ── */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+[tabindex]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid rgba(79,127,255,.55) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Custom selection color (subtle) ── */
+::selection      { background: rgba(79,127,255,.25); color: inherit; }
+::-moz-selection { background: rgba(79,127,255,.25); color: inherit; }
+</style>
+
+<style>
+/* ─── BASE ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3250;
+  --accent:#4f7fff; --accent2:#7c5cfc; --green:#22d3a5; --orange:#f5a623; --red:#f25f5c;
+  --text:#e8eaf6; --muted:#8890b5; --radius:10px; --card-p:18px;
+}
+html { font-size: 14px; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; overflow-x: hidden;
+  cursor: default;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+/* ─── HEADER ────────────────────────────────────── */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header h1 { font-size: 1.1rem; font-weight: 700; color: var(--text); flex: 1; }
+
+/* ─── TABS ──────────────────────────────────────── */
+.tabs {
+  display: flex; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px; gap: 4px; overflow-x: auto;
+}
+.tab-btn {
+  padding: 11px 18px; border: none; background: transparent; color: var(--muted);
+  font-size: .88rem; font-weight: 600; cursor: pointer;
+  border-bottom: 2px solid transparent; white-space: nowrap; min-height: 44px;
+  transition: color .2s, border-color .2s;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ─── LAYOUT ────────────────────────────────────── */
+.main-layout {
+  display: grid; grid-template-columns: 240px 1fr;
+  gap: 0; min-height: calc(100vh - 96px);
+}
+@media (max-width: 700px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+}
+
+/* ─── SIDEBAR ───────────────────────────────────── */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 16px; display: flex; flex-direction: column; gap: 20px;
+}
+.sidebar-section h3 {
+  font-size: .75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted); margin-bottom: 10px;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Chips are interactive buttons — tap highlight already killed globally */
+.chip {
+  padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted); font-size: .8rem;
+  cursor: pointer; min-height: 30px; transition: all .15s;
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ─── INPUTS ────────────────────────────────────── */
+select, input[type="date"], input[type="text"], input[type="number"] {
+  width: 100%; padding: 8px 10px; background: var(--surface2);
+  border: 1px solid var(--border); color: var(--text);
+  border-radius: var(--radius); font-size: .85rem; min-height: 44px;
+  cursor: text;
+}
+input[type="date"] { color-scheme: dark; }
+select:focus, input:focus { outline: 2px solid var(--accent); }
+
+.date-row { display: flex; flex-direction: column; gap: 8px; }
+.date-row label { font-size: .78rem; color: var(--muted); }
+
+/* ─── BUTTONS ───────────────────────────────────── */
+.btn {
+  padding: 9px 16px; border-radius: var(--radius); border: none;
+  font-size: .85rem; font-weight: 600; cursor: pointer; min-height: 40px;
+  transition: opacity .15s, transform .12s;
+}
+.btn:hover { opacity: .85; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: #2d1a1a; color: var(--red); border: 1px solid var(--red); }
+.btn-sm { font-size: .78rem; padding: 6px 12px; min-height: 32px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ─── CONTENT ───────────────────────────────────── */
+.content { padding: 20px; overflow-x: hidden; }
+
+/* ─── KPI ───────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--card-p); }
+.kpi-label { font-size: .73rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.kpi-value { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+.kpi-sub { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+.kpi-card:nth-child(1) .kpi-value { color: var(--green); }
+.kpi-card:nth-child(2) .kpi-value { color: var(--accent); }
+.kpi-card:nth-child(3) .kpi-value { color: var(--orange); }
+.kpi-card:nth-child(4) .kpi-value { color: var(--accent2); font-size: 1.1rem; }
+
+/* ─── CHARTS ────────────────────────────────────── */
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--card-p); }
+.chart-card h3 { font-size: .85rem; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+canvas { width: 100% !important; display: block; cursor: pointer; }
+
+/* ─── PIVOT ─────────────────────────────────────── */
+.pivot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.pivot-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--card-p); overflow-x: auto; }
+.pivot-card h3 { font-size: .85rem; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+.pivot-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.pivot-table th {
+  text-align: left; padding: 7px 10px; background: var(--surface2);
+  color: var(--muted); font-weight: 700; border-bottom: 1px solid var(--border);
+}
+.pivot-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+.pivot-table tr:last-child td { border-bottom: none; }
+.pivot-table tr:hover td { background: var(--surface2); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.total-row td { font-weight: 700; color: var(--green); background: var(--surface2); }
+
+/* ─── DATA TABLE ────────────────────────────────── */
+.data-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.data-table { width: 100%; border-collapse: collapse; font-size: .82rem; min-width: 700px; }
+.data-table th {
+  padding: 9px 12px; background: var(--surface2); color: var(--muted);
+  font-size: .75rem; text-transform: uppercase; letter-spacing: .05em;
+  border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+}
+.data-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #1e2235; }
+.cell-edit {
+  background: transparent; border: none; color: var(--text);
+  font-size: .82rem; width: 100%; min-width: 60px; padding: 3px 4px; border-radius: 4px;
+  cursor: text;
+}
+.cell-edit:focus { outline: 2px solid var(--accent); background: var(--surface2); }
+.del-btn {
+  background: none; border: none; color: var(--red);
+  cursor: pointer; font-size: 1.1rem; padding: 4px 6px; min-height: 28px; border-radius: 4px;
+}
+.del-btn:hover { background: #2d1a1a; }
+
+/* ─── MANUAL FORM ───────────────────────────────── */
+.form-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+}
+.form-card h3 { font-size: .85rem; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+.grid-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 700px) { .grid-form { grid-template-columns: 1fr; } }
+.hint { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+/* ─── SEARCH BAR (ORB) ──────────────────────────── */
+.orb-wrap {
+  position: relative; margin: 0 0 16px 0;
+}
+.orb-bar {
+  display: flex; align-items: center; gap: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: .2rem .2rem .2rem 1rem;
+  transition: border-color .25s, box-shadow .25s;
+}
+.orb-bar:focus-within {
+  border-color: rgba(79,127,255,.4);
+  box-shadow: 0 0 0 3px rgba(79,127,255,.08);
+}
+.orb-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-right: .65rem; animation: pdot 1.8s infinite; }
+@keyframes pdot { 0%,100%{box-shadow:0 0 0 0 rgba(34,211,165,.4)} 50%{box-shadow:0 0 0 6px rgba(34,211,165,0)} }
+#orb-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: inherit; font-size: .92rem; color: var(--text); padding: .75rem 0;
+  cursor: text;
+}
+#orb-input::placeholder { color: var(--muted); }
+#orb-go {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; background: var(--accent); color: #fff;
+  border-radius: 10px; font-size: 1.1rem; cursor: pointer; transition: all .2s; flex-shrink: 0;
+}
+#orb-go:hover { background: #6b8fff; transform: scale(1.06); }
+
+/* ─── ORB SUGGESTIONS DROPDOWN ──────────────────── */
+#orb-suggest {
+  position: absolute; left: 0; right: 0; top: 100%;
+  margin-top: 8px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,.5);
+  display: none; z-index: 200;
+}
+.orb-row {
+  padding: 11px 14px; border-top: 1px solid rgba(255,255,255,.04);
+  cursor: pointer; transition: background .15s;
+}
+.orb-row:first-child { border-top: none; }
+.orb-row:hover, .orb-row.active { background: rgba(79,127,255,.1); }
+.orb-row .t { font-size: .85rem; font-weight: 600; color: var(--text); }
+.orb-row .d { font-size: .71rem; color: var(--muted); margin-top: 2px; }
+
+/* ─── TOAST ─────────────────────────────────────── */
+.toast {
+  position: fixed; right: 14px; bottom: 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px;
+  color: var(--text); font-size: 12px; max-width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: all .2s ease; z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ─── BACK LINK ─────────────────────────────────── */
+.back-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .78rem; color: var(--muted); padding: .3rem .6rem;
+  border-radius: 8px; transition: color .2s, background .2s; cursor: pointer;
+}
+.back-btn:hover { color: var(--text); background: var(--surface2); }
+
+#file-input { display: none; }
+
+/* ─── SCROLLBAR ─────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── RESPONSIVE ────────────────────────────────── */
+@media (max-width: 500px) {
+  .content { padding: 12px; }
+  .kpi-value { font-size: 1.3rem; }
+  .chart-grid, .pivot-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Excel library -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- ═══════════════════════════════════════
+     JS TAP-HIGHLIGHT POLISH (C)
+     Prevents iOS Safari from showing any
+     focus ring on touch, without blocking
+     click events or scroll.
+═══════════════════════════════════════ -->
+<script>
+(function(){
+  var touchActive = false;
+  document.addEventListener('touchstart', function(){ touchActive = true; }, { passive: true });
+  document.addEventListener('touchend',   function(){ setTimeout(function(){ touchActive = false; }, 400); }, { passive: true });
+
+  /* Intercept focus events fired from touch: blur the element so iOS
+     doesn't linger with a focus ring, but only for non-input elements */
+  document.addEventListener('focus', function(e){
+    if (!touchActive) return;
+    var el = e.target;
+    var tag = el.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable) return;
+    // Defer so click still fires, then remove lingering focus ring
+    requestAnimationFrame(function(){ el.blur(); });
+  }, true);
+})();
+</script>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <button class="back-btn" onclick="window.history.length > 1 ? window.history.back() : (window.location.href='/')" title="Back">← Back</button>
+  <span style="font-size:1.4rem">📊</span>
+  <h1>MSME Sales Register Dashboard</h1>
+  <button class="btn btn-primary btn-sm" onclick="generateDashboard()">⚡ Generate</button>
+</div>
+
+<!-- ── TABS ── -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="dashboard" onclick="switchTab(this)">📈 Dashboard</button>
+  <button class="tab-btn" data-tab="pivot"     onclick="switchTab(this)">🔢 Pivot Tables</button>
+  <button class="tab-btn" data-tab="data"      onclick="switchTab(this)">📋 Data Sheet</button>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="tab-dashboard" class="tab-panel active">
+  <div class="main-layout">
+    <aside class="sidebar">
+
+      <!-- ── SEARCH ORB (D: keyboard routing) ── -->
+      <div class="orb-wrap">
+        <div class="orb-bar">
+          <div class="orb-pulse"></div>
+          <input type="text" id="orb-input" placeholder="Search data…" autocomplete="off" spellcheck="false" />
+          <button id="orb-go" title="Go">→</button>
+        </div>
+        <div id="orb-suggest" role="listbox" aria-label="Search suggestions"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>🗂 Region</h3>
+        <div class="chips" id="slicer-region"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>📦 Category</h3>
+        <div class="chips" id="slicer-category"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>👤 Salesperson</h3>
+        <input type="text" id="slicer-sales" list="salespeople-list"
+          placeholder="All Salespersons" oninput="applyFilters()" autocomplete="off" />
+        <datalist id="salespeople-list"></datalist>
+        <div class="hint" style="margin-top:6px">Type name to filter. Leave blank for all.</div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>📅 Timeline</h3>
+        <div class="date-row">
+          <label>From</label>
+          <input type="date" id="date-from" onchange="applyFilters()" />
+          <label>To</label>
+          <input type="date" id="date-to" onchange="applyFilters()" />
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-secondary btn-sm" style="flex:1" onclick="clearFilters()">✕ Clear</button>
+        <button class="btn btn-primary btn-sm"   style="flex:1" onclick="generateDashboard()">⚡ Generate</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value" id="kpi-revenue">—</div>
+          <div class="kpi-sub">Units × Unit Price</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Units</div>
+          <div class="kpi-value" id="kpi-units">—</div>
+          <div class="kpi-sub">All transactions</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Unit Price</div>
+          <div class="kpi-value" id="kpi-avgprice">—</div>
+          <div class="kpi-sub">Across filtered rows</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Top Product</div>
+          <div class="kpi-value" id="kpi-top">—</div>
+          <div class="kpi-sub">By revenue</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>Revenue by Month (Line)</h3>
+          <canvas id="chart-line" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Revenue by Region (Bar) — tap to filter</h3>
+          <!-- D: canvas as interactive region — tap/click handled in JS -->
+          <canvas id="chart-bar" height="200" role="img" aria-label="Revenue by region bar chart. Click a bar to filter."></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ═══ PIVOT ═══ -->
+<div id="tab-pivot" class="tab-panel">
+  <div class="content" style="max-width:900px;margin:auto;">
+    <div class="pivot-grid">
+      <div class="pivot-card">
+        <h3>Revenue &amp; Units by Region</h3>
+        <table class="pivot-table" id="pivot-region">
+          <thead><tr><th>Region</th><th class="num">Revenue</th><th class="num">Units</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pivot-card">
+        <h3>Revenue &amp; Units by Product</h3>
+        <table class="pivot-table" id="pivot-product">
+          <thead><tr><th>Product</th><th class="num">Revenue</th><th class="num">Units</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="pivot-grid">
+      <div class="pivot-card">
+        <h3>Revenue by Category</h3>
+        <table class="pivot-table" id="pivot-category">
+          <thead><tr><th>Category</th><th class="num">Revenue</th><th class="num">Units</th><th class="num">Avg Price</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pivot-card">
+        <h3>Revenue by Salesperson</h3>
+        <table class="pivot-table" id="pivot-sales">
+          <thead><tr><th>Salesperson</th><th class="num">Revenue</th><th class="num">Units</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DATA ═══ -->
+<div id="tab-data" class="tab-panel">
+  <div class="content">
+
+    <div class="form-card">
+      <h3>1) Upload CSV/XLSX &nbsp;or&nbsp; 2) Add Manually → 3) Click Generate</h3>
+
+      <div class="btn-group" style="margin-bottom:12px;">
+        <input id="file-input" type="file" accept=".csv,.xlsx,.xls" />
+        <button class="btn btn-secondary btn-sm" onclick="openFilePicker()">⬆ Upload CSV/XLSX</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadTemplate()">⬇ Template</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadCurrentCSV()">⬇ Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="generateDashboard()">⚡ Generate</button>
+      </div>
+
+      <div class="grid-form">
+        <div><label class="hint">Date</label><input type="date" id="m-date" /></div>
+        <div><label class="hint">Region</label><input type="text" id="m-region" placeholder="e.g., Maharashtra" /></div>
+        <div><label class="hint">Category</label><input type="text" id="m-category" placeholder="e.g., Electronics" /></div>
+        <div><label class="hint">Product</label><input type="text" id="m-product" placeholder="e.g., Laptop" /></div>
+        <div><label class="hint">Salesperson</label><input type="text" id="m-salesperson" placeholder="e.g., Ravi" /></div>
+        <div><label class="hint">Units</label><input type="number" id="m-units" placeholder="e.g., 2" min="0" step="1" /></div>
+        <div><label class="hint">Unit Price (₹)</label><input type="number" id="m-price" placeholder="e.g., 55000" min="0" step="0.01" /></div>
+        <div style="display:flex;align-items:end;gap:8px;">
+          <button class="btn btn-primary" style="width:100%;" onclick="addManualRow()">＋ Add to Data</button>
+        </div>
+      </div>
+
+      <div class="hint">
+        Expected headers: <strong>Date, Region, Category, Product, Salesperson, Units, Unit Price</strong><br/>
+        Manual rows add instantly. Click <strong>Generate</strong> to refresh visuals.
+      </div>
+    </div>
+
+    <div class="data-toolbar">
+      <button class="btn btn-secondary btn-sm" onclick="resetData()">↺ Reset Demo</button>
+      <button class="btn btn-primary btn-sm" onclick="generateDashboard()">⚡ Generate</button>
+      <span id="row-count" style="color:var(--muted);font-size:.8rem;margin-left:auto;"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table" id="data-table">
+        <thead>
+          <tr>
+            <th>Date</th><th>Region</th><th>Category</th>
+            <th>Product</th><th>Salesperson</th>
+            <th class="num">Units</th><th class="num">Unit Price</th>
+            <th class="num">Revenue</th><th>✕</th>
+          </tr>
+        </thead>
+        <tbody id="data-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+
+/* ── Demo dataset ── */
+const DEMO = [
+  ['2024-01-05','East','Electronics','Laptop','Alice',4,899],
+  ['2024-01-12','North','Electronics','Phone','Bob',10,599],
+  ['2024-01-20','South','Furniture','Desk','Carol',3,450],
+  ['2024-02-03','West','Electronics','Tablet','Dave',6,399],
+  ['2024-02-14','East','Clothing','Jacket','Alice',15,89],
+  ['2024-02-22','North','Furniture','Chair','Bob',8,199],
+  ['2024-03-05','South','Electronics','Laptop','Eve',5,899],
+  ['2024-03-11','West','Clothing','Shirt','Carol',25,45],
+  ['2024-03-18','East','Electronics','Phone','Dave',12,599],
+  ['2024-04-02','North','Furniture','Desk','Eve',4,450],
+  ['2024-04-10','South','Clothing','Jacket','Alice',20,89],
+  ['2024-04-25','West','Electronics','Tablet','Bob',7,399],
+  ['2024-05-07','East','Furniture','Chair','Carol',10,199],
+  ['2024-05-15','North','Electronics','Laptop','Dave',3,899],
+  ['2024-05-23','South','Clothing','Shirt','Eve',30,45],
+  ['2024-06-04','West','Electronics','Phone','Alice',9,599],
+  ['2024-06-18','East','Furniture','Desk','Bob',5,450],
+  ['2024-07-02','North','Clothing','Jacket','Carol',18,89],
+  ['2024-07-14','South','Electronics','Tablet','Dave',11,399],
+  ['2024-07-28','West','Furniture','Chair','Eve',6,199],
+];
+
+let rows = [];
+let filters = { regions: [], categories: [], salesperson: '', dateFrom: '', dateTo: '' };
+
+/* ── Parse raw array to row objects ── */
+function initRows(raw) {
+  rows = raw.map((r, i) => ({
+    id: i,
+    date: String(r[0] || '').slice(0, 10),
+    region: String(r[1] || '').trim(),
+    category: String(r[2] || '').trim(),
+    product: String(r[3] || '').trim(),
+    salesperson: String(r[4] || '').trim(),
+    units: +r[5] || 0,
+    unitPrice: +r[6] || 0
+  }));
+}
+
+/* ── File upload helpers ── */
+const REQUIRED = [
+  { key:'date',        labels:['date','order date','invoice date','bill date'] },
+  { key:'region',      labels:['region','state','zone','territory'] },
+  { key:'category',    labels:['category','segment','type'] },
+  { key:'product',     labels:['product','item','sku','product name'] },
+  { key:'salesperson', labels:['salesperson','sales person','rep','executive','agent'] },
+  { key:'units',       labels:['units','qty','quantity'] },
+  { key:'unitPrice',   labels:['unit price','price','rate','unitprice'] },
+];
+
+function openFilePicker() {
+  const inp = document.getElementById('file-input');
+  inp.value = '';
+  inp.click();
+}
+
+document.getElementById('file-input').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (ext === 'csv') {
+      const text = await file.text();
+      loadTableData(parseCSV(text));
+      toast(`Loaded CSV: ${file.name} (${rows.length} rows)`);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      if (!window.XLSX) throw new Error('Excel parser not loaded.');
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });
+      loadTableData(aoa);
+      toast(`Loaded Excel: ${file.name} (${rows.length} rows)`);
+    } else {
+      toast('Unsupported file — upload .csv or .xlsx', true);
+    }
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'Upload failed', true);
+  }
+});
+
+function parseCSV(text) {
+  const out = []; let cur = '', inQ = false, row = [];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], nxt = text[i + 1];
+    if (ch === '"' && inQ && nxt === '"') { cur += '"'; i++; continue; }
+    if (ch === '"') { inQ = !inQ; continue; }
+    if (ch === ',' && !inQ) { row.push(cur); cur = ''; continue; }
+    if ((ch === '\n' || ch === '\r') && !inQ) {
+      if (ch === '\r' && nxt === '\n') i++;
+      row.push(cur); cur = '';
+      if (row.some(x => String(x).trim())) out.push(row);
+      row = []; continue;
+    }
+    cur += ch;
+  }
+  row.push(cur);
+  if (row.some(x => String(x).trim())) out.push(row);
+  return out;
+}
+
+function normH(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ').replace(/[_-]+/g, ' '); }
+function toNum(v) {
+  const s = String(v || '').replace(/[,₹$]/g, '').trim();
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+function toISODate(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (typeof v === 'number' && v > 20000 && v < 60000 && window.XLSX) {
+    const d = XLSX.SSF.parse_date_code(v);
+    if (d && d.y) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const t = Date.parse(s);
+  return !isNaN(t) ? new Date(t).toISOString().slice(0, 10) : '';
+}
+
+function loadTableData(aoa) {
+  if (!aoa || !aoa.length) throw new Error('File looks empty.');
+  const header = aoa[0].map(normH);
+  const idx = {};
+  for (const req of REQUIRED) idx[req.key] = header.findIndex(h => req.labels.includes(h));
+  const missing = Object.entries(idx).filter(([, v]) => v === -1).map(([k]) => k);
+  if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}.`);
+  const data = [];
+  for (let r = 1; r < aoa.length; r++) {
+    const line = aoa[r];
+    if (!line || !line.length) continue;
+    const prod = String(line[idx.product] || '').trim();
+    const sp   = String(line[idx.salesperson] || '').trim();
+    const reg  = String(line[idx.region] || '').trim();
+    if (!prod && !sp && !reg) continue;
+    data.push([
+      toISODate(line[idx.date]) || new Date().toISOString().slice(0, 10),
+      reg || '—', String(line[idx.category] || '').trim() || '—',
+      prod || '—', sp || '—',
+      toNum(line[idx.units]), toNum(line[idx.unitPrice])
+    ]);
+  }
+  initRows(data);
+  clearFilters(true);
+  renderDataTable();
+}
+
+/* ── Manual entry ── */
+function addManualRow() {
+  const d   = document.getElementById('m-date').value || new Date().toISOString().slice(0, 10);
+  const reg = (document.getElementById('m-region').value || '').trim() || '—';
+  const cat = (document.getElementById('m-category').value || '').trim() || '—';
+  const prd = (document.getElementById('m-product').value || '').trim() || '—';
+  const sp  = (document.getElementById('m-salesperson').value || '').trim() || '—';
+  const u   = parseFloat(document.getElementById('m-units').value) || 0;
+  const p   = parseFloat(document.getElementById('m-price').value) || 0;
+  const nid = rows.length ? Math.max(...rows.map(r => r.id)) + 1 : 0;
+  rows.push({ id: nid, date: d, region: reg, category: cat, product: prd, salesperson: sp, units: u, unitPrice: p });
+  document.getElementById('m-product').value = '';
+  document.getElementById('m-units').value   = '';
+  document.getElementById('m-price').value   = '';
+  buildSlicers();
+  renderDataTable();
+  toast('Added row to data');
+}
+
+/* ── Slicers ── */
+function unique(field) {
+  return [...new Set(rows.map(r => r[field]).filter(v => String(v).trim()))].sort((a, b) => a.localeCompare(b));
+}
+
+function buildSlicers() {
+  buildChips('slicer-region',   unique('region'),   filters.regions);
+  buildChips('slicer-category', unique('category'), filters.categories);
+  buildSalesDatalist();
+}
+
+function buildSalesDatalist() {
+  const dl = document.getElementById('salespeople-list');
+  dl.innerHTML = unique('salesperson').map(v => `<option value="${esc(v)}"></option>`).join('');
+}
+
+function buildChips(containerId, values, activeArr) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  values.forEach(v => {
+    /* D: chip is a <button> — already has keyboard support natively */
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (activeArr.includes(v) ? ' active' : '');
+    chip.textContent = v;
+    chip.onclick = () => toggleChip(chip, v, activeArr);
+    el.appendChild(chip);
+  });
+}
+
+function toggleChip(chip, value, arr) {
+  const idx = arr.indexOf(value);
+  if (idx === -1) arr.push(value); else arr.splice(idx, 1);
+  chip.classList.toggle('active', arr.includes(value));
+  applyFilters();
+}
+
+/* ── Filter engine ── */
+function getFilteredRows() {
+  filters.salesperson = (document.getElementById('slicer-sales').value || '').trim();
+  filters.dateFrom    = document.getElementById('date-from').value;
+  filters.dateTo      = document.getElementById('date-to').value;
+  const spN = filters.salesperson.toLowerCase();
+  return rows.filter(r => {
+    if (filters.regions.length    && !filters.regions.includes(r.region))   return false;
+    if (filters.categories.length && !filters.categories.includes(r.category)) return false;
+    if (spN && !String(r.salesperson || '').toLowerCase().includes(spN))    return false;
+    if (filters.dateFrom && r.date < filters.dateFrom) return false;
+    if (filters.dateTo   && r.date > filters.dateTo)   return false;
+    return true;
+  });
+}
+
+function applyFilters() { renderAll(getFilteredRows()); }
+
+function clearFilters(skipRender = false) {
+  filters = { regions: [], categories: [], salesperson: '', dateFrom: '', dateTo: '' };
+  document.getElementById('date-from').value  = '';
+  document.getElementById('date-to').value    = '';
+  document.getElementById('slicer-sales').value = '';
+  buildSlicers();
+  if (!skipRender) applyFilters();
+}
+
+/* ── Pivot helper ── */
+function pivotBy(data, keyField) {
+  const map = {};
+  data.forEach(r => {
+    const k = r[keyField] || '—';
+    if (!map[k]) map[k] = { key: k, revenue: 0, units: 0 };
+    map[k].revenue += r.units * r.unitPrice;
+    map[k].units   += r.units;
+  });
+  return Object.values(map).sort((a, b) => b.revenue - a.revenue);
+}
+
+/* ── KPIs ── */
+function renderKPIs(data) {
+  const tRev   = data.reduce((s, r) => s + r.units * r.unitPrice, 0);
+  const tUnits = data.reduce((s, r) => s + r.units, 0);
+  const aPrice = data.length ? data.reduce((s, r) => s + r.unitPrice, 0) / data.length : 0;
+  const top    = pivotBy(data, 'product');
+  setText('kpi-revenue',  fmtINR(tRev));
+  setText('kpi-units',    tUnits.toLocaleString('en-IN'));
+  setText('kpi-avgprice', '₹' + aPrice.toFixed(0));
+  setText('kpi-top',      top.length ? top[0].key : '—');
+}
+
+/* ── Pivot tables ── */
+function renderPivots(data) {
+  buildPivotTable('pivot-region',  pivotBy(data, 'region'));
+  buildPivotTable('pivot-product', pivotBy(data, 'product'));
+  renderCategoryPivot(data);
+  buildPivotTable('pivot-sales',   pivotBy(data, 'salesperson'));
+}
+
+function buildPivotTable(id, data) {
+  const tbody = document.querySelector('#' + id + ' tbody');
+  let html = '', totRev = 0, totUnits = 0;
+  data.forEach(row => {
+    totRev += row.revenue; totUnits += row.units;
+    html += `<tr><td>${esc(row.key)}</td><td class="num">${fmtINR(row.revenue)}</td><td class="num">${row.units.toLocaleString('en-IN')}</td></tr>`;
+  });
+  html += `<tr class="total-row"><td>TOTAL</td><td class="num">${fmtINR(totRev)}</td><td class="num">${totUnits.toLocaleString('en-IN')}</td></tr>`;
+  tbody.innerHTML = html;
+}
+
+function renderCategoryPivot(data) {
+  const tbody = document.querySelector('#pivot-category tbody');
+  const groups = pivotBy(data, 'category');
+  tbody.innerHTML = groups.map(g => {
+    const avg = g.units ? g.revenue / g.units : 0;
+    return `<tr><td>${esc(g.key)}</td><td class="num">${fmtINR(g.revenue)}</td><td class="num">${g.units.toLocaleString('en-IN')}</td><td class="num">₹${avg.toFixed(0)}</td></tr>`;
+  }).join('');
+}
+
+/* ── Data table ── */
+function renderDataTable() {
+  const tbody = document.getElementById('data-tbody');
+  tbody.innerHTML = '';
+  rows.forEach(r => tbody.appendChild(createDataRow(r)));
+  setText('row-count', rows.length + ' rows');
+}
+
+function createDataRow(r) {
+  const tr = document.createElement('tr');
+  tr.dataset.id = r.id;
+  const fields = ['date','region','category','product','salesperson','units','unitPrice'];
+  const types  = ['date','text','text','text','text','number','number'];
+  fields.forEach((f, i) => {
+    const td = document.createElement('td');
+    td.className = i >= 5 ? 'num' : '';
+    const inp = document.createElement('input');
+    inp.type = types[i]; inp.value = r[f]; inp.className = 'cell-edit';
+    inp.onblur    = () => { updateRow(r.id, f, inp.value); buildSlicers(); renderDataTable(); };
+    inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+    td.appendChild(inp); tr.appendChild(td);
+  });
+  const revTd = document.createElement('td');
+  revTd.className = 'num'; revTd.style.color = 'var(--green)';
+  revTd.textContent = fmtINR(r.units * r.unitPrice);
+  tr.appendChild(revTd);
+  const delTd = document.createElement('td');
+  const btn = document.createElement('button');
+  btn.className = 'del-btn'; btn.textContent = '✕'; btn.title = 'Delete row';
+  btn.onclick = () => { rows = rows.filter(x => x.id !== r.id); buildSlicers(); renderDataTable(); toast('Row deleted'); };
+  delTd.appendChild(btn); tr.appendChild(delTd);
+  return tr;
+}
+
+function updateRow(id, field, value) {
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  r[field] = (field === 'units' || field === 'unitPrice') ? parseFloat(String(value).replace(/[,₹]/g, '')) || 0 : String(value ?? '').trim();
+}
+
+/* ── Charts (pure canvas) ── */
+function drawEmpty(ctx, W, H) {
+  ctx.fillStyle = '#8890b5'; ctx.font = '13px Segoe UI, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('No data matching filters', W / 2, H / 2);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+function drawLineChart(canvas, labels, values, color) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || canvas.parentElement.clientWidth || 400;
+  const H = 200;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  if (!values.length) { drawEmpty(ctx, W, H); return; }
+
+  const pad = { top: 20, right: 20, bottom: 40, left: 60 };
+  const cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
+  const maxV = Math.max(...values) * 1.1 || 1;
+  const xStep = cW / Math.max(values.length - 1, 1);
+
+  // Grid
+  ctx.strokeStyle = '#2e3250'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + cH - (i / 4) * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    ctx.fillStyle = '#8890b5'; ctx.font = '11px Segoe UI, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(fmtShort((i / 4) * maxV), pad.left - 6, y + 4);
+  }
+  // Area fill
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const x = pad.left + i * xStep, y = pad.top + cH - (v / maxV) * cH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad.left + (values.length - 1) * xStep, pad.top + cH);
+  ctx.lineTo(pad.left, pad.top + cH); ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+  grad.addColorStop(0, color + '55'); grad.addColorStop(1, color + '00');
+  ctx.fillStyle = grad; ctx.fill();
+  // Line
+  ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  values.forEach((v, i) => {
+    const x = pad.left + i * xStep, y = pad.top + cH - (v / maxV) * cH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  // Dots
+  values.forEach((v, i) => {
+    const x = pad.left + i * xStep, y = pad.top + cH - (v / maxV) * cH;
+    ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = '#0f1117'; ctx.lineWidth = 1.5; ctx.stroke();
+  });
+  // X labels
+  const every = Math.ceil(labels.length / 7);
+  ctx.fillStyle = '#8890b5'; ctx.font = '10px Segoe UI, sans-serif'; ctx.textAlign = 'center';
+  labels.forEach((lbl, i) => {
+    if (i % every !== 0 && i !== labels.length - 1) return;
+    ctx.fillText(lbl, pad.left + i * xStep, H - 10);
+  });
+}
+
+let barHitRegions = [];
+function drawBarChart(canvas, labels, values, colors) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || canvas.parentElement.clientWidth || 400;
+  const H = 200;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H); barHitRegions = [];
+  if (!values.length) { drawEmpty(ctx, W, H); return; }
+
+  const pad = { top: 20, right: 20, bottom: 40, left: 60 };
+  const cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
+  const maxV = Math.max(...values) * 1.1 || 1;
+  const n = values.length, barW = Math.min(cW / n * 0.6, 60), gap = cW / n;
+
+  ctx.strokeStyle = '#2e3250'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + cH - (i / 4) * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    ctx.fillStyle = '#8890b5'; ctx.font = '11px Segoe UI, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(fmtShort((i / 4) * maxV), pad.left - 6, y + 4);
+  }
+  values.forEach((v, i) => {
+    const bH = Math.max((v / maxV) * cH, 1);
+    const x = pad.left + i * gap + (gap - barW) / 2, y = pad.top + cH - bH;
+    const c = colors[i % colors.length];
+    barHitRegions.push({ x, y, w: barW, h: bH, label: labels[i] });
+    const g = ctx.createLinearGradient(x, y, x, pad.top + cH);
+    g.addColorStop(0, c); g.addColorStop(1, c + '77');
+    ctx.fillStyle = g; roundRect(ctx, x, y, barW, bH, 6); ctx.fill();
+    ctx.fillStyle = '#8890b5'; ctx.font = '10px Segoe UI, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(labels[i], x + barW / 2, H - 10);
+  });
+}
+
+/* Bar chart click/tap → toggle region filter */
+document.getElementById('chart-bar').addEventListener('click', function (e) {
+  const rect = this.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  barHitRegions.forEach(r => {
+    if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+      const idx = filters.regions.indexOf(r.label);
+      if (idx === -1) filters.regions.push(r.label); else filters.regions.splice(idx, 1);
+      buildChips('slicer-region', unique('region'), filters.regions);
+      applyFilters();
+    }
+  });
+});
+
+function renderCharts(data) {
+  const byMonth = {};
+  data.forEach(r => { const m = r.date.slice(0, 7); byMonth[m] = (byMonth[m] || 0) + r.units * r.unitPrice; });
+  const months = Object.keys(byMonth).sort();
+  drawLineChart(document.getElementById('chart-line'), months.map(m => m.slice(5)), months.map(m => byMonth[m]), '#22d3a5');
+
+  const byRegion = pivotBy(data, 'region');
+  drawBarChart(document.getElementById('chart-bar'),
+    byRegion.map(r => r.key), byRegion.map(r => r.revenue),
+    ['#4f7fff','#7c5cfc','#22d3a5','#f5a623','#f25f5c','#00bcd4']);
+}
+
+/* ── Generate (main entry point) ── */
+function generateDashboard() {
+  const filtered = getFilteredRows();
+  renderAll(filtered);
+  renderDataTable();
+  buildSlicers();
+  toast('Dashboard generated');
+}
+
+function renderAll(filtered) {
+  renderKPIs(filtered);
+  renderPivots(filtered);
+  renderCharts(filtered);
+}
+
+/* ── Tab switching ── */
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  if (btn.dataset.tab === 'dashboard') renderCharts(getFilteredRows());
+}
+
+/* ── Downloads ── */
+function downloadTemplate() {
+  const header = ['Date','Region','Category','Product','Salesperson','Units','Unit Price'];
+  const sample = [['2025-01-05','Maharashtra','Electronics','Laptop','Ravi',2,55000],['2025-01-06','Delhi','Accessories','Mouse','Neha',10,499]];
+  const csv = [header, ...sample].map(r => r.map(csvEsc).join(',')).join('\n');
+  downloadBlob(csv, 'msme_sales_template.csv', 'text/csv;charset=utf-8');
+  toast('Template downloaded');
+}
+function downloadCurrentCSV() {
+  const header = ['Date','Region','Category','Product','Salesperson','Units','Unit Price'];
+  const body = rows.map(r => [r.date, r.region, r.category, r.product, r.salesperson, r.units, r.unitPrice]);
+  const csv = [header, ...body].map(r => r.map(csvEsc).join(',')).join('\n');
+  downloadBlob(csv, 'msme_sales_export.csv', 'text/csv;charset=utf-8');
+  toast('CSV downloaded');
+}
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
+function csvEsc(v) {
+  const s = String(v ?? '');
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/* ── Reset ── */
+function resetData() {
+  initRows(DEMO);
+  clearFilters(true);
+  renderDataTable();
+  generateDashboard();
+  toast('Reset to demo data');
+}
+
+/* ─────────────────────────────────────────────────
+   ORB SEARCH — lightweight keyword routing
+   Maps typed query to a dashboard action:
+   - Filters by region/salesperson/category
+   - Scrolls to relevant tab
+   - Enter runs best match
+─────────────────────────────────────────────────── */
+(function () {
+  const input   = document.getElementById('orb-input');
+  const go      = document.getElementById('orb-go');
+  const suggest = document.getElementById('orb-suggest');
+  if (!input || !go || !suggest) return;
+
+  function norm(s) { return String(s || '').toLowerCase().trim(); }
+
+  /* Build a live search index from current slicers + known actions */
+  function buildIndex() {
+    const index = [];
+
+    // Regions
+    unique('region').forEach(v => {
+      index.push({ t: `Filter by Region: ${v}`, d: 'Apply region slicer', score: 0, action: () => { toggleFilterValue('regions', v, 'slicer-region'); } });
+    });
+    // Categories
+    unique('category').forEach(v => {
+      index.push({ t: `Filter by Category: ${v}`, d: 'Apply category slicer', score: 0, action: () => { toggleFilterValue('categories', v, 'slicer-category'); } });
+    });
+    // Salespersons
+    unique('salesperson').forEach(v => {
+      index.push({ t: `Filter by Salesperson: ${v}`, d: 'Filter all visuals to this person', score: 0, action: () => { document.getElementById('slicer-sales').value = v; applyFilters(); } });
+    });
+
+    // Tab navigation
+    index.push({ t: 'Go to Dashboard', d: 'Charts + KPI view', score: 0, action: () => switchTab(document.querySelector('[data-tab="dashboard"]')) });
+    index.push({ t: 'Go to Pivot Tables', d: 'Region, Product, Category, Salesperson pivots', score: 0, action: () => switchTab(document.querySelector('[data-tab="pivot"]')) });
+    index.push({ t: 'Go to Data Sheet', d: 'Upload, edit, or add rows manually', score: 0, action: () => switchTab(document.querySelector('[data-tab="data"]')) });
+    index.push({ t: 'Clear all filters', d: 'Restore full dataset', score: 0, action: () => clearFilters() });
+    index.push({ t: 'Reset Demo Data', d: 'Reload sample data', score: 0, action: () => resetData() });
+    index.push({ t: 'Generate Dashboard', d: 'Recompute all charts and KPIs', score: 0, action: () => generateDashboard() });
+    index.push({ t: 'Download CSV template', d: 'Get the upload format', score: 0, action: () => downloadTemplate() });
+    index.push({ t: 'Export current data', d: 'Download filtered data as CSV', score: 0, action: () => downloadCurrentCSV() });
+
+    return index;
+  }
+
+  function tokenScore(q, str) {
+    if (!str) return 0;
+    let s = 0;
+    if (str === q) s += 80;
+    if (str.includes(q)) s += 40;
+    q.split(/\s+/).filter(Boolean).forEach(p => { if (str.includes(p)) s += 10; });
+    return s;
+  }
+
+  function scoreItem(q, item) {
+    const qn = norm(q);
+    if (!qn) return 0;
+    return tokenScore(qn, norm(item.t)) + tokenScore(qn, norm(item.d)) * 0.4;
+  }
+
+  let results = [], active = -1;
+
+  function hideSuggest() { suggest.style.display = 'none'; suggest.innerHTML = ''; results = []; active = -1; }
+
+  function render() {
+    if (!results.length) { hideSuggest(); return; }
+    suggest.innerHTML = results.map((r, i) => `
+      <div class="orb-row ${i === active ? 'active' : ''}" role="option" data-i="${i}">
+        <div class="t">${esc(r.t)}</div>
+        <div class="d">${esc(r.d)}</div>
+      </div>`).join('');
+    suggest.style.display = 'block';
+  }
+
+  function doSearch() {
+    const q = input.value.trim();
+    if (!q) { hideSuggest(); return; }
+    const idx = buildIndex();
+    results = idx
+      .map(it => ({ it, s: scoreItem(q, it) }))
+      .filter(x => x.s > 20)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 6)
+      .map(x => x.it);
+    active = results.length ? 0 : -1;
+    render();
+  }
+
+  function runItem(item) {
+    if (!item) return;
+    hideSuggest();
+    input.value = '';
+    item.action();
+    toast(item.t);
+  }
+
+  /* Fallback: simple regex routing when no index match */
+  function fallback(q) {
+    const lv = norm(q);
+    if (!lv) return;
+    if (/pivot|table|summary/i.test(lv))   switchTab(document.querySelector('[data-tab="pivot"]'));
+    else if (/data|sheet|upload|add/i.test(lv)) switchTab(document.querySelector('[data-tab="data"]'));
+    else if (/clear|reset all|remove/i.test(lv)) clearFilters();
+    else if (/demo|sample/i.test(lv)) resetData();
+    else generateDashboard();
+  }
+
+  function toggleFilterValue(arrKey, value, chipsId) {
+    const arr = filters[arrKey];
+    const idx = arr.indexOf(value);
+    if (idx === -1) arr.push(value); else arr.splice(idx, 1);
+    buildChips(chipsId, unique(arrKey === 'regions' ? 'region' : 'category'), arr);
+    applyFilters();
+  }
+
+  input.addEventListener('input', doSearch);
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); active = Math.min(results.length - 1, active + 1); render(); }
+    else if (e.key === 'ArrowUp' && results.length) { e.preventDefault(); active = Math.max(0, active - 1); render(); }
+    else if (e.key === 'Enter') { e.preventDefault(); results.length ? runItem(results[active >= 0 ? active : 0]) : fallback(input.value); }
+    else if (e.key === 'Escape') { hideSuggest(); input.blur(); }
+  });
+
+  go.addEventListener('click', () => { results.length ? runItem(results[0]) : fallback(input.value); });
+
+  suggest.addEventListener('click', e => {
+    const row = e.target.closest('.orb-row');
+    if (!row) return;
+    runItem(results[Number(row.dataset.i)]);
+  });
+
+  document.addEventListener('mousedown', e => {
+    const wrap = document.getElementById('orb-input').closest('.orb-wrap');
+    if (wrap && !wrap.contains(e.target)) hideSuggest();
+  });
+  input.addEventListener('blur', () => setTimeout(hideSuggest, 150));
+})();
+
+/* ── Utils ── */
+function fmtINR(n) {
+  const a = Math.abs(n);
+  if (a >= 1e7) return '₹' + (n / 1e7).toFixed(2) + 'Cr';
+  if (a >= 1e5) return '₹' + (n / 1e5).toFixed(2) + 'L';
+  if (a >= 1e3) return '₹' + (n / 1e3).toFixed(1) + 'k';
+  return '₹' + (n || 0).toFixed(0);
+}
+function fmtShort(n) {
+  const a = Math.abs(n);
+  if (a >= 1e7) return (n / 1e7).toFixed(1) + 'Cr';
+  if (a >= 1e5) return (n / 1e5).toFixed(1) + 'L';
+  if (a >= 1e3) return (n / 1e3).toFixed(0) + 'k';
+  return (n || 0).toFixed(0);
+}
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+let toastTimer;
+function toast(msg, isErr = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = isErr ? 'rgba(242,95,92,.6)' : 'var(--border)';
+  el.style.color = isErr ? 'var(--red)' : 'var(--text)';
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+/* ── Boot ── */
+initRows(DEMO);
+buildSlicers();
+renderDataTable();
+generateDashboard();
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => renderCharts(getFilteredRows()), 150);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" id="meta-theme-color" />
+  <title>Dharam Daxini • 1:1 Sessions</title>
+
+  <style>
+    /* ============================================================
+       GLOBAL UX PATCH & VARIABLES
+       ============================================================ */
+    *, *::before, *::after {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      box-sizing: border-box;
+    }
+
+    *:focus:not(:focus-visible) { outline: none !important; box-shadow: none !important; }
+    body { -webkit-user-select: none; user-select: none; }
+    input, textarea { -webkit-user-select: text !important; user-select: text !important; }
+    ::selection { background: rgba(200,104,152,0.32); color: #fff; }
+
+    :root {
+      --bg: #050505;
+      --card-bg: rgba(18, 18, 20, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #fdfdfd;
+      --text-muted: rgba(242, 242, 242, 0.65);
+      --accent: #c86898;
+      --accent-alt: #e8a030;
+      --accent-glow: rgba(200, 104, 152, 0.16);
+
+      --header-bg: rgba(18, 18, 20, 0.95);
+      --session-bg: rgba(0,0,0,0.45);
+      --session-hover: rgba(200, 104, 152, 0.12);
+      --calendar-bg: rgba(0,0,0,0.3);
+      --btn-bg: rgba(15,15,15,0.66);
+      --input-bg: rgba(0,0,0,0.45);
+      --sticky-bg: rgba(10,10,10,0.85);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --maxw: 600px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f1f5f9;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(0, 0, 0, 0.1);
+      --text: #0f1115;
+      --text-muted: #64748b;
+      --accent: #c86898;
+      --accent-glow: rgba(200, 104, 152, 0.1);
+
+      --header-bg: rgba(255, 255, 255, 0.95);
+      --session-bg: #ffffff;
+      --session-hover: rgba(200, 104, 152, 0.08);
+      --calendar-bg: #ffffff;
+      --btn-bg: rgba(255, 255, 255, 0.8);
+      --input-bg: #ffffff;
+      --sticky-bg: rgba(255, 255, 255, 0.9);
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    html, body {
+      height: 100%; height: 100dvh; margin: 0;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden; overscroll-behavior-y: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+
+    .bg-glow {
+      position:absolute; inset:0; pointer-events:none; z-index:0;
+      background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%);
+    }
+
+    /* Top Nav */
+    .top {
+      position:absolute; top:0; left:0; right:0; z-index:50;
+      padding: calc(14px + var(--safeTop)) 14px 12px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      pointer-events:none;
+    }
+    .top > * { pointer-events:auto; }
+
+    .back, .pill, .btn-icon {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding: 10px 14px; border-radius: 999px;
+      border: 1px solid var(--card-border);
+      background: var(--btn-bg); color: var(--text);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      transition: transform .18s ease;
+    }
+    .back { font-weight:700; font-size:13px; }
+    .back:active, .btn-icon:active { transform: scale(0.97); }
+    .btn-icon { width:40px; height:40px; padding:10px; color:var(--accent); font-weight:900; }
+    .pill { font-size:11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+    .pill b { color:var(--text); font-weight:900; }
+
+    /* Scroll Architecture */
+    .scroll-container{
+      position:absolute; inset:0; overflow-y:auto; overflow-x:hidden;
+      scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:10;
+    }
+    .scroll-container::-webkit-scrollbar{ display:none; }
+
+    .section-wrapper{
+      height:100%; width:100%; scroll-snap-align:start; scroll-snap-stop: always;
+      display:flex; align-items:center; justify-content:center;
+      padding: calc(88px + var(--safeTop)) 14px calc(96px + var(--safeBottom)) 14px;
+    }
+
+    .card{
+      width:100%; max-width: var(--maxw); height:100%;
+      border-radius: 24px; border:1px solid var(--card-border);
+      background: var(--card-bg); box-shadow: var(--shadow);
+      display:flex; flex-direction:column; overflow:hidden;
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    }
+
+    .cardHeader{
+      padding: 22px 22px 18px;
+      border-bottom: 1px solid var(--card-border);
+      background: var(--header-bg);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      flex-shrink:0; position: relative; z-index: 2;
+    }
+    .kicker{ font-size:11px; letter-spacing:.15em; text-transform:uppercase; color: var(--accent); margin-bottom: 8px; font-weight:900; }
+    .h1{ margin:0; font-size: clamp(22px, 4.8vw, 30px); font-weight:900; color: var(--text); }
+
+    .cardBody{ padding: 22px; overflow:auto; flex:1; position: relative; z-index: 1; }
+
+    .big{ font-size: clamp(28px, 6vw, 42px); font-weight: 950; letter-spacing:-0.03em; margin: 0 0 18px; }
+    .accentText{ color: var(--accent); }
+    .lead{ font-size:15px; line-height:1.65; color: var(--text-muted); margin: 0 0 14px; }
+
+    /* Avatar & Profile */
+    .avatar-wrap {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+      padding-bottom: 24px; border-bottom: 1px solid var(--card-border);
+    }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 2px solid var(--accent); object-fit: cover;
+      background: linear-gradient(135deg, rgba(200,104,152,.3), rgba(232,160,48,.2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; flex-shrink: 0;
+    }
+    .social-links { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+    .social-link {
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 4px 10px; border-radius: 999px;
+      border: 1px solid rgba(200,104,152,.3);
+      transition: background 0.2s;
+    }
+    .social-link:hover { background: var(--session-hover); }
+
+    /* Work examples strip */
+    .work-strip {
+      display: flex; gap: 10px; margin-bottom: 24px; overflow-x: auto;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .work-strip::-webkit-scrollbar { display: none; }
+    .work-chip {
+      flex-shrink: 0; padding: 8px 14px; border-radius: 999px;
+      border: 1px solid var(--card-border); background: var(--session-bg);
+      font-size: 12px; font-weight: 700; color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .work-chip span { color: var(--accent); margin-right: 4px; }
+
+    /* Session Cards */
+    .session-card {
+      background: var(--session-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 20px; margin-bottom: 12px;
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .session-card:hover, .session-card.selected {
+      border-color: var(--accent); background: var(--session-hover);
+      transform: translateY(-2px);
+    }
+    .session-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .session-info h3 { font-size: 16px; margin: 0 0 4px; font-weight: 700; color: var(--text); }
+    .session-info p { font-size: 13px; color: var(--text-muted); margin: 0; }
+    .session-price { font-weight: 900; font-size: 16px; color: var(--accent); white-space: nowrap; padding-left: 12px; }
+    .session-tag {
+      display: inline-block; font-size: 10px; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px; margin-top: 8px;
+    }
+    .session-tag.free { background: rgba(34,197,94,.12); color: #22c55e; border: 1px solid rgba(34,197,94,.25); }
+    .session-tag.paid { background: rgba(200,104,152,.12); color: var(--accent); border: 1px solid rgba(200,104,152,.25); }
+    .session-tag.strategy { background: rgba(232,160,48,.12); color: var(--accent-alt); border: 1px solid rgba(232,160,48,.25); }
+
+    /* Calendar Grid */
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+      text-align: center; margin-bottom: 24px; background: var(--calendar-bg);
+      padding: 20px; border-radius: 16px; border: 1px solid var(--card-border);
+    }
+    .day-label { font-size: 12px; color: var(--text-muted); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;}
+    .date-btn {
+      background: transparent; border: 1px solid transparent; color: var(--text);
+      width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer;
+      font-size: 14px; font-weight: 600; transition: all 0.2s ease;
+    }
+    .date-btn:hover:not(:disabled) { background: var(--session-hover); }
+    .date-btn.selected { background: var(--accent); color: white; }
+    .date-btn:disabled { color: var(--text-muted); opacity: 0.3; cursor: not-allowed; }
+
+    .time-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+    .time-btn {
+      background: var(--session-bg); border: 1px solid var(--card-border);
+      color: var(--text); padding: 14px; border-radius: 12px;
+      cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;
+    }
+    .time-btn:hover, .time-btn.selected { border-color: var(--accent); background: var(--session-hover); }
+
+    /* Forms */
+    .field{ display:flex; flex-direction:column; gap:8px; margin-bottom: 16px; }
+    .field label{ font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); font-weight: 800; }
+    .field input, .field textarea{
+      background: var(--input-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 14px; color: var(--text); font-size: 15px; outline:none; font-family: inherit;
+    }
+    .field textarea { resize: vertical; min-height: 100px; }
+    .field input:focus, .field textarea:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    /* Sticky CTA */
+    .stickyCTA{
+      position: fixed; left: 14px; right: 14px; bottom: calc(12px + var(--safeBottom));
+      z-index: 60; max-width: var(--maxw); margin: 0 auto; display:flex; gap:10px;
+      padding: 10px; border-radius: 18px; border: 1px solid var(--card-border);
+      background: var(--sticky-bg); backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.3); transition: all 0.3s ease;
+    }
+    .stickyCTA .left{ flex:1; display:flex; flex-direction:column; justify-content: center; padding: 4px 8px; }
+    .stickyCTA .left b{ font-size: 13px; color: var(--text); }
+    .stickyCTA .left span{ font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+
+    .btnPrimary{
+      width: 180px; padding: 14px; border-radius: 12px; font-weight: 900; font-size: 14px;
+      background: var(--accent); color:#fff; border: none; cursor: pointer; transition: transform 0.2s, opacity 0.2s;
+    }
+    .btnPrimary:active { transform: scale(0.97); }
+    .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width:520px){
+      .stickyCTA{ flex-direction:column; }
+      .btnPrimary{ width:100%; }
+      .stickyCTA .left span{ white-space:normal; }
+    }
+
+    .step-content { display: none; animation: fadeIn 0.4s ease; }
+    .step-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Confirm screen */
+    .confirm-icon { font-size: 64px; margin-bottom: 20px; }
+    .confirm-detail {
+      background: var(--session-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 18px; margin-bottom: 12px;
+    }
+    .confirm-detail .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 800; margin-bottom: 4px; }
+    .confirm-detail .value { font-size: 15px; font-weight: 700; color: var(--text); }
+  </style>
+</head>
+
+<body>
+  <div class="bg-glow"></div>
+
+  <div class="top">
+    <button class="back" id="btnBack">← Start Over</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-icon" id="btnTheme" title="Toggle Theme">🌙</button>
+      <div class="pill"><b id="stepLabel">STEP 1/3</b> • <span id="stepName">SESSION</span></div>
+    </div>
+  </div>
+
+  <main class="scroll-container" id="scrollContainer">
+    <div class="section-wrapper is-active">
+      <article class="card">
+
+        <header class="cardHeader">
+          <div class="kicker" id="kickerText">Decision Research & Strategy</div>
+          <h1 class="h1" id="dynamicHeader">Select a Session</h1>
+        </header>
+
+        <div class="cardBody">
+
+          <!-- STEP 1: Choose Session -->
+          <div id="step-1" class="step-content active">
+            <div class="avatar-wrap">
+              <div class="avatar">🧭</div>
+              <div>
+                <h2 style="margin: 0 0 4px; font-size: 20px;">Dharam Daxini</h2>
+                <p style="margin: 0 0 6px; font-size: 14px; color: var(--text-muted);">Decision Engine · ViaDecide</p>
+                <div class="social-links">
+                  <a href="mailto:hello@viadecide.com" class="social-link">Email</a>
+                  <a href="https://viadecide.com" target="_blank" class="social-link">ViaDecide</a>
+                  <a href="https://www.instagram.com/viadecide" target="_blank" class="social-link">Instagram</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Work Examples Strip -->
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); font-weight: 800; margin-bottom: 10px;">Examples of Work</div>
+            <div class="work-strip">
+              <div class="work-chip"><span>⚙️</span>Decide Engine</div>
+              <div class="work-chip"><span>🛒</span>ONDC Demo</div>
+              <div class="work-chip"><span>🧭</span>ViaGuide</div>
+              <div class="work-chip"><span>📊</span>MSME Dashboard</div>
+              <div class="work-chip"><span>🎓</span>StudyOS</div>
+              <div class="work-chip"><span>🍽️</span>Food · Rajkot</div>
+            </div>
+
+            <div class="big">What can I help you <span class="accentText">decide?</span></div>
+
+            <!-- Discovery Call -->
+            <div class="session-card" onclick="selectSession('Discovery Call', 'Free', '15 mins', this)">
+              <div class="session-head">
+                <div class="session-info">
+                  <h3>Discovery Call</h3>
+                  <p>15 mins · Video Call · No commitment</p>
+                </div>
+                <div class="session-price">Free</div>
+              </div>
+              <div class="session-tag free">● Free Intro</div>
+            </div>
+
+            <!-- Decision Research Session -->
+            <div class="session-card" onclick="selectSession('Decision Research Session', '₹999', '60 mins', this)">
+              <div class="session-head">
+                <div class="session-info">
+                  <h3>Decision Research Session</h3>
+                  <p>60 mins · Deep Dive · For builders & buyers</p>
+                </div>
+                <div class="session-price">₹999</div>
+              </div>
+              <div class="session-tag strategy">⊕ Research + Strategy</div>
+            </div>
+
+            <!-- Product Clarity Session -->
+            <div class="session-card" onclick="selectSession('Product Clarity Session', '₹999', '45 mins', this)">
+              <div class="session-head">
+                <div class="session-info">
+                  <h3>Product Clarity Session</h3>
+                  <p>45 mins · Feedback & Roadmap · For founders</p>
+                </div>
+                <div class="session-price">₹999</div>
+              </div>
+              <div class="session-tag paid">↗ Product Focus</div>
+            </div>
+
+            <div style="height: 60px;"></div>
+          </div>
+
+          <!-- STEP 2: Schedule -->
+          <div id="step-2" class="step-content">
+            <div class="big">When are you <span class="accentText">free?</span></div>
+            <p class="lead">All times are shown in your local timezone.</p>
+
+            <div class="calendar-grid" id="calendarGrid">
+              <div class="day-label">Su</div><div class="day-label">Mo</div><div class="day-label">Tu</div><div class="day-label">We</div><div class="day-label">Th</div><div class="day-label">Fr</div><div class="day-label">Sa</div>
+            </div>
+
+            <div id="time-selection" style="display: none;">
+              <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 12px;">Available Times</h3>
+              <div class="time-slots">
+                <button class="time-btn" onclick="selectTime(this)">10:00 AM</button>
+                <button class="time-btn" onclick="selectTime(this)">12:00 PM</button>
+                <button class="time-btn" onclick="selectTime(this)">03:00 PM</button>
+                <button class="time-btn" onclick="selectTime(this)">06:00 PM</button>
+              </div>
+            </div>
+            <div style="height: 60px;"></div>
+          </div>
+
+          <!-- STEP 3: Details -->
+          <div id="step-3" class="step-content">
+            <div class="big">Final <span class="accentText">Details.</span></div>
+
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="custName" placeholder="Your name" required>
+            </div>
+
+            <div class="field">
+              <label>Email Address</label>
+              <input type="email" id="custEmail" placeholder="your@email.com" required>
+            </div>
+
+            <div class="field">
+              <label>What do you need clarity on?</label>
+              <textarea id="custNotes" placeholder="e.g. Choosing the right product to build, validating a business idea, product decisions for my startup…"></textarea>
+            </div>
+            <div style="height: 60px;"></div>
+          </div>
+
+          <!-- STEP 4: Done -->
+          <div id="step-4" class="step-content">
+            <div style="text-align: center; padding: 40px 0 20px;">
+              <div class="confirm-icon">✉️</div>
+              <div class="big">Email <span class="accentText">Prepared.</span></div>
+              <p class="lead">Your email client should open. Review and hit send to request your booking with Dharam Daxini.</p>
+            </div>
+            <div class="confirm-detail">
+              <div class="label">Session</div>
+              <div class="value" id="confSession">—</div>
+            </div>
+            <div class="confirm-detail">
+              <div class="label">Date & Time</div>
+              <div class="value" id="confDateTime">—</div>
+            </div>
+            <div class="confirm-detail">
+              <div class="label">Price</div>
+              <div class="value" id="confPrice">—</div>
+            </div>
+          </div>
+
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <div class="stickyCTA" id="stickyBar">
+    <div class="left">
+      <b id="ctaTitle">Ready to decide?</b>
+      <span id="ctaSub">Select a session above to get started.</span>
+    </div>
+    <button class="btnPrimary" id="ctaBtn" disabled>Continue →</button>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      let state = {
+        step: 1, session: null, price: null, duration: null,
+        date: null, time: null, theme: 'dark'
+      };
+
+      const els = {
+        ctaBtn: document.getElementById('ctaBtn'),
+        ctaTitle: document.getElementById('ctaTitle'),
+        ctaSub: document.getElementById('ctaSub'),
+        stepLabel: document.getElementById('stepLabel'),
+        stepName: document.getElementById('stepName'),
+        dynHeader: document.getElementById('dynamicHeader'),
+        kicker: document.getElementById('kickerText'),
+        btnBack: document.getElementById('btnBack')
+      };
+
+      // Build dynamic calendar for current month
+      (function buildCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.getDate();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Day headers already in HTML; add blank cells for offset
+        for (let i = 0; i < firstDay; i++) {
+          const blank = document.createElement('div');
+          grid.appendChild(blank);
+        }
+
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        grid._monthName = monthNames[month];
+        grid._year = year;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const btn = document.createElement('button');
+          btn.className = 'date-btn';
+          btn.textContent = d;
+          if (d < today) {
+            btn.disabled = true;
+          } else {
+            btn.onclick = () => selectDate(btn, monthNames[month]);
+          }
+          grid.appendChild(btn);
+        }
+      })();
+
+      window.selectSession = function(name, price, duration, cardEl) {
+        state.session = name; state.price = price; state.duration = duration;
+        document.querySelectorAll('.session-card').forEach(c => c.classList.remove('selected'));
+        cardEl.classList.add('selected');
+
+        els.ctaTitle.textContent = name;
+        els.ctaSub.textContent = `${duration} · ${price === 'Free' ? 'No cost' : price}`;
+        enableCTA('Pick Date & Time →', () => goToStep(2));
+      };
+
+      window.selectDate = function(btn, monthName) {
+        state.date = btn.textContent + ' ' + monthName; state.time = null;
+        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('time-selection').style.display = 'block';
+
+        const cardBody = document.querySelector('.cardBody');
+        cardBody.scrollTo({ top: cardBody.scrollHeight, behavior: 'smooth' });
+        disableCTA('Select a time');
+      };
+
+      window.selectTime = function(btn) {
+        state.time = btn.textContent;
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+
+        els.ctaTitle.textContent = `${state.date}, ${state.time}`;
+        els.ctaSub.textContent = `${state.session} · ${state.price}`;
+        enableCTA('Add Your Details →', () => goToStep(3));
+      };
+
+      function goToStep(n) {
+        state.step = n;
+        document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step-${n}`).classList.add('active');
+        document.querySelector('.cardBody').scrollTop = 0;
+
+        if (n === 1) {
+          els.stepLabel.textContent = 'STEP 1/3'; els.stepName.textContent = 'SESSION';
+          els.kicker.textContent = 'Decision Research & Strategy';
+          els.dynHeader.textContent = 'Select a Session';
+          els.ctaTitle.textContent = 'Ready to decide?';
+          els.ctaSub.textContent = 'Select a session above to get started.';
+          state.session = null; disableCTA('Select a session');
+        } else if (n === 2) {
+          els.stepLabel.textContent = 'STEP 2/3'; els.stepName.textContent = 'SCHEDULE';
+          els.kicker.textContent = 'Choose Your Slot';
+          els.dynHeader.textContent = 'Date & Time';
+          if (!state.time) disableCTA('Select date & time');
+          else enableCTA('Add Your Details →', () => goToStep(3));
+        } else if (n === 3) {
+          els.stepLabel.textContent = 'STEP 3/3'; els.stepName.textContent = 'DETAILS';
+          els.kicker.textContent = 'Almost There';
+          els.dynHeader.textContent = 'Your Details';
+          els.ctaTitle.textContent = `Total: ${state.price}`;
+          els.ctaSub.textContent = `${state.session} · ${state.date}, ${state.time}`;
+          enableCTA('Confirm & Send Request ↗', triggerEmailRedirect);
+          els.ctaBtn.style.background = '#22c55e';
+        } else if (n === 4) {
+          els.stepLabel.textContent = 'DONE'; els.stepName.textContent = 'SUCCESS';
+          els.kicker.textContent = 'Request Sent';
+          els.dynHeader.textContent = 'You\'re Booked In';
+          document.getElementById('stickyBar').style.display = 'none';
+          els.btnBack.textContent = '← Book Another';
+          // Fill confirm details
+          document.getElementById('confSession').textContent = state.session;
+          document.getElementById('confDateTime').textContent = `${state.date}, ${state.time}`;
+          document.getElementById('confPrice').textContent = state.price === 'Free' ? 'Free — no payment needed' : `${state.price} (details in email)`;
+        }
+      }
+
+      function enableCTA(text, action) {
+        els.ctaBtn.textContent = text; els.ctaBtn.disabled = false;
+        els.ctaBtn.onclick = action; els.ctaBtn.style.background = '';
+      }
+
+      function disableCTA(text) {
+        els.ctaBtn.textContent = text; els.ctaBtn.disabled = true;
+        els.ctaBtn.onclick = null; els.ctaBtn.style.background = '';
+      }
+
+      function triggerEmailRedirect() {
+        const name = document.getElementById('custName').value.trim() || 'User';
+        const email = document.getElementById('custEmail').value.trim() || 'Not provided';
+        const notes = document.getElementById('custNotes').value.trim() || 'None';
+
+        const subject = encodeURIComponent(`Session Request: ${state.session} — ${name}`);
+        const body = encodeURIComponent(
+          `Hi Dharam,\n\nI'd like to book a session with you. Here are my details:\n\n` +
+          `Session: ${state.session} (${state.price})\n` +
+          `Date: ${state.date}\nTime: ${state.time}\n` +
+          `Name: ${name}\nEmail: ${email}\n` +
+          `What I need clarity on: ${notes}\n\n` +
+          `Please confirm if this slot works.\n\nBest,\n${name}`
+        );
+
+        window.location.href = `mailto:hello@viadecide.com?subject=${subject}&body=${body}`;
+        setTimeout(() => goToStep(4), 500);
+      }
+
+      // Theme toggle
+      document.getElementById('btnTheme').addEventListener('click', (e) => {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', state.theme);
+        e.target.textContent = state.theme === 'dark' ? '🌙' : '☀️';
+        document.getElementById('meta-theme-color').setAttribute('content', state.theme === 'dark' ? '#050505' : '#f1f5f9');
+      });
+
+      els.btnBack.addEventListener('click', () => {
+        if (state.step > 1 && state.step < 4) goToStep(state.step - 1);
+        else { document.getElementById('stickyBar').style.display = 'flex'; goToStep(1); }
+      });
+
+    })();
+  </script>
+</body>
+</html>

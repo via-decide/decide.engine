@@ -1,0 +1,114 @@
+# ============================================================
+# ViaDecide — Cloudflare Pages _redirects
+# Rule: /* must stay LAST. Cloudflare evaluates top-to-bottom,
+# first match wins. Known slugs get their .html served (200 =
+# rewrite, no URL change). Everything else falls to index.html
+# where VDRouter handles it.
+# ============================================================
+
+# ── PrintByDD store ──────────────────────────────────────────
+/printbydd             /printbydd-store/index.html                200
+/printbydd/            /printbydd-store/index.html                200
+/printbydd/keychain    /printbydd-store/keychain.html             200
+/printbydd/numberplate /printbydd-store/numberplate.html          200
+/printbydd/products    /printbydd-store/products.html             200
+/printbydd/gifts       /printbydd-store/gifts-that-mean-more.html 200
+/printbydd/*           /printbydd-store/:splat                    200
+
+# ── Tools ────────────────────────────────────────────────────
+/alchemist                        /alchemist.html                        200
+/memory                           /memory.html                           200
+/prompt-alchemy                   /prompt-alchemy.html                   200
+/viaguide                         /ViaGuide.html                         200
+/studyos                          /StudyOS.html                          200
+/brief                            /brief.html                            200
+/student-research                 /student-research.html                 200
+/app-generator                    /app-generator.html                    200
+/agent                            /agent.html                            200
+/swipeos                          /SwipeOS.html                          200
+/swipeos-gandhidham               /SwipeOS-gandhidham.html               200
+/interview-prep                   /interview-prep.html                   200
+/sales-dashboard                  /sales-dashboard.html                  200
+/finance-dashboard-msme           /finance-dashboard-msme.html           200
+/payment-register                 /payment-register.html                 200
+/laptops-under-50000              /laptops-under-50000.html              200
+
+# ── Commerce ─────────────────────────────────────────────────
+/ondc-demo                        /ONDC-demo.html                        200
+/engine-deals                     /engine-deals.html                     200
+/discounts                        /discounts.html                        200
+/cashback-rules                   /cashback-rules.html                   200
+/cashback-claim                   /cashback-claim.html                   200
+
+# ── Games ────────────────────────────────────────────────────
+/hexwars                          /HexWars.html                          200
+/wings-of-fire-quiz               /wings-of-fire-quiz.html               200
+/mars-rover-simulator-game        /mars-rover-simulator-game.html        200
+/hivaland                         /HivaLand.html                         200
+/skillhex-mission-control         /apps/skillhex/index.html               200
+/skillhex                         /apps/skillhex/index.html               200
+/apps/skillhex                    /apps/skillhex/index.html               200
+/apps/skillhex/                   /apps/skillhex/index.html               200
+/skillhex-recruiter               /apps/skillhex/hiring-dashboard.html    200
+/skillhex/recruiter               /apps/skillhex/hiring-dashboard.html    200
+/hiring-dashboard                 /apps/skillhex/hiring-dashboard.html    200
+
+# ── Services ─────────────────────────────────────────────────
+/decide-service                   /decide-service.html                   200
+/decide-foodrajkot                /decide-foodrajkot.html                200
+/engine-license                   /engine-license.html                   200
+/cohort-apply-here                /cohort-apply-here.html                200
+/customswipeengineform            /CustomSwipeEngineForm.html            200
+/pricing                          /pricing.html                          200
+/engine-activation-request        /Engine%20Activation%20Request.html    200
+
+# ── Store ────────────────────────────────────────────────────
+/smarttag-lite                    /printbydd-store/smarttag-lite.html    200
+/keychain                         /printbydd-store/keychain.html         200
+/gifts-that-mean-more             /printbydd-store/gifts-that-mean-more.html 200
+/products                         /printbydd-store/products.html         200
+/gift-psychology                  /printbydd-store/gift-psychology.html  200
+
+# ── Blog & Content ───────────────────────────────────────────
+/viadecide-blogs                  /Viadecide-blogs.html                  200
+/the-decision-stack               /The%20Decision%20Stack.html           200
+/the-decision-stack.html          /The%20Decision%20Stack.html           200
+/why-small-businesses-dont-need-saas /not-a-saas/index.html               200
+/why-smbs-dont-need-saas          /not-a-saas/index.html                 200
+/why-smbs-dont-need-saas.html     /not-a-saas/index.html                 200
+/decision-infrastructure-india    /decision-infrastructure-india.html    200
+/ondc-for-bharat                  /ondc-for-bharat.html                  200
+/indiaai-mission-2025             /indiaai-mission-2025.html             200
+/multi-source-research-explained  /multi-source-research-explained.html  200
+/decision-brief-guide             /decision-brief-guide.html             200
+/viadecide-public-beta            /viadecide-public-beta.html            200
+/decision-brief                   /decision-brief.html                   200
+/not-a-saas                      /not-a-saas/index.html                  200
+
+# ── Personal ─────────────────────────────────────────────────
+/jalaram-food-court-rajkot        /Jalaram-food-court-rajkot.html        200
+/dharamdaxini                     /DharamDaxini/index.html               200
+/dharamdaxini-legacy              /DharamDaxini.html                     200
+/founder                          /founder.html                          200
+/contact                          /contact.html                          200
+/privacy                          /privacy.html                          200
+/terms                            /terms.html                            200
+
+# ── Audio Log ────────────────────────────────────────────────
+/audio.log                        /audio.log.html                        200
+/audiolog                         /audio.log.html                        200
+/audio-log                        /audio.log.html                        200
+
+# ── Aliases (fix #15) ────────────────────────────────────────
+/wings-of-fire                    /wings-of-fire-quiz.html               200
+/wingsoffire                      /wings-of-fire-quiz.html               200
+/wof                              /wings-of-fire-quiz.html               200
+/numberplate                      /printbydd-store/numberplate.html      200
+/printbydd-store                  /printbydd-store/index.html            200
+/dharam-daxini                    /DharamDaxini/index.html               200
+/fintrack                         /finance-dashboard-msme.html           200
+/payroll-register                 /payment-register.html                 200
+/sales-register                   /sales-dashboard.html                  200
+
+# ── SPA fallback — MUST BE LAST ──────────────────────────────
+/*                                /index.html                            200

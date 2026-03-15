@@ -1,0 +1,42 @@
+{
+  "name": "PrintByDD Store",
+  "short_name": "PrintByDD",
+  "description": "Precision 3D manufacturing — smart accessories, architectural models, and gifts that mean more.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fafafa",
+  "theme_color": "#ffffff",
+  "lang": "en-IN",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23ff2a2a'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='900' font-size='280' fill='%23fff'%3EP%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23ff2a2a'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='900' font-size='280' fill='%23fff'%3EP%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "NFC Keychain",
+      "short_name": "Keychain",
+      "description": "View the Hardcore NFC Keychain product",
+      "url": "./keychain.html"
+    },
+    {
+      "name": "Gift Guide",
+      "short_name": "Gifts",
+      "description": "Gifts that mean more",
+      "url": "./gifts-that-mean-more.html"
+    }
+  ],
+  "screenshots": []
+}

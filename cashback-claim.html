@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Cashback Claim | decide.engine</title>
+  <style>
+    body{margin:0;background:#0a0a0a;color:#f0f0f0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .wrap{max-width:720px;margin:0 auto;padding:28px}
+    h1{color:#ff671f;margin:0 0 8px}
+    .small{color:#aaa;font-size:.92rem}
+    .card{border:1px solid #222;border-radius:12px;padding:16px;background:#0f0f0f;margin:14px 0}
+    label{display:block;margin:12px 0 6px;color:#aaa;font-size:.9rem}
+    input,select,textarea{width:100%;padding:14px;border-radius:10px;border:1px solid #333;background:#0a0a0a;color:#fff;outline:none}
+    textarea{min-height:90px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn{width:100%;margin-top:14px;padding:14px;border-radius:12px;border:1px solid #333;background:#222;color:#fff;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .warn{border:1px solid #ff4444;background:#130a0a}
+    .ok{border:1px solid #00e676;background:#07120b}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid #333;color:#aaa;font-size:.8rem;margin-right:8px}
+    .msg{margin-top:10px;font-size:.95rem}
+    a{color:#00e676;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cashback Claim</h1>
+    <div class="small">No proof = no payout. Submit clear screenshots only.</div>
+
+    <div class="card warn">
+      <span class="pill">REQUIRED</span>
+      Upload at least one proof image (Order Details / Invoice). Blurred or edited proofs are rejected.
+    </div>
+
+    <div class="card">
+      <form id="claimForm">
+        <label>Registered Email *</label>
+        <input type="email" id="email" required placeholder="you@example.com"/>
+
+        <label>Member ID (optional but recommended)</label>
+        <input type="text" id="memberId" placeholder="e.g., MEM_8H2K9"/>
+
+        <div class="row">
+          <div>
+            <label>Order ID *</label>
+            <input type="text" id="orderId" required placeholder="e.g., 171-1234567-1234567"/>
+          </div>
+          <div>
+            <label>Purchase Date *</label>
+            <input type="date" id="purchaseDate" required/>
+          </div>
+        </div>
+
+        <label>Product Name *</label>
+        <input type="text" id="productName" required placeholder="Exact product name from order"/>
+
+        <div class="row">
+          <div>
+            <label>Category *</label>
+            <select id="category" required>
+              <option value="">Select</option>
+              <option>Beauty / Apparel / Accessories / Shoes / Bags / Home (5%)</option>
+              <option>Kitchen / Furniture / Home Improvement (5%)</option>
+              <option>Grocery / Amazon Fresh (4%)</option>
+              <option>Echo / Fire TV (5%)</option>
+              <option>Baby / Pet / Health & Personal Care (4%)</option>
+              <option>Mobile Accessories (4%)</option>
+              <option>Books / Office / Toys (5%)</option>
+              <option>BISS / Lawn & Garden / Automotive / Sports (2%)</option>
+              <option>Personal Care Appliances (5%)</option>
+              <option>PC / Smart Watches / TVs / Electronics / Large Appliances (3.5%)</option>
+              <option>Bicycles / Heavy Gym / Tyres & Rims (2.5%)</option>
+              <option>Jewellery (excl. coins) / Data Storage (2%)</option>
+              <option>Mobile Phones (1% or 0%/0.5% differential)</option>
+              <option>Bill Payment & Recharges (30% max ₹3)</option>
+              <option>Other (5%)</option>
+              <option>Excluded (No cashback)</option>
+            </select>
+          </div>
+          <div>
+            <label>Amount Paid (₹) *</label>
+            <input type="number" id="amountPaid" required min="1" step="0.01" placeholder="e.g., 12999"/>
+          </div>
+        </div>
+
+        <label>UPI ID for payout *</label>
+        <input type="text" id="upi" required placeholder="name@bank"/>
+
+        <label>Upload proof image(s) * (jpg/png/pdf)</label>
+        <input type="file" id="proof" required multiple accept="image/*,application/pdf"/>
+
+        <label>Notes (optional)</label>
+        <textarea id="notes" placeholder="Any extra detail that helps approval..."></textarea>
+
+        <button class="btn" id="submitBtn" type="submit">SUBMIT CLAIM</button>
+        <div class="msg" id="msg"></div>
+      </form>
+    </div>
+
+    <div class="card ok">
+      <span class="pill">FYI</span>
+      Review SLA: 24–72h • Payouts: weekly • Rules: <a href="/cashback-rules">Cashback Rules</a>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Replace with your endpoint (Google Apps Script / server)
+    const CLAIM_ENDPOINT = "https://YOUR-ENDPOINT-HERE";
+
+    const form = document.getElementById('claimForm');
+    const msg = document.getElementById('msg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function validateUPI(upi) {
+      // Simple UPI format check: something@bank
+      return /^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/.test(upi.trim());
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+      msg.style.color = "#aaa";
+
+      const email = document.getElementById('email').value.trim();
+      const memberId = document.getElementById('memberId').value.trim();
+      const orderId = document.getElementById('orderId').value.trim();
+      const purchaseDate = document.getElementById('purchaseDate').value;
+      const productName = document.getElementById('productName').value.trim();
+      const category = document.getElementById('category').value;
+      const amountPaid = document.getElementById('amountPaid').value;
+      const upi = document.getElementById('upi').value.trim();
+      const proof = document.getElementById('proof').files;
+      const notes = document.getElementById('notes').value.trim();
+
+      // Enforce: No proof = no payout
+      if (!proof || proof.length === 0) {
+        msg.style.color = "#ff4444";
+        msg.textContent = "Proof required. Upload Order Details/Invoice.";
+        return;
+      }
+      if (!validateUPI(upi)) {
+        msg.style.color = "#ff4444";
+        msg.textContent = "Invalid UPI ID format. Example: name@bank";
+        return;
+      }
+      if (category === "Excluded (No cashback)") {
+        msg.style.color = "#ff4444";
+        msg.textContent = "This category is excluded from cashback.";
+        return;
+      }
+
+      // Build payload
+      const fd = new FormData();
+      fd.append("email", email);
+      fd.append("memberId", memberId);
+      fd.append("orderId", orderId);
+      fd.append("purchaseDate", purchaseDate);
+      fd.append("productName", productName);
+      fd.append("category", category);
+      fd.append("amountPaid", amountPaid);
+      fd.append("upi", upi);
+      fd.append("notes", notes);
+
+      for (let i = 0; i < proof.length; i++) {
+        fd.append("proofFiles", proof[i]);
+      }
+
+      submitBtn.disabled = true;
+      msg.style.color = "#00e676";
+      msg.textContent = "Submitting…";
+
+      try {
+        const res = await fetch(CLAIM_ENDPOINT, { method: "POST", body: fd });
+        if (!res.ok) throw new Error("bad_response");
+        msg.style.color = "#00e676";
+        msg.textContent = "Submitted. You will receive approval/rejection by email within 24–72 hours.";
+        form.reset();
+      } catch (err) {
+        msg.style.color = "#ff4444";
+        msg.textContent = "Submission failed. Try again or contact support.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
