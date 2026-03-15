@@ -1,0 +1,101 @@
+:root {
+  --bg: #0b1020;
+  --surface: #131a2f;
+  --text: #e8edff;
+  --muted: #9da7c7;
+  --accent: #4f8cff;
+  --accent-2: #8f7cff;
+  --border: #243052;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#shell-header,
+#shell-footer {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#shell-footer {
+  border-top: 1px solid var(--border);
+  border-bottom: 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tab,
+.btn,
+button,
+.card {
+  user-select: none;
+}
+
+.tab {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tab.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.section {
+  display: none;
+  padding: 1rem;
+}
+
+.section.is-active {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.card a {
+  color: var(--text);
+}
+
+.featured {
+  border-color: var(--accent);
+}
