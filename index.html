@@ -674,6 +674,71 @@ section{position:relative;z-index:10}
   background:none;border:none;text-align:left;width:100%;
 }
 .snav-jump:hover{color:var(--gold2)}
+
+/* ── GN8RBot Status Badge System ─────────────────────────── */
+.gn8r-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .22rem .65rem;
+  border-radius: 99px;
+  border: 1px solid transparent;
+  transition: all .3s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.gn8r-status[data-state="checking"] {
+  background: rgba(255,255,255,.04);
+  color: var(--tx3);
+  border-color: rgba(255,255,255,.08);
+}
+.gn8r-status[data-state="online"] {
+  background: rgba(34,180,160,.12);
+  color: var(--teal2);
+  border-color: rgba(34,180,160,.25);
+}
+.gn8r-status[data-state="offline"] {
+  background: rgba(239,68,68,.1);
+  color: #f87171;
+  border-color: rgba(239,68,68,.22);
+}
+.gn8r-status[data-state="unknown"] {
+  background: rgba(200,147,42,.1);
+  color: var(--gold2);
+  border-color: rgba(200,147,42,.22);
+}
+.gn8r-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: currentColor;
+}
+.gn8r-status[data-state="online"]  .gn8r-dot { animation: pdot 1.6s infinite; }
+.gn8r-status[data-state="checking"] .gn8r-dot { animation: gn8rSpin .9s linear infinite; }
+.gn8r-status[data-state="offline"]  .gn8r-dot { animation: none; opacity: .7; }
+
+/* Nav pill variant — compact, no border */
+.gn8r-status.gn8r-nav {
+  padding: .18rem .5rem;
+  font-size: .58rem;
+  border: none;
+  background: transparent;
+}
+.gn8r-status.gn8r-nav[data-state="online"]  { color: var(--teal2); }
+.gn8r-status.gn8r-nav[data-state="offline"] { color: #f87171; }
+.gn8r-status.gn8r-nav[data-state="unknown"] { color: var(--gold2); }
+.gn8r-status.gn8r-nav[data-state="checking"]{ color: var(--tx3); }
+
+@keyframes gn8rSpin {
+  to { transform: rotate(360deg); border-radius: 0; }
+}
+/* ── end GN8RBot Status ──────────────────────────────────── */
 </style>
 </head>
 <body data-depth="surface">
@@ -695,7 +760,10 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
     <a class="nav-chip nc-a" href="#cat-audio">🎙 Audio.Log</a>
     <a class="nav-chip nc-g" href="/skillhex-mission-control">🧩 Products · SkillHex</a>
-    <a class="nav-chip nc-t" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈️ Telegram Bot</a>
+    <a class="nav-chip nc-t" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈️ GN8RBot <span class="gn8r-status gn8r-nav" data-gn8r-badge="nav"
+    data-state="checking" style="margin-left:3px">
+    <span class="gn8r-dot"></span>
+  </span></a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
@@ -1894,6 +1962,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       Open Bot <span class="cta-arrow">→</span>
     </button>
     <span class="pt-badge pt-badge--live">● Live</span>
+<span class="gn8r-status" data-gn8r-badge="ptcard" data-state="checking">
+  <span class="gn8r-dot"></span>
+  <span class="gn8r-label">Checking…</span>
+</span>
   </div>
 </div>
     </div>
@@ -1952,6 +2024,10 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   <div class="tc-name">GN8R · Telegram Bot</div>
   <div class="tc-desc">Your AI command center, inside Telegram. Run decisions, get briefs, and automate workflows without leaving the app.</div>
   <div class="tc-st live">● Telegram</div>
+<span class="gn8r-status" data-gn8r-badge="card" data-state="checking">
+  <span class="gn8r-dot"></span>
+  <span class="gn8r-label">Checking…</span>
+</span>
 </div>
       <div class="tc tc-s3" onclick="openModal('/SwipeOS.html','👆','SwipeOS')" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,product,decision" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st beta">◆ Beta</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st wip">◌ Coming</div></div>
@@ -2441,7 +2517,14 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
         </svg>
       </button>
       <span class="glen-label" aria-hidden="true">@GN8RBot</span>
-      <span class="glen-badge" aria-hidden="true">✈ Bot</span>
+      <span class="glen-badge" aria-hidden="true">
+    ✈ Bot &nbsp;
+    <span class="gn8r-status gn8r-nav" data-gn8r-badge="fab" data-state="checking"
+      style="display:inline-flex;vertical-align:middle">
+      <span class="gn8r-dot"></span>
+      <span class="gn8r-label"></span>
+    </span>
+  </span>
     </div>
   `;
 
@@ -2481,6 +2564,115 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
      Deferred so it never blocks homepage paint.
 ──────────────────────────────────────────────────────────── -->
 <script src="/viadecide-agent.js" defer></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   GN8RBot Status Monitor
+   ──────────────────────────────────────────────────────────
+   HOW IT WORKS
+   ─────────────────────────────────────────────────────────
+   1. Tries GN8R_STATUS_URL (your own endpoint — set it below).
+      Expected JSON response: { "online": true, "users": 42 }
+      or simply: { "online": true }
+
+   2. If no endpoint is set, falls back to a HEAD request to
+      https://t.me/GN8RBot (no CORS issues for HEAD on t.me).
+      A 200 response is treated as "online".
+
+   3. If both fail, state becomes "unknown" (shown as amber).
+
+   4. Refreshes every GN8R_REFRESH_MS milliseconds.
+   ════════════════════════════════════════════════════════════ */
+(function () {
+  if (window._GN8RStatusLoaded) return;
+  window._GN8RStatusLoaded = true;
+
+  /* ── CONFIG — edit these two lines ── */
+  const GN8R_STATUS_URL  = '';          // e.g. 'https://yourapi.com/gn8r/status'
+  const GN8R_REFRESH_MS  = 60_000;     // re-check every 60 s
+  /* ────────────────────────────────── */
+
+  const LABELS = {
+    checking : 'Checking…',
+    online   : 'Online',
+    offline  : 'Offline',
+    unknown  : 'Status Unknown',
+  };
+
+  /* Gather all badge elements (present + any added dynamically) */
+  function badges() {
+    return document.querySelectorAll('[data-gn8r-badge]');
+  }
+
+  /* Apply a state to all badges */
+  function applyState(state, extra) {
+    const label = extra && extra.users
+      ? (state === 'online' ? `Online · ${extra.users} users` : LABELS[state])
+      : LABELS[state];
+
+    badges().forEach(el => {
+      el.dataset.state = state;
+      const lbl = el.querySelector('.gn8r-label');
+      /* nav variant: show dot only, no text */
+      if (el.classList.contains('gn8r-nav')) {
+        if (lbl) lbl.textContent = '';
+      } else {
+        if (lbl) lbl.textContent = label;
+      }
+    });
+  }
+
+  /* Primary: fetch your own status endpoint */
+  async function checkViaEndpoint() {
+    const res = await fetch(GN8R_STATUS_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('non-200');
+    const data = await res.json();
+    return {
+      state : data.online === true ? 'online' : 'offline',
+      extra : { users: data.users ?? null },
+    };
+  }
+
+  /* Fallback: HEAD request to t.me/GN8RBot */
+  async function checkViaHead() {
+    const res = await fetch('https://t.me/GN8RBot', {
+      method : 'HEAD',
+      mode   : 'no-cors', /* avoids CORS error; opaque response = reachable */
+      cache  : 'no-store',
+    });
+    /* opaque (no-cors) responses have status 0 but are a network success */
+    return { state: 'online', extra: {} };
+  }
+
+  async function run() {
+    applyState('checking');
+    try {
+      let result;
+      if (GN8R_STATUS_URL) {
+        result = await checkViaEndpoint();
+      } else {
+        result = await checkViaHead();
+      }
+      applyState(result.state, result.extra);
+    } catch (err) {
+      /* HEAD fetch threw (network down, DNS fail, etc.) */
+      applyState('unknown');
+    }
+  }
+
+  /* Boot after DOM is ready */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+
+  /* Auto-refresh */
+  setInterval(run, GN8R_REFRESH_MS);
+
+  /* Expose for manual trigger: window.GN8RStatus.refresh() */
+  window.GN8RStatus = { refresh: run };
+})();
+</script>
 </body>
 </html>
 
