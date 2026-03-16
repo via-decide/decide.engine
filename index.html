@@ -695,6 +695,7 @@ section{position:relative;z-index:10}
     <a class="nav-chip nc-pb" href="#cat-personal">🙋 Personal</a>
     <a class="nav-chip nc-a" href="#cat-audio">🎙 Audio.Log</a>
     <a class="nav-chip nc-g" href="/skillhex-mission-control">🧩 Products · SkillHex</a>
+    <a class="nav-chip nc-t" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈️ Telegram Bot</a>
   </div>
   <div class="nav-right">
     <button id="install-pwa-nav">📲 Install</button>
@@ -725,6 +726,9 @@ section{position:relative;z-index:10}
   <a class="snav-item" data-target="cat-audio"><span class="snav-icon">🎙</span>Audio.Log</a>
   <a class="snav-item" data-target="cat-finance"><span class="snav-icon">📊</span>Finance</a>
   <a class="snav-item" data-target="cat-personal"><span class="snav-icon">🙋</span>Personal</a>
+  <a class="snav-item" href="https://t.me/GN8RBot" target="_blank" rel="noopener">
+  <span class="snav-icon">✈️</span>GN8RBot
+</a>
 
   <div class="snav-group">More</div>
   <a class="snav-item" data-target="about"><span class="snav-icon">📖</span>About</a>
@@ -776,6 +780,8 @@ section{position:relative;z-index:10}
       <button class="orb-chip" data-cat="blog" onclick="document.getElementById('cat-blog').scrollIntoView({behavior:'smooth'})">✍️ Blog</button>
       <button class="orb-chip" data-cat="services" onclick="document.getElementById('cat-services').scrollIntoView({behavior:'smooth'})">🎯 Services</button>
       <button class="orb-chip" data-cat="personal" onclick="document.getElementById('cat-personal').scrollIntoView({behavior:'smooth'})">🙋 Personal</button>
+      <button class="orb-chip" data-cat="tools"
+  onclick="window.open('https://t.me/GN8RBot','_blank','noopener')">✈️ Telegram Bot</button>
     </div>
   </div>
   <div class="hero-scroll"><div class="scroll-mouse"></div>scroll to explore</div>
@@ -799,6 +805,7 @@ section{position:relative;z-index:10}
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag" style="background:rgba(200,104,152,.1);color:var(--cpb)">Personal</span> Dharam Daxini 1:1 <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Bot</span> GN8RBot · Telegram <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> Alchemist <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> ONDC Demo <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag f">Finance</span> FinTrack Dashboard <span class="sep">◆</span></div>
@@ -815,6 +822,7 @@ section{position:relative;z-index:10}
     <div class="marquee-item"><span class="cat-tag c">Commerce</span> Discounts Hub <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag t">Tool</span> StudyOS <span class="sep">◆</span></div>
     <div class="marquee-item"><span class="cat-tag" style="background:rgba(200,104,152,.1);color:var(--cpb)">Personal</span> Dharam Daxini 1:1 <span class="sep">◆</span></div>
+    <div class="marquee-item"><span class="cat-tag t">Bot</span> GN8RBot · Telegram <span class="sep">◆</span></div>
   </div>
 </div>
 
@@ -1096,6 +1104,7 @@ section{position:relative;z-index:10}
       <a href="https://www.instagram.com/decide_first.engine" target="_blank">Instagram</a>
       <a href="/founder" onclick="if(window.VDRouter){event.preventDefault();VDRouter.go('founder',{overlay:true})}" role="button" tabindex="0">About</a>
       <span>· © 2025–2026 ViaDecide · Amazon Associates IN (decideengine-21)</span>
+      <a href="https://t.me/GN8RBot" target="_blank" rel="noopener">Telegram Bot</a>
     </div>
   </div>
 </section>
@@ -1869,6 +1878,24 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           <span class="pt-badge pt-badge--live">● Live</span>
         </div>
       </div>
+      <div class="pt-card" data-c="teal"
+  onclick="window.open('https://t.me/GN8RBot','_blank','noopener')"
+  role="button" tabindex="0">
+  <div class="pt-num">08</div>
+  <div class="pt-icon-row">
+    <div class="pt-icon">✈️</div>
+    <span class="pt-pill">Telegram</span>
+  </div>
+  <div class="pt-name">GN8R · AI Command Center</div>
+  <div class="pt-desc">Your AI command center, built inside Telegram. Run structured decisions, fetch briefs, and interact with ViaDecide tools without leaving the chat.</div>
+  <div class="pt-footer-row">
+    <button class="pt-card-cta"
+      onclick="event.stopPropagation();window.open('https://t.me/GN8RBot','_blank','noopener')">
+      Open Bot <span class="cta-arrow">→</span>
+    </button>
+    <span class="pt-badge pt-badge--live">● Live</span>
+  </div>
+</div>
     </div>
   </div>
 </section>
@@ -1892,6 +1919,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     <p>Once you’ve picked a starting path, use the full category catalog below. Every section is a different room in the same decision home.</p>
     <div class="eco-pills">
       <span class="eco-pill">Decision Tools</span><span class="eco-pill">Commerce</span><span class="eco-pill">Simulations</span><span class="eco-pill">Services</span><span class="eco-pill">Store</span><span class="eco-pill">Blog</span><span class="eco-pill">Finance</span><span class="eco-pill">Personal</span><span class="eco-pill">Audio</span>
+      <span class="eco-pill">Telegram Bot</span>
     </div>
   </div>
 </section>
@@ -1913,6 +1941,18 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
       <div class="tc tc-s3" onclick="openModal('/brief.html','📋','Decision Brief')" data-cat="tools" data-orbit="brief" data-intent="brief,summary,verdict" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">📋</span><div class="tc-name">Decision Brief</div><div class="tc-desc">Generate a structured, shareable decision brief from your research.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" onclick="openModal('/student-research.html','🔬','Student Research')" data-cat="tools" data-orbit="student-research" data-intent="research,student,topic" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">🔬</span><div class="tc-name">Student Research</div><div class="tc-desc">Deep research tool for academic and project work.</div><div class="tc-st live">● Live</div></div>
       <div class="tc tc-s3" onclick="openModal('/agent.html','🤖','ViaDecide Agent')" data-cat="tools" data-orbit="agent" data-intent="agent,ai,chat,assistant,decision,guide" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">✦</span><div class="tc-name">ViaDecide Agent</div><div class="tc-desc">AI-powered site assistant. Chat, plan tasks, and navigate ViaDecide tools in one widget.</div><div class="tc-st live">● Live</div></div>
+      <div class="tc tc-s3"
+  onclick="window.open('https://t.me/GN8RBot','_blank','noopener')"
+  data-cat="tools"
+  data-orbit="gn8rbot"
+  data-intent="telegram,bot,command,ai,assistant,chat,automate"
+  role="button" tabindex="0">
+  <div class="tc-arr">↗</div>
+  <span class="tc-icon">✈️</span>
+  <div class="tc-name">GN8R · Telegram Bot</div>
+  <div class="tc-desc">Your AI command center, inside Telegram. Run decisions, get briefs, and automate workflows without leaving the app.</div>
+  <div class="tc-st live">● Telegram</div>
+</div>
       <div class="tc tc-s3" onclick="openModal('/SwipeOS.html','👆','SwipeOS')" data-cat="tools" data-orbit="swipeos" data-intent="swipe,compare,product,decision" role="button" tabindex="0"><div class="tc-arr">↗</div><span class="tc-icon">👆</span><div class="tc-name">SwipeOS</div><div class="tc-desc">Swipe-driven interface for rapid product comparison.</div><div class="tc-st beta">◆ Beta</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📐</span><div class="tc-name">Decision Matrix</div><div class="tc-desc">Score and compare options with a weighted decision matrix framework.</div><div class="tc-st wip">◌ Coming</div></div>
       <div class="tc tc-s3" data-cat="tools" role="button" tabindex="0"><div class="tc-arr" style="opacity:.3">↗</div><span class="tc-icon">📡</span><div class="tc-name">Opportunity Radar</div><div class="tc-desc">Scan and surface high-signal opportunities in your market or niche.</div><div class="tc-st wip">◌ Coming</div></div>
@@ -2372,7 +2412,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
     <div class="glen-wrap">
       <span class="glen-ring ring1" aria-hidden="true"></span>
       <span class="glen-ring ring2" aria-hidden="true"></span>
-      <button class="glen-btn" type="button" aria-label="Open @DecideEngineBot Telegram">
+      <button class="glen-btn" type="button" aria-label="Open @GN8RBot on Telegram">
         <svg class="glen-avatar" viewBox="0 0 52 52" role="img" aria-label="Goku Super Saiyan Blue avatar" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="glenAura" cx="50%" cy="50%" r="60%">
@@ -2400,7 +2440,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
           </g>
         </svg>
       </button>
-      <span class="glen-label" aria-hidden="true">@DecideEngineBot</span>
+      <span class="glen-label" aria-hidden="true">@GN8RBot</span>
       <span class="glen-badge" aria-hidden="true">✈ Bot</span>
     </div>
   `;
@@ -2408,7 +2448,7 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
   const btn = mount.querySelector('.glen-btn');
   if (btn) {
     btn.addEventListener('click', () => {
-      window.open('https://t.me/DecideEngineBot', '_blank');
+      window.open('https://t.me/GN8RBot', '_blank');
     }, { passive: true });
   }
 
@@ -2443,3 +2483,4 @@ if('serviceWorker'in navigator){window.addEventListener('load',function(){naviga
 <script src="/viadecide-agent.js" defer></script>
 </body>
 </html>
+
