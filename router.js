@@ -76,6 +76,28 @@
     let _originalCloseModal  = null;
     let _closeModalTrapped   = false;
 
+    const _BASE_PATH = (() => {
+        const host = global.location.hostname.toLowerCase();
+        const segments = global.location.pathname.split('/').filter(Boolean);
+        if (host.endsWith('github.io') && segments.length > 0) {
+            return '/' + segments[0];
+        }
+        return '';
+    })();
+
+    function _withBase(path) {
+        const cleanPath = path.startsWith('/') ? path : '/' + path;
+        return _BASE_PATH + cleanPath;
+    }
+
+    function _stripBase(pathname) {
+        if (!_BASE_PATH) return pathname;
+        if (pathname === _BASE_PATH) return '/';
+        return pathname.startsWith(_BASE_PATH + '/')
+            ? pathname.slice(_BASE_PATH.length)
+            : pathname;
+    }
+
     // ─── Routes Table ─────────────────────────────────────────────────────────
     //
     //  Each entry: slug → { file, url }
@@ -331,9 +353,9 @@
 
         resolveURL(pathOrSlug) {
             const slug = _normalise(pathOrSlug);
-            if (!slug) return '/';
-            if (_table[slug]) return '/' + _table[slug].url;
-            return '/' + slug;
+            if (!slug) return _withBase('/');
+            if (_table[slug]) return _withBase('/' + _table[slug].url);
+            return _withBase('/' + slug);
         },
 
         prefetch(slug) {
@@ -392,34 +414,6 @@
         },
 
         bindBackLinks() {
-            document.querySelectorAll('[data-back]:not([data-back-bound])').forEach(el => {
-                el.setAttribute('data-back-bound', '');
-                el.addEventListener('click', e => {
-                    e.preventDefault();
-                    if (global.self !== global.top) {
-                        try {
-                            global.parent.postMessage({ type: 'vd:close-overlay' }, global.location.origin);
-                            return;
-                        } catch (_) {}
-                    }
-                    global.history.length > 1 ? global.history.back() : global.location.assign('/');
-                });
-            });
-        },
-
-        bindIframeBridge() {
-            if (global._vdIframeBridgeBound) return;
-            global._vdIframeBridgeBound = true;
-            global.addEventListener('message', event => {
-                if (event.origin !== global.location.origin) return;
-                if ((event.data || {}).type !== 'vd:close-overlay') return;
-                typeof global.closeModal === 'function'
-                    ? global.closeModal()
-                    : global.history.state?.modalOpen && global.history.back();
-            });
-        },
-
-        bindBackLinks() {
             document.querySelectorAll('[data-back]').forEach(el => {
                 if (el._routerBackBound) return;
                 el.addEventListener('click', (e) => {
@@ -437,7 +431,7 @@
                     if (window.history.length > 1) {
                         window.history.back();
                     } else {
-                        window.location.href = 'index.html';
+                        window.location.assign(_withBase('/'));
                     }
                 });
                 el._routerBackBound = true;
@@ -482,7 +476,7 @@
 
             // 1b. Pathname-based SPA fallback (v3.1 fix #14)
             if (!redirect && typeof global._modalSetup === 'function') {
-                const raw      = global.location.pathname;
+                const raw      = _stripBase(global.location.pathname);
                 const pathSlug = raw.replace(/^\/+|\/+$/g, '');
                 const normKey  = _normalise(pathSlug);
                 if (normKey && _table[normKey]) {
@@ -491,7 +485,7 @@
                     global.history.replaceState(
                         { modalOpen: false },
                         '',
-                        '/' + entry.url
+                        _withBase('/' + entry.url)
                     );
                     if (!new URLSearchParams(global.location.search).has('m')) {
                         setTimeout(() => this.openOverlay(entry.file, { title }), 200);
